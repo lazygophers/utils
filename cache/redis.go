@@ -1,11 +1,12 @@
 package cache
 
 import (
-	"github.com/elliotchance/pie/v2"
+	"errors"
 	"github.com/lazygophers/log"
 	"github.com/lazygophers/utils/anyx"
 	"github.com/lazygophers/utils/app"
 	"github.com/lazygophers/utils/atexit"
+	"github.com/lazygophers/utils/candy"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -83,11 +84,11 @@ func (p *Redis) Get(key string) (string, error) {
 }
 
 func (p *Redis) Exists(keys ...string) (bool, error) {
-	ok, err := p.cli.Exists(pie.Map(keys, func(key string) string {
+	ok, err := p.cli.Exists(candy.Map(keys, func(key string) string {
 		return app.Name + ":" + key
 	})...)
 	if err != nil {
-		if err == redis.ErrNil {
+		if errors.Is(err, redis.ErrNil) {
 			return false, nil
 		}
 
@@ -171,7 +172,7 @@ func (p *Redis) SetNxWithTimeout(key string, value interface{}, timeout time.Dur
 }
 
 func (p *Redis) Del(keys ...string) (err error) {
-	_, err = p.cli.Del(pie.Map(keys, func(key string) string {
+	_, err = p.cli.Del(candy.Map(keys, func(key string) string {
 		return app.Name + ":" + key
 	})...)
 	return

@@ -3,6 +3,7 @@ package stringx
 import (
 	"bytes"
 	"github.com/lazygophers/log"
+	"strings"
 )
 
 // Camel2Snake 驼峰转蛇形
@@ -68,4 +69,16 @@ func Shorten(s string, max int) string {
 	}
 
 	return s[:max]
+}
+
+func IsUpper[M string | rune](r M) bool {
+	return string(r) == strings.ToUpper(string(r))
+}
+
+func Reverse(s string) string {
+	var b bytes.Buffer
+	for i := len(s) - 1; i >= 0; i-- {
+		b.WriteString(string(s[i]))
+	}
+	return b.String()
 }

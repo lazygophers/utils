@@ -4,6 +4,7 @@ import (
 	"golang.org/x/exp/constraints"
 	"math"
 	"math/rand"
+	"sort"
 )
 
 func Max[T constraints.Ordered](ss []T) (max T) {
@@ -235,4 +236,24 @@ func Shuffle[T any](ss []T) {
 		j := rand.Intn(i + 1)
 		ss[i], ss[j] = ss[j], ss[i]
 	}
+}
+
+func SortUsing[T any](ss []T, less func(a, b T) bool) []T {
+	if len(ss) < 2 {
+		return ss
+	}
+
+	sorted := make([]T, len(ss))
+	copy(sorted, ss)
+	sort.Slice(sorted, func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	})
+
+	return sorted
+}
+
+func Sort[T constraints.Ordered](ss []T) []T {
+	return SortUsing(ss, func(a, b T) bool {
+		return a < b
+	})
 }

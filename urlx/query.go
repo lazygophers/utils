@@ -1,7 +1,7 @@
 package urlx
 
 import (
-	"github.com/elliotchance/pie/v2"
+	"github.com/lazygophers/utils/candy"
 	"net/url"
 )
 
@@ -17,7 +17,7 @@ func SortQuery(query url.Values) url.Values {
 	}
 
 	nq := url.Values{}
-	for _, key := range pie.Sort(keys) {
+	for _, key := range candy.Sort(keys) {
 		nq.Set(key, query.Get(key))
 	}
 

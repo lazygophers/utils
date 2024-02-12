@@ -1,5 +1,7 @@
 package app
 
+var Organization = "lazygophers"
+
 var Name string
 
 var Version string
