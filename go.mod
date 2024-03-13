@@ -8,7 +8,6 @@ require (
 	github.com/andybalholm/brotli v1.1.0
 	github.com/beefsack/go-rate v0.0.0-20220214233405-116f4ca011a0
 	github.com/bytedance/sonic v1.10.2
-	github.com/elliotchance/pie/v2 v2.8.0
 	github.com/garyburd/redigo v1.6.0
 	github.com/glebarez/sqlite v1.10.0
 	github.com/go-playground/validator/v10 v10.17.0
@@ -107,7 +106,7 @@ require (
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240205150955-31a09d347014 // indirect
 	google.golang.org/grpc v1.61.0 // indirect
-	google.golang.org/protobuf v1.32.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.7.2 // indirect
 	modernc.org/sqlite v1.28.0 // indirect
