@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/lazygophers/log"
 	"strings"
+	"unicode"
 )
 
 // Camel2Snake 驼峰转蛇形
@@ -36,6 +37,46 @@ func Snake2Camel(s string) string {
 			} else {
 				b.WriteString(string(v))
 			}
+		}
+	}
+	return b.String()
+}
+
+// ToSnake 蛇形
+func ToSnake(s string) string {
+	var b bytes.Buffer
+	for i, v := range s {
+		if unicode.IsLetter(v) {
+			if unicode.IsUpper(v) {
+				if i > 0 {
+					b.WriteRune('_')
+				}
+				b.WriteRune(unicode.ToLower(v))
+			} else {
+				b.WriteRune(v)
+			}
+		} else {
+			b.WriteRune(v)
+		}
+	}
+
+	return b.String()
+}
+
+// ToCamel 转驼峰
+func ToCamel(s string) string {
+	var b bytes.Buffer
+	upper := true
+	for _, v := range s {
+		if unicode.IsLetter(v) {
+			if upper {
+				b.WriteRune(unicode.ToUpper(v))
+				upper = false
+			} else {
+				b.WriteRune(v)
+			}
+		} else {
+			upper = true
 		}
 	}
 	return b.String()

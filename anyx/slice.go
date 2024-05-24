@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"golang.org/x/exp/constraints"
 	"reflect"
-
-	"github.com/lazygophers/log"
 )
 
 func pluck(list interface{}, fieldName string, deferVal interface{}) interface{} {
@@ -69,7 +67,6 @@ func pluck(list interface{}, fieldName string, deferVal interface{}) interface{}
 
 			return result.Interface()
 		default:
-			log.Debugf("pluck %s", evs.Kind())
 			panic("list element type is not supported")
 		}
 
