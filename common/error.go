@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/lazygophers/log"
+	"golang.org/x/exp/constraints"
 	"gopkg.in/yaml.v3"
 	"strings"
 	"time"
@@ -201,7 +202,7 @@ func GetErrorMsgWithCode(code int32) string {
 	return ""
 }
 
-func NewError[M int | int32](code M) *Error {
+func NewError[M constraints.Integer](code M) *Error {
 	if err, ok := errMap[int32(code)]; ok {
 		return err
 	}
@@ -209,7 +210,7 @@ func NewError[M int | int32](code M) *Error {
 	return NewErrorWithMsg(code, "")
 }
 
-func NewErrorWithMsg[M int | int32](code M, format string, a ...interface{}) *Error {
+func NewErrorWithMsg[M constraints.Integer](code M, format string, a ...interface{}) *Error {
 	return &Error{
 		Code: int32(code),
 		Msg:  fmt.Sprintf(format, a...),
