@@ -18,6 +18,7 @@ require (
 	github.com/jchavannes/go-pgp v0.0.0-20200131171414-e5978e6d02b4
 	github.com/lazygophers/log v0.0.0-20240212073126-2e95edc01d39
 	github.com/mcuadros/go-defaults v1.2.0
+	github.com/pelletier/go-toml/v2 v2.2.2
 	github.com/pkg/errors v0.9.1
 	github.com/pterm/pterm v0.12.79
 	github.com/shomali11/xredis v0.0.0-20190608143638-0b54a6bbf40b

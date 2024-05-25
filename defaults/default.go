@@ -5,32 +5,13 @@ import (
 	"strconv"
 )
 
-func SetDefaults(value interface{}) error {
-	vv := reflect.ValueOf(value)
-	switch vv.Type().Kind() {
-	case reflect.Ptr:
-		// do nothing
-	case reflect.Slice:
-		return nil
-	case reflect.Map:
-		return nil
-	default:
-		panic("invalid out type, not ptr")
-	}
-
-	for vv.Kind() == reflect.Ptr {
+func setDefault(vv reflect.Value) error {
+	for vv.Type().Kind() == reflect.Ptr {
 		vv = vv.Elem()
 	}
 
-	switch vv.Type().Kind() {
-	case reflect.Struct:
-		// do nothing
-	case reflect.Slice:
-		return nil
-	case reflect.Map:
-		return nil
-	default:
-		panic("invalid out elem type, not struct")
+	if vv.Type().Kind() != reflect.Struct {
+		panic("value must be a struct or ptr")
 	}
 
 	for i := 0; i < vv.NumField(); i++ {
@@ -57,7 +38,7 @@ func SetDefaults(value interface{}) error {
 			reflect.Uint16,
 			reflect.Uint32,
 			reflect.Uint64:
-			if defaultStr != "" && field.Uint() != 0 {
+			if defaultStr != "" && field.Uint() == 0 {
 				val, err := strconv.ParseUint(defaultStr, 10, 64)
 				if err == nil {
 					field.SetUint(val)
@@ -69,23 +50,54 @@ func SetDefaults(value interface{}) error {
 			reflect.Int16,
 			reflect.Int32,
 			reflect.Int64:
-			if defaultStr != "" && field.Int() != 0 {
+			if defaultStr != "" && field.Int() == 0 {
 				val, err := strconv.ParseInt(defaultStr, 10, 64)
 				if err == nil {
 					field.SetInt(val)
 				}
 			}
 
+		case reflect.Float32,
+			reflect.Float64:
+			if defaultStr != "" && field.Float() == 0 {
+				val, err := strconv.ParseFloat(defaultStr, 64)
+				if err == nil {
+					field.SetFloat(val)
+				}
+			}
+
+		case reflect.Bool:
+			if defaultStr != "" && field.Bool() == false {
+				val, err := strconv.ParseBool(defaultStr)
+				if err == nil {
+					field.SetBool(val)
+				}
+			}
+
+		case reflect.Ptr, reflect.Struct:
+			// do nothing
+			err := setDefault(field)
+			if err != nil {
+				return err
+			}
+
 		case reflect.Map:
 		// do nothing
-		case reflect.Ptr:
-		// do nothing
+
+		case reflect.Interface:
+			// do nothing
+
 		case reflect.Slice:
 			// do nothing
+
 		default:
 			panic("unknown kind " + field.Kind().String())
 		}
 	}
 
 	return nil
+}
+
+func SetDefaults(value interface{}) error {
+	return setDefault(reflect.ValueOf(value))
 }

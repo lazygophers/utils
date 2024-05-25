@@ -5,12 +5,12 @@ import (
 	"testing"
 )
 
-type TestStruct struct {
+type A struct {
 	Name string `default:"name"`
 }
 
-func TestSetDefault(t *testing.T) {
-	var s TestStruct
+func TestStruct(t *testing.T) {
+	var s A
 	err := defaults.SetDefaults(&s)
 	if err != nil {
 		t.Errorf("err:%v", err)
