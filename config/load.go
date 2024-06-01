@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/lazygophers/log"
 	"github.com/lazygophers/utils"
-	"github.com/lazygophers/utils/app"
 	"github.com/lazygophers/utils/json"
 	"github.com/lazygophers/utils/osx"
 	"github.com/lazygophers/utils/runtime"
@@ -110,17 +109,17 @@ func LoadConfig(c any, paths ...string) error {
 		configPath = tryFindConfigPath(runtime.Pwd())
 	}
 
-	// NOTE: 从用户目录中获取
-	if configPath == "" {
-		log.Warnf("Try to load config from %s", runtime.UserHomeDir())
-		configPath = tryFindConfigPath(filepath.Join(runtime.UserHomeDir(), app.Name))
-	}
-
-	// NOTE: 从系统目录中获取
-	if configPath == "" {
-		log.Warnf("Try to load config from %s", runtime.UserConfigDir())
-		configPath = tryFindConfigPath(filepath.Join(runtime.UserConfigDir(), app.Name))
-	}
+	//// NOTE: 从用户目录中获取
+	//if configPath == "" {
+	//	log.Warnf("Try to load config from %s", runtime.UserHomeDir())
+	//	configPath = tryFindConfigPath(filepath.Join(runtime.UserHomeDir(), app.Name))
+	//}
+	//
+	//// NOTE: 从系统目录中获取
+	//if configPath == "" {
+	//	log.Warnf("Try to load config from %s", runtime.UserConfigDir())
+	//	configPath = tryFindConfigPath(filepath.Join(runtime.UserConfigDir(), app.Name))
+	//}
 
 	// NOTE: 从程序目录中获取
 	if configPath == "" {

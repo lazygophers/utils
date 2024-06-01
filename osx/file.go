@@ -2,6 +2,7 @@ package osx
 
 import (
 	"io"
+	"io/fs"
 	"os"
 )
 
@@ -27,6 +28,15 @@ func IsFile(path string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func FsHasFile(fs fs.FS, path string) bool {
+	f, err := fs.Open(path)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+	return true
 }
 
 func RenameForce(oldpath, newpath string) (err error) {
@@ -63,21 +73,6 @@ func Copy(src, dst string) error {
 	defer dstFile.Close()
 
 	_, err = io.Copy(dstFile, srcFile)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func Append(path string, b []byte) error {
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND, 0)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = file.WriteString(string(b))
 	if err != nil {
 		return err
 	}
