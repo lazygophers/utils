@@ -1,25 +1,10 @@
 package network
 
 import (
-	"github.com/valyala/fasthttp"
 	"net"
 	"net/http"
 	"strings"
 )
-
-func RealIpFromFasthttp(ctx *fasthttp.RequestCtx) (ip string) {
-	header := http.Header{}
-	ctx.Request.Header.VisitAll(func(key, value []byte) {
-		header.Set(string(key), string(value))
-	})
-
-	ip = RealIpFromHeader(header)
-	if ip == "" {
-		ip = ctx.RemoteIP().String()
-	}
-
-	return
-}
 
 func RealIpFromHeader(header http.Header) string {
 	val := header.Get("Cf-Connecting-Ip")
