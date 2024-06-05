@@ -300,3 +300,17 @@ func Chunk[T any](ss []T, size int) (ret [][]T) {
 
 	return
 }
+
+func Index[T constraints.Ordered](ss []T, sub T) int {
+	if len(ss) == 0 {
+		return -1
+	}
+
+	for i, s := range ss {
+		if s == sub {
+			return i
+		}
+	}
+
+	return -1
+}
