@@ -1,6 +1,8 @@
 package json
 
-import "os"
+import (
+	"os"
+)
 
 func UnmarshalFromFile(filename string, v any) error {
 	file, err := os.Open(filename)

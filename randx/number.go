@@ -9,6 +9,10 @@ func Intn(n int) int {
 	return rand.New(rand.NewSource(time.Now().UnixNano())).Intn(n)
 }
 
+func Int() int {
+	return rand.New(rand.NewSource(time.Now().UnixNano())).Int()
+}
+
 // IntnRange
 // [min, max]
 func IntnRange(min, max int) int {
@@ -23,6 +27,10 @@ func IntnRange(min, max int) int {
 
 func Int64n(n int64) int64 {
 	return rand.New(rand.NewSource(time.Now().UnixNano())).Int63n(n)
+}
+
+func Int64() int64 {
+	return rand.New(rand.NewSource(time.Now().UnixNano())).Int63()
 }
 
 // Int64nRange

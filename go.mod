@@ -7,10 +7,10 @@ require (
 	github.com/agiledragon/gomonkey/v2 v2.11.0
 	github.com/andybalholm/brotli v1.1.0
 	github.com/beefsack/go-rate v0.0.0-20220214233405-116f4ca011a0
-	github.com/bytedance/sonic v1.11.7
+	github.com/bytedance/sonic v1.11.8
 	github.com/garyburd/redigo v1.6.4
 	github.com/glebarez/sqlite v1.11.0
-	github.com/go-playground/validator/v10 v10.20.0
+	github.com/go-playground/validator/v10 v10.21.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/gookit/color v1.5.4
@@ -25,8 +25,8 @@ require (
 	github.com/valyala/fasthttp v1.52.0
 	go.etcd.io/bbolt v1.3.9
 	go.uber.org/atomic v1.11.0
-	golang.org/x/crypto v0.23.0
-	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842
+	golang.org/x/crypto v0.24.0
+	golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/mysql v1.5.6
 	gorm.io/driver/postgres v1.5.7
@@ -99,12 +99,12 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/oauth2 v0.19.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/term v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/term v0.21.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/api v0.172.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
