@@ -30,6 +30,14 @@ func IsFile(path string) bool {
 	return !info.IsDir()
 }
 
+func Exist(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func FsHasFile(fs fs.FS, path string) bool {
 	f, err := fs.Open(path)
 	if err != nil {
