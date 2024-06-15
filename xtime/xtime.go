@@ -1,6 +1,8 @@
 package xtime
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	Nanosecond  = time.Nanosecond
@@ -12,8 +14,15 @@ const (
 	Hour        = time.Hour
 	HalfDay     = time.Hour * 12
 	Day         = time.Hour * 24
-	Week        = Day * 7
-	Month       = Day * 30
-	Quarter     = Day * 91
-	Year        = Day * 365
+
+	WorkDayWeek  = Day * 5
+	ResetDayWeek = Day * 2
+	Week         = Day * 7
+
+	WorkDayMonth  = Day*21 + HalfDay
+	ResetDayMonth = Day*8 + HalfDay
+	Month         = Day * 30
+
+	QUARTER = Day * 91
+	Year    = Day * 365
 )

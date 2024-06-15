@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"github.com/lazygophers/log"
+	"github.com/lazygophers/utils/app"
 	"os"
 	"path/filepath"
 	"runtime/debug"
@@ -78,4 +79,9 @@ func UserConfigDir() string {
 func UserCacheDir() string {
 	execPath, _ := os.UserCacheDir()
 	return execPath
+}
+
+func LazyConfigDir() string {
+	path, _ := os.UserConfigDir()
+	return filepath.Join(path, app.Organization)
 }
