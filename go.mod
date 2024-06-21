@@ -10,6 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.1.1
 	github.com/jchavannes/go-pgp v0.0.0-20200131171414-e5978e6d02b4
+	github.com/jinzhu/now v1.1.5
 	github.com/lazygophers/log v0.0.0-20240212073126-2e95edc01d39
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/pelletier/go-toml/v2 v2.2.2
@@ -52,6 +53,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
+	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.uber.org/multierr v1.11.0 // indirect

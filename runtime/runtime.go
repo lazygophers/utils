@@ -85,3 +85,8 @@ func LazyConfigDir() string {
 	path, _ := os.UserConfigDir()
 	return filepath.Join(path, app.Organization)
 }
+
+func LazyCacheDir() string {
+	path, _ := os.UserCacheDir()
+	return filepath.Join(path, app.Organization)
+}

@@ -211,8 +211,14 @@ func Map[T, U any](ss []T, f func(T) U) (ret []U) {
 }
 
 func Contains[T constraints.Ordered](ss []T, s T) bool {
+	return ContainsUsing(ss, func(v T) bool {
+		return s == v
+	})
+}
+
+func ContainsUsing[T any](ss []T, f func(v T) bool) bool {
 	for _, v := range ss {
-		if v == s {
+		if f(v) {
 			return true
 		}
 	}

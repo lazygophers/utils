@@ -59,6 +59,7 @@ func ToString(val interface{}) string {
 		return ""
 	case error:
 		return x.Error()
+
 	default:
 		buf, err := json.Marshal(x)
 		if err != nil {
