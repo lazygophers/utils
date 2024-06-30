@@ -891,6 +891,25 @@ func MapKeysString(m interface{}) []string {
 	return result
 }
 
+func MapKeysUint32(m interface{}) []uint32 {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+
+	keyType := t.Type().Key()
+	if keyType.Kind() != reflect.Uint32 {
+		panic("map key type required string")
+	}
+
+	result := make([]uint32, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, v.Uint())
+	}
+
+	return result
+}
+
 func MapKeysUint64(m interface{}) []uint64 {
 	t := reflect.ValueOf(m)
 	if t.Kind() != reflect.Map {
@@ -905,6 +924,25 @@ func MapKeysUint64(m interface{}) []uint64 {
 	result := make([]uint64, 0, t.Len())
 	for _, v := range t.MapKeys() {
 		result = append(result, v.Uint())
+	}
+
+	return result
+}
+
+func MapKeysInt32(m interface{}) []int32 {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+
+	keyType := t.Type().Key()
+	if keyType.Kind() != reflect.Int32 {
+		panic("map key type required string")
+	}
+
+	result := make([]int32, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, int32(v.Int()))
 	}
 
 	return result
