@@ -904,7 +904,7 @@ func MapKeysUint32(m interface{}) []uint32 {
 
 	result := make([]uint32, 0, t.Len())
 	for _, v := range t.MapKeys() {
-		result = append(result, v.Uint())
+		result = append(result, uint32(v.Uint()))
 	}
 
 	return result
