@@ -323,6 +323,48 @@ func KeyByInt64[M any](list []*M, fieldName string) map[int64]*M {
 	return m
 }
 
+func KeyByString[M any](list []*M, fieldName string) map[string]*M {
+	if len(list) == 0 {
+		return map[string]*M{}
+	}
+
+	lv := reflect.ValueOf(list)
+
+	ev := lv.Type().Elem()
+	evs := ev
+	for evs.Kind() == reflect.Ptr {
+		evs = evs.Elem()
+	}
+
+	field, ok := evs.FieldByName(fieldName)
+	if !ok {
+		panic(fmt.Sprintf("field %s not found", fieldName))
+	}
+
+	m := make(map[string]*M, lv.Len())
+	for i := 0; i < lv.Len(); i++ {
+		elem := lv.Index(i)
+		elemStruct := elem
+		for elemStruct.Kind() == reflect.Ptr {
+			elemStruct = elemStruct.Elem()
+		}
+
+		// 如果是nil的，意味着key和value同时不存在，所以跳过不处理
+		if !elemStruct.IsValid() {
+			continue
+		}
+
+		if elemStruct.Kind() != reflect.Struct {
+			panic("element not struct")
+		}
+
+		m[elemStruct.FieldByIndex(field.Index).String()] = elem.Interface().(*M)
+		//m.SetMapIndex(elemStruct.FieldByIndex(field.Index), elem)
+	}
+
+	return m
+}
+
 func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
 	m := make(map[M]bool, len(list))
 

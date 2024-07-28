@@ -164,6 +164,16 @@ func Each[T any](ss []T, f func(T)) {
 	}
 }
 
+func EachStopWithError[T any](ss []T, f func(T) (err error)) (err error) {
+	for _, s := range ss {
+		err = f(s)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func Sort[T constraints.Ordered](ss []T) []T {
 	if len(ss) < 2 {
 		return ss
@@ -319,4 +329,68 @@ func Index[T constraints.Ordered](ss []T, sub T) int {
 	}
 
 	return -1
+}
+
+// Diff
+//
+//	added: ss 不存在 against 存在
+//	removed: ss 存在 against 不存在
+func Diff[T constraints.Ordered](ss []T, against []T) (added, removed []T) {
+	diffOneWay := func(ss1, ss2raw []T) (result []T) {
+		set := make(map[T]struct{}, len(ss1))
+
+		for _, s := range ss1 {
+			set[s] = struct{}{}
+		}
+
+		for _, s := range ss2raw {
+			if _, ok := set[s]; ok {
+				delete(set, s)
+			} else {
+				result = append(result, s)
+			}
+		}
+		return
+	}
+
+	added = diffOneWay(ss, against)
+	removed = diffOneWay(against, ss)
+
+	return
+}
+
+// Miss ss 存在但是 against 不存在
+func Miss[T constraints.Ordered](against []T, ss []T) (result []T) {
+	set := make(map[T]struct{}, len(ss))
+
+	for _, s := range ss {
+		set[s] = struct{}{}
+	}
+
+	for _, s := range against {
+		if _, ok := set[s]; ok {
+			delete(set, s)
+		} else {
+			result = append(result, s)
+		}
+	}
+	return
+}
+
+// Spare ss 不存在但是 against 存在
+func Spare[T constraints.Ordered](ss []T, against []T) (result []T) {
+	set := make(map[T]struct{}, len(ss))
+
+	for _, s := range ss {
+		set[s] = struct{}{}
+	}
+
+	for _, s := range against {
+		if _, ok := set[s]; ok {
+			delete(set, s)
+		} else {
+			result = append(result, s)
+		}
+	}
+	return
 }

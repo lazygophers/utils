@@ -25,12 +25,12 @@ func TestDeepCopy(t *testing.T) {
 			},
 		},
 		Map: map[string]*DeepStruct{
-			"a1": {
-				Name: "a1",
+			"a2": {
+				Name: "a3",
 			},
 		},
 		Deep: &DeepStruct{
-			Name: "a2",
+			Name: "a4",
 		},
 	}
 
@@ -44,6 +44,6 @@ func TestDeepCopy(t *testing.T) {
 
 	anyx.DeepCopy(a, b)
 
-	t.Logf("%+v", a)
-	t.Logf("%+v", b)
+	t.Logf("%#v", a)
+	t.Logf("%#v", b)
 }

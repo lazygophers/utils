@@ -1,6 +1,9 @@
 package anyx
 
-import "reflect"
+import (
+	"github.com/lazygophers/log"
+	"reflect"
+)
 
 func deepValueEqual(v1, v2 reflect.Value) bool {
 	if !v1.IsValid() || !v2.IsValid() {
@@ -109,92 +112,137 @@ func deepCopyValue(v1, v2 reflect.Value) {
 		return
 	}
 
-	if v1.Type() != v2.Type() {
+	for v1.Kind() == reflect.Ptr {
+		v1 = v1.Elem()
+	}
+
+	for v2.Kind() == reflect.Ptr {
+		v2 = v2.Elem()
+	}
+
+	if v1.Kind() == reflect.Invalid {
 		return
 	}
 
+	if v2.Kind() == reflect.Invalid {
+		return
+	}
+
+	if v1.Kind() != v2.Kind() {
+		log.Panicf("source kind is %s different than destination kind %s", v1.Kind(), v2.Kind())
+	}
+
+	//if v2.Type() != v1.Type() {
+	//	log.Panicf("source type is %s different than destination type %s", v1.Type(), v2.Type())
+	//}
+
 	switch v1.Kind() {
 	case reflect.Map:
-		if v1.IsNil() || v2.IsNil() {
-			v2.Set(v1)
+		if v1.IsNil() {
+			v2.SetZero()
 			return
 		}
 
-		if v1.UnsafePointer() == v2.UnsafePointer() {
-			return
-		}
-
-		v2.Set(reflect.MakeMap(v1.Type()))
 		for _, k := range v1.MapKeys() {
 			val1 := v1.MapIndex(k)
-			val2 := reflect.New(v2.Type().Elem()).Elem()
+			val2 := v2.MapIndex(k)
+
+			if !val1.IsValid() || !val2.IsValid() {
+				continue
+			}
+
+			if val2.IsNil() || val2.IsZero() {
+				v2.SetMapIndex(k, reflect.New(val2.Type().Elem()).Elem())
+				val2 = v2.MapIndex(k)
+			}
+
 			deepCopyValue(val1, val2)
-			v2.SetMapIndex(k, val2)
 		}
 
 	case reflect.Slice:
-		if v1.IsNil() || v2.IsNil() {
-			v2.Set(v1)
+		if v1.IsNil() {
+			//v2.SetZero()
 			return
 		}
 
-		if v1.UnsafePointer() == v2.UnsafePointer() {
-			return
-		}
-
-		v2.Set(reflect.MakeSlice(v1.Type(), v1.Len(), v1.Len()))
 		for i := 0; i < v1.Len(); i++ {
 			val1 := v1.Index(i)
-			val2 := reflect.New(v2.Type().Elem()).Elem()
-			deepCopyValue(val1, val2)
-			v2.Index(i).Set(val2)
-		}
+			for v2.Len() <= i {
+				v2 = reflect.Append(v2, reflect.New(v2.Type().Elem()).Elem())
+			}
+			val2 := v2.Index(i)
 
-	case reflect.Ptr:
-		if v1.IsNil() || v2.IsNil() {
-			v2.Set(v1)
-			return
-		}
+			if !val1.IsValid() || !val2.IsValid() {
+				continue
+			}
 
-		if v1.UnsafePointer() == v2.UnsafePointer() {
-			return
+			val2.Set(reflect.New(val2.Type().Elem()))
+			deepCopyValue(val1, val2.Elem())
 		}
-
-		val2 := reflect.New(v2.Type().Elem()).Elem()
-		deepCopyValue(v1.Elem(), val2)
-		v2.Elem().Set(val2)
 
 	case reflect.Array:
-		if v1.UnsafePointer() == v2.UnsafePointer() {
-			return
-		}
-
 		for i := 0; i < v1.Len(); i++ {
 			val1 := v1.Index(i)
-			val2 := reflect.New(v2.Type().Elem()).Elem()
-			deepCopyValue(val1, val2)
-			v2.Index(i).Set(val2)
+			val2 := v2.Index(i)
+
+			if !val1.IsValid() || !val2.IsValid() {
+				continue
+			}
+
+			if val2.Kind() == reflect.Array {
+				deepCopyValue(val1, val2)
+			} else {
+				val2.Set(val1)
+			}
 		}
 
 	case reflect.Struct:
 		for i := 0; i < v1.NumField(); i++ {
 			val1 := v1.Field(i)
-			val2 := reflect.New(v2.Field(i).Type()).Elem()
+			val2 := v2.Field(i)
+
+			if !val1.IsValid() || !val2.IsValid() {
+				continue
+			}
+
 			deepCopyValue(val1, val2)
-			v2.Field(i).Set(val2)
 		}
 
-	case reflect.Interface:
-		if v1.IsNil() || v2.IsNil() {
-			v2.Set(v1)
-			return
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		if v2.IsZero() && v2.CanSet() {
+			v2.SetInt(v1.Int())
 		}
 
-		val2 := reflect.New(v2.Elem().Type()).Elem()
-		deepCopyValue(v1.Elem(), val2)
-		v2.Elem().Set(val2)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		if v2.IsZero() && v2.CanSet() {
+			v2.SetUint(v1.Uint())
+		}
+
+	case reflect.Float32, reflect.Float64:
+		if v2.IsZero() && v2.CanSet() {
+			v2.SetFloat(v1.Float())
+		}
+
+	case reflect.Complex64, reflect.Complex128:
+		if v2.IsZero() && v2.CanSet() {
+			v2.SetComplex(v1.Complex())
+		}
+
+	case reflect.String:
+		if v2.IsZero() && v2.CanSet() {
+			v2.SetString(v1.String())
+		}
+
+	case reflect.Bool:
+		if !v2.Bool() {
+			v2.SetBool(v1.Bool())
+		}
+
+	case reflect.Invalid:
+		// do nothing
 
 	default:
+		log.Panicf("unhandled type %s", v1.Kind())
 		v2.Set(v1)
 	}
 }

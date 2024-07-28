@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"github.com/lazygophers/utils/json"
 	"math"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 func ToString(val interface{}) string {
@@ -883,4 +885,180 @@ func ToUint64(val interface{}) uint64 {
 	default:
 		return 0
 	}
+}
+
+func ToMapStringAny(v interface{}) map[string]interface{} {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[string]interface{}{}
+	}
+
+	m := make(map[string]any)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToString(mg.Key().Interface())] = mg.Value().Interface()
+	}
+
+	return m
+}
+
+func ToStringSlice(val interface{}, seqs ...string) []string {
+	var seq string
+	if len(seqs) > 0 {
+		seq = seqs[0]
+	}
+
+	switch x := val.(type) {
+	case []bool:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			if v {
+				ss = append(ss, "1")
+			} else {
+				ss = append(ss, "0")
+			}
+		}
+		return ss
+
+	case []int:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			ss = append(ss, strconv.Itoa(v))
+		}
+		return ss
+
+	case []int8:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			ss = append(ss, strconv.FormatInt(int64(v), 10))
+		}
+		return ss
+
+	case []int16:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			ss = append(ss, strconv.FormatInt(int64(v), 10))
+		}
+
+	case []int32:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			ss = append(ss, strconv.FormatInt(int64(v), 10))
+		}
+		return ss
+
+	case []int64:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			ss = append(ss, strconv.FormatInt(v, 10))
+		}
+		return ss
+
+	case []uint:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			ss = append(ss, strconv.FormatUint(uint64(v), 10))
+		}
+		return ss
+
+	case []uint16:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			ss = append(ss, strconv.FormatUint(uint64(v), 10))
+		}
+		return ss
+
+	case []uint32:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			ss = append(ss, strconv.FormatUint(uint64(v), 10))
+		}
+		return ss
+
+	case []uint64:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			ss = append(ss, strconv.FormatUint(v, 10))
+		}
+		return ss
+
+	case []float32:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			if math.Floor(float64(v)) == float64(v) {
+				ss = append(ss, strconv.FormatInt(int64(v), 10))
+			} else {
+				ss = append(ss, strconv.FormatFloat(float64(v), 'f', -1, 32))
+			}
+		}
+		return ss
+
+	case []float64:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			if math.Floor(v) == (v) {
+				ss = append(ss, strconv.FormatInt(int64(v), 10))
+			} else {
+				ss = append(ss, strconv.FormatFloat(v, 'f', -1, 32))
+			}
+		}
+		return ss
+
+	case []string:
+		return x
+
+	case []byte:
+		if seq == "" {
+			return []string{toString(x)}
+		}
+
+		return strings.Split(toString(x), seq)
+
+	case string:
+		if seq == "" {
+			return []string{x}
+		}
+
+		return strings.Split(x, seq)
+
+	case []interface{}:
+		ss := make([]string, 0, len(x))
+		for _, v := range x {
+			ss = append(ss, ToString(v))
+		}
+		return ss
+
+	default:
+		return nil
+
+	}
+
+	return nil
+}
+
+func ToMapStringString(v interface{}) map[string]string {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[string]string{}
+	}
+
+	m := make(map[string]string)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToString(mg.Key().Interface())] = ToString(mg.Value().Interface())
+	}
+
+	return m
+}
+
+func toString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
+}
+
+func toBytes(s string) []byte {
+	return *(*[]byte)(unsafe.Pointer(&s))
 }

@@ -5,7 +5,16 @@ import (
 	"github.com/lazygophers/log"
 	"strings"
 	"unicode"
+	"unsafe"
 )
+
+func ToString(b []byte) string {
+	return *(*string)(unsafe.Pointer(&b))
+}
+
+func ToBytes(s string) []byte {
+	return *(*[]byte)(unsafe.Pointer(&s))
+}
 
 // Camel2Snake 驼峰转蛇形
 func Camel2Snake(s string) string {
