@@ -204,6 +204,14 @@ func Shorten(s string, max int) string {
 	return s[:max]
 }
 
+func ShortenShow(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+
+	return s[:max] + "..."
+}
+
 func IsUpper[M string | rune](r M) bool {
 	return string(r) == strings.ToUpper(string(r))
 }
