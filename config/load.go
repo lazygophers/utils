@@ -82,7 +82,25 @@ func tryFindConfigPath(baseDir string) string {
 
 var configPath string
 
-func LoadConfig(c any, paths ...string) error {
+func LoadConfig(c any, paths ...string) (err error) {
+	err = LoadConfigSkipValidate(c, paths...)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	err = utils.Validate(c)
+	if err != nil {
+		log.Errorf("err:%v", err)
+		return err
+	}
+
+	log.Info("load config success")
+
+	return nil
+}
+
+func LoadConfigSkipValidate(c any, paths ...string) error {
 	// 依次确认配置文件的位置
 	if len(paths) > 0 {
 		for _, path := range paths {
@@ -148,18 +166,35 @@ func LoadConfig(c any, paths ...string) error {
 			}
 		} else {
 			log.Errorf("unsupported config file format:%v", ext)
-			log.Errorf("unsupported config file format:%v", ext)
 			return fmt.Errorf("unsupported config file format:%v", ext)
 		}
 	}
 
-	err = utils.Validate(c)
-	if err != nil {
-		log.Errorf("err:%v", err)
-		return err
-	}
-
 	log.Info("load config success")
+
+	return nil
+}
+
+func SetConfig(c any) error {
+	ext := filepath.Ext(configPath)
+	if supported, ok := supportedExtMap[ext]; ok {
+		file, err := os.OpenFile(configPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return err
+		}
+		defer file.Close()
+
+		err = supported.Marshaler(file, c)
+		if err != nil {
+			log.Errorf("err:%v", err)
+			return nil
+		}
+
+	} else {
+		log.Errorf("unsupported config file format:%v", ext)
+		return fmt.Errorf("unsupported config file format:%v", ext)
+	}
 
 	return nil
 }

@@ -51,6 +51,29 @@ func Snake2Camel(s string) string {
 	return b.String()
 }
 
+// Snake2SmallCamel 蛇形转小驼峰
+func Snake2SmallCamel(s string) string {
+	var b bytes.Buffer
+	upper := false
+	isFirst := true
+	for _, v := range s {
+		if v == '_' {
+			upper = true
+		} else {
+			if isFirst {
+				isFirst = false
+				b.WriteRune(unicode.ToLower(v))
+			} else if upper {
+				b.WriteString(string(v - 32))
+				upper = false
+			} else {
+				b.WriteString(string(v))
+			}
+		}
+	}
+	return b.String()
+}
+
 // ToSnake 蛇形
 func ToSnake(s string) string {
 	var b bytes.Buffer
@@ -154,20 +177,19 @@ func ToDot(s string) string {
 func ToSmallCamel(s string) string {
 	var b bytes.Buffer
 	upper := false
-	for idx, v := range s {
-		if idx == 0 {
-			b.WriteRune(unicode.ToLower(v))
-			continue
-		}
-
+	isFirst := true
+	for _, v := range s {
 		if unicode.IsLetter(v) || unicode.IsNumber(v) {
-			if upper {
+			if isFirst {
+				isFirst = false
+				b.WriteRune(unicode.ToLower(v))
+			} else if upper {
 				b.WriteRune(unicode.ToUpper(v))
 				upper = false
 			} else {
 				b.WriteRune(v)
 			}
-		} else {
+		} else if !isFirst {
 			upper = true
 		}
 	}
@@ -212,8 +234,18 @@ func ShortenShow(s string, max int) string {
 	return s[:max] + "..."
 }
 
-func IsUpper[M string | rune](r M) bool {
+func IsUpper[M string | []rune](r M) bool {
 	return string(r) == strings.ToUpper(string(r))
+}
+
+func IsDigit[M string | []rune](r M) bool {
+	for _, i := range []rune(r) {
+		if !unicode.IsDigit(i) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func Reverse(s string) string {

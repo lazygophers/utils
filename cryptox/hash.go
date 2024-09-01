@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
+	"hash/fnv"
 	"io"
 	"os"
 )
@@ -168,4 +169,28 @@ func Sha512_224WithReader(file io.Reader) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("%x", hash.Sum(nil)), nil
+}
+
+func Hash32[M string | []byte](s M) uint32 {
+	h := fnv.New32()
+	h.Write([]byte(s))
+	return h.Sum32()
+}
+
+func Hash32a[M string | []byte](s M) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
+}
+
+func Hash64[M string | []byte](s M) uint64 {
+	h := fnv.New64()
+	h.Write([]byte(s))
+	return h.Sum64()
+}
+
+func Hash64a[M string | []byte](s M) uint64 {
+	h := fnv.New64a()
+	h.Write([]byte(s))
+	return h.Sum64()
 }

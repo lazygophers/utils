@@ -25,4 +25,6 @@ const (
 
 	QUARTER = Day * 91
 	Year    = Day * 365
+	Decade  = Year*10 + Day*2
+	Century = Year*100 + Day*25
 )
