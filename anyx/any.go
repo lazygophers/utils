@@ -1055,6 +1055,37 @@ func ToMapStringString(v interface{}) map[string]string {
 	return m
 }
 
+func ToMapStringArrayString(v interface{}) map[string][]string {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[string][]string{}
+	}
+
+	m := make(map[string][]string)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToString(mg.Key().Interface())] = ToArrayString(mg.Value().Interface())
+	}
+
+	return m
+}
+
+func ToArrayString(v interface{}) []string {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Slice {
+		return []string{}
+	}
+
+	ss := make([]string, 0, vv.Len())
+	for i := 0; i < vv.Len(); i++ {
+		ss = append(ss, ToString(vv.Index(i).Interface()))
+	}
+
+	return ss
+}
+
 func toString(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
