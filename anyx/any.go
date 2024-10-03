@@ -394,15 +394,23 @@ func ToFloat64(val interface{}) float64 {
 	case float64:
 		return x
 	case string:
-		val, err := strconv.ParseUint(x, 10, 64)
+		val, err := strconv.ParseFloat(x, 64)
 		if err != nil {
-			return 0
+			val, err := strconv.ParseInt(x, 10, 64)
+			if err != nil {
+				return 0
+			}
+			return float64(val)
 		}
-		return float64(val)
+		return val
 	case []byte:
 		val, err := strconv.ParseFloat(string(x), 64)
 		if err != nil {
-			return 0
+			val, err := strconv.ParseInt(string(x), 10, 64)
+			if err != nil {
+				return 0
+			}
+			return float64(val)
 		}
 		return val
 	default:
