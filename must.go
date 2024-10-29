@@ -19,3 +19,7 @@ func Must[T any](value T, err error) T {
 	MustSuccess(err)
 	return value
 }
+
+func Ignore[T any](value T, err error) T {
+	return value
+}

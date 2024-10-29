@@ -1046,6 +1046,27 @@ func ToStringSlice(val interface{}, seqs ...string) []string {
 	return nil
 }
 
+func ToMap(v interface{}) map[string]interface{} {
+	switch x := v.(type) {
+	case []byte:
+		var m map[string]any
+		err := json.Unmarshal(x, &m)
+		if err == nil {
+			return m
+		}
+
+	case string:
+		var m map[string]any
+		err := json.UnmarshalString(x, &m)
+		if err == nil {
+			return m
+		}
+
+	}
+
+	return ToMapStringAny(v)
+}
+
 func ToMapStringString(v interface{}) map[string]string {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Map {

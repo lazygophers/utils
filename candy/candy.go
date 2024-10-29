@@ -281,6 +281,7 @@ func Top[T any](ss []T, n int) (ret []T) {
 		n = len(ss)
 	}
 
+	ret = make([]T, 0, n)
 	for i := 0; i < n; i++ {
 		ret = append(ret, ss[i])
 	}
@@ -393,4 +394,28 @@ func Spare[T constraints.Ordered](ss []T, against []T) (result []T) {
 		}
 	}
 	return
+}
+
+func SliceEqual[T any](a, b []T) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	am := make(map[any]struct{}, len(a))
+	for _, v := range a {
+		am[v] = struct{}{}
+	}
+
+	for _, v := range b {
+		if _, ok := am[v]; !ok {
+			return false
+		}
+		delete(am, v)
+	}
+
+	if len(am) > 0 {
+		return false
+	}
+
+	return true
 }

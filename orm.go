@@ -14,7 +14,7 @@ import (
 func Scan(src interface{}, dst interface{}) (err error) {
 	x := func(buf []byte) error {
 		bufLen := len(buf)
-		if bufLen >= 2 && buf[0] == '{' && buf[bufLen-1] == '}' {
+		if bufLen >= 2 && ((buf[0] == '{' && buf[bufLen-1] == '}') || (buf[0] == '[' && buf[bufLen-1] == ']')) {
 			err = json.Unmarshal(buf, dst)
 			if err != nil {
 				log.Errorf("err:%v", err)

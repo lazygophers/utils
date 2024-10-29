@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lazygophers/utils/json"
+	"golang.org/x/exp/constraints"
 	"gopkg.in/yaml.v3"
+	"maps"
 	"math"
 	"reflect"
 	"strconv"
@@ -981,4 +983,16 @@ func MapValues(m interface{}) interface{} {
 	}
 
 	return list.Interface()
+}
+
+func MergeMap[K constraints.Ordered, V any](source, target map[K]V) map[K]V {
+	res := maps.Clone(source)
+
+	if len(target) > 0 {
+		for k, v := range target {
+			res[k] = v
+		}
+	}
+
+	return res
 }

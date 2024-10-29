@@ -87,6 +87,11 @@ func (p *Lunar) Day() int64 {
 	return p.day
 }
 
+// Day 日
+func (p *Lunar) Date() string {
+	return fmt.Sprintf("%02d-%02d-%02d", p.year, p.month, p.day)
+}
+
 func (p *Lunar) MonthDayAlise() string {
 	if p.monthIsLeap {
 		return fmt.Sprintf("闰%d-%d", p.Month(), p.Day())

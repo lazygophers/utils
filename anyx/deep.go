@@ -251,5 +251,5 @@ func DeepCopy[M any](src, dst M) {
 	v1 := reflect.ValueOf(src)
 	v2 := reflect.ValueOf(dst)
 
-	deepCopyValue(v1, v2)
+	reflect.Copy(v1, v2)
 }
