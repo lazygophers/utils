@@ -22,9 +22,11 @@ const (
 
 type StateChange func(oldState, newState State)
 type ReadyToTrip func(successes, failures uint64) bool
+type Probe func() bool
 
 type CircuitBreaker struct {
 	mu sync.Mutex
+	CircuitBreakerConfig
 
 	state State
 
@@ -36,19 +38,26 @@ type CircuitBreaker struct {
 }
 
 type CircuitBreakerConfig struct {
-	TimeWindow    time.Duration
+	// 测试的时间窗口
+	TimeWindow time.Duration
+	// 状态变化的回调
 	OnStateChange StateChange
-	ReadyToTrip   ReadyToTrip
+	// 如果返回了 true，则会发生状态变化
+	ReadyToTrip ReadyToTrip
+	// 当半开状态下，是否重试的判断
+	Probe Probe
 }
 
 func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
-	return &CircuitBreaker{
-		state: Closed,
+	if c.Probe == nil {
+		c.Probe = ProbeWithChance(20)
+	}
 
-		timeWindow:     c.TimeWindow,
+	return &CircuitBreaker{
+		CircuitBreakerConfig: c,
+
+		state:          Open,
 		requestResults: make([]RequestResult, 0),
-		onStateChange:  c.OnStateChange,
-		readyToTrip:    c.ReadyToTrip,
 	}
 }
 
@@ -64,21 +73,26 @@ func (p *CircuitBreaker) Before() bool {
 	defer p.mu.Unlock()
 
 	p.cleanUp()
+	p.updateState()
 
-	if p.state == Open {
+	switch p.state {
+	case Closed:
+		// close，不可用
+		return false
+
+	case HalfOpen:
+		// 半开状态，按照概率决定是否尝试
+		if p.Probe() {
+			return true
+		}
+
 		return false
 	}
 
 	return true
 }
 
-func (p *CircuitBreaker) After(success bool) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	result := RequestResult{success: success, time: time.Now()}
-	p.requestResults = append(p.requestResults, result)
-
+func (p *CircuitBreaker) updateState() {
 	// 计算状态变化
 	var failures, successes uint64
 	for _, r := range p.requestResults {
@@ -93,18 +107,26 @@ func (p *CircuitBreaker) After(success bool) {
 	oldState := p.state
 	if p.readyToTrip(successes, failures) {
 		if oldState == HalfOpen {
-			p.state = Open
+			p.state = Closed
 		} else {
 			p.state = HalfOpen
 		}
 	} else {
-		p.state = Closed
+		p.state = Open
 	}
 
 	// 触发状态变化回调
 	if oldState != p.state && p.onStateChange != nil {
 		p.onStateChange(oldState, p.state)
 	}
+}
+
+func (p *CircuitBreaker) After(success bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	result := RequestResult{success: success, time: time.Now()}
+	p.requestResults = append(p.requestResults, result)
 }
 
 func (p *CircuitBreaker) Call(fn func() error) error {
