@@ -32,9 +32,6 @@ type CircuitBreaker struct {
 
 	timeWindow     time.Duration
 	requestResults []RequestResult
-
-	onStateChange StateChange
-	readyToTrip   ReadyToTrip
 }
 
 type CircuitBreakerConfig struct {
@@ -105,7 +102,7 @@ func (p *CircuitBreaker) updateState() {
 
 	// 状态变化逻辑
 	oldState := p.state
-	if p.readyToTrip(successes, failures) {
+	if p.ReadyToTrip(successes, failures) {
 		if oldState == HalfOpen {
 			p.state = Closed
 		} else {
@@ -116,8 +113,8 @@ func (p *CircuitBreaker) updateState() {
 	}
 
 	// 触发状态变化回调
-	if oldState != p.state && p.onStateChange != nil {
-		p.onStateChange(oldState, p.state)
+	if oldState != p.state && p.OnStateChange != nil {
+		p.OnStateChange(oldState, p.state)
 	}
 }
 
