@@ -50,7 +50,7 @@ type CircuitBreakerConfig struct {
 
 func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 	if c.Probe == nil {
-		c.Probe = ProbeWithChance(20)
+		c.Probe = ProbeWithChance(50)
 	}
 
 	return &CircuitBreaker{
