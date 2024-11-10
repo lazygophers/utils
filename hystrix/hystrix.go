@@ -2,6 +2,7 @@ package hystrix
 
 import (
 	"errors"
+	"go.uber.org/atomic"
 	"sync"
 	"time"
 )
@@ -31,6 +32,7 @@ type CircuitBreaker struct {
 	state State
 
 	requestResults []*requestResult
+	expiredAt      *atomic.Time
 }
 
 type CircuitBreakerConfig struct {
@@ -54,6 +56,7 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 
 		state:          Open,
 		requestResults: make([]*requestResult, 0),
+		expiredAt:      atomic.NewTime(time.Now()),
 	}
 }
 
@@ -110,9 +113,11 @@ func (p *CircuitBreaker) stat() (successes, failures uint64) {
 }
 
 func (p *CircuitBreaker) updateState() {
-	if !p.cleanUp() {
+	if !p.cleanUp() && time.Now().After(p.expiredAt.Load()) {
 		return
 	}
+
+	p.expiredAt.Store(time.Now().Add(time.Second * 5))
 
 	// 状态变化逻辑
 	oldState := p.state
