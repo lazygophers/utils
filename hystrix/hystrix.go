@@ -69,7 +69,6 @@ func (p *CircuitBreaker) Before() bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	p.cleanUp()
 	p.updateState()
 
 	switch p.state {
@@ -89,9 +88,9 @@ func (p *CircuitBreaker) Before() bool {
 	return true
 }
 
-func (p *CircuitBreaker) updateState() {
-	// 计算状态变化
-	var failures, successes uint64
+func (p *CircuitBreaker) Stat() (failures, successes uint64) {
+	p.cleanUp()
+
 	for _, r := range p.requestResults {
 		if r.success {
 			successes++
@@ -100,9 +99,13 @@ func (p *CircuitBreaker) updateState() {
 		}
 	}
 
+	return failures, successes
+}
+
+func (p *CircuitBreaker) updateState() {
 	// 状态变化逻辑
 	oldState := p.state
-	if p.ReadyToTrip(successes, failures) {
+	if p.ReadyToTrip(p.Stat()) {
 		if oldState == HalfOpen {
 			p.state = Closed
 		} else {
