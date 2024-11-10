@@ -89,7 +89,7 @@ func (p *CircuitBreaker) Before() bool {
 	return true
 }
 
-func (p *CircuitBreaker) Stat() (failures, successes uint64) {
+func (p *CircuitBreaker) Stat() (successes, failures uint64) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -97,7 +97,7 @@ func (p *CircuitBreaker) Stat() (failures, successes uint64) {
 	return p.stat()
 }
 
-func (p *CircuitBreaker) stat() (failures, successes uint64) {
+func (p *CircuitBreaker) stat() (successes, failures uint64) {
 	for _, r := range p.requestResults {
 		if r.success {
 			successes++
@@ -106,7 +106,7 @@ func (p *CircuitBreaker) stat() (failures, successes uint64) {
 		}
 	}
 
-	return failures, successes
+	return
 }
 
 func (p *CircuitBreaker) updateState() {
