@@ -58,11 +58,13 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 	}
 }
 
-func (p *CircuitBreaker) cleanUp() {
+func (p *CircuitBreaker) cleanUp() (change bool) {
 	now := time.Now()
 	for len(p.requestResults) > 0 && now.Sub(p.requestResults[0].time) > p.timeWindow {
 		p.requestResults = p.requestResults[1:] // Remove expired results
+		change = true
 	}
+	return
 }
 
 func (p *CircuitBreaker) Before() bool {
@@ -89,8 +91,11 @@ func (p *CircuitBreaker) Before() bool {
 }
 
 func (p *CircuitBreaker) Stat() (failures, successes uint64) {
-	p.cleanUp()
+	p.updateState()
+	return p.stat()
+}
 
+func (p *CircuitBreaker) stat() (failures, successes uint64) {
 	for _, r := range p.requestResults {
 		if r.success {
 			successes++
@@ -103,9 +108,13 @@ func (p *CircuitBreaker) Stat() (failures, successes uint64) {
 }
 
 func (p *CircuitBreaker) updateState() {
+	if !p.cleanUp() {
+		return
+	}
+
 	// 状态变化逻辑
 	oldState := p.state
-	if p.ReadyToTrip(p.Stat()) {
+	if p.ReadyToTrip(p.stat()) {
 		if oldState == HalfOpen {
 			p.state = Closed
 		} else {
