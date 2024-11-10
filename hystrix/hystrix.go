@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type RequestResult struct {
+type requestResult struct {
 	success bool
 
 	time time.Time
@@ -31,7 +31,7 @@ type CircuitBreaker struct {
 	state State
 
 	timeWindow     time.Duration
-	requestResults []RequestResult
+	requestResults []*requestResult
 }
 
 type CircuitBreakerConfig struct {
@@ -54,7 +54,7 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 		CircuitBreakerConfig: c,
 
 		state:          Open,
-		requestResults: make([]RequestResult, 0),
+		requestResults: make([]*requestResult, 0),
 	}
 }
 
@@ -134,8 +134,7 @@ func (p *CircuitBreaker) After(success bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	result := RequestResult{success: success, time: time.Now()}
-	p.requestResults = append(p.requestResults, result)
+	p.requestResults = append(p.requestResults, &requestResult{success: success, time: time.Now()})
 }
 
 func (p *CircuitBreaker) Call(fn func() error) error {
