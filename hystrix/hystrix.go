@@ -91,6 +91,9 @@ func (p *CircuitBreaker) Before() bool {
 }
 
 func (p *CircuitBreaker) Stat() (failures, successes uint64) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
 	p.updateState()
 	return p.stat()
 }
