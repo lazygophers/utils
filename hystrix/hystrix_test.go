@@ -49,5 +49,22 @@ func TestHystrix(t *testing.T) {
 			return nil
 		})
 	}
+}
 
+func TestCount(t *testing.T) {
+	breaker := hystrix.NewCircuitBreaker(hystrix.CircuitBreakerConfig{
+		TimeWindow: time.Minute,
+		OnStateChange: func(oldState, newState hystrix.State) {
+			t.Logf("state %s -> %s", oldState, newState)
+		},
+		ReadyToTrip: func(successes, failures uint64) bool {
+			return failures > successes
+		},
+	})
+
+	for i := 0; i < 100; i++ {
+		breaker.After(true)
+	}
+
+	t.Log(breaker.Stat())
 }

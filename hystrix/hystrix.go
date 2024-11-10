@@ -30,7 +30,6 @@ type CircuitBreaker struct {
 
 	state State
 
-	timeWindow     time.Duration
 	requestResults []*requestResult
 }
 
@@ -60,7 +59,7 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 
 func (p *CircuitBreaker) cleanUp() (change bool) {
 	now := time.Now()
-	for len(p.requestResults) > 0 && now.Sub(p.requestResults[0].time) > p.timeWindow {
+	for len(p.requestResults) > 0 && now.Sub(p.requestResults[0].time) > p.TimeWindow {
 		p.requestResults = p.requestResults[1:] // Remove expired results
 		change = true
 	}
