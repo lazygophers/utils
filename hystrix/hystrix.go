@@ -124,9 +124,8 @@ func (p *CircuitBreaker) updateState() {
 		return
 	}
 
-	p.cleanUp()
-
 	p.expiredAt.Store(time.Now().Add(time.Second * 5))
+	p.cleanUp()
 
 	// 状态变化逻辑
 	oldState := p.state
