@@ -33,6 +33,8 @@ type CircuitBreaker struct {
 
 	requestResults []*requestResult
 	expiredAt      *atomic.Time
+
+	successes, failures *atomic.Uint64
 }
 
 type CircuitBreakerConfig struct {
@@ -57,6 +59,8 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 		state:          Open,
 		requestResults: make([]*requestResult, 0),
 		expiredAt:      atomic.NewTime(time.Now()),
+		successes:      atomic.NewUint64(0),
+		failures:       atomic.NewUint64(0),
 	}
 }
 
@@ -97,19 +101,22 @@ func (p *CircuitBreaker) Stat() (successes, failures uint64) {
 	defer p.mu.Unlock()
 
 	p.updateState()
-	return p.stat()
+	return p.successes.Load(), p.failures.Load()
 }
 
 func (p *CircuitBreaker) stat() (successes, failures uint64) {
+	p.successes.Store(0)
+	p.failures.Store(0)
+
 	for _, r := range p.requestResults {
 		if r.success {
-			successes++
+			p.successes.Inc()
 		} else {
-			failures++
+			p.failures.Inc()
 		}
 	}
 
-	return
+	return p.successes.Load(), p.failures.Load()
 }
 
 func (p *CircuitBreaker) updateState() {
