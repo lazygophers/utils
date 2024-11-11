@@ -66,5 +66,6 @@ func TestCount(t *testing.T) {
 		breaker.After(true)
 	}
 
+	time.Sleep(time.Second * 6)
 	t.Log(breaker.Stat())
 }

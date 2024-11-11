@@ -120,7 +120,7 @@ func (p *CircuitBreaker) stat() (successes, failures uint64) {
 }
 
 func (p *CircuitBreaker) updateState() {
-	if time.Now().After(p.expiredAt.Load()) {
+	if time.Now().Before(p.expiredAt.Load()) {
 		return
 	}
 
