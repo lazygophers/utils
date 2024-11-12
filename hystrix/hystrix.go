@@ -46,6 +46,8 @@ type CircuitBreakerConfig struct {
 	ReadyToTrip ReadyToTrip
 	// 当半开状态下，是否重试的判断
 	Probe Probe
+	// 状态过期时间，如果为 0 则始终进行检测
+	StateExpiredTime time.Duration
 }
 
 func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
@@ -66,7 +68,7 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 
 func (p *CircuitBreaker) cleanUp() (change bool) {
 	now := time.Now()
-	for len(p.requestResults) > 0 && now.Sub(p.requestResults[0].time) > p.TimeWindow {
+	for len(p.requestResults) > 0 && now.Sub(p.requestResults[0].time).Truncate(time.Second) > p.TimeWindow {
 		p.requestResults = p.requestResults[1:] // Remove expired results
 		change = true
 	}
@@ -120,12 +122,11 @@ func (p *CircuitBreaker) stat() (successes, failures uint64) {
 }
 
 func (p *CircuitBreaker) updateState() {
-	if time.Now().Before(p.expiredAt.Load()) {
+	if time.Now().Before(p.expiredAt.Load()) || p.cleanUp() {
 		return
 	}
 
-	p.expiredAt.Store(time.Now().Add(time.Second * 5))
-	p.cleanUp()
+	p.expiredAt.Store(time.Now().Add(p.StateExpiredTime))
 
 	// 状态变化逻辑
 	oldState := p.state
