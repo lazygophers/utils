@@ -127,9 +127,12 @@ func Min[T constraints.Ordered](ss []T) (min T) {
 func Unique[T constraints.Ordered](ss []T) (ret []T) {
 	m := make(map[T]struct{})
 	for _, s := range ss {
-		m[s] = struct{}{}
+		if _, ok := m[s]; !ok {
+			m[s] = struct{}{}
+		}
 	}
 
+	ret = make([]T, 0, len(m))
 	for s := range m {
 		ret = append(ret, s)
 	}
@@ -140,9 +143,12 @@ func Unique[T constraints.Ordered](ss []T) (ret []T) {
 func UniqueUsing[T any](ss []T, f func(T) any) (ret []T) {
 	m := make(map[any]T)
 	for _, s := range ss {
-		m[(f(s))] = s
+		if _, ok := m[(f(s))]; !ok {
+			m[(f(s))] = s
+		}
 	}
 
+	ret = make([]T, 0, len(m))
 	for _, s := range m {
 		ret = append(ret, s)
 	}
