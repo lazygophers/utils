@@ -112,8 +112,8 @@ func LoadConfigSkipValidate(c any, paths ...string) error {
 	}
 
 	// NOTE: 从环境变量中获取
-	log.Warnf("Try to load config from environment variable(LAZYGOPHERS_CONFIG)")
-	if configPath != "" {
+	if configPath == ""{
+		log.Warnf("Try to load config from environment variable(LAZYGOPHERS_CONFIG)")
 		configPath = os.Getenv("LAZYGOPHERS_CONFIG")
 		if configPath != "" && !osx.IsFile(configPath) {
 			log.Debugf("config file not found:%v", configPath)
