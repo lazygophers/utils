@@ -72,6 +72,66 @@ func ToString(val interface{}) string {
 	}
 }
 
+func ToBytes(val interface{}) []byte {
+	switch x := val.(type) {
+	case bool:
+		if x {
+			return []byte("1")
+		}
+		return []byte("0")
+	case int:
+		return []byte(fmt.Sprintf("%d", x))
+	case int8:
+		return []byte(fmt.Sprintf("%d", x))
+	case int16:
+		return []byte(fmt.Sprintf("%d", x))
+	case int32:
+		return []byte(fmt.Sprintf("%d", x))
+	case int64:
+		return []byte(fmt.Sprintf("%d", x))
+	case uint:
+		return []byte(fmt.Sprintf("%d", x))
+	case uint8:
+		return []byte(fmt.Sprintf("%d", x))
+	case uint16:
+		return []byte(fmt.Sprintf("%d", x))
+	case uint32:
+		return []byte(fmt.Sprintf("%d", x))
+	case uint64:
+		return []byte(fmt.Sprintf("%d", x))
+	case float32:
+		if math.Floor(float64(x)) == float64(x) {
+			return []byte(fmt.Sprintf("%.0f", x))
+		}
+
+		return []byte(fmt.Sprintf("%f", x))
+	case float64:
+		if math.Floor(x) == x {
+			return []byte(fmt.Sprintf("%.0f", x))
+		}
+
+		return []byte(fmt.Sprintf("%f", x))
+	case time.Duration:
+		return []byte(x.String())
+	case string:
+		return []byte(x)
+	case []byte:
+		return x
+	case nil:
+		return nil
+	case error:
+		return []byte(x.Error())
+
+	default:
+		buf, err := json.Marshal(x)
+		if err != nil {
+			return nil
+		}
+
+		return buf
+	}
+}
+
 func ToInt(val interface{}) int {
 	switch x := val.(type) {
 	case bool:
