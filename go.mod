@@ -7,23 +7,23 @@ toolchain go1.23.2
 require (
 	github.com/agiledragon/gomonkey/v2 v2.12.0
 	github.com/andybalholm/brotli v1.1.1
-	github.com/bytedance/sonic v1.12.4
+	github.com/bytedance/sonic v1.12.6
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.0
 	github.com/jchavannes/go-pgp v0.0.0-20200131171414-e5978e6d02b4
 	github.com/jinzhu/now v1.1.5
-	github.com/lazygophers/log v0.0.0-20241229014752-623872bfef1f
+	github.com/lazygophers/log v0.0.0-20241229160530-2bac6f5670ab
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/petermattis/goid v0.0.0-20241211131331-93ee7e083c43
 	github.com/pkg/errors v0.9.1
-	github.com/pterm/pterm v0.12.79
+	github.com/pterm/pterm v0.12.80
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.31.0
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67
 	gopkg.in/yaml.v3 v3.0.1
-	modernc.org/libc v1.61.2
+	modernc.org/libc v1.61.5
 )
 
 require (
@@ -60,11 +60,11 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.12.0 // indirect
-	golang.org/x/net v0.31.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/term v0.27.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	modernc.org/mathutil v1.6.0 // indirect
+	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.8.0 // indirect
 )
