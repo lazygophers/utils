@@ -54,8 +54,8 @@ func (p *Cache[K, V]) Delete(key K) {
 	p.Unlock()
 }
 
-func NewCache[K constraints.Ordered, V any]() Cache[K, V] {
-	p := Cache[K, V]{
+func NewCache[K constraints.Ordered, V any]() *Cache[K, V] {
+	p := &Cache[K, V]{
 		data: make(map[K]*cacheItem[V]),
 	}
 
