@@ -3,16 +3,58 @@ package routine
 import (
 	"fmt"
 	"github.com/lazygophers/log"
+	"github.com/petermattis/goid"
 	"os"
 	"runtime/debug"
 	"strings"
 )
 
+type BeforeRoutine func(baseGid, currentGid int64)
+type AfterRoutine func(currentGid int64)
+
+var (
+	beforeRoutines []BeforeRoutine
+	afterRoutines  []AfterRoutine
+)
+
+func before(baseGid, currentGid int64) {
+	for _, f := range beforeRoutines {
+		f(baseGid, currentGid)
+	}
+}
+
+func after(currentGid int64) {
+	for _, f := range afterRoutines {
+		f(currentGid)
+	}
+}
+
+func AddBeforeRoutine(f BeforeRoutine) {
+	beforeRoutines = append(beforeRoutines, f)
+}
+
+func AddAfterRoutine(f AfterRoutine) {
+	afterRoutines = append(afterRoutines, f)
+}
+
+func init() {
+	AddBeforeRoutine(func(baseGid, currentGid int64) {
+		log.SetTraceWithGID(currentGid, fmt.Sprintf("%s.%s", log.GetTraceWithGID(baseGid), log.GenTraceId()))
+	})
+
+	AddAfterRoutine(func(currentGid int64) {
+		log.DelTraceWithGID(currentGid)
+	})
+}
+
 func Go(f func() (err error)) {
-	traceId := log.GetTrace()
+	baseGid := goid.Get()
 	go func() {
-		log.SetTrace(fmt.Sprintf("%s.%s", traceId, log.GenTraceId()))
-		defer log.DelTrace()
+		currentGid := goid.Get()
+		before(baseGid, currentGid)
+		defer func() {
+			after(currentGid)
+		}()
 
 		err := f()
 		if err != nil {
@@ -22,10 +64,13 @@ func Go(f func() (err error)) {
 }
 
 func GoWithRecover(f func() (err error)) {
-	traceId := log.GetTrace()
+	baseGid := goid.Get()
 	go func() {
-		log.SetTrace(fmt.Sprintf("%s.%s", traceId, log.GenTraceId()))
-		defer log.DelTrace()
+		currentGid := goid.Get()
+		before(baseGid, currentGid)
+		defer func() {
+			after(currentGid)
+		}()
 
 		defer func() {
 			if err := recover(); err != nil {
@@ -51,10 +96,13 @@ func GoWithRecover(f func() (err error)) {
 }
 
 func GoWithMustSuccess(f func() (err error)) {
-	traceId := log.GetTrace()
+	baseGid := goid.Get()
 	go func() {
-		log.SetTrace(fmt.Sprintf("%s.%s", traceId, log.GenTraceId()))
-		defer log.DelTrace()
+		currentGid := goid.Get()
+		before(baseGid, currentGid)
+		defer func() {
+			after(currentGid)
+		}()
 
 		err := f()
 		if err != nil {
