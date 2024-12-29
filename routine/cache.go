@@ -35,17 +35,17 @@ func (p *Cache[K, V]) Get(key K) (V, bool) {
 	return v.value, ok
 }
 
-func (p *Cache[K, V]) GetWithDef(key K, def ...V) (V, bool) {
+func (p *Cache[K, V]) GetWithDef(key K, def ...V) V {
 	value, ok := p.Get(key)
 	if !ok {
 		if len(def) > 0 {
-			return def[0], ok
+			return def[0]
 		}
 
-		return *new(V), ok
+		return *new(V)
 	}
 
-	return value, ok
+	return value
 }
 
 func (p *Cache[K, V]) Set(key K, value V) {
