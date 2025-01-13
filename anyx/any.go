@@ -1144,6 +1144,57 @@ func ToMapStringString(v interface{}) map[string]string {
 	return m
 }
 
+func ToMapStringInt64(v interface{}) map[string]int64 {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[string]int64{}
+	}
+
+	m := make(map[string]int64)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToString(mg.Key().Interface())] = ToInt64(mg.Value().Interface())
+	}
+
+	return m
+}
+
+func ToMapInt64String(v interface{}) map[int64]string {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[int64]string{}
+	}
+
+	m := make(map[int64]string)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToInt64(mg.Key().Interface())] = ToString(mg.Value().Interface())
+	}
+
+	return m
+}
+
+func ToMapInt32String(v interface{}) map[int32]string {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[int32]string{}
+	}
+
+	m := make(map[int32]string)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToInt32(mg.Key().Interface())] = ToString(mg.Value().Interface())
+	}
+
+	return m
+}
+
 func ToMapStringArrayString(v interface{}) map[string][]string {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Map {

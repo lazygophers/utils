@@ -16,42 +16,40 @@ type Single[T any] struct {
 	last   time.Time
 	wait   time.Duration
 	call   *call[T]
-	result *Result[T]
+	result T
 }
 
-type Result[T any] struct {
-	Val T
-	Err error
-}
-
-// Do single.Do likes sync.singleFlight
-func (s *Single[T]) Do(fn func() (T, error)) (v T, err error, shared bool) {
+func (s *Single[T]) Do(fn func() (T, error)) (v T, err error) {
 	s.mux.Lock()
 	now := time.Now()
 	if now.Before(s.last.Add(s.wait)) {
 		s.mux.Unlock()
-		return s.result.Val, s.result.Err, true
+		return s.result, nil
 	}
 
 	if callM := s.call; callM != nil {
 		s.mux.Unlock()
 		callM.wg.Wait()
-		return callM.val, callM.err, true
+		return callM.val, callM.err
 	}
 
 	callM := &call[T]{}
 	callM.wg.Add(1)
 	s.call = callM
 	s.mux.Unlock()
+
 	callM.val, callM.err = fn()
 	callM.wg.Done()
 
 	s.mux.Lock()
-	s.call = nil
-	s.result = &Result[T]{callM.val, callM.err}
-	s.last = now
+	if callM.err == nil {
+		s.last = now
+		s.result = callM.val
+		s.call = nil
+	}
 	s.mux.Unlock()
-	return callM.val, callM.err, false
+
+	return callM.val, callM.err
 }
 
 func (s *Single[T]) Reset() {

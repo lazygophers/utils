@@ -1,10 +1,12 @@
 package candy
 
 import (
+	"fmt"
 	"golang.org/x/exp/constraints"
 	"math"
 	"math/rand"
 	"sort"
+	"strings"
 )
 
 func Abs[T constraints.Integer | constraints.Float](s T) T {
@@ -424,4 +426,19 @@ func SliceEqual[T any](a, b []T) bool {
 	}
 
 	return true
+}
+
+func String[T constraints.Ordered](s T) string {
+	return fmt.Sprintf("%v", s)
+}
+
+func Join[T constraints.Ordered](ss []T, glue ...string) string {
+	seq := ","
+	if len(glue) > 0 {
+		seq = glue[0]
+	}
+
+	return strings.Join(Map(ss, func(s T) string {
+		return String(s)
+	}), seq)
 }
