@@ -18,13 +18,13 @@ func (p *Worker) Add(fn func()) {
 func (p *Worker) Wait() {
 	close(p.c)
 	p.w.Wait()
+	Wgp.Put(p.w)
 }
 
 func NewWorker(max int) *Worker {
 	c := make(chan func(), max)
 
 	w := Wgp.Get().(*sync.WaitGroup)
-	defer Wgp.Put(w)
 
 	w.Add(max)
 	for i := 0; i < max; i++ {
