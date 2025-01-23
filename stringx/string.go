@@ -3,6 +3,7 @@ package stringx
 import (
 	"bytes"
 	"github.com/lazygophers/log"
+	"strconv"
 	"strings"
 	"unicode"
 	"unsafe"
@@ -254,4 +255,12 @@ func Reverse(s string) string {
 		b.WriteString(string(s[i]))
 	}
 	return b.String()
+}
+
+func Quote(s string) string {
+	return strconv.Quote(s)
+}
+
+func QuotePure(s string) string {
+	return strings.TrimPrefix(strings.TrimSuffix(Quote(s), `"`), `"`)
 }
