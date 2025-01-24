@@ -98,6 +98,13 @@ func (p *CircuitBreaker) Before() bool {
 	return true
 }
 
+func (p *CircuitBreaker) State() State {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	return p.state
+}
+
 func (p *CircuitBreaker) Stat() (successes, failures uint64) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
