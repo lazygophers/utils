@@ -151,7 +151,12 @@ func (p *CircuitBreaker) updateState() {
 			}
 		}
 	} else {
-		p.state = Open
+		switch oldState {
+		case HalfOpen:
+			p.state = Open
+		case Closed:
+			p.state = HalfOpen
+		}
 	}
 
 	// 触发状态变化回调
