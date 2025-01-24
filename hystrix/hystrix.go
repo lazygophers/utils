@@ -2,6 +2,7 @@ package hystrix
 
 import (
 	"errors"
+	"github.com/lazygophers/utils/candy"
 	"go.uber.org/atomic"
 	"sync"
 	"time"
@@ -42,7 +43,7 @@ type CircuitBreakerConfig struct {
 	TimeWindow time.Duration
 	// 状态变化的回调
 	OnStateChange StateChange
-	// 如果返回了 true，则会发生状态变化
+	// 如果返回了 true，则会发生负面的状态变化
 	ReadyToTrip ReadyToTrip
 	// 当半开状态下，是否重试的判断
 	Probe Probe
@@ -139,10 +140,17 @@ func (p *CircuitBreaker) updateState() {
 	// 状态变化逻辑
 	oldState := p.state
 	if p.ReadyToTrip(p.stat()) {
-		if oldState == HalfOpen {
-			p.state = Closed
-		} else {
+		switch oldState {
+		case Open:
 			p.state = HalfOpen
+		case HalfOpen:
+			// 对于当前是关闭的状态，如果最后一个是正常的，那么需要回退
+			if candy.LastOr(p.requestResults, &requestResult{success: false}).success {
+				p.state = Open
+				p.requestResults = make([]*requestResult, 1)
+			} else {
+				p.state = Closed
+			}
 		}
 	} else {
 		p.state = Open
