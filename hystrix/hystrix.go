@@ -145,7 +145,9 @@ func (p *CircuitBreaker) updateState() {
 			// 对于当前是关闭的状态，如果最后一个是正常的，那么需要回退
 			if candy.LastOr(p.requestResults, &requestResult{success: false}).success {
 				p.state = Open
-				p.requestResults = make([]*requestResult, 1)
+
+				// 如果为 true, 则证明了长度一定大于 1
+				p.requestResults = append(make([]*requestResult, 1), candy.Last(p.requestResults))
 			} else {
 				p.state = Closed
 			}
