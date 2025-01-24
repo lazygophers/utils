@@ -102,6 +102,7 @@ func (p *CircuitBreaker) State() State {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
+	p.updateState()
 	return p.state
 }
 
