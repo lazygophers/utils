@@ -103,7 +103,6 @@ func (p *CircuitBreaker) State() State {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	p.updateState()
 	return p.state
 }
 
@@ -111,7 +110,6 @@ func (p *CircuitBreaker) Stat() (successes, failures uint64) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	p.updateState()
 	return p.successes.Load(), p.failures.Load()
 }
 
