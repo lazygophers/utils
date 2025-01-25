@@ -289,12 +289,19 @@ func Top[T any](ss []T, n int) (ret []T) {
 		n = len(ss)
 	}
 
-	ret = make([]T, 0, n)
-	for i := 0; i < n; i++ {
-		ret = append(ret, ss[i])
+	ret = make([]T, n)
+	copy(ret, ss[:n])
+	return ret
+}
+
+func Bottom[T any](ss []T, n int) (ret []T) {
+	if n > len(ss) {
+		n = len(ss)
 	}
 
-	return
+	ret = make([]T, n)
+	copy(ret, ss[len(ss)-n:])
+	return ret
 }
 
 func Average[T constraints.Integer | constraints.Float](ss []T) (ret T) {
