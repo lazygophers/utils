@@ -131,12 +131,8 @@ func Unique[T constraints.Ordered](ss []T) (ret []T) {
 	for _, s := range ss {
 		if _, ok := m[s]; !ok {
 			m[s] = struct{}{}
+			ret = append(ret, s)
 		}
-	}
-
-	ret = make([]T, 0, len(m))
-	for s := range m {
-		ret = append(ret, s)
 	}
 
 	return
@@ -147,12 +143,8 @@ func UniqueUsing[T any](ss []T, f func(T) any) (ret []T) {
 	for _, s := range ss {
 		if _, ok := m[(f(s))]; !ok {
 			m[(f(s))] = s
+			ret = append(ret, s)
 		}
-	}
-
-	ret = make([]T, 0, len(m))
-	for _, s := range m {
-		ret = append(ret, s)
 	}
 
 	return
