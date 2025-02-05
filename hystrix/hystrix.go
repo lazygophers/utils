@@ -69,8 +69,12 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 
 func (p *CircuitBreaker) cleanUp() (change bool) {
 	now := time.Now()
-	for len(p.requestResults) > 0 && now.Sub(p.requestResults[0].time).Truncate(time.Second) > p.TimeWindow {
-		p.requestResults = p.requestResults[1:] // Remove expired results
+	for len(p.requestResults) > 0 && now.Sub(p.requestResults[0].time) > p.TimeWindow {
+		if len(p.requestResults) > 1 {
+			p.requestResults = p.requestResults[1:] // Remove expired results
+		} else {
+			p.requestResults = make([]*requestResult, 0, 1)
+		}
 		change = true
 	}
 	return
@@ -147,7 +151,7 @@ func (p *CircuitBreaker) updateState() {
 				p.state = Open
 
 				// 如果为 true, 则证明了长度一定大于 1
-				p.requestResults = append(make([]*requestResult, 1), candy.Last(p.requestResults))
+				p.requestResults = append(make([]*requestResult, 0, 1), candy.Last(p.requestResults))
 			} else {
 				p.state = Closed
 			}

@@ -969,20 +969,28 @@ func MapKeysInt64(m interface{}) []int64 {
 	return result
 }
 
-func MapValues(m interface{}) interface{} {
-	vo := reflect.ValueOf(m)
-	if vo.Kind() != reflect.Map {
-		panic("required map type")
-	}
+//func MapValues(m interface{}) interface{} {
+//	vo := reflect.ValueOf(m)
+//	if vo.Kind() != reflect.Map {
+//		panic("required map type")
+//	}
+//
+//	elType := vo.Type().Elem()
+//	list := reflect.MakeSlice(reflect.SliceOf(elType), 0, vo.Len())
+//
+//	for _, key := range vo.MapKeys() {
+//		list = reflect.Append(list, vo.MapIndex(key))
+//	}
+//
+//	return list.Interface()
+//}
 
-	elType := vo.Type().Elem()
-	list := reflect.MakeSlice(reflect.SliceOf(elType), 0, vo.Len())
-
-	for _, key := range vo.MapKeys() {
-		list = reflect.Append(list, vo.MapIndex(key))
-	}
-
-	return list.Interface()
+func MapValues[K constraints.Ordered,V any](m map[K]V) []V {
+	res := make([]V, 0, len(m))
+	for _, v := range m {
+        res = append(res, v)
+    }
+	return res
 }
 
 func MergeMap[K constraints.Ordered, V any](source, target map[K]V) map[K]V {
