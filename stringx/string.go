@@ -10,10 +10,16 @@ import (
 )
 
 func ToString(b []byte) string {
+	if b == nil {
+		return ""
+	}
 	return *(*string)(unsafe.Pointer(&b))
 }
 
 func ToBytes(s string) []byte {
+	if s == "" {
+		return nil
+	}
 	return *(*[]byte)(unsafe.Pointer(&s))
 }
 
