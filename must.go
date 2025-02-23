@@ -20,6 +20,6 @@ func Must[T any](value T, err error) T {
 	return value
 }
 
-func Ignore[T any](value T, err error) T {
+func Ignore[T any](value T,_ any) T {
 	return value
 }

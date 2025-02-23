@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func setDefault(vv reflect.Value) error {
+func setDefault(vv reflect.Value) {
 	for vv.Type().Kind() == reflect.Ptr {
 		vv = vv.Elem()
 	}
@@ -18,11 +18,7 @@ func setDefault(vv reflect.Value) error {
 		field := vv.Field(i)
 		fieldType := vv.Type().Field(i)
 
-		defaultStr, ok := fieldType.Tag.Lookup("default")
-		if !ok {
-			continue
-		}
-
+		defaultStr := fieldType.Tag.Get("default")
 		if defaultStr == "-" {
 			continue
 		}
@@ -74,12 +70,22 @@ func setDefault(vv reflect.Value) error {
 				}
 			}
 
-		case reflect.Ptr, reflect.Struct:
-			// do nothing
-			err := setDefault(field)
-			if err != nil {
-				return err
+		case reflect.Ptr:
+			if !field.CanSet() {
+				continue
 			}
+
+			if field.IsNil() {
+				field.Set(reflect.New(field.Type().Elem()))
+
+				field = field.Elem()
+				field.Set(reflect.New(field.Type()).Elem())
+			}
+
+			setDefault(field)
+
+		case reflect.Struct:
+			setDefault(field)
 
 		case reflect.Map:
 		// do nothing
@@ -90,14 +96,16 @@ func setDefault(vv reflect.Value) error {
 		case reflect.Slice:
 			// do nothing
 
-		default:
-			panic("unknown kind " + field.Kind().String())
+			//default:
+			//	if !field.CanSet() {
+			//		continue
+			//	}
+
+			//panic("unknown kind " + field.Kind().String())
 		}
 	}
-
-	return nil
 }
 
-func SetDefaults(value interface{}) error {
-	return setDefault(reflect.ValueOf(value))
+func SetDefaults(value interface{}) {
+	setDefault(reflect.ValueOf(value))
 }

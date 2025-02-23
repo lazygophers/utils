@@ -3,7 +3,6 @@ package hystrix
 import (
 	"errors"
 	"github.com/lazygophers/utils/candy"
-	"go.uber.org/atomic"
 	"sync"
 	"time"
 )
@@ -33,9 +32,10 @@ type CircuitBreaker struct {
 	state State
 
 	requestResults []*requestResult
-	expiredAt      *atomic.Time
 
-	successes, failures *atomic.Uint64
+	successes, failures uint64
+
+	changed bool
 }
 
 type CircuitBreakerConfig struct {
@@ -47,8 +47,6 @@ type CircuitBreakerConfig struct {
 	ReadyToTrip ReadyToTrip
 	// 当半开状态下，是否重试的判断
 	Probe Probe
-	// 状态过期时间，如果为 0 则始终进行检测
-	StateExpiredTime time.Duration
 }
 
 func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
@@ -59,11 +57,11 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 	return &CircuitBreaker{
 		CircuitBreakerConfig: c,
 
+		changed:        true,
 		state:          Open,
 		requestResults: make([]*requestResult, 0),
-		expiredAt:      atomic.NewTime(time.Now()),
-		successes:      atomic.NewUint64(0),
-		failures:       atomic.NewUint64(0),
+		successes:      0,
+		failures:       0,
 	}
 }
 
@@ -114,30 +112,35 @@ func (p *CircuitBreaker) Stat() (successes, failures uint64) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	return p.successes.Load(), p.failures.Load()
+	return p.successes, p.failures
+}
+
+func (p *CircuitBreaker) Total() uint64 {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	return p.successes + p.failures
 }
 
 func (p *CircuitBreaker) stat() (successes, failures uint64) {
-	p.successes.Store(0)
-	p.failures.Store(0)
+	p.successes = 0
+	p.failures = 0
 
 	for _, r := range p.requestResults {
 		if r.success {
-			p.successes.Inc()
+			p.successes++
 		} else {
-			p.failures.Inc()
+			p.failures++
 		}
 	}
 
-	return p.successes.Load(), p.failures.Load()
+	return p.successes, p.failures
 }
 
 func (p *CircuitBreaker) updateState() {
-	if time.Now().Before(p.expiredAt.Load()) || p.cleanUp() {
+	if !p.changed && !p.cleanUp() {
 		return
 	}
-
-	p.expiredAt.Store(time.Now().Add(p.StateExpiredTime))
 
 	// 状态变化逻辑
 	oldState := p.state
@@ -165,6 +168,8 @@ func (p *CircuitBreaker) updateState() {
 		}
 	}
 
+	p.changed = false
+
 	// 触发状态变化回调
 	if oldState != p.state && p.OnStateChange != nil {
 		p.OnStateChange(oldState, p.state)
@@ -176,6 +181,12 @@ func (p *CircuitBreaker) After(success bool) {
 	defer p.mu.Unlock()
 
 	p.requestResults = append(p.requestResults, &requestResult{success: success, time: time.Now()})
+	p.changed = true
+	if success {
+		p.successes++
+	} else {
+		p.failures++
+	}
 }
 
 func (p *CircuitBreaker) Call(fn func() error) error {
