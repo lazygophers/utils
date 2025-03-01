@@ -2,6 +2,7 @@ package event
 
 import (
 	"github.com/lazygophers/utils/routine"
+	"github.com/lazygophers/utils/runtime"
 	"sync"
 )
 
@@ -18,6 +19,7 @@ type eventItem struct {
 type Manager struct {
 	eventMux sync.RWMutex
 	events   map[string][]*eventItem
+	c        chan *emitItem
 }
 
 func (p *Manager) register(eventName string, item *eventItem) {
@@ -59,14 +61,24 @@ func Emit(eventName string, args any) {
 	defaultManager.Emit(eventName, args)
 }
 
+type emitItem struct {
+	handler EventHandler
+	args    any
+}
+
+func (p *emitItem) do() {
+	defer runtime.CachePanic()
+
+	p.handler(p.args)
+}
+
 func (p *Manager) Emit(eventName string, args any) {
 	for _, event := range p.getItems(eventName) {
 		if event.async {
-			routine.GoWithRecover(func() (err error) {
-				event.handler(args)
-				return nil
-			})
-
+			p.c <- &emitItem{
+				handler: event.handler,
+				args:    args,
+			}
 			continue
 		}
 
@@ -77,7 +89,16 @@ func (p *Manager) Emit(eventName string, args any) {
 func NewManager() *Manager {
 	p := &Manager{
 		events: make(map[string][]*eventItem),
+
+		c: make(chan *emitItem, 10),
 	}
+
+	routine.GoWithRecover(func() (err error) {
+		for item := range p.c {
+			item.do()
+		}
+		return nil
+	})
 
 	return p
 }
