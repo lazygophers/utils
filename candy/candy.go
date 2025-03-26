@@ -344,25 +344,8 @@ func Index[T constraints.Ordered](ss []T, sub T) int {
 //	added: ss 不存在 against 存在
 //	removed: ss 存在 against 不存在
 func Diff[T constraints.Ordered](ss []T, against []T) (added, removed []T) {
-	diffOneWay := func(ss1, ss2raw []T) (result []T) {
-		set := make(map[T]struct{}, len(ss1))
-
-		for _, s := range ss1 {
-			set[s] = struct{}{}
-		}
-
-		for _, s := range ss2raw {
-			if _, ok := set[s]; ok {
-				delete(set, s)
-			} else {
-				result = append(result, s)
-			}
-		}
-		return
-	}
-
-	added = diffOneWay(ss, against)
-	removed = diffOneWay(against, ss)
+	added = Miss(ss, against)
+	removed = Miss(against, ss)
 
 	return
 }
@@ -379,6 +362,22 @@ func Miss[T constraints.Ordered](against []T, ss []T) (result []T) {
 		if _, ok := set[s]; ok {
 			delete(set, s)
 		} else {
+			result = append(result, s)
+		}
+	}
+	return
+}
+
+// Same 两个同事存在的
+func Same[T constraints.Ordered](against []T, ss []T) (result []T) {
+	set := make(map[T]struct{}, len(ss))
+
+	for _, s := range ss {
+		set[s] = struct{}{}
+	}
+
+	for _, s := range against {
+		if _, ok := set[s]; ok {
 			result = append(result, s)
 		}
 	}
