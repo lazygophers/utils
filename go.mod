@@ -21,7 +21,7 @@ require (
 	github.com/pterm/pterm v0.12.80
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.36.0
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
+	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/libc v1.61.13
 )
