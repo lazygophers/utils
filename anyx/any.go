@@ -976,6 +976,8 @@ func ToStringSlice(val interface{}, seqs ...string) []string {
 	var seq string
 	if len(seqs) > 0 {
 		seq = seqs[0]
+	} else {
+		seq = ","
 	}
 
 	switch x := val.(type) {
@@ -1078,6 +1080,14 @@ func ToStringSlice(val interface{}, seqs ...string) []string {
 		return x
 
 	case []byte:
+		if bytes.HasPrefix(x, []byte("[")) && bytes.HasSuffix(x, []byte("]")) {
+			var values []any
+			err := json.Unmarshal(x, &values)
+			if err == nil {
+				return ToStringSlice(values)
+			}
+		}
+
 		if seq == "" {
 			return []string{toString(x)}
 		}
@@ -1085,6 +1095,14 @@ func ToStringSlice(val interface{}, seqs ...string) []string {
 		return strings.Split(toString(x), seq)
 
 	case string:
+		if strings.HasPrefix(x, "[") && strings.HasSuffix(x, "]") {
+			var values []any
+			err := json.UnmarshalString(x, &values)
+			if err == nil {
+				return ToStringSlice(values)
+			}
+		}
+
 		if seq == "" {
 			return []string{x}
 		}
@@ -1099,8 +1117,8 @@ func ToStringSlice(val interface{}, seqs ...string) []string {
 		return ss
 
 	default:
-		return nil
 
+		return nil
 	}
 
 	return nil
