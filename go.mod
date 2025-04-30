@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.24.0
 
 require (
+	github.com/ProtonMail/gopenpgp/v3 v3.2.0
 	github.com/agiledragon/gomonkey/v2 v2.13.0
 	github.com/andybalholm/brotli v1.1.1
 	github.com/bytedance/sonic v1.13.2
@@ -30,8 +31,9 @@ require (
 	atomicgo.dev/cursor v0.2.0 // indirect
 	atomicgo.dev/keyboard v0.2.9 // indirect
 	atomicgo.dev/schedule v0.1.0 // indirect
-	github.com/ProtonMail/gopenpgp/v3 v3.2.0 // indirect
+	github.com/ProtonMail/go-crypto v1.2.0 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
+	github.com/cloudflare/circl v1.6.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/containerd/console v1.0.4 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
