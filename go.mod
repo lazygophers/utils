@@ -14,7 +14,7 @@ require (
 	github.com/grafana/pyroscope-go v1.2.2
 	github.com/jchavannes/go-pgp v0.0.0-20200131171414-e5978e6d02b4
 	github.com/jinzhu/now v1.1.5
-	github.com/lazygophers/log v0.0.0-20250409033028-0656cc92f9c3
+	github.com/lazygophers/log v0.0.0-20250509113414-7f7294f75e89
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/petermattis/goid v0.0.0-20250508124226-395b08cebbdb
