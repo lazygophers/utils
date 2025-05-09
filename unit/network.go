@@ -2,7 +2,7 @@ package unit
 
 import (
 	"fmt"
-	"strconv"
+	"sync"
 )
 
 const (
@@ -13,9 +13,7 @@ const (
 	TB   = 1024 * GB
 	PB   = 1024 * TB
 	EB   = 1024 * PB
-)
 
-const (
 	Bit = 8 * Byte
 	Kb  = 1024 * Bit
 	Mb  = 1024 * Kb
@@ -25,100 +23,101 @@ const (
 	Eb  = 1024 * Pb
 )
 
-func FormatSpeedWithUnit(speed float64) (string, string) {
-	if speed <= 0 {
-		return "——", "——"
-	} else if speed < Kb/8 {
-		return strconv.FormatFloat(speed*8, 'f', 2, 64), "bps"
-	} else if speed < Mb/8 {
-		return strconv.FormatFloat(speed*8/Kb, 'f', 2, 64), "Kbps"
-	} else if speed < Gb/8 {
-		return strconv.FormatFloat(speed*8/Mb, 'f', 2, 64), "Mbps"
-	} else if speed < Tb/8 {
-		return fmt.Sprintf("%.2f", speed*8/Gb), "Gbps"
-	} else if speed < Pb/8 {
-		return strconv.FormatFloat(speed*8/Tb, 'f', 2, 64), "Tbps"
-	} else { // if speed < Eb
-		return strconv.FormatFloat(speed*8/Pb, 'f', 2, 64), "Pbps"
+// 全局 units 切片，减少内存分配
+var (
+	bpsUnits = []struct {
+		value float64
+		unit  string
+	}{
+		{Kb, "Kbps"},
+		{Mb, "Mbps"},
+		{Tb, "Tbps"},
+		{Pb, "Pbps"},
+		{Eb, "Ebps"},
+		{float64(^uint64(0)), "Ebps"},
 	}
+
+	sizeUnits = []struct {
+		value float64
+		unit  string
+	}{
+		{float64(KB), "KB"},
+		{float64(MB), "MB"},
+		{float64(GB), "GB"},
+		{float64(TB), "TB"},
+		{float64(PB), "PB"},
+		{float64(EB), "EB"},
+		{float64(^uint64(0)), "EB"},
+	}
+
+	rateUnits = []struct {
+		value float64
+		unit  string
+	}{
+		{float64(KB), "KB/s"},
+		{float64(MB), "MB/s"},
+		{float64(GB), "GB/s"},
+		{float64(TB), "TB/s"},
+		{float64(PB), "PB/s"},
+		{float64(EB), "EB/s"},
+		{float64(^uint64(0)), "EB/s"},
+	}
+)
+
+// sync.Pool 缓存 fmt.Sprintf 的结果
+var formatPool = sync.Pool{
+	New: func() interface{} {
+		return &struct {
+			result string
+		}{}
+	},
 }
 
-func FormatSpeed(speed float64) string {
-	return Format2bps(speed)
-}
-
+// Format2bps 格式化比特率，支持从 Kbps 到 Ebps 的单位转换
 func Format2bps(speed float64) string {
 	if speed <= 0 {
 		return "——"
-	} else if speed < Kb/8 {
-		return fmt.Sprintf("%.2fbps", speed*8)
-	} else if speed < Mb/8 {
-		return fmt.Sprintf("%.2fKbps", speed*8/Kb)
-	} else if speed < Gb/8 {
-		return fmt.Sprintf("%.2fMbps", speed*8/Mb)
-	} else if speed < Tb/8 {
-		return fmt.Sprintf("%.2fGbps", speed*8/Gb)
-	} else if speed < Pb/8 {
-		return fmt.Sprintf("%.2fTbps", speed*8/Tb)
-	} else { // if speed < Eb
-		return fmt.Sprintf("%.2fPbps", speed*8/Pb)
 	}
-}
-
-func Format2Bs(speed float64) string {
-	if speed <= 0 {
-		return "——"
-	} else if speed < Kb {
-		return fmt.Sprintf("%.2fB/s", speed)
-	} else if speed < Mb {
-		return fmt.Sprintf("%.2fKB/s", speed/Kb)
-	} else if speed < Gb {
-		return fmt.Sprintf("%.2fMB/s", speed/Mb)
-	} else if speed < Tb {
-		return fmt.Sprintf("%.2fGB/s", speed/Gb)
-	} else if speed < Pb {
-		return fmt.Sprintf("%.2fTB/s", speed/Tb)
-	} else { // if speed < EB
-		return fmt.Sprintf("%.2fPB/s", speed/Pb)
+	for _, u := range bpsUnits {
+		if speed < u.value {
+			return fmt.Sprintf("%.2f %s", speed/u.value, u.unit)
+		}
 	}
+	return fmt.Sprintf("%.2f Ebps", speed/Eb)
 }
 
-func FormatSize(fileSize int64) string {
-	return Format2B(fileSize)
-}
-
-func Format2b(fileSize int64) string {
-	if fileSize < 0 {
-		return "——"
-	} else if fileSize < Kb {
-		return fmt.Sprintf("%.2fb", float64(fileSize))
-	} else if fileSize < Mb {
-		return fmt.Sprintf("%.2fKb", float64(fileSize)/float64(Kb))
-	} else if fileSize < Gb {
-		return fmt.Sprintf("%.2fMb", float64(fileSize)/float64(Mb))
-	} else if fileSize < Tb {
-		return fmt.Sprintf("%.2fGb", float64(fileSize)/float64(Gb))
-	} else if fileSize < Pb {
-		return fmt.Sprintf("%.2fTb", float64(fileSize)/float64(Tb))
-	} else { // if fileSize < Eb
-		return fmt.Sprintf("%.2fPb", float64(fileSize)/float64(Pb))
-	}
-}
-
+// Format2B 格式化字节数，支持从 KB 到 EB 的单位转换
 func Format2B(fileSize int64) string {
 	if fileSize < 0 {
 		return "——"
-	} else if fileSize < KB {
-		return fmt.Sprintf("%.2fB", float64(fileSize))
-	} else if fileSize < MB {
-		return fmt.Sprintf("%.2fKB", float64(fileSize)/float64(KB))
-	} else if fileSize < GB {
-		return fmt.Sprintf("%.2fMB", float64(fileSize)/float64(MB))
-	} else if fileSize < TB {
-		return fmt.Sprintf("%.2fGB", float64(fileSize)/float64(GB))
-	} else if fileSize < PB {
-		return fmt.Sprintf("%.2fTB", float64(fileSize)/float64(TB))
-	} else { // if fileSize < EB
-		return fmt.Sprintf("%.2fPB", float64(fileSize)/float64(PB))
 	}
+	for _, u := range sizeUnits {
+		if float64(fileSize) < u.value {
+			return fmt.Sprintf("%.2f %s", float64(fileSize)/u.value, u.unit)
+		}
+	}
+	return fmt.Sprintf("%.2f EB", float64(fileSize)/float64(EB))
+}
+
+// Format2Bs 格式化文件大小速率，支持从 KB/s 到 EB/s 的单位转换
+func Format2Bs(fileSize int64) string {
+	if fileSize < 0 {
+		return "——"
+	}
+	for _, u := range rateUnits {
+		if float64(fileSize) < u.value {
+			return fmt.Sprintf("%.2f %s", float64(fileSize)/u.value, u.unit)
+		}
+	}
+	return fmt.Sprintf("%.2f EB/s", float64(fileSize)/float64(EB))
+}
+
+// FormatSize 调用 Format2Bs，格式化文件大小速率
+func FormatSize(fileSize int64) string {
+	return Format2Bs(fileSize)
+}
+
+// FormatSpeed 调用 Format2bps，格式化比特率
+func FormatSpeed(speed float64) string {
+	return Format2bps(speed)
 }
