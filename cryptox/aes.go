@@ -264,6 +264,7 @@ func DecryptCTR(key, ciphertext []byte) ([]byte, error) {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
+
 		return nil, err
 	}
 
