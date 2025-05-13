@@ -54,6 +54,13 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 		c.Probe = ProbeWithChance(50)
 	}
 
+	// 新增 ReadyToTrip 默认实现
+	if c.ReadyToTrip == nil {
+		c.ReadyToTrip = func(successes, failures uint64) bool {
+			return successes+failures == 0 && failures > successes
+		}
+	}
+
 	return &CircuitBreaker{
 		CircuitBreakerConfig: c,
 
@@ -144,17 +151,15 @@ func (p *CircuitBreaker) updateState() {
 
 	// 状态变化逻辑
 	oldState := p.state
-	if p.ReadyToTrip(p.stat()) {
+	successes, failures := p.stat()
+	if p.ReadyToTrip(successes, failures) {
 		switch oldState {
 		case Open:
 			p.state = HalfOpen
 		case HalfOpen:
-			// 对于当前是关闭的状态，如果最后一个是正常的，那么需要回退
-			if candy.LastOr(p.requestResults, &requestResult{success: false}).success {
+			if len(p.requestResults) > 0 && candy.Last(p.requestResults).success {
 				p.state = Open
-
-				// 如果为 true, 则证明了长度一定大于 1
-				p.requestResults = append(make([]*requestResult, 0, 1), candy.Last(p.requestResults))
+				p.requestResults = make([]*requestResult, 0) // 清空历史记录
 			} else {
 				p.state = Closed
 			}
@@ -162,9 +167,17 @@ func (p *CircuitBreaker) updateState() {
 	} else {
 		switch oldState {
 		case HalfOpen:
-			p.state = Open
+			// 增加对 requestResults 长度的判断
+			if len(p.requestResults) > 0 && candy.Last(p.requestResults).success {
+				p.state = Open
+			} else {
+				p.state = Closed
+			}
 		case Closed:
-			p.state = HalfOpen
+			// 确保从 Closed 转换到 HalfOpen 的逻辑正确
+			if failures > 0 {
+				p.state = HalfOpen
+			}
 		}
 	}
 
