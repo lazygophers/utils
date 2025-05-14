@@ -62,8 +62,8 @@ func TestStat(t *testing.T) {
 		t.Errorf("Expected initial stats to be 0, got %d/%d", successes, failures)
 	}
 
-	cb.successes = 10
-	cb.failures = 5
+	cb.successes.Store(10)
+	cb.failures.Store(5)
 	if successes, failures := cb.Stat(); successes != 10 || failures != 5 {
 		t.Errorf("Expected stats 10/5, got %d/%d", successes, failures)
 	}
@@ -77,8 +77,8 @@ func TestTotal(t *testing.T) {
 		t.Errorf("Expected total to be 0, got %d", total)
 	}
 
-	cb.successes = 10
-	cb.failures = 5
+	cb.successes.Store(10)
+	cb.failures.Store(5)
 	if total := cb.Total(); total != 15 {
 		t.Errorf("Expected total to be 15, got %d", total)
 	}
@@ -90,12 +90,12 @@ func TestAfter(t *testing.T) {
 	})
 
 	cb.After(true)
-	if cb.successes != 1 {
+	if cb.successes.Load() != 1 {
 		t.Error("Success count should be 1 after After(true)")
 	}
 
 	cb.After(false)
-	if cb.failures != 1 {
+	if cb.failures.Load() != 1 {
 		t.Error("Failure count should be 1 after After(false)")
 	}
 }
@@ -167,4 +167,108 @@ func TestFullLifecycle(t *testing.T) {
 	if cb.State() != Closed {
 		t.Error("State should transition back to Closed after successful recovery")
 	}
+}
+
+/*
+go test -bench=. -benchmem -count=3
+goos: darwin
+goarch: arm64
+pkg: github.com/lazygophers/utils/hystrix
+cpu: Apple M3
+BenchmarkCall_Success          	19843444	        59.79 ns/op	      32 B/op	       1 allocs/op
+BenchmarkCall_Success          	19987354	        59.91 ns/op	      32 B/op	       1 allocs/op
+BenchmarkCall_Success          	20103996	        60.67 ns/op	      32 B/op	       1 allocs/op
+BenchmarkCall_Failure          	27953673	        42.26 ns/op	      16 B/op	       1 allocs/op
+BenchmarkCall_Failure          	26144541	        42.42 ns/op	      16 B/op	       1 allocs/op
+BenchmarkCall_Failure          	28086462	        42.10 ns/op	      16 B/op	       1 allocs/op
+BenchmarkCall_Success_Parallel 	20359053	        60.05 ns/op	      32 B/op	       1 allocs/op
+BenchmarkCall_Success_Parallel 	20110200	        59.65 ns/op	      32 B/op	       1 allocs/op
+BenchmarkCall_Success_Parallel 	19292913	        59.65 ns/op	      32 B/op	       1 allocs/op
+BenchmarkCall_Failure_Parallel 	28006354	        42.13 ns/op	      16 B/op	       1 allocs/op
+BenchmarkCall_Failure_Parallel 	28381402	        42.20 ns/op	      16 B/op	       1 allocs/op
+BenchmarkCall_Failure_Parallel 	27560493	        42.17 ns/op	      16 B/op	       1 allocs/op
+BenchmarkCall_StateTransition  	13347013	        91.49 ns/op	      32 B/op	       1 allocs/op
+BenchmarkCall_StateTransition  	13113416	        91.26 ns/op	      32 B/op	       1 allocs/op
+BenchmarkCall_StateTransition  	13127863	        92.29 ns/op	      32 B/op	       1 allocs/op
+PASS
+ok  	github.com/lazygop
+*/
+
+func BenchmarkCall_Success(b *testing.B) {
+	cb := NewCircuitBreaker(CircuitBreakerConfig{
+		TimeWindow: time.Second * 2,
+		ReadyToTrip: func(successes, failures uint64) bool {
+			return false // 确保不会触发熔断
+		},
+	})
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = cb.Call(func() error { return nil })
+	}
+}
+
+func BenchmarkCall_Failure(b *testing.B) {
+	cb := NewCircuitBreaker(CircuitBreakerConfig{
+		TimeWindow: time.Second * 2,
+		ReadyToTrip: func(successes, failures uint64) bool {
+			return failures > successes
+		},
+	})
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = cb.Call(func() error { return errors.New("test error") })
+	}
+}
+
+func BenchmarkCall_Success_Parallel(b *testing.B) {
+	cb := NewCircuitBreaker(CircuitBreakerConfig{
+		TimeWindow: time.Second * 2,
+		ReadyToTrip: func(successes, failures uint64) bool {
+			return false
+		},
+	})
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = cb.Call(func() error { return nil })
+		}
+	})
+}
+
+func BenchmarkCall_Failure_Parallel(b *testing.B) {
+	cb := NewCircuitBreaker(CircuitBreakerConfig{
+		TimeWindow: time.Second * 2,
+		ReadyToTrip: func(successes, failures uint64) bool {
+			return failures > successes
+		},
+	})
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = cb.Call(func() error { return errors.New("test error") })
+		}
+	})
+}
+
+// 新增极端并发场景测试
+func BenchmarkCall_StateTransition(b *testing.B) {
+	cb := NewCircuitBreaker(CircuitBreakerConfig{
+		TimeWindow: time.Millisecond * 100,
+		ReadyToTrip: func(s, f uint64) bool {
+			return f > s
+		},
+	})
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			// 交替成功/失败请求触发状态转换
+			if time.Now().UnixNano()%2 == 0 {
+				_ = cb.Call(func() error { return nil })
+			} else {
+				_ = cb.Call(func() error { return errors.New("error") })
+			}
+		}
+	})
 }
