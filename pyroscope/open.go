@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-// docker run -it -p 4040:4040 pyroscope/pyroscope:latest server
+// docker run -itd -p 4040:4040 pyroscope/pyroscope:latest server
 func load(address string) {
 	if address == "" {
 		address = "http://127.0.0.1:4040"
@@ -18,29 +18,22 @@ func load(address string) {
 
 	_, err := pyroscope.Start(pyroscope.Config{
 		ApplicationName: app.Name,
+		Tags:            map[string]string{"hostname": os.Getenv("HOSTNAME")},
 		ServerAddress:   address,
-
-		Tags: map[string]string{"hostname": os.Getenv("HOSTNAME")},
-
+		UploadRate:      0,
 		ProfileTypes: []pyroscope.ProfileType{
-			// these profile types are enabled by default:
 			pyroscope.ProfileCPU,
-
 			pyroscope.ProfileInuseObjects,
 			pyroscope.ProfileAllocObjects,
-
 			pyroscope.ProfileInuseSpace,
 			pyroscope.ProfileAllocSpace,
-
-			// these profile types are optional:
 			pyroscope.ProfileGoroutines,
-
 			pyroscope.ProfileMutexCount,
 			pyroscope.ProfileMutexDuration,
-
 			pyroscope.ProfileBlockCount,
 			pyroscope.ProfileBlockDuration,
 		},
+		DisableGCRuns: true,
 	})
 	if err != nil {
 		pterm.Error.Printfln("start pyroscope err:%v", err)

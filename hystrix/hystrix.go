@@ -100,7 +100,17 @@ func (p *CircuitBreaker) cleanUp() (change bool) {
 		return false
 	}
 	p.lastCleanupTime.Store(now)
-	return p.requestResults.cleanup(now - p.TimeWindow.Nanoseconds())
+
+	// 获取清理掉的成功/失败请求数量
+	removedSuccesses, removedFailures := p.requestResults.cleanup(now - p.TimeWindow.Nanoseconds())
+
+	// 同步减少全局计数器
+	if removedSuccesses > 0 || removedFailures > 0 {
+		p.successes.Sub(removedSuccesses)
+		p.failures.Sub(removedFailures)
+		return true
+	}
+	return false
 }
 
 // Before 判断是否允许执行新请求
@@ -247,12 +257,25 @@ func (rb *ringBuffer) add(result *requestResult) {
 }
 
 // cleanup 清理过期数据
-// 返回值表示是否发生清理
-func (rb *ringBuffer) cleanup(threshold int64) bool {
-	for rb.head.Load() != rb.tail.Load() && rb.buffer[rb.head.Load()].time.UnixNano() < threshold {
+// 返回值: 被清理的成功/失败请求数量
+func (rb *ringBuffer) cleanup(threshold int64) (removedSuccesses, removedFailures uint64) {
+	for rb.head.Load() != rb.tail.Load() {
+		idx := rb.head.Load()
+		if rb.buffer[idx%int64(rb.size)] == nil ||
+			rb.buffer[idx%int64(rb.size)].time.UnixNano() >= threshold {
+			break
+		}
+
+		// 统计被清理的请求结果
+		if rb.buffer[idx%int64(rb.size)].success {
+			removedSuccesses++
+		} else {
+			removedFailures++
+		}
+
 		rb.head.Add(1)
 	}
-	return rb.head.Load() != rb.tail.Load()
+	return removedSuccesses, removedFailures
 }
 
 // reset 重置缓冲区
