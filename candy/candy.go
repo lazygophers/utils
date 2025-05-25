@@ -176,6 +176,12 @@ func EachStopWithError[T any](ss []T, f func(T) (err error)) (err error) {
 	return nil
 }
 
+func EachReverse[T any](ss []T, f func(T)) {
+	for i := len(ss) - 1; i >= 0; i-- {
+		f(ss[i])
+	}
+}
+
 func Sort[T constraints.Ordered](ss []T) []T {
 	if len(ss) < 2 {
 		return ss
