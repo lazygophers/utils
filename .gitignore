@@ -1,34 +1,38 @@
+=======
+# 精简后的.gitignore
 # IDEs
 .idea/
 .vscode/
 
-# Build directories
+# 构建目录
 bin/
 obj/
 out/
 dist/
 build/
-__pycache__/
 
-# Environment files
+# 环境与依赖
 .env
 *.env
+*.dll
+*.exe
+*.dylib
+*.so
 
-# Logs and databases
+# 日志与数据库
+logs/
 *.log
 *.sqlite3
-logs/
 
-# Temporary files
-*.tmp
-*.bak
-*.swp
+# 临时文件
 ~$
-Thumbs.db
-.DS_Store
+*.bak
+*.tmp
+*.rej
+*.orig
+*.swp
 
 # Node.js
-node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -37,59 +41,22 @@ yarn-error.log*
 # Python
 *.pyc
 *.pyo
-__pycache__/
 *.egg-info/
 .eggs/
-env/
-venv/
-ENV/
 
-# Other
-*.exe
-*.dll
-*.so
-*.dylib
+# 其他
 *.class
 *.jar
 *.iml
-*.suo
-*.pdb
-*.class
-*.bak
-*.orig
-*.rej
 *.sln
-*.sw?
-*.DS_Store
-*.orig
-*.rej
-*.bak
-*.tmp
-*.log
-*.pid
-*.seed
-*.lock
-*.sdf
-*.VC.db
-*.suo
+*.pdb
+*.VC.*
 *.user
-*.userprefs
-*.VC.VC.opendb
 *.aps
-*.ncb
-*.opendb
+*.rej
 *.opensdf
-*.sdf
 *.cachefile
-*.VC.db
-*.VC.VC.opendb
-*.psess
-*.vsp
-*.vspx
-*.sap
-*.e2e
 $tf/
-*.gpState
 _ReSharper*/
 *[Rr]e[Ss]harper
 *.DotSettings.user
@@ -100,3 +67,4 @@ _TeamCity*
 !**/ios/**/default.mode1v3
 !**/ios/**/default.mode2v3
 !**/ios/**/default.perspectivev3
+/memory-bank/

@@ -1,7 +1,22 @@
-# cryptox
+# cryptox  
 
-加密工具模块，包含以下安全相关功能：  
-- `aes.go`: AES加密/解密实现  
-- `hash.go`: 哈希计算工具  
-- `hmac.go`: HMAC签名生成与验证  
-- `uuid.go`: UUID生成器及格式校验
+提供多种加密算法实现与安全工具  
+
+**核心功能**  
+- AES加密支持：  
+  ```go  
+  // GCM模式（推荐）  
+  ciphertext, err := Encrypt(key, plaintext)  
+  plaintext, err := Decrypt(key, ciphertext)  
+  ```  
+- HMAC签名：  
+  ```go  
+  // 支持多种哈希算法  
+  hmacMd5 := HmacMd5(key, data)  
+  hmacSha256 := HmacSha256(key, data)  
+  ```  
+- UUID生成：  
+  ```go  
+  uniqueID := UUID() // 生成无连字符的UUID  
+  ```  
+- 包含CBC/CFB/CTR等传统模式实现
