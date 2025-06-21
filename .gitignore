@@ -3,3 +3,4 @@
 *.out
 .roomodes
 .roo/
+.DS_Store
