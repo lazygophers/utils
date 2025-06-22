@@ -2,6 +2,7 @@ package xtime955
 
 import "time"
 
+// 包含常见时间单位及工作/休息周期定义
 const (
 	Nanosecond  = time.Nanosecond
 	Microsecond = time.Microsecond
