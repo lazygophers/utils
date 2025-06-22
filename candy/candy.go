@@ -353,14 +353,14 @@ func Index[T constraints.Ordered](ss []T, sub T) int {
 //	added: ss 不存在 against 存在
 //	removed: ss 存在 against 不存在
 func Diff[T constraints.Ordered](ss []T, against []T) (added, removed []T) {
-	added = Miss(ss, against)
-	removed = Miss(against, ss)
+	removed = Remove(ss, against)
+	added = Remove(against, ss)
 
 	return
 }
 
-// Miss ss 存在但是 against 不存在
-func Miss[T constraints.Ordered](against []T, ss []T) (result []T) {
+// Remove 移除 ss 存在也 against 存在的部分
+func Remove[T constraints.Ordered](ss []T, against []T) (result []T) {
 	set := make(map[T]struct{}, len(ss))
 
 	for _, s := range ss {

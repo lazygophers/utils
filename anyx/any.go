@@ -3,15 +3,26 @@ package anyx
 import (
 	"bytes"
 	"fmt"
-	"github.com/lazygophers/utils/json"
 	"math"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 	"unsafe"
+
+	"github.com/lazygophers/utils/json"
 )
 
+// ToString 将任意类型转换为字符串表示
+// 支持类型：
+// - 布尔值：true -> "1"，false -> "0"
+// - 整数类型：直接格式化为十进制字符串
+// - 浮点数：整数部分无小数时返回整数形式，否则保留小数
+// - time.Duration：使用其String()方法
+// - 字符串/[]byte：直接返回
+// - error：返回错误信息
+// - 其他类型：使用JSON序列化
+// 返回空字符串表示转换失败
 func ToString(val interface{}) string {
 	switch x := val.(type) {
 	case bool:
@@ -72,6 +83,12 @@ func ToString(val interface{}) string {
 	}
 }
 
+// ToBytes 将任意类型转换为字节数组
+// 转换规则与ToString相同，但返回[]byte类型
+// 特殊情况：
+// - nil返回nil
+// - error类型返回错误信息的字节表示
+// - JSON序列化失败时返回nil
 func ToBytes(val interface{}) []byte {
 	switch x := val.(type) {
 	case bool:
@@ -132,6 +149,17 @@ func ToBytes(val interface{}) []byte {
 	}
 }
 
+// ToInt 将任意类型转换为int
+// 布尔值处理：
+// - true -> 1
+// - false -> 0
+// 数值类型直接转换
+// 字符串处理：
+// - 优先尝试解析为uint64后转换
+// - 解析失败返回0
+// - 超出int范围时返回最大/最小值
+// - 解析失败返回0
+// []byte同字符串处理逻辑
 func ToInt(val interface{}) int {
 	switch x := val.(type) {
 	case bool:
@@ -180,6 +208,9 @@ func ToInt(val interface{}) int {
 	}
 }
 
+// ToInt8 将任意类型转换为int8
+// 转换规则与ToInt相同，但目标类型为int8
+// 可能发生截断，使用者需注意数值范围
 func ToInt8(val interface{}) int8 {
 	switch x := val.(type) {
 	case bool:
@@ -228,6 +259,9 @@ func ToInt8(val interface{}) int8 {
 	}
 }
 
+// ToInt16 将任意类型转换为int16
+// 转换规则与ToInt相同，但目标类型为int16
+// 可能发生截断，使用者需注意数值范围
 func ToInt16(val interface{}) int16 {
 	switch x := val.(type) {
 	case bool:
@@ -276,6 +310,9 @@ func ToInt16(val interface{}) int16 {
 	}
 }
 
+// ToInt32 将任意类型转换为int32
+// 转换规则与ToInt相同，但目标类型为int32
+// 可能发生截断，使用者需注意数值范围
 func ToInt32(val interface{}) int32 {
 	switch x := val.(type) {
 	case bool:
@@ -324,6 +361,17 @@ func ToInt32(val interface{}) int32 {
 	}
 }
 
+// ToInt64 将任意类型转换为int64类型
+// 处理逻辑：
+// - 布尔值：true -> 1，false -> 0
+// - 所有整数类型直接转换
+// - 浮点数取整转换
+// - 字符串处理：
+//   - 优先尝试解析为int64
+//   - 解析失败返回0
+//
+// - []byte同字符串处理逻辑
+// - time.Duration返回纳秒值
 func ToInt64(val interface{}) int64 {
 	switch x := val.(type) {
 	case bool:
@@ -374,6 +422,11 @@ func ToInt64(val interface{}) int64 {
 	}
 }
 
+// ToFloat32 将任意类型转换为float32类型
+// 转换规则与ToFloat64相同，但目标类型为float32
+// 特殊情况：
+// - JSON序列化失败返回0
+// - 整数类型转换为浮点数形式
 func ToFloat32(val interface{}) float32 {
 	switch x := val.(type) {
 	case bool:
@@ -422,6 +475,12 @@ func ToFloat32(val interface{}) float32 {
 	}
 }
 
+// ToFloat64 将任意类型转换为float64类型
+// 字符串处理：
+// - 优先尝试解析为浮点数
+// - 整数转换为浮点数形式
+// []byte同字符串处理逻辑
+// JSON序列化失败返回0
 func ToFloat64(val interface{}) float64 {
 	switch x := val.(type) {
 	case bool:
@@ -715,6 +774,13 @@ func ToFloat64Slice(val interface{}) []float64 {
 	}
 }
 
+// ToUint 将任意类型转换为uint类型
+// 布尔值处理同整数转换
+// 数值类型直接转换为无符号整数
+// 字符串处理：
+// - 尝试解析为uint64后转换
+// - 解析失败返回0
+// []byte同字符串处理逻辑
 func ToUint(val interface{}) uint {
 	switch x := val.(type) {
 	case bool:
@@ -763,6 +829,9 @@ func ToUint(val interface{}) uint {
 	}
 }
 
+// ToUint8 将任意类型转换为uint8类型
+// 转换规则与ToUint相同，但目标类型为uint8
+// 可能发生截断，使用者需注意数值范围
 func ToUint8(val interface{}) uint8 {
 	switch x := val.(type) {
 	case bool:
@@ -955,6 +1024,12 @@ func ToUint64(val interface{}) uint64 {
 	}
 }
 
+// ToMapStringAny 将任意map转换为string-key的interface{} map
+// 处理逻辑：
+// - 使用反射遍历map键值对
+// - 键转换为字符串
+// - 值保持为interface{}类型
+// - 非map类型返回空map
 func ToMapStringAny(v interface{}) map[string]interface{} {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Map {
@@ -1124,6 +1199,16 @@ func ToStringSlice(val interface{}, seqs ...string) []string {
 	return nil
 }
 
+// ToMap 将任意类型转换为map[string]interface{}
+// 支持转换类型：
+// - []byte：尝试JSON解析
+// - string：尝试JSON解析
+// - 其他类型：使用反射遍历map
+// 性能注意事项：
+// - 使用反射时需注意类型校验开销
+// - JSON解析失败时需避免panic
+// - 空map返回而非nil
+// 返回nil表示转换失败
 func ToMap(v interface{}) map[string]interface{} {
 	switch x := v.(type) {
 	case []byte:
@@ -1145,6 +1230,12 @@ func ToMap(v interface{}) map[string]interface{} {
 	return ToMapStringAny(v)
 }
 
+// ToMapStringString 将任意map转换为string-key的string map
+// 处理逻辑：
+// - 使用反射遍历map键值对
+// - 键转换为字符串
+// - 值转换为字符串
+// - 非map类型返回空map
 func ToMapStringString(v interface{}) map[string]string {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Map {
@@ -1213,6 +1304,12 @@ func ToMapInt32String(v interface{}) map[int32]string {
 	return m
 }
 
+// ToMapStringArrayString 将任意map转换为string-key的[]string map
+// 处理逻辑：
+// - 使用反射遍历map键值对
+// - 键转换为字符串
+// - 值转换为字符串切片
+// - 非map类型返回空map
 func ToMapStringArrayString(v interface{}) map[string][]string {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Map {
@@ -1230,6 +1327,11 @@ func ToMapStringArrayString(v interface{}) map[string][]string {
 	return m
 }
 
+// ToArrayString 将任意切片转换为字符串切片
+// 处理规则：
+// - 使用反射遍历切片元素
+// - 每个元素转换为字符串
+// - 非切片类型返回空切片
 func ToArrayString(v interface{}) []string {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Slice {
