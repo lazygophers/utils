@@ -1,43 +1,79 @@
-# xtime007  
-提供基于12小时工作制的时间计算常量  
+# xtime007
 
-## 安装指南  
-使用以下命令安装包：  
+> 早上 0 点到晚上 24 点，一周七天
+
+提供基于 24 小时 x 7 天 工作制的时间计算常量
+
+# 安装配置
+
 ```bash
-go get github.com/lazygophers/utils/xtime/xtime007
+go get -u github.com/yourusername/xtime/xtime007
 ```
 
-## 使用示例  
-### 导入包  
+添加到项目依赖：
 ```go
-import "github.com/lazygophers/utils/xtime/xtime007"
+import "github.com/yourusername/xtime/xtime007"
 ```
 
-### 时间换算  
-```go
-// 计算3个完整工作周的总时长
-totalWorkTime := xtime007.WorkWeek * 3
-fmt.Printf("总工作时长: %s\n", totalWorkTime)
+验证版本兼容性：
+```bash
+go list -m github.com/yourusername/xtime/xtime007
 ```
 
-### 工时验证  
+# 包功能描述
+
+## 核心特性
+* **业务时间模型** - 提供标准工作日/周/月/年模型
+* **全天候支持** - 所有时间单位基于24小时制
+* **复合单位** - 通过预定义组合简化时间计算
+
+## 支持场景
+- 定时任务调度
+- 工时统计系统
+- 持续运行服务
+- 业务周期计算
+
+## 注意事项
+> 1. 月份默认按30天计算
+> 2. 季度定义为91天（3个月）
+> 3. 所有时间单位继承自 time.Duration 类型
+
+# API 用法示例
+
+## 基础时间计算
 ```go
-// 验证是否超过标准工作周
-if someDuration > xtime007.WorkWeek {
-    fmt.Println("⚠️ 超出标准工作周时长")
+// 计算标准工作周总时长
+workWeek := xtime007.WorkWeek
+fmt.Println("工作周时长:", workWeek) // 输出 604800000000000 (168h0m0s)
+
+// 计算季度工作时间
+quarterWork := xtime007.WorkQuarter
+fmt.Println("季度工作时长:", quarterWork) // 输出 7776000000000000 (2160h0m0s)
+```
+
+## 业务场景应用
+```go
+// 计算服务运行时长
+import "time"
+
+func calculateServiceTime(start time.Time) time.Duration {
+    return time.Since(start)
+}
+
+// 判断是否跨周
+if calculateServiceTime(serviceStart) >= xtime007.Week {
+    sendWeeklyReport()
 }
 ```
 
-## 贡献说明  
-1. **开发环境准备**  
-   - 安装Go 1.20+  
-   - 设置模块路径：`go mod edit -replace=github.com/lazygophers/utils=../lazygophers/utils`
+# 注释汇总
 
-2. **代码规范**  
-   - 新增常量需遵循 `WorkDay`, `WorkWeek` 命名规则  
-   - 数学表达式需使用LaTeX格式：`$$1\,\text{WorkWeek} = 5 \times 12\,\text{hours}$$`
-
-3. **提交流程**  
-   - 编写测试用例（参考 `xtime/xtime007/xtime_test.go`）  
-   - 执行测试：`go test -v ./xtime/xtime007`  
-   - 提交PR前运行：`go fmt ./xtime/xtime007`
+| 常量名称     | 描述                     | 计算方式           | 适用场景             |
+|--------------|--------------------------|--------------------|----------------------|
+| WorkDay      | 标准工作日定义为24小时   | time.Hour * 24     | 持续运行服务         |
+| RestDay      | 非工作日时间模型         | 0                  | 连续运行无休息场景   |
+| WorkWeek     | 7天完整工作周期          | WorkDay * 7        | 周维度业务统计       |
+| RestWeek     | 非工作周时间模型         | 0                  | 无休息日业务场景     |
+| WorkMonth    | 30天标准工作月           | Day * 30           | 月度结算系统         |
+| Quarter      | 91天季度基准             | Day * 91           | 季度维度数据分析     |
+| WorkYear     | 365天自然年工作模型      | Day * 365          | 年度计划制定         |
