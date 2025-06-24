@@ -62,9 +62,6 @@ const (
 	WorkMonth = Day*30 - RestMonth
 
 	// Quarter 季度时间单位（91天）
-	// 等于标准库time.Hour * 24 * 91（约3个月）
-	// Quarter 季度时间单位（91天）
-	// 等于标准库time.Hour * 24 * 91（约3个月）
 	Quarter = Day * 91
 	// RestQuarter 休息季度时长（14个休息日）
 	// 等于RestDay * 14（每个休息日12小时）
@@ -72,7 +69,7 @@ const (
 	// 等于RestDay * 14（每个休息日12小时）
 	RestQuarter = RestDay * 14
 	// WorkQuarter 工作季度时长（77天）
-	// 等于Quarter - RestQuarter（91天-14个休息日）
+	// 基于Quarter常量计算，扣除14个标准休息日（91天-14天休息日）
 	WorkQuarter = Day*91 - RestQuarter
 
 	// Year 年时间单位（365天）
@@ -86,10 +83,7 @@ const (
 	// 等于RestDay * 58（每个休息日12小时）
 	RestYear = RestDay * 58
 	// WorkYear 工作年时长（307天）
-	// 等于Year - RestYear（365天-58个休息日）
-	// WorkYear 工作年时长（307天）
-	// 等于Year - RestYear（365天-58个休息日）
-	// WorkYear 工作年时长（307天）
-	// 等于Year - RestYear（365天-58个休息日）
+	// 基于Year常量计算，扣除58个标准休息日（365天-58天休息日）
+	// WorkYear 表示标准工作年时长（307天）= Year - RestYear
 	WorkYear = Year - RestYear
 )
