@@ -1,60 +1,20 @@
-// Lunar 结构体表示农历日期信息
-// year: 农历年份
-// month: 农历月份 (1-12)
-// day: 农历日期 (1-30)
-// monthIsLeap: 标记当前月份是否为闰月
-// Time: 内嵌的公历时间对象
-// Lunar 包提供农历日期处理功能
-// 包含核心类型和方法：
-// Lunar - 包含农历日期信息和公历时间功能
-// LeapMonth() - 获取该年闰月（0表示无闰月）
-// IsLeap() - 判断是否为闰年
-// Animal() - 获取生肖
-// YearAlias/MonthAlias/DayAlias - 汉字日期格式化
-// FromSolarTimestamp - 公历转农历
-// Lunar 结构体表示农历日期信息
-// year: 农历年份
-// month: 农历月份 (1-12)
-// day: 农历日期 (1-30)
-// monthIsLeap: 标记当前月份是否为闰月
-// Time: 内嵌的公历时间对象，提供完整的日期和时间功能
-// Lunar 包提供了农历日期处理功能，主要包含以下功能：
-// 1. 农历与公历之间的日期转换
-// 2. 闰月计算与判断
-// 3. 生肖（12 animal）的推算
-// 4. 传统汉字日期格式化（如"二零一八年闰六月"）
-// 5. 农历日期结构操作
-// 主要功能包括：
+// Lunar 包提供农历日期处理功能，支持农历与公历转换、闰月判断、生肖计算及汉字格式化。
+//
+// 核心功能包括：
 // - 农历/公历日期转换
-// - 闰月计算
-// - 生肖（12 animal）推算
-// - 传统汉字日期格式化（如"二零一八年闰六月"）
+// - 闰月计算与判断
+// - 生肖（十二生肖）推算
+// - 传统汉字日期格式化（如 "二零一八年闰六月"）
 // - 农历日期结构操作
 //
-// 包含以下核心类型：
-// Lunar 包含农历日期和时间信息
-// Time 字段继承了公历时间的完整功能
-// year 表示农历年份
-// month 表示农历月份(1-12)
-// day 表示农历日期(1-30)
-// monthIsLeap 标记当前月份是否为闰月
-// Lunar 结构体包含以下核心类型和功能：
-// - Lunar: 农历日期结构体，包含农历日期信息和完整的公历时间功能
-// - LeapMonth: 返回该农历年份的闰月月份 (0表示无闰月)
-// 返回值范围：0（无闰月）或 1-12（闰月的对应月份）
-// 实际计算由 leapMonth 函数完成，该函数从 lunars 数组中获取数据
+// 主要类型：
+// - Lunar：包含农历日期信息和公历时间功能
 //
-// 主要方法：
-// IsLeap - 判断是否为闰年（存在闰月）
-// 返回值:
-//   - true 表示闰年
-//   - false 表示平年
+// 示例用法：
 //
-// 核心方法集：
-// LeapMonth - 获取闰月信息
-// IsLeap - 闰年判断
-// Animal - 生肖获取
-// YearAlias/MonthAlias/DayAlias - 汉字格式化
+//	ts := time.Now().Unix()
+//	lunar := xtime.WithLunar(time.Now())
+//	fmt.Println(lunar.YearAlias(), lunar.MonthAlias())
 package xtime
 
 import (
@@ -63,6 +23,7 @@ import (
 	"time"
 )
 
+// Lunar 结构体表示农历日期信息，包含公历时间字段和农历计算参数
 type Lunar struct {
 	time.Time
 
@@ -70,34 +31,27 @@ type Lunar struct {
 	monthIsLeap      bool
 }
 
-// LeapMonth 返回农历年份的闰月信息
-// 返回值:
-//   - 0 表示无闰月
-//   - 1-12 表示对应的闰月
+// LeapMonth 返回农历年份的闰月信息。返回值为0表示无闰月，1-12表示对应的闰月。
 func (p *Lunar) LeapMonth() int64 {
 	return leapMonth(p.year)
 }
 
-// IsLeap 判断农历年份是否为闰年
-// 闰年的定义是该年存在闰月
-// 返回值:
-//   - true 表示闰年
-//   - false 表示平年
+// IsLeap 判断农历年份是否为闰年（存在闰月）。
 func (p *Lunar) IsLeap() bool {
 	return p.LeapMonth() != 0
 }
 
-// IsLeapMonth 检查当前月份是否为闰月
+// IsLeapMonth 检查当前月份是否为闰月。
 func (p *Lunar) IsLeapMonth() bool { return p.monthIsLeap }
 
-// Animal 获取生肖
-// 返回生肖名称字符串
+// Animal 获取农历年份对应的生肖名称（十二生肖）。
+// 计算方式：根据"鼠牛虎兔龙蛇马羊猴鸡狗猪"顺序循环计算，公式为 (年份-3) % 12。
 func (p *Lunar) Animal() string {
 	order := OrderMod(p.year-3, 12)
 
 	if 1 <= order && order <= 12 {
-		return animalAlias[(order-1)%12]
-	}
+	return animalAlias[(order-1)%12]
+}
 
 	return ""
 }
@@ -111,7 +65,7 @@ func (p *Lunar) YearAlias() string {
 	return s
 }
 
-// MonthAlias 汉字表示月(八月, 闰六月)
+// MonthAlias 返回农历月份的汉字表示（如"闰六月"）。
 func (p *Lunar) MonthAlias() string {
 	pre := ""
 	if p.monthIsLeap {
@@ -148,13 +102,14 @@ func (p *Lunar) Month() int64 {
 // Day 日
 func (p *Lunar) Day() int64 {
 	return p.day
-}
+	}
 
 // Day 日
 func (p *Lunar) Date() string {
 	return fmt.Sprintf("%02d-%02d-%02d", p.year, p.month, p.day)
 }
 
+// MonthDayAlise 返回月份和日期的组合格式（如"闰6-15"）。
 func (p *Lunar) MonthDayAlise() string {
 	if p.monthIsLeap {
 		return fmt.Sprintf("闰%d-%d", p.Month(), p.Day())
@@ -182,6 +137,19 @@ func WithLunar(t time.Time) *Lunar {
 	}
 }
 
+// FromSolarTimestamp 将公历Unix时间戳转换为农历日期信息。
+// 参数：
+//
+//	ts: 公历Unix时间戳（秒）
+//
+// 返回：
+//
+//	lunarYear: 农历年份
+//	lunarMonth: 农历月份（1-12）
+//	lunarDay: 农历日期（1-30）
+//	lunarMonthIsLeap: 是否为闰月
+//
+// 注意：输入时间戳需在1900-01-31到2099-12-31范围内。
 func FromSolarTimestamp(ts int64) (lunarYear, lunarMonth, lunarDay int64, lunarMonthIsLeap bool) {
 	var (
 		i, offset, leap         int64
@@ -201,7 +169,7 @@ func FromSolarTimestamp(ts int64) (lunarYear, lunarMonth, lunarDay int64, lunarM
 	if offset < 0 {
 		offset += daysOfYear
 		i--
-	}
+}
 
 	// 农历年
 	lunarYear = i
@@ -260,8 +228,7 @@ func OrderMod(a, b int64) (result int64) {
 	return
 }
 
-// 常用的转换工具
-
+// daysOfLunarYear 计算指定农历年的总天数。
 func daysOfLunarYear(year int64) int64 {
 	var (
 		i, sum int64
@@ -275,6 +242,7 @@ func daysOfLunarYear(year int64) int64 {
 	return sum + leapDays(year)
 }
 
+// leapMonth 获取指定年份的闰月月份（0表示无闰月）。
 func leapMonth(year int64) int64 {
 	return lunars[year-1900] & 0xf
 }
@@ -301,20 +269,24 @@ func lunarDays(year, month int64) (days int64) {
 	return
 }
 
+// numberAlias 存储数字到汉字的映射（0-9）。
 var numberAlias = [...]string{
 	"零", "一", "二", "三", "四",
 	"五", "六", "七", "八", "九",
 }
 
+// dateAlias 存储日期格式化前缀（如"初"、"十"）。
 var dateAlias = [...]string{
 	"初", "十", "廿", "卅",
 }
 
+// lunarMonthAlias 存储农历月份汉字别名（正月至腊月）。
 var lunarMonthAlias = [...]string{
 	"正", "二", "三", "四", "五", "六",
 	"七", "八", "九", "十", "冬", "腊",
 }
 
+// lunars 存储农历历法数据（1900-2100年）。
 var lunars = [...]int64{
 	0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2, // 1900-1909
 	0x04ae0, 0x0a5b6, 0x0a4d0, 0x0d250, 0x1d255, 0x0b540, 0x0d6a0, 0x0ada2, 0x095b0, 0x14977, // 1910-1919
