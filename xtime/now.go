@@ -2,8 +2,7 @@ package xtime
 
 import "time"
 
-// Now 获取当前时间并封装为xtime.Time
-// 返回包装后的当前时间对象
+// Now returns current time with default configuration
 func Now() *Time {
 	return With(time.Now())
 }
@@ -16,7 +15,7 @@ func NowUnixMilli() int64 {
 	return Now().UnixMilli()
 }
 
-// BeginningOfMinute 获取当前分钟的起始时间
+// BeginningOfMinute returns start of current minute with config
 func (p *Time) BeginningOfMinute() *Time {
 	return With(p.Truncate(time.Minute))
 }
@@ -52,7 +51,7 @@ func (p *Time) BeginningOfWeek() *Time {
 	return With(t.AddDate(0, 0, -weekday))
 }
 
-// BeginningOfMonth 获取当前月份的起始时间（1号00:00:00）
+// BeginningOfMonth returns start of current month with config
 func (p *Time) BeginningOfMonth() *Time {
 	y, m, _ := p.Date()
 	return With(time.Date(y, m, 1, 0, 0, 0, 0, p.Location()))
