@@ -411,6 +411,27 @@ func Spare[T constraints.Ordered](ss []T, against []T) (result []T) {
 	return
 }
 
+// RemoveIndex 移除指定索引的元素
+func RemoveIndex[T any](ss []T, index int) []T {
+	if len(ss) == 0 || index < 0 || index >= len(ss) {
+		return ss
+	}
+
+	if index == 0 {
+		if len(ss) > 0 {
+			return ss[1:]
+		}
+
+		return make([]T, 0)
+	}
+
+	if index == len(ss)-1 {
+		return ss[:len(ss)-1]
+	}
+
+	return append(ss[:index], ss[index+1:]...)
+}
+
 func SliceEqual[T any](a, b []T) bool {
 	if len(a) != len(b) {
 		return false
