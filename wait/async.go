@@ -1,4 +1,10 @@
-// Package wait 提供了用于管理异步任务的工具，主要通过WaitGroup和channel实现并发控制和任务唯一性处理。
+// Package wait 提供并发控制和异步任务管理工具
+//
+// 使用WaitGroup池和channel实现任务分发与回收
+// 主要功能：
+//   - 并发任务执行(Async)
+//   - 持续任务处理(AsyncAlwaysWithChan)
+//   - 唯一性任务保证(AsyncUnique/AsyncAlwaysUniqueWithChan)
 package wait
 
 import (
@@ -8,10 +14,12 @@ import (
 	"github.com/lazygophers/utils/routine"
 )
 
-// Wgp WaitGroup池，用于复用sync.WaitGroup对象
+// Wgp WaitGroup对象池，用于管理goroutine同步
 //
-// 初始化时设置New函数返回新的WaitGroup实例
-// 通过Get/Put方法实现对象池的获取和归还
+// 实现细节：
+//   - 使用sync.Pool减少内存分配
+//   - WaitGroup生命周期由Get/Put管理
+//   - 每个WaitGroup可支持最大并发量由调用方指定
 var (
 	Wgp = sync.Pool{
 		New: func() interface{} {
@@ -20,11 +28,18 @@ var (
 	}
 )
 
-// Async 并发执行指定数量的任务
+// Async 并发处理数据流
 //
-// @param process 并发数
-// @param push 数据推送函数，负责将数据项发送到channel
-// @param logic 数据处理逻辑函数，对每个接收到的数据项进行处理
+// 参数:
+//   - process: 并发处理数量
+//   - push: 数据生成函数，向channel推送数据
+//   - logic: 数据处理逻辑函数
+//
+// 执行流程:
+// 1. 创建带缓冲的channel
+// 2. 从对象池获取WaitGroup
+// 3. 启动指定数量的goroutine消费channel
+// 4. 等待所有goroutine完成
 //
 // 该函数通过创建指定数量的goroutine来并发处理数据，使用WaitGroup确保所有任务完成后再返回
 // 注意：routine.GoWithRecover会自动捕获panic并转换为error处理
@@ -75,7 +90,13 @@ func AsyncAlwaysWithChan[M any](process int, c chan M, logic func(M)) {
 	}
 }
 
+// UniqueTask 唯一性任务接口
+//
+// 必须实现UniqueKey方法返回任务唯一标识
+// 用于防止重复处理相同任务
 type UniqueTask interface {
+	// UniqueKey 返回任务的唯一键
+	// 用于去重判断
 	UniqueKey() string
 }
 
