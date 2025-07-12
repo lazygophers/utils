@@ -3,15 +3,16 @@ package anyx
 import (
 	"errors"
 	"fmt"
-	"github.com/lazygophers/utils/json"
-	"golang.org/x/exp/constraints"
-	"gopkg.in/yaml.v3"
 	"maps"
 	"math"
 	"reflect"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/lazygophers/utils/json"
+	"golang.org/x/exp/constraints"
+	"gopkg.in/yaml.v3"
 
 	"go.uber.org/atomic"
 )
@@ -969,27 +970,11 @@ func MapKeysInt64(m interface{}) []int64 {
 	return result
 }
 
-//func MapValues(m interface{}) interface{} {
-//	vo := reflect.ValueOf(m)
-//	if vo.Kind() != reflect.Map {
-//		panic("required map type")
-//	}
-//
-//	elType := vo.Type().Elem()
-//	list := reflect.MakeSlice(reflect.SliceOf(elType), 0, vo.Len())
-//
-//	for _, key := range vo.MapKeys() {
-//		list = reflect.Append(list, vo.MapIndex(key))
-//	}
-//
-//	return list.Interface()
-//}
-
-func MapValues[K constraints.Ordered,V any](m map[K]V) []V {
+func MapValues[K constraints.Ordered, V any](m map[K]V) []V {
 	res := make([]V, 0, len(m))
 	for _, v := range m {
-        res = append(res, v)
-    }
+		res = append(res, v)
+	}
 	return res
 }
 
