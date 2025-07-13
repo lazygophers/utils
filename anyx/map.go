@@ -1,30 +1,11 @@
 package anyx
 
 import (
-	"errors"
 	"fmt"
-	"maps"
-	"math"
-	"reflect"
-	"strconv"
-	"strings"
-	"sync"
-
 	"github.com/lazygophers/utils/json"
 	"golang.org/x/exp/constraints"
-	"gopkg.in/yaml.v3"
-
-	"go.uber.org/atomic"
-)
-
-type Map struct {
-	data *sync.Map
-	cut  *atomic.Bool
-	seq  *atomic.String
-}
-
-var (
-	ErrNotFound = errors.New("not found")
+	"maps"
+	"reflect"
 )
 
 type ValueType int
@@ -35,116 +16,6 @@ const (
 	ValueString
 	ValueBool
 )
-
-func NewMap(m map[string]interface{}) *Map {
-	m2 := &Map{
-		data: &sync.Map{},
-		cut:  atomic.NewBool(false),
-		seq:  atomic.NewString(""),
-	}
-	for k, v := range m {
-		m2.data.Store(k, v)
-	}
-	return m2
-}
-
-func NewMapWithJson(s []byte) (*Map, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(s, &m)
-	if err != nil {
-		return nil, err
-	}
-	return NewMap(m), nil
-}
-
-func NewMapWithYaml(s []byte) (*Map, error) {
-	var m map[string]interface{}
-	err := yaml.Unmarshal(s, &m)
-	if err != nil {
-		return nil, err
-	}
-	return NewMap(m), nil
-}
-
-func NewMapWithAny(s interface{}) (*Map, error) {
-	buf, err := json.Marshal(s)
-	if err != nil {
-		return nil, err
-	}
-	var m map[string]interface{}
-	err = yaml.Unmarshal(buf, &m)
-	if err != nil {
-		return nil, err
-	}
-	return NewMap(m), nil
-}
-
-func (p *Map) EnableCut(seq string) *Map {
-	p.cut.Store(true)
-	p.seq.Store(seq)
-	return p
-}
-
-func (p *Map) DisableCut() *Map {
-	p.cut.Store(false)
-	return p
-}
-
-func (p *Map) Set(key string, value interface{}) {
-	p.data.Store(key, value)
-}
-
-func (p *Map) Get(key string) (interface{}, error) {
-	val, ok := p.get(key)
-	if !ok {
-		return nil, ErrNotFound
-	}
-
-	return val, nil
-}
-
-func (p *Map) get(key string) (interface{}, bool) {
-	var val interface{}
-	var ok bool
-
-	if val, ok = p.data.Load(key); ok {
-		return val, true
-	}
-	if !p.cut.Load() {
-		return nil, false
-	}
-
-	seq := p.seq.Load()
-	keys := strings.Split(key, seq)
-
-	data := p.data
-	var m *Map
-	for len(keys) > 1 {
-		k := keys[0]
-		keys = keys[1:]
-
-		val, ok = data.Load(k)
-		if !ok {
-			return nil, false
-		}
-
-		m = p.toMap(val)
-		if m == nil {
-			return nil, false
-		}
-
-		data = m.data
-	}
-
-	if len(keys) > 0 {
-		if val, ok = data.Load(keys[0]); ok {
-			return val, true
-		}
-		return nil, false
-	}
-
-	return nil, false
-}
 
 func CheckValueType(val interface{}) ValueType {
 	switch val.(type) {
@@ -159,720 +30,6 @@ func CheckValueType(val interface{}) ValueType {
 	default:
 		return ValueUnknown
 	}
-}
-
-func (p *Map) Exists(key string) bool {
-	_, ok := p.get(key)
-	if !ok {
-		return false
-	}
-
-	return true
-}
-
-func (p *Map) GetBool(key string) bool {
-	val, ok := p.get(key)
-	if !ok {
-		return false
-	}
-
-	return ToBool(val)
-}
-
-func (p *Map) GetInt(key string) int {
-	val, ok := p.get(key)
-	if !ok {
-		return 0
-	}
-
-	return ToInt(val)
-}
-
-func (p *Map) GetInt32(key string) int32 {
-	val, ok := p.get(key)
-	if !ok {
-		return 0
-	}
-
-	return ToInt32(val)
-}
-
-func (p *Map) GetInt64(key string) int64 {
-	val, ok := p.get(key)
-	if !ok {
-		return 0
-	}
-
-	return ToInt64(val)
-}
-
-func (p *Map) GetUint16(key string) uint16 {
-	val, ok := p.get(key)
-	if !ok {
-		return 0
-	}
-
-	switch x := val.(type) {
-	case bool:
-		if x {
-			return 1
-		}
-		return 0
-	case int:
-		return uint16(x)
-	case int8:
-		return uint16(x)
-	case int16:
-		return uint16(x)
-	case int32:
-		return uint16(x)
-	case int64:
-		return uint16(x)
-	case uint:
-		return uint16(x)
-	case uint8:
-		return uint16(x)
-	case uint16:
-		return x
-	case uint32:
-		return uint16(x)
-	case uint64:
-		return uint16(x)
-	case float32:
-		return uint16(x)
-	case float64:
-		return uint16(x)
-	case string:
-		val, err := strconv.ParseUint(x, 10, 16)
-		if err != nil {
-			return 0
-		}
-		return uint16(val)
-	case []byte:
-		val, err := strconv.ParseUint(string(x), 10, 16)
-		if err != nil {
-			return 0
-		}
-		return uint16(val)
-	default:
-		return 0
-	}
-}
-
-func (p *Map) GetUint32(key string) uint32 {
-	val, ok := p.get(key)
-	if !ok {
-		return 0
-	}
-
-	return ToUint32(val)
-}
-
-func (p *Map) GetUint64(key string) uint64 {
-	val, ok := p.get(key)
-	if !ok {
-		return 0
-	}
-
-	return ToUint64(val)
-}
-
-func (p *Map) GetFloat64(key string) float64 {
-	val, ok := p.get(key)
-	if !ok {
-		return 0
-	}
-
-	return ToFloat64(val)
-}
-
-func (p *Map) GetString(key string) string {
-	val, ok := p.get(key)
-	if !ok {
-		return ""
-	}
-
-	return ToString(val)
-}
-
-func (p *Map) GetBytes(key string) []byte {
-	val, ok := p.get(key)
-	if !ok {
-		return []byte("")
-	}
-
-	switch x := val.(type) {
-	case bool:
-		if x {
-			return []byte("1")
-		}
-		return []byte("0")
-	case int:
-		return []byte(fmt.Sprintf("%d", x))
-	case int8:
-		return []byte(fmt.Sprintf("%d", x))
-	case int16:
-		return []byte(fmt.Sprintf("%d", x))
-	case int32:
-		return []byte(fmt.Sprintf("%d", x))
-	case int64:
-		return []byte(fmt.Sprintf("%d", x))
-	case uint:
-		return []byte(fmt.Sprintf("%d", x))
-	case uint8:
-		return []byte(fmt.Sprintf("%d", x))
-	case uint16:
-		return []byte(fmt.Sprintf("%d", x))
-	case uint32:
-		return []byte(fmt.Sprintf("%d", x))
-	case uint64:
-		return []byte(fmt.Sprintf("%d", x))
-	case float32:
-		return []byte(fmt.Sprintf("%v", x))
-	case float64:
-		return []byte(fmt.Sprintf("%v", x))
-	case string:
-		return []byte(x)
-	case []byte:
-		return x
-	default:
-		return []byte("")
-	}
-}
-
-func (p *Map) GetMap(key string) *Map {
-	val, ok := p.get(key)
-	if !ok {
-		return NewMap(nil)
-	}
-
-	return p.toMap(val)
-}
-
-func (p *Map) toMap(val interface{}) *Map {
-	switch x := val.(type) {
-	case bool, int, int8, int16, int32, int64,
-		uint, uint8, uint16, uint32, uint64,
-		float32, float64:
-		return NewMap(nil)
-	case string:
-		var m map[string]interface{}
-		err := json.Unmarshal([]byte(x), &m)
-		if err != nil {
-			return NewMap(nil)
-		}
-		return NewMap(m)
-	case []byte:
-		var m map[string]interface{}
-		err := json.Unmarshal(x, &m)
-		if err != nil {
-			return NewMap(nil)
-		}
-		return NewMap(m)
-	case map[string]interface{}:
-		return NewMap(x)
-	case map[interface{}]interface{}:
-		m := NewMap(nil)
-		for k, v := range x {
-			m.Set(ToString(k), v)
-		}
-		return m
-	default:
-		buf, err := json.Marshal(x)
-		if err != nil {
-			return NewMap(nil)
-		}
-		var m map[string]interface{}
-		err = json.Unmarshal(buf, &m)
-		if err != nil {
-			return NewMap(nil)
-		}
-		return NewMap(m)
-	}
-}
-
-func (p *Map) GetSlice(key string) []interface{} {
-	val, ok := p.get(key)
-	if !ok {
-		return nil
-	}
-
-	switch x := val.(type) {
-	case []bool:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []int:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []int8:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []int16:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []int32:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []int64:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []uint:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []uint8:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []uint16:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []uint32:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []uint64:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []float32:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []float64:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []string:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case [][]byte:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []interface{}:
-		return x
-	default:
-		return []interface{}{}
-	}
-}
-
-func (p *Map) GetStringSlice(key string) []string {
-	val, ok := p.get(key)
-	if !ok {
-		return nil
-	}
-
-	switch x := val.(type) {
-	case []bool:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []int:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []int8:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []int16:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []int32:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []int64:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []uint:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []uint8:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []uint16:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []uint32:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []uint64:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []float32:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []float64:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	case []string:
-		return x
-	case [][]byte:
-		var v []string
-		for _, val := range x {
-			v = append(v, string(val))
-		}
-		return v
-	case []interface{}:
-		var v []string
-		for _, val := range x {
-			v = append(v, ToString(val))
-		}
-		return v
-	default:
-		return []string{}
-	}
-}
-
-func (p *Map) GetUint64Slice(key string) []uint64 {
-	val, ok := p.get(key)
-	if !ok {
-		return nil
-	}
-
-	switch x := val.(type) {
-	case []bool:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []int:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []int8:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []int16:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []int32:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []int64:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []uint:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []uint8:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []uint16:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []uint32:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []uint64:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []float32:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []float64:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []string:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case [][]byte:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []interface{}:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	default:
-		return []uint64{}
-	}
-}
-
-func (p *Map) GetInt64Slice(key string) []int64 {
-	val, ok := p.get(key)
-	if !ok {
-		return nil
-	}
-
-	return ToInt64Slice(val)
-}
-
-func (p *Map) GetUint32Slice(key string) []uint32 {
-	val, ok := p.get(key)
-	if !ok {
-		return nil
-	}
-
-	switch x := val.(type) {
-	case []bool:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []int:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []int8:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []int16:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []int32:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []int64:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []uint:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []uint8:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []uint16:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []uint32:
-		return x
-	case []uint64:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []float32:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []float64:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []string:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case [][]byte:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []interface{}:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	default:
-		return []uint32{}
-	}
-}
-
-func (p *Map) ToSyncMap() *sync.Map {
-	var m sync.Map
-	p.data.Range(func(key, value interface{}) bool {
-		m.Store(key, value)
-		return true
-	})
-	return &m
-}
-
-func (p *Map) ToMap() map[string]interface{} {
-	m := map[string]interface{}{}
-	p.data.Range(func(key, value interface{}) bool {
-		k := ToString(key)
-
-		switch x := value.(type) {
-		case float32:
-			if math.Floor(float64(x)) == float64(x) {
-				m[k] = int32(x)
-			} else {
-				m[k] = x
-			}
-		case float64:
-			if math.Floor(x) == x {
-				m[k] = int64(x)
-			} else {
-				m[k] = x
-			}
-		case *Map:
-			m[k] = x.ToMap()
-		case bool,
-			int, int8, int16, int32, int64,
-			uint, uint8, uint16, uint32, uint64,
-			string, []byte:
-			m[k] = x
-		default:
-			m[k] = x
-		}
-
-		return true
-	})
-	return m
-}
-
-func (p *Map) Clone() *Map {
-	return &Map{
-		data: p.ToSyncMap(),
-		cut:  atomic.NewBool(p.cut.Load()),
-		seq:  atomic.NewString(p.seq.Load()),
-	}
-}
-
-func (p *Map) Range(f func(key, value interface{})) bool {
-	return p.Range(f)
 }
 
 func MapKeysString(m interface{}) []string {
@@ -988,4 +145,338 @@ func MergeMap[K constraints.Ordered, V any](source, target map[K]V) map[K]V {
 	}
 
 	return res
+}
+
+func KeyBy(list interface{}, fieldName string) interface{} {
+	lv := reflect.ValueOf(list)
+
+	switch lv.Kind() {
+	case reflect.Slice, reflect.Array:
+	default:
+		panic("list required slice or array type")
+	}
+
+	ev := lv.Type().Elem()
+	evs := ev
+	for evs.Kind() == reflect.Ptr {
+		evs = evs.Elem()
+	}
+
+	if evs.Kind() != reflect.Struct {
+		panic("list element is not struct")
+	}
+
+	field, ok := evs.FieldByName(fieldName)
+	if !ok {
+		panic(fmt.Sprintf("field %s not found", fieldName))
+	}
+
+	m := reflect.MakeMapWithSize(reflect.MapOf(field.Type, ev), lv.Len())
+	for i := 0; i < lv.Len(); i++ {
+		elem := lv.Index(i)
+		elemStruct := elem
+		for elemStruct.Kind() == reflect.Ptr {
+			elemStruct = elemStruct.Elem()
+		}
+
+		// 如果是nil的，意味着key和value同时不存在，所以跳过不处理
+		if !elemStruct.IsValid() {
+			continue
+		}
+
+		if elemStruct.Kind() != reflect.Struct {
+			panic("element not struct")
+		}
+
+		m.SetMapIndex(elemStruct.FieldByIndex(field.Index), elem)
+	}
+
+	return m.Interface()
+}
+
+func KeyByUint64[M any](list []*M, fieldName string) map[uint64]*M {
+	if len(list) == 0 {
+		return map[uint64]*M{}
+	}
+
+	lv := reflect.ValueOf(list)
+
+	ev := lv.Type().Elem()
+	evs := ev
+	for evs.Kind() == reflect.Ptr {
+		evs = evs.Elem()
+	}
+
+	field, ok := evs.FieldByName(fieldName)
+	if !ok {
+		panic(fmt.Sprintf("field %s not found", fieldName))
+	}
+
+	m := make(map[uint64]*M, lv.Len())
+	for i := 0; i < lv.Len(); i++ {
+		elem := lv.Index(i)
+		elemStruct := elem
+		for elemStruct.Kind() == reflect.Ptr {
+			elemStruct = elemStruct.Elem()
+		}
+
+		// 如果是nil的，意味着key和value同时不存在，所以跳过不处理
+		if !elemStruct.IsValid() {
+			continue
+		}
+
+		if elemStruct.Kind() != reflect.Struct {
+			panic("element not struct")
+		}
+
+		m[elemStruct.FieldByIndex(field.Index).Uint()] = elem.Interface().(*M)
+		//m.SetMapIndex(elemStruct.FieldByIndex(field.Index), elem)
+	}
+
+	return m
+}
+
+func KeyByInt64[M any](list []*M, fieldName string) map[int64]*M {
+	if len(list) == 0 {
+		return map[int64]*M{}
+	}
+
+	lv := reflect.ValueOf(list)
+
+	ev := lv.Type().Elem()
+	evs := ev
+	for evs.Kind() == reflect.Ptr {
+		evs = evs.Elem()
+	}
+
+	field, ok := evs.FieldByName(fieldName)
+	if !ok {
+		panic(fmt.Sprintf("field %s not found", fieldName))
+	}
+
+	m := make(map[int64]*M, lv.Len())
+	for i := 0; i < lv.Len(); i++ {
+		elem := lv.Index(i)
+		elemStruct := elem
+		for elemStruct.Kind() == reflect.Ptr {
+			elemStruct = elemStruct.Elem()
+		}
+
+		// 如果是nil的，意味着key和value同时不存在，所以跳过不处理
+		if !elemStruct.IsValid() {
+			continue
+		}
+
+		if elemStruct.Kind() != reflect.Struct {
+			panic("element not struct")
+		}
+
+		m[elemStruct.FieldByIndex(field.Index).Int()] = elem.Interface().(*M)
+		//m.SetMapIndex(elemStruct.FieldByIndex(field.Index), elem)
+	}
+
+	return m
+}
+
+func KeyByString[M any](list []*M, fieldName string) map[string]*M {
+	if len(list) == 0 {
+		return map[string]*M{}
+	}
+
+	lv := reflect.ValueOf(list)
+
+	ev := lv.Type().Elem()
+	evs := ev
+	for evs.Kind() == reflect.Ptr {
+		evs = evs.Elem()
+	}
+
+	field, ok := evs.FieldByName(fieldName)
+	if !ok {
+		panic(fmt.Sprintf("field %s not found", fieldName))
+	}
+
+	m := make(map[string]*M, lv.Len())
+	for i := 0; i < lv.Len(); i++ {
+		elem := lv.Index(i)
+		elemStruct := elem
+		for elemStruct.Kind() == reflect.Ptr {
+			elemStruct = elemStruct.Elem()
+		}
+
+		// 如果是nil的，意味着key和value同时不存在，所以跳过不处理
+		if !elemStruct.IsValid() {
+			continue
+		}
+
+		if elemStruct.Kind() != reflect.Struct {
+			panic("element not struct")
+		}
+
+		m[elemStruct.FieldByIndex(field.Index).String()] = elem.Interface().(*M)
+		//m.SetMapIndex(elemStruct.FieldByIndex(field.Index), elem)
+	}
+
+	return m
+}
+
+func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
+	m := make(map[M]bool, len(list))
+
+	for _, v := range list {
+		m[v] = true
+	}
+
+	return m
+}
+
+// ToMapStringAny 将任意map转换为string-key的interface{} map
+// 处理逻辑：
+// - 使用反射遍历map键值对
+// - 键转换为字符串
+// - 值保持为interface{}类型
+// - 非map类型返回空map
+func ToMapStringAny(v interface{}) map[string]interface{} {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[string]interface{}{}
+	}
+
+	m := make(map[string]any)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToString(mg.Key().Interface())] = mg.Value().Interface()
+	}
+
+	return m
+}
+
+// ToMap 将任意类型转换为map[string]interface{}
+// 支持转换类型：
+// - []byte：尝试JSON解析
+// - string：尝试JSON解析
+// - 其他类型：使用反射遍历map
+// 性能注意事项：
+// - 使用反射时需注意类型校验开销
+// - JSON解析失败时需避免panic
+// - 空map返回而非nil
+// 返回nil表示转换失败
+func ToMap(v interface{}) map[string]interface{} {
+	switch x := v.(type) {
+	case []byte:
+		var m map[string]any
+		err := json.Unmarshal(x, &m)
+		if err == nil {
+			return m
+		}
+
+	case string:
+		var m map[string]any
+		err := json.UnmarshalString(x, &m)
+		if err == nil {
+			return m
+		}
+
+	}
+
+	return ToMapStringAny(v)
+}
+
+// ToMapStringString 将任意map转换为string-key的string map
+// 处理逻辑：
+// - 使用反射遍历map键值对
+// - 键转换为字符串
+// - 值转换为字符串
+// - 非map类型返回空map
+func ToMapStringString(v interface{}) map[string]string {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[string]string{}
+	}
+
+	m := make(map[string]string)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToString(mg.Key().Interface())] = ToString(mg.Value().Interface())
+	}
+
+	return m
+}
+
+func ToMapStringInt64(v interface{}) map[string]int64 {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[string]int64{}
+	}
+
+	m := make(map[string]int64)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToString(mg.Key().Interface())] = ToInt64(mg.Value().Interface())
+	}
+
+	return m
+}
+
+func ToMapInt64String(v interface{}) map[int64]string {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[int64]string{}
+	}
+
+	m := make(map[int64]string)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToInt64(mg.Key().Interface())] = ToString(mg.Value().Interface())
+	}
+
+	return m
+}
+
+func ToMapInt32String(v interface{}) map[int32]string {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[int32]string{}
+	}
+
+	m := make(map[int32]string)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToInt32(mg.Key().Interface())] = ToString(mg.Value().Interface())
+	}
+
+	return m
+}
+
+// ToMapStringArrayString 将任意map转换为string-key的[]string map
+// 处理逻辑：
+// - 使用反射遍历map键值对
+// - 键转换为字符串
+// - 值转换为字符串切片
+// - 非map类型返回空map
+func ToMapStringArrayString(v interface{}) map[string][]string {
+	vv := reflect.ValueOf(v)
+	if vv.Kind() != reflect.Map {
+		return map[string][]string{}
+	}
+
+	m := make(map[string][]string)
+
+	mg := vv.MapRange()
+
+	for mg.Next() {
+		m[ToString(mg.Key().Interface())] = ToArrayString(mg.Value().Interface())
+	}
+
+	return m
 }
