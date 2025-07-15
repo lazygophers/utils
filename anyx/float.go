@@ -39,7 +39,7 @@ func ToFloat32(val interface{}) float32 {
 	case float64:
 		return float32(x)
 	case string:
-		val, err := strconv.ParseUint(x, 10, 64)
+		val, err := strconv.ParseFloat(x, 64)
 		if err != nil {
 			return 0
 		}
@@ -118,6 +118,9 @@ func ToFloat64(val interface{}) float64 {
 }
 
 func ToFloat64Slice(val interface{}) []float64 {
+	if val == nil {
+		return nil
+	}
 	switch x := val.(type) {
 	case []bool:
 		var v []float64
@@ -186,9 +189,9 @@ func ToFloat64Slice(val interface{}) []float64 {
 		}
 		return v
 	case []float32:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i, val := range x {
+			v[i] = ToFloat64(val)
 		}
 		return v
 	case []float64:

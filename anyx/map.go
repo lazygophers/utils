@@ -2,10 +2,11 @@ package anyx
 
 import (
 	"fmt"
-	"github.com/lazygophers/utils/json"
-	"golang.org/x/exp/constraints"
 	"maps"
 	"reflect"
+
+	"github.com/lazygophers/utils/json"
+	"golang.org/x/exp/constraints"
 )
 
 type ValueType int
@@ -37,6 +38,9 @@ func MapKeysString(m interface{}) []string {
 	if t.Kind() != reflect.Map {
 		panic("required map type")
 	}
+	if t.IsNil() {
+		panic("nil map")
+	}
 
 	keyType := t.Type().Key()
 	if keyType.Kind() != reflect.String {
@@ -55,6 +59,9 @@ func MapKeysUint32(m interface{}) []uint32 {
 	t := reflect.ValueOf(m)
 	if t.Kind() != reflect.Map {
 		panic("required map type")
+	}
+	if t.IsNil() {
+		panic("nil map")
 	}
 
 	keyType := t.Type().Key()
