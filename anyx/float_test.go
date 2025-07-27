@@ -67,7 +67,13 @@ func TestToFloat64(t *testing.T) {
 		{"float64", 42.42, 42.42},
 		{"valid float string", "42.42", 42.42},
 		{"valid int string", "42", 42.0},
+		{"valid int string with spaces", " 42 ", 42.0},
+		{"invalid float string then valid int", "42a", 0},
+		{"hex string parsable as int", "0x10", 16.0},
 		{"valid []byte", []byte("42.42"), 42.42},
+		{"valid int []byte", []byte("42"), 42.0},
+		{"invalid float []byte then valid int", []byte("42a"), 0},
+		{"hex []byte parsable as int", []byte("0x10"), 16.0},
 		{"invalid string", "invalid", 0.0},
 		{"invalid []byte", []byte("invalid"), 0.0},
 		{"max int64", int64(math.MaxInt64), float64(math.MaxInt64)},
@@ -75,6 +81,7 @@ func TestToFloat64(t *testing.T) {
 		{"Inf", math.Inf(1), math.Inf(1)},
 		{"empty string", "", 0.0},
 		{"nil input", nil, 0.0},
+		{"unsupported type", struct{}{}, 0.0},
 	}
 
 	for _, tc := range testCases {
@@ -111,7 +118,9 @@ func TestToFloat64Slice(t *testing.T) {
 		{"[]float32", []float32{1.0, 2.0, 3.0}, []float64{1.0, 2.0, 3.0}},
 		{"[]float64", []float64{1.0, 2.0, 3.0}, []float64{1.0, 2.0, 3.0}},
 		{"[]string", []string{"1.0", "2.0", "3.0"}, []float64{1.0, 2.0, 3.0}},
-		{"[]bool", []bool{true, false}, []float64{1.0, 0.0}},
+		{"[][]byte", [][]byte{[]byte("1.1"), []byte("2.2")}, []float64{1.1, 2.2}},
+		{"[]interface{}", []interface{}{1, "2.2", true}, []float64{1.0, 2.2, 1.0}},
+		{"unsupported type", []struct{}{{}, {}}, []float64{}},
 		{"nil input", nil, nil},
 		{"empty slice", []int{}, []float64{}},
 	}
@@ -128,5 +137,54 @@ func TestToFloat64Slice(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func BenchmarkToFloat32(b *testing.B) {
+	inputs := []interface{}{
+		true,
+		int(42),
+		int64(1234567890),
+		float64(123.456),
+		"789.012",
+		[]byte("345.678"),
+		nil,
+	}
+	for i := 0; i < b.N; i++ {
+		for _, input := range inputs {
+			anyx.ToFloat32(input)
+		}
+	}
+}
+
+func BenchmarkToFloat64(b *testing.B) {
+	inputs := []interface{}{
+		true,
+		int(42),
+		int64(1234567890),
+		float64(123.456),
+		"789.012",
+		" 123 ",
+		"42a",
+		[]byte("345.678"),
+		nil,
+	}
+	for i := 0; i < b.N; i++ {
+		for _, input := range inputs {
+			anyx.ToFloat64(input)
+		}
+	}
+}
+
+func BenchmarkToFloat64Slice(b *testing.B) {
+	inputs := []interface{}{
+		[]int{1, 2, 3, 4, 5},
+		[]string{"1.1", "2.2", "3.3"},
+		[]interface{}{1, "2.2", true, 4.5},
+	}
+	for i := 0; i < b.N; i++ {
+		for _, input := range inputs {
+			anyx.ToFloat64Slice(input)
+		}
 	}
 }

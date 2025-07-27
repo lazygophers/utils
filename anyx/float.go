@@ -1,7 +1,19 @@
 package anyx
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
+// ToFloat32 将任何类型的值尽力转换为 float32。
+//
+// 支持的输入类型包括：
+//   - bool: true 转换为 1.0, false 转换为 0.0。
+//   - 所有整数类型 (int, int8, ..., uint, uint8, ...): 直接进行类型转换。
+//   - 所有浮点数类型 (float32, float64): 直接进行类型转换。
+//   - string, []byte: 尝试解析为浮点数，若解析失败则返回 0.0。
+//
+// 对于无法转换的类型(如 struct, map 等)或 nil，将返回 0.0。
 func ToFloat32(val interface{}) float32 {
 	switch x := val.(type) {
 	case bool:
@@ -34,13 +46,15 @@ func ToFloat32(val interface{}) float32 {
 	case float64:
 		return float32(x)
 	case string:
-		val, err := strconv.ParseFloat(x, 64)
+		v := strings.TrimSpace(x)
+		val, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			return 0
 		}
 		return float32(val)
 	case []byte:
-		val, err := strconv.ParseFloat(string(x), 64)
+		v := strings.TrimSpace(string(x))
+		val, err := strconv.ParseFloat(v, 64)
 		if err != nil {
 			return 0
 		}
@@ -50,6 +64,15 @@ func ToFloat32(val interface{}) float32 {
 	}
 }
 
+// ToFloat64 将任何类型的值尽力转换为 float64。
+//
+// 支持的输入类型包括：
+//   - bool: true 转换为 1.0, false 转换为 0.0。
+//   - 所有整数类型 (int, int8, ..., uint, uint8, ...): 直接进行类型转换。
+//   - 所有浮点数类型 (float32, float64): 直接进行类型转换。
+//   - string, []byte: 尝试解析为浮点数。若解析失败，会进一步尝试解析为整数。如果两种解析都失败，则返回 0.0。
+//
+// 对于无法转换的类型(如 struct, map 等)或 nil，将返回 0.0。
 func ToFloat64(val interface{}) float64 {
 	switch x := val.(type) {
 	case bool:
@@ -82,30 +105,44 @@ func ToFloat64(val interface{}) float64 {
 	case float64:
 		return x
 	case string:
-		val, err := strconv.ParseFloat(x, 64)
-		if err != nil {
-			val, err := strconv.ParseInt(x, 10, 64)
-			if err != nil {
-				return 0
-			}
-			return float64(val)
+		v := strings.TrimSpace(x)
+		val, err := strconv.ParseFloat(v, 64)
+		if err == nil {
+			return val
 		}
-		return val
+
+		intVal, intErr := strconv.ParseInt(v, 0, 64)
+		if intErr == nil {
+			return float64(intVal)
+		}
+
+		return 0
 	case []byte:
-		val, err := strconv.ParseFloat(string(x), 64)
-		if err != nil {
-			val, err := strconv.ParseInt(string(x), 10, 64)
-			if err != nil {
-				return 0
-			}
-			return float64(val)
+		v := strings.TrimSpace(string(x))
+		val, err := strconv.ParseFloat(v, 64)
+		if err == nil {
+			return val
 		}
-		return val
+
+		intVal, intErr := strconv.ParseInt(v, 0, 64)
+		if intErr == nil {
+			return float64(intVal)
+		}
+
+		return 0
 	default:
 		return 0
 	}
 }
 
+// ToFloat64Slice 将一个切片接口尽力转换为 []float64。
+//
+// 支持的输入切片类型包括：
+//   - []bool, []int, []int8, ..., []uint64, []float32, []float64, []string, [][]byte, []interface{}
+//
+// 切片中的每一个元素都会通过 ToFloat64 函数进行转换。
+// 如果输入为 nil，将直接返回 nil。
+// 如果输入为不支持的类型，将返回一个空的 []float64{}。
 func ToFloat64Slice(val interface{}) []float64 {
 	if val == nil {
 		return nil
