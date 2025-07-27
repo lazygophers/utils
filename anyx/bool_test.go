@@ -110,3 +110,41 @@ func TestToBool(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkToBool(b *testing.B) {
+	cases := []struct {
+		input interface{}
+	}{
+		{true},
+		{false},
+		{1},
+		{0},
+		{1.23},
+		{0.0},
+		{float32(4.56)},
+		{math.NaN()},
+		{"true"},
+		{"false"},
+		{"1"},
+		{"0"},
+		{"t"},
+		{"f"},
+		{"hello"},
+		{""},
+		{[]byte("true")},
+		{[]byte("false")},
+		{nil},
+		{struct{}{}},
+	}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	var r bool
+	for i := 0; i < b.N; i++ {
+		// To avoid compiler optimizations, we cycle through our test cases
+		// and assign the result to a variable.
+		r = ToBool(cases[i%len(cases)].input)
+	}
+	_ = r
+}
