@@ -6,12 +6,41 @@ import (
 	"strings"
 )
 
+// ToBool 将输入值转换为布尔类型.
+//
+// 支持的类型包括:
+// - bool: 直接返回.
+// - 整型 (int, uint): 非 0 则为 true.
+// - 浮点型 (float32, float64): 非 NaN 且非 0.0 则为 true.
+// - 字符串 (string) / 字节切片 ([]byte):
+//   - "true", "1", "t", "y", "yes", "on" (不区分大小写) -> true
+//   - "false", "0", "f", "n", "no", "off" (不区分大小写) -> false
+//   - 其他非空(trim后)字符串 -> true
+//
+// - 其他类型: false
 func ToBool(val interface{}) bool {
 	switch x := val.(type) {
 	case bool:
 		return x
-	case int, int8, int16, int32, int64,
-		uint, uint8, uint16, uint32, uint64:
+	case int:
+		return x != 0
+	case int8:
+		return x != 0
+	case int16:
+		return x != 0
+	case int32:
+		return x != 0
+	case int64:
+		return x != 0
+	case uint:
+		return x != 0
+	case uint8:
+		return x != 0
+	case uint16:
+		return x != 0
+	case uint32:
+		return x != 0
+	case uint64:
 		return x != 0
 	case float32:
 		return !math.IsNaN(float64(x)) && x != 0.0
