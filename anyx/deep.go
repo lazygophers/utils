@@ -6,9 +6,10 @@ import (
 	"github.com/lazygophers/log"
 )
 
-// deepValueEqual 深度比较两个 reflect.Value 是否相等。
+// deepValueEqual 是 DeepEqual 的内部实现核心。
+// 它接收两个 reflect.Value，并递归地对它们进行深度比较。
 //
-// 此函数为内部实现，递归地比较不同类型的值。
+// 注意：此函数为 unexported，不应在包外直接调用。
 func deepValueEqual(v1, v2 reflect.Value) bool {
 	// 检查值是否有效
 	if !v1.IsValid() || !v2.IsValid() {
@@ -79,11 +80,8 @@ func deepValueEqual(v1, v2 reflect.Value) bool {
 
 	// 比较数组
 	case reflect.Array:
-		// 如果指针相同，则内容必然相同
-		if v1.UnsafePointer() == v2.UnsafePointer() {
-			return true
-		}
 		// 递归比较每一个元素
+		// 注意：不能对数组类型的 reflect.Value 使用 UnsafePointer
 		for i := 0; i < v1.Len(); i++ {
 			if !deepValueEqual(v1.Index(i), v2.Index(i)) {
 				return false
@@ -116,18 +114,33 @@ func deepValueEqual(v1, v2 reflect.Value) bool {
 	}
 }
 
-// DeepEqual 是一个泛型函数，用于深度比较两个任意类型的值 x 和 y 是否相等。
+// DeepEqual 使用深度递归比较的方式，判断两个任意类型的值 x 和 y 是否完全相等。
 //
-// 它利用反射（reflection）来递归地检查所有字段和元素。
+// 与标准的 `==` 运算符不同，`DeepEqual` 能够深入探索数据结构的内部，
+// 对 Maps、Slices、Pointers、Structs 等复合类型的元素或字段进行逐一递归比较。
+//
+// 对于基本类型，它会直接比较其值。对于指针，它会比较所指向的实际内容。
+// 两个 nil 值被视作相等。
+//
+// 示例：
+//   - `DeepEqual(map[string]int{"a": 1}, map[string]int{"a": 1})` 返回 `true`
+//   - `DeepEqual([]int{1, 2}, []int{1, 2})` 返回 `true`
+//   - `DeepEqual(1, 1)` 返回 `true`
+//   - `DeepEqual(1, 2)` 返回 `false`
+//
+// @param x 第一个待比较的值。
+// @param y 第二个待比较的值。
+// @return 如果两个值在结构和内容上完全相等，则返回 true，否则返回 false。
 func DeepEqual[M any](x, y M) bool {
 	v1 := reflect.ValueOf(x)
 	v2 := reflect.ValueOf(y)
 	return deepValueEqual(v1, v2)
 }
 
-// deepCopyValue 是实际执行深拷贝逻辑的内部函数。
+// deepCopyValue 是 DeepCopy 的内部实现核心。
+// 它接收两个 reflect.Value (v1 为源, v2 为目标)，并递归地将内容从 v1 拷贝到 v2。
 //
-// 它处理不同类型的 `reflect.Value`，并将其内容从 v1 拷贝到 v2。
+// 注意：此函数为 unexported，不应在包外直接调用。
 func deepCopyValue(v1, v2 reflect.Value) {
 	if !v1.IsValid() || !v2.IsValid() {
 		return
@@ -203,6 +216,20 @@ func deepCopyValue(v1, v2 reflect.Value) {
 			deepCopyValue(v1.Field(i), v2.Field(i))
 		}
 
+	// 拷贝 Interface
+	case reflect.Interface:
+		if v1.IsNil() {
+			return
+		}
+		// 获取接口的实际值
+		srcElem := v1.Elem()
+		// 创建一个新的目标值，类型与源相同
+		dstElem := reflect.New(srcElem.Type()).Elem()
+		// 递归拷贝
+		deepCopyValue(srcElem, dstElem)
+		// 将拷贝后的值设置给目标接口
+		v2.Set(dstElem)
+
 	// 拷贝基本类型
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if v2.CanSet() {
@@ -238,11 +265,23 @@ func deepCopyValue(v1, v2 reflect.Value) {
 	}
 }
 
-// DeepCopy 是一个泛型函数，用于将 src 的内容深拷贝到 dst。
+// DeepCopy 通过深度递归的方式，将源对象 `src` 的内容完全复制到目标对象 `dst`。
 //
-// **注意**：dst 必须是一个指向有效内存的指针，否则会引发 panic。
+// 此函数会创建一个源对象的完整、独立的副本。修改副本不会对原始对象产生任何影响。
+// 它能够处理 Maps、Slices、Pointers、Structs 等各种复杂类型。
 //
-// 此函数通过反射递归地复制所有字段和元素，确保拷贝后的对象是完全独立的。
+// **重要提示**:
+// 参数 `dst` **必须**是一个指向目标对象的指针，且该指针必须已经被初始化（例如，通过 `new` 或 `&`）。
+// 如果 `dst` 是一个 nil 指针或者不是指针类型，函数将在运行时引发 `panic`，因为无法向无效的内存地址写入数据。
+//
+// 示例：
+//
+//	var src = map[string]int{"a": 1}
+//	var dst map[string]int
+//	DeepCopy(src, &dst) // 正确用法
+//
+// @param src 源对象，待拷贝的数据。
+// @param dst 目标对象的指针，用于接收拷贝后的数据。
 func DeepCopy[M any](src, dst M) {
 	v1 := reflect.ValueOf(src)
 	v2 := reflect.ValueOf(dst)
