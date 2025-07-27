@@ -133,6 +133,13 @@ func BenchmarkToBool(b *testing.B) {
 		{""},
 		{[]byte("true")},
 		{[]byte("false")},
+		{[]byte("1")},
+		{[]byte("0")},
+		{[]byte("t")},
+		{[]byte("f")},
+		{[]byte("hello")},
+		{[]byte("")},
+		{[]byte("   ")},
 		{nil},
 		{struct{}{}},
 	}
