@@ -1,8 +1,9 @@
 package anyx
 
 import (
-	"github.com/lazygophers/log"
 	"reflect"
+
+	"github.com/lazygophers/log"
 )
 
 func deepValueEqual(v1, v2 reflect.Value) bool {
@@ -132,10 +133,6 @@ func deepCopyValue(v1, v2 reflect.Value) {
 		log.Panicf("source kind is %s different than destination kind %s", v1.Kind(), v2.Kind())
 	}
 
-	//if v2.Type() != v1.Type() {
-	//	log.Panicf("source type is %s different than destination type %s", v1.Type(), v2.Type())
-	//}
-
 	switch v1.Kind() {
 	case reflect.Map:
 		if v1.IsNil() {
@@ -161,7 +158,6 @@ func deepCopyValue(v1, v2 reflect.Value) {
 
 	case reflect.Slice:
 		if v1.IsNil() {
-			//v2.SetZero()
 			return
 		}
 
@@ -239,7 +235,6 @@ func deepCopyValue(v1, v2 reflect.Value) {
 		}
 
 	case reflect.Invalid:
-		// do nothing
 
 	default:
 		log.Panicf("unhandled type %s", v1.Kind())

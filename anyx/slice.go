@@ -21,7 +21,6 @@ func pluck(list interface{}, fieldName string, deferVal interface{}) interface{}
 
 		switch evs.Kind() {
 		case reflect.Struct:
-			// 如果是 struct，则取出 fieldName 的值
 			field, ok := evs.FieldByName(fieldName)
 			if !ok {
 				panic(fmt.Sprintf("field %s not found", fieldName))
@@ -102,11 +101,6 @@ func PluckStringSlice(list interface{}, fieldName string) [][]string {
 	return pluck(list, fieldName, [][]string{}).([][]string)
 }
 
-// DiffSlice 传入两个slice
-// 如果 a 或者 b 不为 slice 会 panic
-// 如果 a 与 b 的元素类型不一致，也会 panic
-// 返回的第一个参数为 a 比 b 多的，类型为 a 的类型
-// 返回的第二个参数为 b 比 a 多的，类型为 b 的类型
 func DiffSlice(a interface{}, b interface{}) (interface{}, interface{}) {
 	at := reflect.TypeOf(a)
 	if at.Kind() != reflect.Slice {
@@ -150,10 +144,6 @@ func DiffSlice(a interface{}, b interface{}) (interface{}, interface{}) {
 	return c.Interface(), d.Interface()
 }
 
-// RemoveSlice 传入两个slice
-// 如果 src 或者 rm 不为 slice 会 panic
-// 如果 src 与 rm 的元素类型不一致，也会 panic
-// 返回的第一个参数为 src 中不在 rm 中的元素，数据类型与 src 一致
 func RemoveSlice(src interface{}, rm interface{}) interface{} {
 	at := reflect.TypeOf(src)
 	if at.Kind() != reflect.Slice {

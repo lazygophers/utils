@@ -186,7 +186,6 @@ func KeyBy(list interface{}, fieldName string) interface{} {
 			elemStruct = elemStruct.Elem()
 		}
 
-		// 如果是nil的，意味着key和value同时不存在，所以跳过不处理
 		if !elemStruct.IsValid() {
 			continue
 		}
@@ -227,7 +226,6 @@ func KeyByUint64[M any](list []*M, fieldName string) map[uint64]*M {
 			elemStruct = elemStruct.Elem()
 		}
 
-		// 如果是nil的，意味着key和value同时不存在，所以跳过不处理
 		if !elemStruct.IsValid() {
 			continue
 		}
@@ -237,7 +235,6 @@ func KeyByUint64[M any](list []*M, fieldName string) map[uint64]*M {
 		}
 
 		m[elemStruct.FieldByIndex(field.Index).Uint()] = elem.Interface().(*M)
-		//m.SetMapIndex(elemStruct.FieldByIndex(field.Index), elem)
 	}
 
 	return m
@@ -269,7 +266,6 @@ func KeyByInt64[M any](list []*M, fieldName string) map[int64]*M {
 			elemStruct = elemStruct.Elem()
 		}
 
-		// 如果是nil的，意味着key和value同时不存在，所以跳过不处理
 		if !elemStruct.IsValid() {
 			continue
 		}
@@ -279,7 +275,6 @@ func KeyByInt64[M any](list []*M, fieldName string) map[int64]*M {
 		}
 
 		m[elemStruct.FieldByIndex(field.Index).Int()] = elem.Interface().(*M)
-		//m.SetMapIndex(elemStruct.FieldByIndex(field.Index), elem)
 	}
 
 	return m
@@ -311,7 +306,6 @@ func KeyByString[M any](list []*M, fieldName string) map[string]*M {
 			elemStruct = elemStruct.Elem()
 		}
 
-		// 如果是nil的，意味着key和value同时不存在，所以跳过不处理
 		if !elemStruct.IsValid() {
 			continue
 		}
@@ -321,7 +315,6 @@ func KeyByString[M any](list []*M, fieldName string) map[string]*M {
 		}
 
 		m[elemStruct.FieldByIndex(field.Index).String()] = elem.Interface().(*M)
-		//m.SetMapIndex(elemStruct.FieldByIndex(field.Index), elem)
 	}
 
 	return m
@@ -337,12 +330,6 @@ func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
 	return m
 }
 
-// ToMapStringAny 将任意map转换为string-key的interface{} map
-// 处理逻辑：
-// - 使用反射遍历map键值对
-// - 键转换为字符串
-// - 值保持为interface{}类型
-// - 非map类型返回空map
 func ToMapStringAny(v interface{}) map[string]interface{} {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Map {
@@ -360,16 +347,6 @@ func ToMapStringAny(v interface{}) map[string]interface{} {
 	return m
 }
 
-// ToMap 将任意类型转换为map[string]interface{}
-// 支持转换类型：
-// - []byte：尝试JSON解析
-// - string：尝试JSON解析
-// - 其他类型：使用反射遍历map
-// 性能注意事项：
-// - 使用反射时需注意类型校验开销
-// - JSON解析失败时需避免panic
-// - 空map返回而非nil
-// 返回nil表示转换失败
 func ToMap(v interface{}) map[string]interface{} {
 	switch x := v.(type) {
 	case []byte:
@@ -391,12 +368,6 @@ func ToMap(v interface{}) map[string]interface{} {
 	return ToMapStringAny(v)
 }
 
-// ToMapStringString 将任意map转换为string-key的string map
-// 处理逻辑：
-// - 使用反射遍历map键值对
-// - 键转换为字符串
-// - 值转换为字符串
-// - 非map类型返回空map
 func ToMapStringString(v interface{}) map[string]string {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Map {
@@ -465,12 +436,6 @@ func ToMapInt32String(v interface{}) map[int32]string {
 	return m
 }
 
-// ToMapStringArrayString 将任意map转换为string-key的[]string map
-// 处理逻辑：
-// - 使用反射遍历map键值对
-// - 键转换为字符串
-// - 值转换为字符串切片
-// - 非map类型返回空map
 func ToMapStringArrayString(v interface{}) map[string][]string {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Map {

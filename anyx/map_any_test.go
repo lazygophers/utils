@@ -123,3 +123,34 @@ func TestMapAny_TypeAccessors(t *testing.T) {
 		})
 	}
 }
+
+func TestMapAny_Range(t *testing.T) {
+	m := NewMap(map[string]interface{}{
+		"a": 1,
+		"b": "hello",
+		"c": true,
+	})
+
+	keys := make(map[string]interface{})
+	count := 0
+
+	m.Range(func(key, value interface{}) bool {
+		keys[key.(string)] = value
+		count++
+		return true
+	})
+
+	assert.Equal(t, 3, count)
+	assert.Equal(t, 1, keys["a"])
+	assert.Equal(t, "hello", keys["b"])
+	assert.Equal(t, true, keys["c"])
+
+	t.Run("Stop Range", func(t *testing.T) {
+		innerCount := 0
+		m.Range(func(key, value interface{}) bool {
+			innerCount++
+			return false // Stop after first item
+		})
+		assert.Equal(t, 1, innerCount)
+	})
+}

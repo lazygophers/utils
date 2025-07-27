@@ -2,11 +2,6 @@ package anyx
 
 import "strconv"
 
-// ToFloat32 将任意类型转换为float32类型
-// 转换规则与ToFloat64相同，但目标类型为float32
-// 特殊情况：
-// - JSON序列化失败返回0
-// - 整数类型转换为浮点数形式
 func ToFloat32(val interface{}) float32 {
 	switch x := val.(type) {
 	case bool:
@@ -55,12 +50,6 @@ func ToFloat32(val interface{}) float32 {
 	}
 }
 
-// ToFloat64 将任意类型转换为float64类型
-// 字符串处理：
-// - 优先尝试解析为浮点数
-// - 整数转换为浮点数形式
-// []byte同字符串处理逻辑
-// JSON序列化失败返回0
 func ToFloat64(val interface{}) float64 {
 	switch x := val.(type) {
 	case bool:

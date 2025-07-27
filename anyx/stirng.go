@@ -3,25 +3,16 @@ package anyx
 import (
 	"bytes"
 	"fmt"
-	"github.com/lazygophers/utils/json"
 	"math"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 	"unsafe"
+
+	"github.com/lazygophers/utils/json"
 )
 
-// ToString 将任意类型转换为字符串表示
-// 支持类型：
-// - 布尔值：true -> "1"，false -> "0"
-// - 整数类型：直接格式化为十进制字符串
-// - 浮点数：整数部分无小数时返回整数形式，否则保留小数
-// - time.Duration：使用其String()方法
-// - 字符串/[]byte：直接返回
-// - error：返回错误信息
-// - 其他类型：使用JSON序列化
-// 返回空字符串表示转换失败
 func ToString(val interface{}) string {
 	switch x := val.(type) {
 	case bool:
@@ -82,12 +73,6 @@ func ToString(val interface{}) string {
 	}
 }
 
-// ToBytes 将任意类型转换为字节数组
-// 转换规则与ToString相同，但返回[]byte类型
-// 特殊情况：
-// - nil返回nil
-// - error类型返回错误信息的字节表示
-// - JSON序列化失败时返回nil
 func ToBytes(val interface{}) []byte {
 	switch x := val.(type) {
 	case bool:
@@ -156,11 +141,6 @@ func toBytes(s string) []byte {
 	return *(*[]byte)(unsafe.Pointer(&s))
 }
 
-// ToArrayString 将任意切片转换为字符串切片
-// 处理规则：
-// - 使用反射遍历切片元素
-// - 每个元素转换为字符串
-// - 非切片类型返回空切片
 func ToArrayString(v interface{}) []string {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Slice {

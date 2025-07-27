@@ -3,12 +3,13 @@ package anyx
 import (
 	"errors"
 	"fmt"
-	"github.com/lazygophers/utils/json"
-	"go.uber.org/atomic"
-	"gopkg.in/yaml.v3"
 	"math"
 	"strings"
 	"sync"
+
+	"github.com/lazygophers/utils/json"
+	"go.uber.org/atomic"
+	"gopkg.in/yaml.v3"
 )
 
 type MapAny struct {
@@ -797,6 +798,8 @@ func (p *MapAny) Clone() *MapAny {
 	}
 }
 
-func (p *MapAny) Range(f func(key, value interface{})) bool {
-	return p.Range(f)
+func (p *MapAny) Range(f func(key, value interface{}) bool) {
+	p.data.Range(func(key, value interface{}) bool {
+		return f(key, value)
+	})
 }

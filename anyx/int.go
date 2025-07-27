@@ -5,17 +5,6 @@ import (
 	"time"
 )
 
-// ToInt 将任意类型转换为int
-// 布尔值处理：
-// - true -> 1
-// - false -> 0
-// 数值类型直接转换
-// 字符串处理：
-// - 优先尝试解析为uint64后转换
-// - 解析失败返回0
-// - 超出int范围时返回最大/最小值
-// - 解析失败返回0
-// []byte同字符串处理逻辑
 func ToInt(val interface{}) int {
 	switch x := val.(type) {
 	case bool:
@@ -64,9 +53,6 @@ func ToInt(val interface{}) int {
 	}
 }
 
-// ToInt8 将任意类型转换为int8
-// 转换规则与ToInt相同，但目标类型为int8
-// 可能发生截断，使用者需注意数值范围
 func ToInt8(val interface{}) int8 {
 	switch x := val.(type) {
 	case bool:
@@ -115,9 +101,6 @@ func ToInt8(val interface{}) int8 {
 	}
 }
 
-// ToInt16 将任意类型转换为int16
-// 转换规则与ToInt相同，但目标类型为int16
-// 可能发生截断，使用者需注意数值范围
 func ToInt16(val interface{}) int16 {
 	switch x := val.(type) {
 	case bool:
@@ -166,9 +149,6 @@ func ToInt16(val interface{}) int16 {
 	}
 }
 
-// ToInt32 将任意类型转换为int32
-// 转换规则与ToInt相同，但目标类型为int32
-// 可能发生截断，使用者需注意数值范围
 func ToInt32(val interface{}) int32 {
 	switch x := val.(type) {
 	case bool:
@@ -217,17 +197,6 @@ func ToInt32(val interface{}) int32 {
 	}
 }
 
-// ToInt64 将任意类型转换为int64类型
-// 处理逻辑：
-// - 布尔值：true -> 1，false -> 0
-// - 所有整数类型直接转换
-// - 浮点数取整转换
-// - 字符串处理：
-//   - 优先尝试解析为int64
-//   - 解析失败返回0
-//
-// - []byte同字符串处理逻辑
-// - time.Duration返回纳秒值
 func ToInt64(val interface{}) int64 {
 	switch x := val.(type) {
 	case bool:

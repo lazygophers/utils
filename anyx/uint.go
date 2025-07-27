@@ -2,13 +2,6 @@ package anyx
 
 import "strconv"
 
-// ToUint 将任意类型转换为uint类型
-// 布尔值处理同整数转换
-// 数值类型直接转换为无符号整数
-// 字符串处理：
-// - 尝试解析为uint64后转换
-// - 解析失败返回0
-// []byte同字符串处理逻辑
 func ToUint(val interface{}) uint {
 	switch x := val.(type) {
 	case bool:
@@ -57,9 +50,6 @@ func ToUint(val interface{}) uint {
 	}
 }
 
-// ToUint8 将任意类型转换为uint8类型
-// 转换规则与ToUint相同，但目标类型为uint8
-// 可能发生截断，使用者需注意数值范围
 func ToUint8(val interface{}) uint8 {
 	switch x := val.(type) {
 	case bool:
