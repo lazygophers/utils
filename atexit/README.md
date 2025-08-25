@@ -1,22 +1,52 @@
-# atexit  
-程序退出时的安全清理机制  
+# atexit
 
-## 核心功能  
-1. 注册退出时执行的清理函数（如资源释放、日志记录）  
-2. 支持跨平台实现（当前包含Linux系统优化）  
+优雅的退出处理模块，用于在程序退出时执行清理操作。
 
-## 使用示例  
-```go  
-import "github.com/lazygophers/utils/atexit"  
+## 特性
 
-func main() {  
-    atexit.Register(func() {  
-        fmt.Println("程序退出时执行清理操作")  
-        cleanupResources()  
-    })  
-}  
-```  
+- 注册退出时的回调函数
+- 支持多个退出处理器
+- 确保资源正确释放
 
-## 注意事项  
-- 注册函数会在程序正常退出（os.Exit）或panic时执行  
-- 执行顺序与注册顺序相反（后注册的先执行）
+## 安装
+
+```bash
+go get github.com/lazygophers/utils/atexit
+```
+
+## 快速开始
+
+### 基本用法
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/lazygophers/utils/atexit"
+)
+
+func main() {
+    // 注册退出处理器
+    atexit.Register(func() {
+        fmt.Println("清理资源...")
+        // 执行清理操作
+    })
+    
+    // 注册多个处理器
+    atexit.Register(func() {
+        fmt.Println("关闭数据库连接...")
+        // 关闭数据库连接
+    })
+    
+    // 程序退出时，所有注册的处理器会按顺序执行
+}
+```
+
+## 文档
+
+详细的 API 文档和更多示例，请参考 [GoDoc](https://pkg.go.dev/github.com/lazygophers/utils/atexit)。
+
+## 许可证
+
+本项目采用 AGPL-3.0 许可证。详情请参阅 [LICENSE](../LICENSE) 文件。
