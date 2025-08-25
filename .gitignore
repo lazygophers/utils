@@ -4,3 +4,5 @@
 .roomodes
 .roo/
 .DS_Store
+coverage.html
+*.coverage
