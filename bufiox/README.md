@@ -1,29 +1,47 @@
 # bufiox
 
-## 项目简介
-高效处理缓冲区的Go语言工具库，支持跨平台换行符处理和流式操作
+增强的缓冲区 I/O 操作模块，提供高性能的数据读写功能。
 
-## 核心函数
-```go
-func ScanBy(r io.Reader, delimiter byte) ([]byte, error)
-func ScanLines(r io.Reader) ([]string, error)
+## 特性
+
+- 优化的缓冲区操作
+- 高效的读写性能
+- 减少系统调用次数
+- 内存池管理
+
+## 安装
+
+```bash
+go get github.com/lazygophers/utils/bufiox
 ```
 
-## 使用示例
+## 快速开始
+
+### 基本用法
+
 ```go
-// 基础使用
-lines, _ := ScanLines(os.Stdin)
-for _, line := range lines {
-    fmt.Println(line)
+package main
+
+import (
+    "github.com/lazygophers/utils/bufiox"
+)
+
+func main() {
+    // 创建缓冲区读取器
+    reader := bufiox.NewReader(src)
+    
+    // 创建缓冲区写入器
+    writer := bufiox.NewWriter(dest)
+    
+    // 使用缓冲区进行高效读写
+    // ...
 }
-
-// 自定义分隔符
-data, _ := ScanBy(bytes.NewBuffer([]byte("a\nb\nc")), '\n')
 ```
 
-## 跨平台支持
-- 自动识别并处理 Windows(CRLF) / Linux(LF) / Mac(CR) 换行符
-- 通过 `bytes.Equal(line, []byte{'\r', '\n'})` 可手动检测特定换行符
+## 文档
 
-This directory contains buffered I/O utility functions for the lazygophers project. Current implementation includes:  
-- `scan.go`: Implements custom buffered scanning logic for efficient data processing.
+详细的 API 文档和更多示例，请参考 [GoDoc](https://pkg.go.dev/github.com/lazygophers/utils/bufiox)。
+
+## 许可证
+
+本项目采用 AGPL-3.0 许可证。详情请参阅 [LICENSE](../LICENSE) 文件。
