@@ -4,9 +4,9 @@
 
 ## 特性
 
-- 提供统一的应用程序创建接口
-- 支持自定义配置和中间件
-- 简化应用初始化流程
+-   提供统一的应用程序创建接口
+-   支持自定义配置和中间件
+-   简化应用初始化流程
 
 ## 安装
 
@@ -22,20 +22,13 @@ go get github.com/lazygophers/utils/app
 package main
 
 import (
+    "fmt"
+
     "github.com/lazygophers/utils/app"
 )
 
 func main() {
-    // 创建新的应用实例
-    application := app.New()
-    
-    // 配置应用
-    application.Configure(func() {
-        // 应用配置
-    })
-    
-    // 启动应用
-    application.Run()
+    fmt.Println(app.Version))
 }
 ```
 
