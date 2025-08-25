@@ -5,6 +5,7 @@
 
 [![Go Version](https://img.shields.io/badge/Go-1.24.0-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/License-AGPL%20v3-green.svg)](LICENSE)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/lazygophers/utils)
 
 ## 项目简介
 
@@ -127,7 +128,7 @@ URL 处理工具。
 
 #### 子模块
 - xtime007
-- xtime955  
+- xtime955
 - xtime996
 
 ## 使用示例
@@ -143,7 +144,7 @@ import (
 func main() {
     // 使用 Must 处理可能出错的操作
     result := utils.Must(someFunction())
-    
+
     // 使用 MustSuccess 验证错误
     utils.MustSuccess(doSomething())
 }
@@ -159,19 +160,19 @@ type User struct {
 
 func GetUser(id int) (*User, error) {
     var user User
-    
+
     // 从数据库扫描数据
     err := utils.Scan(dbData, &user)
     if err != nil {
         return nil, err
     }
-    
+
     // 验证结构体
     err = utils.Validate(&user)
     if err != nil {
         return nil, err
     }
-    
+
     return &user, nil
 }
 ```
