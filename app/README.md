@@ -28,7 +28,7 @@ import (
 )
 
 func main() {
-    fmt.Println(app.Version))
+    fmt.Println(app.Version)
 }
 ```
 
