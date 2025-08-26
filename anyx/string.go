@@ -194,6 +194,7 @@ func ToStringSlice(val interface{}, seqs ...string) []string {
 		for _, v := range x {
 			ss = append(ss, strconv.FormatInt(int64(v), 10))
 		}
+		return ss
 
 	case []int32:
 		ss := make([]string, 0, len(x))
