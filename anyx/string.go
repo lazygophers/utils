@@ -42,16 +42,16 @@ func ToString(val interface{}) string {
 		return fmt.Sprintf("%d", x)
 	case float32:
 		if math.Floor(float64(x)) == float64(x) {
-			return fmt.Sprintf("%.0f", x)
+			return strconv.FormatFloat(float64(x), 'f', 0, 32)
 		}
 
-		return fmt.Sprintf("%f", x)
+		return strconv.FormatFloat(float64(x), 'f', 15, 32)
 	case float64:
 		if math.Floor(x) == x {
 			return fmt.Sprintf("%.0f", x)
 		}
 
-		return fmt.Sprintf("%f", x)
+		return strconv.FormatFloat(x, 'f', 6, 64)
 	case time.Duration:
 		return x.String()
 	case string:
@@ -102,16 +102,16 @@ func ToBytes(val interface{}) []byte {
 		return []byte(fmt.Sprintf("%d", x))
 	case float32:
 		if math.Floor(float64(x)) == float64(x) {
-			return []byte(fmt.Sprintf("%.0f", x))
+			return []byte(strconv.FormatFloat(float64(x), 'f', 0, 32))
 		}
 
-		return []byte(fmt.Sprintf("%f", x))
+		return []byte(strconv.FormatFloat(float64(x), 'f', 15, 32))
 	case float64:
 		if math.Floor(x) == x {
 			return []byte(fmt.Sprintf("%.0f", x))
 		}
 
-		return []byte(fmt.Sprintf("%f", x))
+		return []byte(strconv.FormatFloat(x, 'f', 6, 64))
 	case time.Duration:
 		return []byte(x.String())
 	case string:
