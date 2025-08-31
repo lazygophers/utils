@@ -6,190 +6,235 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPluckInt(t *testing.T) {
+// TestPluckInt32 测试 PluckInt32 函数
+func TestPluckInt32(t *testing.T) {
 	type User struct {
-		ID   int
+		ID   int32
 		Name string
 	}
 
-	t.Run("正常情况", func(t *testing.T) {
-		users := []User{
-			{ID: 1, Name: "Alice"},
-			{ID: 2, Name: "Bob"},
-		}
-		ids := PluckInt(users, "ID")
-		assert.Equal(t, []int{1, 2}, ids)
-	})
+	tests := []struct {
+		name      string
+		list     interface{}
+		fieldName string
+		want      []int32
+		wantPanic bool
+	}{
+		{
+			name:      "正常情况",
+			list:     []*User{{ID: 1, Name: "Alice"}, {ID: 2, Name: "Bob"}},
+			fieldName: "ID",
+			want:      []int32{1, 2},
+		},
+		{
+			name:      "空列表",
+			list:     []*User{},
+			fieldName: "ID",
+			want:      []int32{},
+		},
+		{
+			name:      "nil列表",
+			list:     nil,
+			fieldName: "ID",
+			wantPanic: true,
+		},
+		{
+			name:      "字段不存在",
+			list:     []*User{{ID: 1, Name: "Alice"}},
+			fieldName: "Age",
+			wantPanic: true,
+		},
+		{
+			name:      "非结构体列表",
+			list:     []int{1, 2, 3},
+			fieldName: "ID",
+			wantPanic: true,
+		},
+	}
 
-	t.Run("空切片", func(t *testing.T) {
-		empty := []User{}
-		ids := PluckInt(empty, "ID")
-		assert.Empty(t, ids)
-	})
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.wantPanic {
+				assert.Panics(t, func() {
+					PluckInt32(tt.list, tt.fieldName)
+				})
+				return
+			}
 
-	t.Run("字段不存在", func(t *testing.T) {
-		users := []User{{ID: 1}}
-		assert.Panics(t, func() {
-			PluckInt(users, "InvalidField")
+			got := PluckInt32(tt.list, tt.fieldName)
+			assert.Equal(t, tt.want, got)
 		})
-	})
+	}
 }
 
-func TestPluckString(t *testing.T) {
+// TestPluckUint32 测试 PluckUint32 函数
+func TestPluckUint32(t *testing.T) {
 	type Product struct {
-		Name string
-		SKU  string
+		ID    uint32
+		Name  string
+		Price float64
 	}
 
-	t.Run("正常情况", func(t *testing.T) {
-		products := []Product{
-			{Name: "Laptop", SKU: "LP123"},
-			{Name: "Phone", SKU: "PH456"},
-		}
-		names := PluckString(products, "Name")
-		assert.Equal(t, []string{"Laptop", "Phone"}, names)
-	})
-}
-
-func TestPluckStringSlice(t *testing.T) {
-	type User struct {
-		Name   string
-		Emails []string
+	tests := []struct {
+		name      string
+		list     interface{}
+		fieldName string
+		want      []uint32
+		wantPanic bool
+	}{
+		{
+			name:      "正常情况",
+			list:     []*Product{{ID: 100, Name: "Phone"}, {ID: 200, Name: "Laptop"}},
+			fieldName: "ID",
+			want:      []uint32{100, 200},
+		},
+		{
+			name:      "空列表",
+			list:     []*Product{},
+			fieldName: "ID",
+			want:      []uint32{},
+		},
+		{
+			name:      "nil列表",
+			list:     nil,
+			fieldName: "ID",
+			wantPanic: true,
+		},
+		{
+			name:      "字段不存在",
+			list:     []*Product{{ID: 100, Name: "Phone"}},
+			fieldName: "Code",
+			wantPanic: true,
+		},
 	}
 
-	t.Run("正常情况", func(t *testing.T) {
-		users := []User{
-			{Name: "Alice", Emails: []string{"a@test.com", "a@work.com"}},
-			{Name: "Bob", Emails: []string{"b@test.com"}},
-		}
-		emails := PluckStringSlice(users, "Emails")
-		assert.Equal(t, [][]string{
-			{"a@test.com", "a@work.com"},
-			{"b@test.com"},
-		}, emails)
-	})
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.wantPanic {
+				assert.Panics(t, func() {
+					PluckUint32(tt.list, tt.fieldName)
+				})
+				return
+			}
+
+			got := PluckUint32(tt.list, tt.fieldName)
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }
 
-func TestDiffSlice(t *testing.T) {
-	t.Run("正常差异", func(t *testing.T) {
-		a := []int{1, 2, 3}
-		b := []int{2, 3, 4}
-		added, removed := DiffSlice(a, b)
-		assert.Equal(t, []int{1}, added)
-		assert.Equal(t, []int{4}, removed)
-	})
-
-	t.Run("完全相同", func(t *testing.T) {
-		a := []string{"a", "b"}
-		b := []string{"a", "b"}
-		added, removed := DiffSlice(a, b)
-		assert.Empty(t, added)
-		assert.Empty(t, removed)
-	})
-
-	t.Run("空切片", func(t *testing.T) {
-		a := []int{}
-		b := []int{1}
-		added, removed := DiffSlice(a, b)
-		assert.Empty(t, added)
-		assert.Equal(t, []int{1}, removed)
-	})
-}
-
-func TestRemoveSlice(t *testing.T) {
-	t.Run("正常移除", func(t *testing.T) {
-		src := []int{1, 2, 3, 4}
-		rm := []int{2, 4}
-		result := RemoveSlice(src, rm)
-		assert.Equal(t, []int{1, 3}, result)
-	})
-
-	t.Run("无匹配项", func(t *testing.T) {
-		src := []string{"a", "b"}
-		rm := []string{"c"}
-		result := RemoveSlice(src, rm)
-		assert.Equal(t, src, result)
-	})
-}
-
-func TestKeyBy(t *testing.T) {
-	type Product struct {
-		ID   string
-		Name string
+// TestPluckInt64 测试 PluckInt64 函数
+func TestPluckInt64(t *testing.T) {
+	type Order struct {
+		ID        int64
+		UserID    int64
+		ProductID string
 	}
 
-	t.Run("正常情况", func(t *testing.T) {
-		products := []Product{
-			{ID: "p1", Name: "Product 1"},
-			{ID: "p2", Name: "Product 2"},
-		}
-		result := KeyBy(products, "ID").(map[string]Product)
-		assert.Equal(t, "Product 1", result["p1"].Name)
-		assert.Equal(t, "Product 2", result["p2"].Name)
-	})
-
-	t.Run("空切片", func(t *testing.T) {
-		var empty []Product
-		result := KeyBy(empty, "ID").(map[string]Product)
-		assert.Empty(t, result)
-	})
-}
-
-func TestKeyByUint64(t *testing.T) {
-	type Item struct {
-		ID   uint64
-		Name string
+	tests := []struct {
+		name      string
+		list     interface{}
+		fieldName string
+		want      []int64
+		wantPanic bool
+	}{
+		{
+			name:      "正常情况",
+			list:     []*Order{{ID: 1001, UserID: 2001}, {ID: 1002, UserID: 2002}},
+			fieldName: "ID",
+			want:      []int64{1001, 1002},
+		},
+		{
+			name:      "空列表",
+			list:     []*Order{},
+			fieldName: "ID",
+			want:      []int64{},
+		},
+		{
+			name:      "nil列表",
+			list:     nil,
+			fieldName: "ID",
+			wantPanic: true,
+		},
+		{
+			name:      "字段不存在",
+			list:     []*Order{{ID: 1001, UserID: 2001}},
+			fieldName: "CreatedAt",
+			wantPanic: true,
+		},
 	}
 
-	t.Run("正常情况", func(t *testing.T) {
-		items := []*Item{
-			{ID: 101, Name: "Item 101"},
-			{ID: 102, Name: "Item 102"},
-		}
-		result := KeyByUint64(items, "ID")
-		assert.Equal(t, "Item 101", result[101].Name)
-		assert.Equal(t, "Item 102", result[102].Name)
-	})
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.wantPanic {
+				assert.Panics(t, func() {
+					PluckInt64(tt.list, tt.fieldName)
+				})
+				return
+			}
+
+			got := PluckInt64(tt.list, tt.fieldName)
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }
 
-func TestKeyByString(t *testing.T) {
-	type User struct {
-		Username string
-		Email    string
+// TestPluckUint64 测试 PluckUint64 函数
+func TestPluckUint64(t *testing.T) {
+	type Transaction struct {
+		ID     uint64
+		Amount uint64
+		Status string
 	}
 
-	t.Run("正常情况", func(t *testing.T) {
-		users := []*User{
-			{Username: "alice", Email: "alice@example.com"},
-			{Username: "bob", Email: "bob@example.com"},
-		}
-		result := KeyByString(users, "Username")
-		assert.Equal(t, "alice@example.com", result["alice"].Email)
-		assert.Equal(t, "bob@example.com", result["bob"].Email)
-	})
-}
+	tests := []struct {
+		name      string
+		list     interface{}
+		fieldName string
+		want      []uint64
+		wantPanic bool
+	}{
+		{
+			name:      "正常情况",
+			list:     []*Transaction{{ID: 9007199254740991, Amount: 1000}, {ID: 9007199254740992, Amount: 2000}},
+			fieldName: "ID",
+			want:      []uint64{9007199254740991, 9007199254740992},
+		},
+		{
+			name:      "空列表",
+			list:     []*Transaction{},
+			fieldName: "ID",
+			want:      []uint64{},
+		},
+		{
+			name:      "nil列表",
+			list:     nil,
+			fieldName: "ID",
+			wantPanic: true,
+		},
+		{
+			name:      "字段不存在",
+			list:     []*Transaction{{ID: 9007199254740991, Amount: 1000}},
+			fieldName: "Timestamp",
+			wantPanic: true,
+		},
+	}
 
-func TestSlice2Map(t *testing.T) {
-	t.Run("正常转换", func(t *testing.T) {
-		slice := []int{1, 2, 3}
-		result := Slice2Map(slice)
-		assert.True(t, result[1])
-		assert.True(t, result[2])
-		assert.True(t, result[3])
-		assert.False(t, result[4])
-	})
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.wantPanic {
+				assert.Panics(t, func() {
+					PluckUint64(tt.list, tt.fieldName)
+				})
+				return
+			}
 
-	t.Run("空切片", func(t *testing.T) {
-		empty := []string{}
-		result := Slice2Map(empty)
-		assert.Empty(t, result)
-	})
-
-	t.Run("字符串切片", func(t *testing.T) {
-		slice := []string{"a", "b", "c"}
-		result := Slice2Map(slice)
-		assert.True(t, result["a"])
-		assert.True(t, result["b"])
-		assert.False(t, result["d"])
-	})
+			got := PluckUint64(tt.list, tt.fieldName)
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }

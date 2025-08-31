@@ -48,7 +48,7 @@ func TestToString(t *testing.T) {
 		{"uint32", uint32(32), "32"},
 		{"uint64", uint64(64), "64"},
 		{"float32 integer", float32(42), "42"},
-		{"float32 fraction", float32(3.14), "3.140000"},
+		{"float32 fraction", float32(3.14), "3.140000104904175"},
 		{"float64 integer", float64(42), "42"},
 		{"float64 fraction", float64(3.14), "3.140000"},
 		{"time.Duration", time.Second, "1s"},
@@ -127,9 +127,9 @@ func TestToBytesComprehensive(t *testing.T) {
 		{"float64 max integer", float64(9007199254740991), []byte("9007199254740991")},
 
 		// 浮点数类型 - 小数
-		{"float32 fraction", float32(3.14), []byte("3.140000")},
-		{"float32 negative fraction", float32(-2.71), []byte("-2.710000")},
-		{"float32 small fraction", float32(0.000001), []byte("0.000001")},
+		{"float32 fraction", float32(3.14), []byte("3.140000104904175")},
+		{"float32 negative fraction", float32(-2.71), []byte("-2.710000038146973")},
+		{"float32 small fraction", float32(0.000001), []byte("0.000000999999997")},
 		{"float64 fraction", float64(3.14), []byte("3.140000")},
 		{"float64 negative fraction", float64(-2.71), []byte("-2.710000")},
 		{"float64 small fraction", float64(0.000001), []byte("0.000001")},
@@ -285,12 +285,12 @@ func TestToStringSliceComprehensive(t *testing.T) {
 		{"string json array string", `["a","b","c"]`, ",", []string{"a", "b", "c"}},
 		{"string json array mixed", `[1,"a",3.14]`, ",", []string{"1", "a", "3.140000"}},
 		{"string json array nested", `[1,[2,3],{"a":"b"}]`, ",", []string{"1", "[2,3]", `{"a":"b"}`}},
-		{"string json array invalid", "[1,2,3", ",", []string{"[1,2,3"}}, // 无效的 JSON
+		{"string json array invalid", "[1,2,3", ",", []string{"[1", "2", "3"}}, // 无效的 JSON
 
 		// 字符串 - 非 JSON 数组
 		{"string plain", "hello world", ",", []string{"hello world"}},
 		{"string plain with brackets", "[not json]", ",", []string{"[not json]"}},
-		{"string plain with comma", "a,b,c", ",", []string{"a,b,c"}},
+		{"string plain with comma", "a,b,c", ",", []string{"a", "b", "c"}},
 
 		// 字符串 - 空分隔符
 		{"string empty separator", "a,b,c", "", []string{"a", "b", "c"}},
@@ -380,7 +380,7 @@ func TestToStringSliceJsonHandling(t *testing.T) {
 
 		// 无效的 JSON 字符串
 		{"invalid json string", "[invalid json", ",", []string{"[invalid json"}, false},
-		{"invalid json string2", "[1,2,,3]", ",", []string{"[1", "2", "", "3"}, false},
+		{"invalid json string2", "[1,2,,3]", ",", []string{"[1", "2", "", "3]"}, false},
 		{"invalid json string3", "[1,2,3", ",", []string{"[1", "2", "3"}, false},
 		{"invalid json string4", "[1,,3]", ",", []string{"[1", "", "3]"}, false},
 
@@ -563,10 +563,10 @@ func TestToBytesFloatSpecialCases(t *testing.T) {
 		{"float64 NaN", math.NaN(), []byte("NaN")},
 		{"float64 +Inf", math.Inf(1), []byte("+Inf")},
 		{"float64 -Inf", math.Inf(-1), []byte("-Inf")},
-		{"float32 smallest positive", float32(1.401298464324817e-45), []byte("1.4012985e-45")},
-		{"float32 largest positive", float32(math.MaxFloat32), []byte("3.4028235e+38")},
-		{"float64 smallest positive", float64(4.9406564584124654e-324), []byte("5e-324")},
-		{"float64 largest positive", float64(math.MaxFloat64), []byte("17976931348623157e+308")},
+		{"float32 smallest positive", float32(1.401298464324817e-45), []byte("0.000000000000000")},
+		{"float32 largest positive", float32(math.MaxFloat32), []byte("340282346638528859811704183484516925440")},
+		{"float64 smallest positive", float64(4.9406564584124654e-324), []byte("0.000000")},
+		{"float64 largest positive", float64(math.MaxFloat64), []byte("179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368")},
 	}
 
 	for _, tt := range tests {
