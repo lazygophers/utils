@@ -255,29 +255,6 @@ func TestScanWithDefaults(t *testing.T) {
 	assert.Equal(t, "", dst.Address, "Address 应该为空字符串")
 }
 
-// TestValueDriverValue 测试 Value 函数的 driver.Valuer 接口
-func TestValueDriverValue(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name  string
-		value interface{}
-		want  string
-	}{
-		{"实现了 Valuer 接口", testValuer{}, `{}`},
-		{"普通结构体", TestStruct{Name: "测试"}, `{"name":"测试","age":0,"address":"","email":""}`},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			result, err := Value(tt.value)
-			require.NoError(t, err, "Value 不应该返回错误")
-			assert.Equal(t, tt.want, string(result.([]byte)), "Value 返回值应该匹配")
-		})
-	}
-}
 
 // TestValue 测试 Value 函数
 func TestValue(t *testing.T) {
@@ -293,6 +270,41 @@ func TestValue(t *testing.T) {
 		{"指针", &TestStruct{Name: "指针测试"}, `{"name":"指针测试","age":0,"address":"","email":""}`},
 		{"map", map[string]interface{}{"key": "value"}, `{"key":"value"}`},
 		{"slice", []int{1, 2, 3}, `[1,2,3]`},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result, err := Value(tt.value)
+			require.NoError(t, err, "Value 不应该返回错误")
+			assert.Equal(t, tt.want, string(result.([]byte)), "Value 返回值应该匹配")
+		})
+	}
+}
+
+// TestValueWithNilPanic 测试 Value 函数处理 nil 值时的 panic 情况
+func TestValueWithNilPanic(t *testing.T) {
+	t.Parallel()
+
+	// 测试 nil 值可能导致 panic 的情况
+	// 由于 defaults.SetDefaults 在处理 nil 时可能会 panic
+	assert.Panics(t, func() {
+		_, _ = Value(nil)
+	}, "Value 处理 nil 时应该 panic")
+}
+
+// TestValueDriverValue 测试 Value 函数的 driver.Valuer 接口
+func TestValueDriverValue(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		value interface{}
+		want  string
+	}{
+		{"实现了 Valuer 接口", testValuer{}, `{}`},
+		{"普通结构体", TestStruct{Name: "测试"}, `{"name":"测试","age":0,"address":"","email":""}`},
 	}
 
 	for _, tt := range tests {
@@ -423,4 +435,148 @@ type testValuer struct{}
 
 func (v testValuer) Value() (driver.Value, error) {
 	return "test", nil
+}
+
+// TestToMapAnyInt64 测试 ToMapAnyInt64 函数
+func TestToMapAnyInt64(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		give []interface{}
+		want []int64
+	}{
+		{"正常转换", []interface{}{1, 2.2, "3"}, []int64{1, 2, 3}},
+		{"空切片", []interface{}{}, []int64{}},
+		{"nil切片", nil, []int64{}},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ToMapAnyInt64(tt.give)
+			assert.Equal(t, tt.want, result, "ToMapAnyInt64 返回值应该匹配")
+		})
+	}
+}
+
+// TestToMapAnyFloat32 测试 ToMapAnyFloat32 函数
+func TestToMapAnyFloat32(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		give []interface{}
+		want []float32
+	}{
+		{"正常转换", []interface{}{1.1, 2.2, "3.3"}, []float32{1.1, 2.2, 3.3}},
+		{"空切片", []interface{}{}, []float32{}},
+		{"nil切片", nil, []float32{}},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ToMapAnyFloat32(tt.give)
+			assert.Equal(t, tt.want, result, "ToMapAnyFloat32 返回值应该匹配")
+		})
+	}
+}
+
+// TestToMapAnyFloat64 测试 ToMapAnyFloat64 函数
+func TestToMapAnyFloat64(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		give []interface{}
+		want []float64
+	}{
+		{"正常转换", []interface{}{1.1, 2.2, "3.3"}, []float64{1.1, 2.2, 3.3}},
+		{"空切片", []interface{}{}, []float64{}},
+		{"nil切片", nil, []float64{}},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ToMapAnyFloat64(tt.give)
+			assert.Equal(t, tt.want, result, "ToMapAnyFloat64 返回值应该匹配")
+		})
+	}
+}
+
+// TestToMapAnyString 测试 ToMapAnyString 函数
+func TestToMapAnyString(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		give []interface{}
+		want []string
+	}{
+		{"正常转换", []interface{}{"a", "b", "c"}, []string{"a", "b", "c"}},
+		{"空切片", []interface{}{}, []string{}},
+		{"nil切片", nil, []string{}},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ToMapAnyString(tt.give)
+			assert.Equal(t, tt.want, result, "ToMapAnyString 返回值应该匹配")
+		})
+	}
+}
+
+// TestToMapAnyBool 测试 ToMapAnyBool 函数
+func TestToMapAnyBool(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		give []interface{}
+		want []bool
+	}{
+		{"正常转换", []interface{}{true, false, "true"}, []bool{true, false, true}},
+		{"空切片", []interface{}{}, []bool{}},
+		{"nil切片", nil, []bool{}},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ToMapAnyBool(tt.give)
+			assert.Equal(t, tt.want, result, "ToMapAnyBool 返回值应该匹配")
+		})
+	}
+}
+
+// TestToMapAnyAny 测试 ToMapAnyAny 函数
+func TestToMapAnyAny(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		give []interface{}
+		want []interface{}
+	}{
+		{"正常转换", []interface{}{1, "a", true}, []interface{}{1, "a", true}},
+		{"空切片", []interface{}{}, []interface{}{}},
+		{"nil切片", nil, []interface{}{}},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ToMapAnyAny(tt.give)
+			assert.Equal(t, tt.want, result, "ToMapAnyAny 返回值应该匹配")
+		})
+	}
 }
