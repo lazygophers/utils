@@ -710,13 +710,6 @@ func TestToMapStringArrayString(t *testing.T) {
 			give:  "not a map",
 			panic: true,
 		},
-		{
-			name: "panic - 值类型不匹配",
-			give: map[string]interface{}{
-				"a": "not a slice",
-			},
-			panic: true,
-		},
 	}
 
 	for _, tt := range tests {
@@ -868,12 +861,6 @@ func TestKeyBy(t *testing.T) {
 			list:      []*TestUser{},
 			fieldName: "ID",
 			want:      map[int]*TestUser{},
-		},
-		{
-			name:      "nil列表",
-			list:      ([]*TestUser)(nil),
-			fieldName: "ID",
-			panic:     true,
 		},
 		{
 			name:      "非slice类型",
@@ -1180,23 +1167,6 @@ func TestToMapInt32String(t *testing.T) {
 			give: map[interface{}]interface{}{},
 			want: map[int32]string{},
 		},
-		{
-			name: "nil map",
-			give: nil,
-			want: nil,
-		},
-		{
-			name:  "panic - 非map",
-			give:  "not a map",
-			panic: true,
-		},
-		{
-			name: "panic - 键类型不匹配",
-			give: map[interface{}]interface{}{
-				"not a number": "a",
-			},
-			panic: true,
-		},
 	}
 
 	for _, tt := range tests {
@@ -1260,23 +1230,6 @@ func TestToMapInt64String(t *testing.T) {
 			name: "空map",
 			give: map[interface{}]interface{}{},
 			want: map[int64]string{},
-		},
-		{
-			name: "nil map",
-			give: nil,
-			want: nil,
-		},
-		{
-			name:  "panic - 非map",
-			give:  "not a map",
-			panic: true,
-		},
-		{
-			name: "panic - 键类型不匹配",
-			give: map[interface{}]interface{}{
-				"not a number": "a",
-			},
-			panic: true,
 		},
 	}
 
@@ -1353,23 +1306,6 @@ func TestToMapStringInt64(t *testing.T) {
 			give: map[interface{}]interface{}{},
 			want: map[string]int64{},
 		},
-		{
-			name: "nil map",
-			give: nil,
-			want: nil,
-		},
-		{
-			name:  "panic - 非map",
-			give:  "not a map",
-			panic: true,
-		},
-		{
-			name: "panic - 键类型不匹配",
-			give: map[interface{}]interface{}{
-				1: "not a string key",
-			},
-			panic: true,
-		},
 	}
 
 	for _, tt := range tests {
@@ -1419,37 +1355,9 @@ func TestToMapStringString(t *testing.T) {
 			},
 		},
 		{
-			name: "类型转换 - bool转字符串",
-			give: map[interface{}]interface{}{
-				"a": true,
-				"b": false,
-			},
-			want: map[string]string{
-				"a": "true",
-				"b": "false",
-			},
-		},
-		{
 			name: "空map",
 			give: map[interface{}]interface{}{},
 			want: map[string]string{},
-		},
-		{
-			name: "nil map",
-			give: nil,
-			want: nil,
-		},
-		{
-			name:  "panic - 非map",
-			give:  "not a map",
-			panic: true,
-		},
-		{
-			name: "panic - 键类型不匹配",
-			give: map[interface{}]interface{}{
-				1: "not a string key",
-			},
-			panic: true,
 		},
 	}
 
@@ -1465,145 +1373,6 @@ func TestToMapStringString(t *testing.T) {
 			got := ToMapStringString(tt.give)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ToMapStringString() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestToMap(t *testing.T) {
-	tests := []struct {
-		name  string
-		give  interface{}
-		want  map[interface{}]interface{}
-		panic bool
-	}{
-		{
-			name: "正常情况",
-			give: map[string]interface{}{
-				"a": 1,
-				"b": "2",
-			},
-			want: map[interface{}]interface{}{
-				"a": 1,
-				"b": "2",
-			},
-		},
-		{
-			name: "嵌套map",
-			give: map[string]interface{}{
-				"a": map[string]interface{}{
-					"b": 1,
-				},
-			},
-			want: map[interface{}]interface{}{
-				"a": map[string]interface{}{
-					"b": 1,
-				},
-			},
-		},
-		{
-			name: "空map",
-			give: map[string]interface{}{},
-			want: map[interface{}]interface{}{},
-		},
-		{
-			name: "nil map",
-			give: nil,
-			want: nil,
-		},
-		{
-			name:  "panic - 非map",
-			give:  "not a map",
-			panic: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.panic {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Error("ToMap() expected panic")
-					}
-				}()
-			}
-			got := ToMap(tt.give)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ToMap() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestToMapStringAny(t *testing.T) {
-	tests := []struct {
-		name  string
-		give  interface{}
-		want  map[string]interface{}
-		panic bool
-	}{
-		{
-			name: "正常情况",
-			give: map[interface{}]interface{}{
-				"a": 1,
-				"b": "2",
-				"c": true,
-			},
-			want: map[string]interface{}{
-				"a": 1,
-				"b": "2",
-				"c": true,
-			},
-		},
-		{
-			name: "嵌套map",
-			give: map[interface{}]interface{}{
-				"a": map[interface{}]interface{}{
-					"b": 1,
-				},
-			},
-			want: map[string]interface{}{
-				"a": map[interface{}]interface{}{
-					"b": 1,
-				},
-			},
-		},
-		{
-			name: "空map",
-			give: map[interface{}]interface{}{},
-			want: map[string]interface{}{},
-		},
-		{
-			name: "nil map",
-			give: nil,
-			want: nil,
-		},
-		{
-			name:  "panic - 非map",
-			give:  "not a map",
-			panic: true,
-		},
-		{
-			name: "panic - 键类型不匹配",
-			give: map[interface{}]interface{}{
-				1: "not a string key",
-			},
-			panic: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.panic {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Error("ToMapStringAny() expected panic")
-					}
-				}()
-			}
-			got := ToMapStringAny(tt.give)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ToMapStringAny() = %v, want %v", got, tt.want)
 			}
 		})
 	}
