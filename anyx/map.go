@@ -66,7 +66,7 @@ func MapKeysUint32(m interface{}) []uint32 {
 
 	keyType := t.Type().Key()
 	if keyType.Kind() != reflect.Uint32 {
-		panic("map key type required string")
+		panic("map key type required uint32")
 	}
 
 	result := make([]uint32, 0, t.Len())
@@ -85,7 +85,7 @@ func MapKeysUint64(m interface{}) []uint64 {
 
 	keyType := t.Type().Key()
 	if keyType.Kind() != reflect.Uint64 {
-		panic("map key type required string")
+		panic("map key type required uint64")
 	}
 
 	result := make([]uint64, 0, t.Len())
@@ -101,10 +101,13 @@ func MapKeysInt32(m interface{}) []int32 {
 	if t.Kind() != reflect.Map {
 		panic("required map type")
 	}
+	if t.IsNil() {
+		return []int32{}
+	}
 
 	keyType := t.Type().Key()
 	if keyType.Kind() != reflect.Int32 {
-		panic("map key type required string")
+		panic("map key type required int32")
 	}
 
 	result := make([]int32, 0, t.Len())
@@ -120,15 +123,255 @@ func MapKeysInt64(m interface{}) []int64 {
 	if t.Kind() != reflect.Map {
 		panic("required map type")
 	}
+	if t.IsNil() {
+		return []int64{}
+	}
 
 	keyType := t.Type().Key()
 	if keyType.Kind() != reflect.Int64 {
-		panic("map key type required string")
+		panic("map key type required int64")
 	}
 
 	result := make([]int64, 0, t.Len())
 	for _, v := range t.MapKeys() {
 		result = append(result, v.Int())
+	}
+
+	return result
+}
+
+func MapKeysInt(m interface{}) []int {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []int{}
+	}
+
+	keyType := t.Type().Key()
+	if keyType.Kind() != reflect.Int {
+		panic("map key type required int")
+	}
+
+	result := make([]int, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, int(v.Int()))
+	}
+
+	return result
+}
+
+func MapKeysInt8(m interface{}) []int8 {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []int8{}
+	}
+
+	keyType := t.Type().Key()
+	if keyType.Kind() != reflect.Int8 {
+		panic("map key type required int8")
+	}
+
+	result := make([]int8, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, int8(v.Int()))
+	}
+
+	return result
+}
+
+func MapKeysInt16(m interface{}) []int16 {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []int16{}
+	}
+
+	keyType := t.Type().Key()
+	if keyType.Kind() != reflect.Int16 {
+		panic("map key type required int16")
+	}
+
+	result := make([]int16, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, int16(v.Int()))
+	}
+
+	return result
+}
+
+func MapKeysUint(m interface{}) []uint {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []uint{}
+	}
+
+	keyType := t.Type().Key()
+	if keyType.Kind() != reflect.Uint {
+		panic("map key type required uint")
+	}
+
+	result := make([]uint, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, uint(v.Uint()))
+	}
+
+	return result
+}
+
+func MapKeysUint8(m interface{}) []uint8 {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []uint8{}
+	}
+
+	keyType := t.Type().Key()
+	if keyType.Kind() != reflect.Uint8 {
+		panic("map key type required uint8")
+	}
+
+	result := make([]uint8, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, uint8(v.Uint()))
+	}
+
+	return result
+}
+
+func MapKeysUint16(m interface{}) []uint16 {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []uint16{}
+	}
+
+	keyType := t.Type().Key()
+	if keyType.Kind() != reflect.Uint16 {
+		panic("map key type required uint16")
+	}
+
+	result := make([]uint16, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, uint16(v.Uint()))
+	}
+
+	return result
+}
+
+func MapKeysFloat32(m interface{}) []float32 {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []float32{}
+	}
+
+	keyType := t.Type().Key()
+	if keyType.Kind() != reflect.Float32 {
+		panic("map key type required float32")
+	}
+
+	result := make([]float32, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, float32(v.Float()))
+	}
+
+	return result
+}
+
+func MapKeysFloat64(m interface{}) []float64 {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []float64{}
+	}
+
+	keyType := t.Type().Key()
+	if keyType.Kind() != reflect.Float64 {
+		panic("map key type required float64")
+	}
+
+	result := make([]float64, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, v.Float())
+	}
+
+	return result
+}
+
+func MapKeysInterface(m interface{}) []interface{} {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, v.Interface())
+	}
+
+	return result
+}
+
+func MapKeysAny(m interface{}) []interface{} {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, v.Interface())
+	}
+
+	return result
+}
+
+func MapKeysNumber(m interface{}) []interface{} {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []interface{}{}
+	}
+
+	keyType := t.Type().Key()
+	switch keyType.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		// valid number types
+	default:
+		panic("map key type required number")
+	}
+
+	result := make([]interface{}, 0, t.Len())
+	for _, v := range t.MapKeys() {
+		result = append(result, v.Interface())
 	}
 
 	return result
@@ -140,6 +383,78 @@ func MapValues[K constraints.Ordered, V any](m map[K]V) []V {
 		res = append(res, v)
 	}
 	return res
+}
+
+func MapValuesAny(m interface{}) []interface{} {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, t.Len())
+	iter := t.MapRange()
+	for iter.Next() {
+		result = append(result, iter.Value().Interface())
+	}
+
+	return result
+}
+
+func MapValuesString(m interface{}) []string {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []string{}
+	}
+
+	result := make([]string, 0, t.Len())
+	iter := t.MapRange()
+	for iter.Next() {
+		result = append(result, iter.Value().String())
+	}
+
+	return result
+}
+
+func MapValuesInt(m interface{}) []int {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []int{}
+	}
+
+	result := make([]int, 0, t.Len())
+	iter := t.MapRange()
+	for iter.Next() {
+		result = append(result, int(iter.Value().Int()))
+	}
+
+	return result
+}
+
+func MapValuesFloat64(m interface{}) []float64 {
+	t := reflect.ValueOf(m)
+	if t.Kind() != reflect.Map {
+		panic("required map type")
+	}
+	if t.IsNil() {
+		return []float64{}
+	}
+
+	result := make([]float64, 0, t.Len())
+	iter := t.MapRange()
+	for iter.Next() {
+		result = append(result, iter.Value().Float())
+	}
+
+	return result
 }
 
 func MergeMap[K constraints.Ordered, V any](source, target map[K]V) map[K]V {
@@ -155,6 +470,10 @@ func MergeMap[K constraints.Ordered, V any](source, target map[K]V) map[K]V {
 }
 
 func KeyBy(list interface{}, fieldName string) interface{} {
+	if list == nil {
+		return nil
+	}
+
 	lv := reflect.ValueOf(list)
 
 	switch lv.Kind() {
@@ -320,6 +639,46 @@ func KeyByString[M any](list []*M, fieldName string) map[string]*M {
 	return m
 }
 
+func KeyByInt32[M any](list []*M, fieldName string) map[int32]*M {
+	if len(list) == 0 {
+		return map[int32]*M{}
+	}
+
+	lv := reflect.ValueOf(list)
+
+	ev := lv.Type().Elem()
+	evs := ev
+	for evs.Kind() == reflect.Ptr {
+		evs = evs.Elem()
+	}
+
+	field, ok := evs.FieldByName(fieldName)
+	if !ok {
+		panic(fmt.Sprintf("field %s not found", fieldName))
+	}
+
+	m := make(map[int32]*M, lv.Len())
+	for i := 0; i < lv.Len(); i++ {
+		elem := lv.Index(i)
+		elemStruct := elem
+		for elemStruct.Kind() == reflect.Ptr {
+			elemStruct = elemStruct.Elem()
+		}
+
+		if !elemStruct.IsValid() {
+			continue
+		}
+
+		if elemStruct.Kind() != reflect.Struct {
+			panic("element not struct")
+		}
+
+		m[int32(elemStruct.FieldByIndex(field.Index).Int())] = elem.Interface().(*M)
+	}
+
+	return m
+}
+
 func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
 	m := make(map[M]bool, len(list))
 
@@ -331,6 +690,10 @@ func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
 }
 
 func ToMapStringAny(v interface{}) map[string]interface{} {
+	if v == nil {
+		return nil
+	}
+
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Map {
 		return map[string]interface{}{}
@@ -437,9 +800,13 @@ func ToMapInt32String(v interface{}) map[int32]string {
 }
 
 func ToMapStringArrayString(v interface{}) map[string][]string {
+	if v == nil {
+		return nil
+	}
+
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Map {
-		return map[string][]string{}
+		panic("required map type")
 	}
 
 	m := make(map[string][]string)

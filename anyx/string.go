@@ -144,7 +144,28 @@ func toBytes(s string) []byte {
 func ToArrayString(v interface{}) []string {
 	vv := reflect.ValueOf(v)
 	if vv.Kind() != reflect.Slice {
-		return []string{}
+		// 处理非切片类型
+		switch x := v.(type) {
+		case string:
+			if strings.Contains(x, ",") {
+				// 如果包含逗号，按逗号分割
+				return strings.Split(x, ",")
+			}
+			// 否则返回单个元素的切片
+			return []string{x}
+		case []string:
+			return x
+		case nil:
+			return nil
+		default:
+			// 其他非切片类型，转换为字符串后返回单个元素的切片
+			return []string{ToString(x)}
+		}
+	}
+
+	// 处理 nil 切片
+	if vv.IsNil() {
+		return nil
 	}
 
 	ss := make([]string, 0, vv.Len())
