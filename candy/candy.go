@@ -310,7 +310,14 @@ func Average[T constraints.Integer | constraints.Float](ss []T) (ret T) {
 		return
 	}
 
-	return Sum(ss) / T(len(ss))
+	// 使用更大范围的类型计算和，避免整数溢出
+	var sum int64
+	for _, s := range ss {
+		sum += int64(s)
+	}
+	
+	// 转换回原始类型
+	return T(sum / int64(len(ss)))
 }
 
 func Reverse[T any](ss []T) (ret []T) {
