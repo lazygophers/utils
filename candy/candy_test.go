@@ -884,3 +884,988 @@ func TestCbrt(t *testing.T) {
 		})
 	}
 }
+
+// TestFilterNot 测试 FilterNot 函数
+func TestFilterNot(t *testing.T) {
+	// 整数类型测试
+	t.Run("整数类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []int
+			f    func(int) bool
+			want []int
+		}{
+			{
+				name: "过滤偶数保留奇数",
+				give: []int{1, 2, 3, 4, 5, 6},
+				f: func(n int) bool {
+					return n%2 == 0
+				},
+				want: []int{1, 3, 5},
+			},
+			{
+				name: "过滤正数保留负数和零",
+				give: []int{-1, 0, 1, -2, 2},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: []int{-1, 0, -2},
+			},
+			{
+				name: "过滤大数保留小数",
+				give: []int{1, 10, 100, 1000},
+				f: func(n int) bool {
+					return n > 50
+				},
+				want: []int{1, 10},
+			},
+			{
+				name: "空切片输入",
+				give: []int{},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: []int{},
+			},
+			{
+				name: "全部元素都被过滤",
+				give: []int{2, 4, 6, 8},
+				f: func(n int) bool {
+					return n%2 == 0
+				},
+				want: []int{},
+			},
+			{
+				name: "没有元素被过滤",
+				give: []int{1, 3, 5, 7},
+				f: func(n int) bool {
+					return n%2 == 0
+				},
+				want: []int{1, 3, 5, 7},
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				got := FilterNot(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "FilterNot() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 字符串类型测试
+	t.Run("字符串类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []string
+			f    func(string) bool
+			want []string
+		}{
+			{
+				name: "过滤长字符串保留短字符串",
+				give: []string{"apple", "banana", "cherry", "date"},
+				f: func(s string) bool {
+					return len(s) > 5
+				},
+				want: []string{"apple", "date"},
+			},
+			{
+				name: "空字符串切片",
+				give: []string{},
+				f: func(s string) bool {
+					return len(s) > 0
+				},
+				want: []string{},
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				got := FilterNot(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "FilterNot() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 结构体类型测试
+	t.Run("结构体类型", func(t *testing.T) {
+		type Person struct {
+			Name string
+			Age  int
+		}
+
+		tests := []struct {
+			name string
+			give []Person
+			f    func(Person) bool
+			want []Person
+		}{
+			{
+				name: "过滤年龄大于等于25的人",
+				give: []Person{
+					{"Alice", 25},
+					{"Bob", 30},
+					{"Charlie", 20},
+				},
+				f: func(p Person) bool {
+					return p.Age >= 25
+				},
+				want: []Person{
+					{"Charlie", 20},
+				},
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				got := FilterNot(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "FilterNot() 的结果应与期望值相等")
+			})
+		}
+	})
+}
+
+// TestReduce 测试 Reduce 函数
+func TestReduce(t *testing.T) {
+	t.Parallel()
+
+	// 整数切片求和测试
+	t.Run("整数切片求和", func(t *testing.T) {
+		input := []int{1, 2, 3, 4, 5}
+		f := func(a, b int) int { return a + b }
+		got := Reduce(input, f)
+		want := 15
+		assert.Equal(t, want, got, "Reduce() 的结果应与期望值相等")
+	})
+
+	// 整数切片求积测试
+	t.Run("整数切片求积", func(t *testing.T) {
+		input := []int{1, 2, 3, 4}
+		f := func(a, b int) int { return a * b }
+		got := Reduce(input, f)
+		want := 24
+		assert.Equal(t, want, got, "Reduce() 的结果应与期望值相等")
+	})
+
+	// 空切片测试
+	t.Run("空切片", func(t *testing.T) {
+		input := []int{}
+		f := func(a, b int) int { return a + b }
+		got := Reduce(input, f)
+		want := 0 // 空切片的零值
+		assert.Equal(t, want, got, "Reduce() 的结果应与期望值相等")
+	})
+
+	// 单元素切片测试
+	t.Run("单元素切片", func(t *testing.T) {
+		input := []int{100}
+		f := func(a, b int) int { return a + b }
+		got := Reduce(input, f)
+		want := 100
+		assert.Equal(t, want, got, "Reduce() 的结果应与期望值相等")
+	})
+
+	// 求最大值测试
+	t.Run("求最大值", func(t *testing.T) {
+		input := []int{3, 1, 4, 1, 5, 9, 2, 6}
+		f := func(a, b int) int {
+			if b > a {
+				return b
+			}
+			return a
+		}
+		got := Reduce(input, f)
+		want := 9
+		assert.Equal(t, want, got, "Reduce() 的结果应与期望值相等")
+	})
+
+	// 求最小值测试
+	t.Run("求最小值", func(t *testing.T) {
+		input := []int{3, 1, 4, 1, 5, 9, 2, 6}
+		f := func(a, b int) int {
+			if b < a {
+				return b
+			}
+			return a
+		}
+		got := Reduce(input, f)
+		want := 1
+		assert.Equal(t, want, got, "Reduce() 的结果应与期望值相等")
+	})
+
+	// 负数求和测试
+	t.Run("负数求和", func(t *testing.T) {
+		input := []int{-1, -2, -3, -4}
+		f := func(a, b int) int { return a + b }
+		got := Reduce(input, f)
+		want := -10
+		assert.Equal(t, want, got, "Reduce() 的结果应与期望值相等")
+	})
+
+	// 字符串拼接测试
+	t.Run("字符串拼接", func(t *testing.T) {
+		input := []string{"Hello", " ", "World", "!"}
+		f := func(a, b string) string { return a + b }
+		got := Reduce(input, f)
+		want := "Hello World!"
+		assert.Equal(t, want, got, "Reduce() 的结果应与期望值相等")
+	})
+
+	// 浮点数求和测试
+	t.Run("浮点数求和", func(t *testing.T) {
+		input := []float64{1.1, 2.2, 3.3}
+		f := func(a, b float64) float64 { return a + b }
+		got := Reduce(input, f)
+		want := 6.6
+		assert.Equal(t, want, got, "Reduce() 的结果应与期望值相等")
+	})
+
+	// nil切片测试
+	t.Run("nil切片", func(t *testing.T) {
+		var input []int
+		f := func(a, b int) int { return a + b }
+		got := Reduce(input, f)
+		want := 0
+		assert.Equal(t, want, got, "Reduce() 的结果应与期望值相等")
+	})
+}
+
+// TestDrop 测试 Drop 函数
+func TestDrop(t *testing.T) {
+	// 定义测试用例结构体
+	type testCase[T any] struct {
+		name string
+		give []T
+		n    int
+		want []T
+	}
+
+	// 定义测试用例
+	tests := []testCase[int]{
+		{
+			name: "丢弃前0个元素-返回原切片",
+			give: []int{1, 2, 3, 4, 5},
+			n:    0,
+			want: []int{1, 2, 3, 4, 5},
+		},
+		{
+			name: "丢弃前2个元素-正常情况",
+			give: []int{1, 2, 3, 4, 5},
+			n:    2,
+			want: []int{3, 4, 5},
+		},
+		{
+			name: "丢弃全部元素-返回空切片",
+			give: []int{1, 2, 3, 4, 5},
+			n:    5,
+			want: []int{},
+		},
+		{
+			name: "丢弃数量超过切片长度-返回空切片",
+			give: []int{1, 2, 3, 4, 5},
+			n:    10,
+			want: []int{},
+		},
+		{
+			name: "空切片-返回空切片",
+			give: []int{},
+			n:    3,
+			want: []int{},
+		},
+		{
+			name: "负数n-当作0处理",
+			give: []int{1, 2, 3, 4, 5},
+			n:    -1,
+			want: []int{1, 2, 3, 4, 5},
+		},
+		{
+			name: "丢弃到只剩一个元素",
+			give: []int{1, 2, 3, 4, 5},
+			n:    4,
+			want: []int{5},
+		},
+	}
+
+	// 执行测试
+	for _, tt := range tests {
+		tt := tt // 避免竞态条件
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel() // 并行测试
+
+			// 调用 Drop 函数
+			got := Drop(tt.give, tt.n)
+
+			// 验证结果
+			assert.Equal(t, tt.want, got, "Drop() 的结果应与期望值相等")
+		})
+	}
+
+	// 测试字符串类型
+	stringTests := []testCase[string]{
+		{
+			name: "字符串切片-丢弃前2个元素",
+			give: []string{"a", "b", "c", "d", "e"},
+			n:    2,
+			want: []string{"c", "d", "e"},
+		},
+		{
+			name: "字符串切片-空切片",
+			give: []string{},
+			n:    1,
+			want: []string{},
+		},
+	}
+
+	for _, tt := range stringTests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := Drop(tt.give, tt.n)
+			assert.Equal(t, tt.want, got, "Drop() 的结果应与期望值相等")
+		})
+	}
+
+	// 测试结构体类型
+	type Person struct {
+		Name string
+		Age  int
+	}
+
+	structTests := []testCase[Person]{
+		{
+			name: "结构体切片-丢弃前1个元素",
+			give: []Person{
+				{Name: "Alice", Age: 25},
+				{Name: "Bob", Age: 30},
+				{Name: "Charlie", Age: 35},
+			},
+			n: 1,
+			want: []Person{
+				{Name: "Bob", Age: 30},
+				{Name: "Charlie", Age: 35},
+			},
+		},
+	}
+
+	for _, tt := range structTests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := Drop(tt.give, tt.n)
+			assert.Equal(t, tt.want, got, "Drop() 的结果应与期望值相等")
+		})
+	}
+}
+
+// TestAny 测试 Any 函数
+func TestAny(t *testing.T) {
+	t.Parallel()
+
+	// 整数类型测试
+	t.Run("整数类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []int
+			f    func(int) bool
+			want bool
+		}{
+			{
+				name: "存在偶数-返回true",
+				give: []int{1, 2, 3, 4, 5},
+				f: func(n int) bool {
+					return n%2 == 0
+				},
+				want: true,
+			},
+			{
+				name: "不存在偶数-返回false",
+				give: []int{1, 3, 5, 7, 9},
+				f: func(n int) bool {
+					return n%2 == 0
+				},
+				want: false,
+			},
+			{
+				name: "存在正数-返回true",
+				give: []int{-1, 0, 1, -2, 2},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: true,
+			},
+			{
+				name: "不存在正数-返回false",
+				give: []int{-1, -2, -3, 0},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: false,
+			},
+			{
+				name: "空切片-返回false",
+				give: []int{},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: false,
+			},
+			{
+				name: "第一个元素匹配-返回true",
+				give: []int{42, 1, 2, 3},
+				f: func(n int) bool {
+					return n == 42
+				},
+				want: true,
+			},
+			{
+				name: "最后一个元素匹配-返回true",
+				give: []int{1, 2, 3, 42},
+				f: func(n int) bool {
+					return n == 42
+				},
+				want: true,
+			},
+			{
+				name: "单元素匹配-返回true",
+				give: []int{42},
+				f: func(n int) bool {
+					return n == 42
+				},
+				want: true,
+			},
+			{
+				name: "单元素不匹配-返回false",
+				give: []int{41},
+				f: func(n int) bool {
+					return n == 42
+				},
+				want: false,
+			},
+			{
+				name: "复杂条件匹配-返回true",
+				give: []int{1, 5, 10, 15, 20},
+				f: func(n int) bool {
+					return n > 10 && n%5 == 0
+				},
+				want: true,
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Any(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "Any() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 字符串类型测试
+	t.Run("字符串类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []string
+			f    func(string) bool
+			want bool
+		}{
+			{
+				name: "存在长字符串-返回true",
+				give: []string{"apple", "banana", "cherry", "date"},
+				f: func(s string) bool {
+					return len(s) > 5
+				},
+				want: true,
+			},
+			{
+				name: "不存在长字符串-返回false",
+				give: []string{"a", "b", "c"},
+				f: func(s string) bool {
+					return len(s) > 5
+				},
+				want: false,
+			},
+			{
+				name: "存在特定前缀-返回true",
+				give: []string{"apple", "banana", "application"},
+				f: func(s string) bool {
+					return len(s) > 0 && s[0] == 'a'
+				},
+				want: true,
+			},
+			{
+				name: "空字符串切片-返回false",
+				give: []string{},
+				f: func(s string) bool {
+					return len(s) > 0
+				},
+				want: false,
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Any(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "Any() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 结构体类型测试
+	t.Run("结构体类型", func(t *testing.T) {
+		type Person struct {
+			Name string
+			Age  int
+		}
+
+		tests := []struct {
+			name string
+			give []Person
+			f    func(Person) bool
+			want bool
+		}{
+			{
+				name: "存在成年人-返回true",
+				give: []Person{
+					{"Alice", 25},
+					{"Bob", 30},
+					{"Charlie", 20},
+				},
+				f: func(p Person) bool {
+					return p.Age >= 18
+				},
+				want: true,
+			},
+			{
+				name: "不存在成年人-返回false",
+				give: []Person{
+					{"Alice", 15},
+					{"Bob", 16},
+					{"Charlie", 17},
+				},
+				f: func(p Person) bool {
+					return p.Age >= 18
+				},
+				want: false,
+			},
+			{
+				name: "存在特定姓名-返回true",
+				give: []Person{
+					{"Alice", 25},
+					{"Bob", 30},
+					{"Charlie", 20},
+				},
+				f: func(p Person) bool {
+					return p.Name == "Bob"
+				},
+				want: true,
+			},
+			{
+				name: "空结构体切片-返回false",
+				give: []Person{},
+				f: func(p Person) bool {
+					return p.Age >= 18
+				},
+				want: false,
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Any(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "Any() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 边界情况测试
+	t.Run("边界情况", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []int
+			f    func(int) bool
+			want bool
+		}{
+			{
+				name: "nil切片-返回false",
+				give: nil,
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: false,
+			},
+			{
+				name: "单元素切片匹配-返回true",
+				give: []int{1},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: true,
+			},
+			{
+				name: "单元素切片不匹配-返回false",
+				give: []int{-1},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: false,
+			},
+			{
+				name: "所有元素都匹配-返回true",
+				give: []int{2, 4, 6, 8},
+				f: func(n int) bool {
+					return n%2 == 0
+				},
+				want: true,
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Any(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "Any() 边界情况的结果应与期望值相等")
+			})
+		}
+	})
+}
+
+// TestAll 测试 All 函数
+func TestAll(t *testing.T) {
+	t.Parallel()
+
+	// 整数类型测试
+	t.Run("整数类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []int
+			f    func(int) bool
+			want bool
+		}{
+			{
+				name: "全部是偶数-返回true",
+				give: []int{2, 4, 6, 8, 10},
+				f: func(n int) bool {
+					return n%2 == 0
+				},
+				want: true,
+			},
+			{
+				name: "包含奇数-返回false",
+				give: []int{2, 4, 5, 6, 8},
+				f: func(n int) bool {
+					return n%2 == 0
+				},
+				want: false,
+			},
+			{
+				name: "全部是正数-返回true",
+				give: []int{1, 2, 3, 4, 5},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: true,
+			},
+			{
+				name: "包含负数-返回false",
+				give: []int{-1, 2, 3, 4, 5},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: false,
+			},
+			{
+				name: "包含零-返回false",
+				give: []int{1, 2, 0, 3, 4},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: false,
+			},
+			{
+				name: "全部大于10-返回true",
+				give: []int{11, 12, 13, 14, 15},
+				f: func(n int) bool {
+					return n > 10
+				},
+				want: true,
+			},
+			{
+				name: "包含小于等于10的数-返回false",
+				give: []int{11, 12, 10, 14, 15},
+				f: func(n int) bool {
+					return n > 10
+				},
+				want: false,
+			},
+			{
+				name: "空切片-返回true",
+				give: []int{},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: true,
+			},
+			{
+				name: "单元素匹配-返回true",
+				give: []int{42},
+				f: func(n int) bool {
+					return n == 42
+				},
+				want: true,
+			},
+			{
+				name: "单元素不匹配-返回false",
+				give: []int{41},
+				f: func(n int) bool {
+					return n == 42
+				},
+				want: false,
+			},
+			{
+				name: "复杂条件全部匹配-返回true",
+				give: []int{10, 15, 20, 25, 30},
+				f: func(n int) bool {
+					return n >= 10 && n <= 30 && n%5 == 0
+				},
+				want: true,
+			},
+			{
+				name: "复杂条件部分匹配-返回false",
+				give: []int{10, 15, 21, 25, 30},
+				f: func(n int) bool {
+					return n >= 10 && n <= 30 && n%5 == 0
+				},
+				want: false,
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := All(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "All() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 字符串类型测试
+	t.Run("字符串类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []string
+			f    func(string) bool
+			want bool
+		}{
+			{
+				name: "全部是长字符串-返回true",
+				give: []string{"apple", "banana", "cherry", "date"},
+				f: func(s string) bool {
+					return len(s) > 3
+				},
+				want: true,
+			},
+			{
+				name: "包含短字符串-返回false",
+				give: []string{"apple", "banana", "cat", "date"},
+				f: func(s string) bool {
+					return len(s) > 3
+				},
+				want: false,
+			},
+			{
+				name: "全部以'a'开头-返回true",
+				give: []string{"apple", "application", "array"},
+				f: func(s string) bool {
+					return len(s) > 0 && s[0] == 'a'
+				},
+				want: true,
+			},
+			{
+				name: "包含不以'a'开头-返回false",
+				give: []string{"apple", "banana", "application"},
+				f: func(s string) bool {
+					return len(s) > 0 && s[0] == 'a'
+				},
+				want: false,
+			},
+			{
+				name: "空字符串切片-返回true",
+				give: []string{},
+				f: func(s string) bool {
+					return len(s) > 0
+				},
+				want: true,
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := All(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "All() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 结构体类型测试
+	t.Run("结构体类型", func(t *testing.T) {
+		type Person struct {
+			Name string
+			Age  int
+		}
+
+		tests := []struct {
+			name string
+			give []Person
+			f    func(Person) bool
+			want bool
+		}{
+			{
+				name: "全部是成年人-返回true",
+				give: []Person{
+					{"Alice", 25},
+					{"Bob", 30},
+					{"Charlie", 35},
+				},
+				f: func(p Person) bool {
+					return p.Age >= 18
+				},
+				want: true,
+			},
+			{
+				name: "包含未成年人-返回false",
+				give: []Person{
+					{"Alice", 25},
+					{"Bob", 16},
+					{"Charlie", 35},
+				},
+				f: func(p Person) bool {
+					return p.Age >= 18
+				},
+				want: false,
+			},
+			{
+				name: "全部姓名以'A'开头-返回true",
+				give: []Person{
+					{"Alice", 25},
+					{"Amy", 30},
+					{"Andrew", 35},
+				},
+				f: func(p Person) bool {
+					return len(p.Name) > 0 && p.Name[0] == 'A'
+				},
+				want: true,
+			},
+			{
+				name: "包含不以'A'开头-返回false",
+				give: []Person{
+					{"Alice", 25},
+					{"Bob", 30},
+					{"Andrew", 35},
+				},
+				f: func(p Person) bool {
+					return len(p.Name) > 0 && p.Name[0] == 'A'
+				},
+				want: false,
+			},
+			{
+				name: "空结构体切片-返回true",
+				give: []Person{},
+				f: func(p Person) bool {
+					return p.Age >= 18
+				},
+				want: true,
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := All(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "All() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 边界情况测试
+	t.Run("边界情况", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []int
+			f    func(int) bool
+			want bool
+		}{
+			{
+				name: "nil切片-返回true",
+				give: nil,
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: true,
+			},
+			{
+				name: "单元素切片匹配-返回true",
+				give: []int{1},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: true,
+			},
+			{
+				name: "单元素切片不匹配-返回false",
+				give: []int{-1},
+				f: func(n int) bool {
+					return n > 0
+				},
+				want: false,
+			},
+			{
+				name: "所有元素都匹配-返回true",
+				give: []int{2, 4, 6, 8},
+				f: func(n int) bool {
+					return n%2 == 0
+				},
+				want: true,
+			},
+			{
+				name: "所有元素都是零值-返回true",
+				give: []int{0, 0, 0},
+				f: func(n int) bool {
+					return n == 0
+				},
+				want: true,
+			},
+			{
+				name: "混合类型条件-返回false",
+				give: []int{1, 2, 3, 4, 5},
+				f: func(n int) bool {
+					return n > 10
+				},
+				want: false,
+			},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := All(tt.give, tt.f)
+				assert.Equal(t, tt.want, got, "All() 边界情况的结果应与期望值相等")
+			})
+		}
+	})
+}
