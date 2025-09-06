@@ -11,15 +11,6 @@ import (
 
 
 
-func Any[T any](ss []T, f func(T) bool) bool {
-	for _, s := range ss {
-		if f(s) {
-			return true
-		}
-	}
-
-	return false
-}
 
 func All[T any](ss []T, f func(T) bool) bool {
 	for _, s := range ss {
