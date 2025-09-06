@@ -12,15 +12,6 @@ import (
 
 
 
-func All[T any](ss []T, f func(T) bool) bool {
-	for _, s := range ss {
-		if !f(s) {
-			return false
-		}
-	}
-
-	return true
-}
 
 func Shuffle[T any](ss []T) []T {
 	for i := range ss {
