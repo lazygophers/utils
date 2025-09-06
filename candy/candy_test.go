@@ -602,7 +602,7 @@ func TestMax(t *testing.T) {
 			{"字母字符串切片", []string{"apple", "banana", "cherry", "date"}, "date"},
 			{"混合大小写字符串切片", []string{"Apple", "banana", "Cherry", "date"}, "date"},
 			{"数字字符串切片", []string{"1", "2", "10", "20"}, "20"},
-			{"特殊字符字符串切片", []string{"!", "@", "#", "$"}, "@"},            // 修正：Unicode码点顺序，"@" > "#"
+			{"特殊字符字符串切片", []string{"!", "@", "#", "$"}, "@"},    // 修正：Unicode码点顺序，"@" > "#"
 			{"中文字符串切片", []string{"苹果", "香蕉", "樱桃", "日期"}, "香蕉"}, // 修正：Unicode码点顺序，"香蕉" > "苹果"
 			{"单个字符", []string{"a"}, "a"},
 			{"重复字符串切片", []string{"hello", "hello", "hello"}, "hello"},
