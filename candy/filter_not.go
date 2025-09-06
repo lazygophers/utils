@@ -12,19 +12,20 @@ package candy
 //   - []T: 包含所有不满足谓词函数条件的新切片
 //
 // 示例:
-//   // 过滤偶数，保留奇数
-//   numbers := []int{1, 2, 3, 4, 5, 6}
-//   result := FilterNot(numbers, func(n int) bool {
-//       return n % 2 == 0
-//   })
-//   // result = [1, 3, 5]
 //
-//   // 过滤空字符串，保留非空字符串
-//   strings := []string{"hello", "", "world", ""}
-//   result := FilterNot(strings, func(s string) bool {
-//       return s == ""
-//   })
-//   // result = ["hello", "world"]
+//	// 过滤偶数，保留奇数
+//	numbers := []int{1, 2, 3, 4, 5, 6}
+//	result := FilterNot(numbers, func(n int) bool {
+//	    return n % 2 == 0
+//	})
+//	// result = [1, 3, 5]
+//
+//	// 过滤空字符串，保留非空字符串
+//	strings := []string{"hello", "", "world", ""}
+//	result := FilterNot(strings, func(s string) bool {
+//	    return s == ""
+//	})
+//	// result = ["hello", "world"]
 func FilterNot[T any](ss []T, f func(T) bool) []T {
 	// 使用 make 初始化，确保返回空切片而非 nil
 	us := make([]T, 0)
