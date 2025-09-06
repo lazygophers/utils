@@ -10,13 +10,6 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func Abs[T constraints.Integer | constraints.Float](s T) T {
-	if s < 0 {
-		return -s
-	}
-
-	return s
-}
 
 func Pow[T constraints.Integer | constraints.Float](x, y T) T {
 	return T(math.Pow(float64(x), float64(y)))
