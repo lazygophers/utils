@@ -9,18 +9,6 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func FilterNot[T any](ss []T, f func(T) bool) []T {
-	// 使用 make 初始化，确保返回空切片而非 nil
-	us := make([]T, 0)
-	for _, s := range ss {
-		if !f(s) {
-			us = append(us, s)
-		}
-	}
-
-	return us
-}
-
 func Reduce[T any](ss []T, f func(T, T) T) T {
 	if len(ss) == 0 {
 		return *new(T)
