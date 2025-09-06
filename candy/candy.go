@@ -9,18 +9,6 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func Reduce[T any](ss []T, f func(T, T) T) T {
-	if len(ss) == 0 {
-		return *new(T)
-	}
-
-	result := ss[0]
-	for _, s := range ss[1:] {
-		result = f(result, s)
-	}
-
-	return result
-}
 
 func Drop[T any](ss []T, n int) []T {
 	if n < 0 {
