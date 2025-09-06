@@ -9,21 +9,6 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func Min[T constraints.Ordered](ss []T) (min T) {
-	if len(ss) == 0 {
-		return
-	}
-
-	min = ss[0]
-	for _, s := range ss {
-		if s < min {
-			min = s
-		}
-	}
-
-	return
-}
-
 func Unique[T constraints.Ordered](ss []T) (ret []T) {
 	// 使用 make 初始化，确保返回空切片而非 nil
 	ret = make([]T, 0)
