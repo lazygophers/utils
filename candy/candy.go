@@ -2,17 +2,12 @@ package candy
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"sort"
 	"strings"
 
 	"golang.org/x/exp/constraints"
 )
-
-func Cbrt[T constraints.Integer | constraints.Float](s T) T {
-	return T(math.Cbrt(float64(s)))
-}
 
 func FilterNot[T any](ss []T, f func(T) bool) []T {
 	// 使用 make 初始化，确保返回空切片而非 nil
