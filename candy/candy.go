@@ -10,10 +10,6 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func Sqrt[T constraints.Integer | constraints.Float](s T) T {
-	return T(math.Sqrt(float64(s)))
-}
-
 func Cbrt[T constraints.Integer | constraints.Float](s T) T {
 	return T(math.Cbrt(float64(s)))
 }
