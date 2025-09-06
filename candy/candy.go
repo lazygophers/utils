@@ -34,7 +34,8 @@ func Hypot[T constraints.Integer | constraints.Float](x, y T) T {
 }
 
 func FilterNot[T any](ss []T, f func(T) bool) []T {
-	var us []T
+	// 使用 make 初始化，确保返回空切片而非 nil
+	us := make([]T, 0)
 	for _, s := range ss {
 		if !f(s) {
 			us = append(us, s)
@@ -129,6 +130,8 @@ func Min[T constraints.Ordered](ss []T) (min T) {
 }
 
 func Unique[T constraints.Ordered](ss []T) (ret []T) {
+	// 使用 make 初始化，确保返回空切片而非 nil
+	ret = make([]T, 0)
 	m := make(map[T]struct{}, len(ss))
 	for _, s := range ss {
 		if _, ok := m[s]; !ok {
@@ -141,6 +144,8 @@ func Unique[T constraints.Ordered](ss []T) (ret []T) {
 }
 
 func UniqueUsing[T any](ss []T, f func(T) any) (ret []T) {
+	// 使用 make 初始化，确保返回空切片而非 nil
+	ret = make([]T, 0)
 	m := make(map[any]T, len(ss))
 	for _, s := range ss {
 		if _, ok := m[(f(s))]; !ok {
@@ -211,6 +216,8 @@ func SortUsing[T any](ss []T, less func(a, b T) bool) []T {
 }
 
 func Filter[T any](ss []T, f func(T) bool) (ret []T) {
+	// 使用 make 初始化，确保返回空切片而非 nil
+	ret = make([]T, 0)
 	for _, s := range ss {
 		if f(s) {
 			ret = append(ret, s)
@@ -315,12 +322,12 @@ func Average[T constraints.Integer | constraints.Float](ss []T) (ret T) {
 	for _, s := range ss {
 		sum += float64(s)
 	}
-	
-	// 转换回原始类型
 	return T(sum / float64(len(ss)))
 }
 
 func Reverse[T any](ss []T) (ret []T) {
+	// 使用 make 初始化，确保返回空切片而非 nil
+	ret = make([]T, 0, len(ss))
 	for i := len(ss) - 1; i >= 0; i-- {
 		ret = append(ret, ss[i])
 	}
@@ -329,6 +336,10 @@ func Reverse[T any](ss []T) (ret []T) {
 }
 
 func Chunk[T any](ss []T, size int) (ret [][]T) {
+	if len(ss) == 0 || size <= 0 {
+		return [][]T{}
+	}
+	
 	for i := 0; i < len(ss); i += size {
 		end := i + size
 		if end > len(ss) {
@@ -367,7 +378,10 @@ func Diff[T constraints.Ordered](ss []T, against []T) (added, removed []T) {
 }
 
 // Remove 移除 ss 存在也 against 存在的部分
+// 返回在 against 中但不在 ss 中的元素
 func Remove[T constraints.Ordered](ss []T, against []T) (result []T) {
+	// 使用 make 初始化，确保返回空切片而非 nil
+	result = make([]T, 0)
 	set := make(map[T]struct{}, len(ss))
 
 	for _, s := range ss {
@@ -375,9 +389,7 @@ func Remove[T constraints.Ordered](ss []T, against []T) (result []T) {
 	}
 
 	for _, s := range against {
-		if _, ok := set[s]; ok {
-			delete(set, s)
-		} else {
+		if _, ok := set[s]; !ok {
 			result = append(result, s)
 		}
 	}
@@ -385,7 +397,10 @@ func Remove[T constraints.Ordered](ss []T, against []T) (result []T) {
 }
 
 // Same 两个同事存在的
+// 返回在 against 和 ss 中都存在的元素
 func Same[T constraints.Ordered](against []T, ss []T) (result []T) {
+	// 使用 make 初始化，确保返回空切片而非 nil
+	result = make([]T, 0)
 	set := make(map[T]struct{}, len(ss))
 
 	for _, s := range ss {
@@ -401,7 +416,10 @@ func Same[T constraints.Ordered](against []T, ss []T) (result []T) {
 }
 
 // Spare ss 不存在但是 against 存在
+// 返回在 against 中但不在 ss 中的元素（与 Remove 功能相同）
 func Spare[T constraints.Ordered](ss []T, against []T) (result []T) {
+	// 使用 make 初始化，确保返回空切片而非 nil
+	result = make([]T, 0)
 	set := make(map[T]struct{}, len(ss))
 
 	for _, s := range ss {
@@ -409,9 +427,7 @@ func Spare[T constraints.Ordered](ss []T, against []T) (result []T) {
 	}
 
 	for _, s := range against {
-		if _, ok := set[s]; ok {
-			delete(set, s)
-		} else {
+		if _, ok := set[s]; !ok {
 			result = append(result, s)
 		}
 	}
@@ -421,7 +437,8 @@ func Spare[T constraints.Ordered](ss []T, against []T) (result []T) {
 // RemoveIndex 移除指定索引的元素
 func RemoveIndex[T any](ss []T, index int) []T {
 	if len(ss) == 0 || index < 0 || index >= len(ss) {
-		return ss
+		// 返回空切片而非原切片
+		return make([]T, 0)
 	}
 
 	if index == 0 {
