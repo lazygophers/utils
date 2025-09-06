@@ -13,14 +13,6 @@ import (
 
 
 
-func Shuffle[T any](ss []T) []T {
-	for i := range ss {
-		j := rand.Intn(i + 1)
-		ss[i], ss[j] = ss[j], ss[i]
-	}
-
-	return ss
-}
 
 func Max[T constraints.Ordered](ss []T) (max T) {
 	if len(ss) == 0 {
