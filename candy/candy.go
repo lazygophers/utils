@@ -2,11 +2,12 @@ package candy
 
 import (
 	"fmt"
-	"golang.org/x/exp/constraints"
 	"math"
 	"math/rand"
 	"sort"
 	"strings"
+
+	"golang.org/x/exp/constraints"
 )
 
 func Abs[T constraints.Integer | constraints.Float](s T) T {
@@ -27,10 +28,6 @@ func Sqrt[T constraints.Integer | constraints.Float](s T) T {
 
 func Cbrt[T constraints.Integer | constraints.Float](s T) T {
 	return T(math.Cbrt(float64(s)))
-}
-
-func Hypot[T constraints.Integer | constraints.Float](x, y T) T {
-	return T(math.Hypot(float64(x), float64(y)))
 }
 
 func FilterNot[T any](ss []T, f func(T) bool) []T {
@@ -339,7 +336,7 @@ func Chunk[T any](ss []T, size int) (ret [][]T) {
 	if len(ss) == 0 || size <= 0 {
 		return [][]T{}
 	}
-	
+
 	for i := 0; i < len(ss); i += size {
 		end := i + size
 		if end > len(ss) {
@@ -457,24 +454,36 @@ func RemoveIndex[T any](ss []T, index int) []T {
 }
 
 func SliceEqual[T any](a, b []T) bool {
+	// 处理 nil 切片的情况：nil 和空切片视为相等
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+
 	if len(a) != len(b) {
 		return false
 	}
 
-	am := make(map[any]struct{}, len(a))
+	// 使用 map 来跟踪每个元素的出现次数
+	am := make(map[any]int, len(a))
 	for _, v := range a {
-		am[v] = struct{}{}
+		am[v]++
 	}
 
 	for _, v := range b {
-		if _, ok := am[v]; !ok {
+		if count, ok := am[v]; !ok || count == 0 {
 			return false
 		}
-		delete(am, v)
+		am[v]--
 	}
 
-	if len(am) > 0 {
-		return false
+	// 检查所有元素的计数是否都为0
+	for _, count := range am {
+		if count != 0 {
+			return false
+		}
 	}
 
 	return true
