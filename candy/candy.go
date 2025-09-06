@@ -2,21 +2,12 @@ package candy
 
 import (
 	"fmt"
-	"math/rand"
 	"sort"
 	"strings"
 
 	"golang.org/x/exp/constraints"
 )
 
-
-func Random[T any](ss []T) (ret T) {
-	if len(ss) == 0 {
-		return
-	}
-
-	return ss[rand.Intn(len(ss))]
-}
 
 func Each[T any](ss []T, f func(T)) {
 	for _, s := range ss {
