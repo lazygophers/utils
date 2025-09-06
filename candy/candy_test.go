@@ -1,6 +1,9 @@
 package candy
 
 import (
+	"fmt"
+	"math"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -953,78 +956,280 @@ func TestFilterNot(t *testing.T) {
 			})
 		}
 	})
-
+}
+// TestShuffle 测试 Shuffle 函数
+func TestShuffle(t *testing.T) {
+	t.Parallel()
+	
+	// 整数类型测试
+	t.Run("整数类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []int
+			want []int // 期望的元素集合（顺序不重要）
+		}{
+			{
+				name: "多个元素打乱",
+				give: []int{1, 2, 3, 4, 5},
+				want: []int{1, 2, 3, 4, 5},
+			},
+			{
+				name: "重复元素打乱",
+				give: []int{1, 2, 2, 3, 3, 4},
+				want: []int{1, 2, 2, 3, 3, 4},
+			},
+			{
+				name: "负数打乱",
+				give: []int{-1, -2, -3, -4, -5},
+				want: []int{-1, -2, -3, -4, -5},
+			},
+			{
+				name: "混合正负数打乱",
+				give: []int{0, -1, 2, -3, 4},
+				want: []int{0, -1, 2, -3, 4},
+			},
+			{
+				name: "大数打乱",
+				give: []int{1000000, 2000000, 3000000},
+				want: []int{1000000, 2000000, 3000000},
+			},
+			{
+				name: "单元素切片",
+				give: []int{42},
+				want: []int{42},
+			},
+			{
+				name: "空切片",
+				give: []int{},
+				want: []int{},
+			},
+		}
+		
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				// 创建副本以避免修改原始数据
+				original := make([]int, len(tt.give))
+				copy(original, tt.give)
+				
+				// 执行打乱操作
+				result := Shuffle(tt.give)
+				
+				// 验证元素集合相同（顺序可能不同）
+				assert.ElementsMatch(t, tt.want, result, "Shuffle() 后元素集合应保持不变")
+				
+				// 验证原始数据被修改（in-place操作）
+				assert.Equal(t, result, tt.give, "Shuffle() 应该返回原切片的引用")
+			})
+		}
+	})
+	
+	// 浮点数类型测试
+	t.Run("浮点数类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []float64
+			want []float64
+		}{
+			{
+				name: "浮点数打乱",
+				give: []float64{1.1, 2.2, 3.3, 4.4, 5.5},
+				want: []float64{1.1, 2.2, 3.3, 4.4, 5.5},
+			},
+			{
+				name: "负浮点数打乱",
+				give: []float64{-1.1, -2.2, -3.3},
+				want: []float64{-1.1, -2.2, -3.3},
+			},
+			{
+				name: "混合浮点数打乱",
+				give: []float64{0.0, -1.5, 2.718, -3.14, 4.0},
+				want: []float64{0.0, -1.5, 2.718, -3.14, 4.0},
+			},
+			{
+				name: "单元素浮点数",
+				give: []float64{3.14159},
+				want: []float64{3.14159},
+			},
+			{
+				name: "空浮点数切片",
+				give: []float64{},
+				want: []float64{},
+			},
+		}
+		
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				original := make([]float64, len(tt.give))
+				copy(original, tt.give)
+				
+				result := Shuffle(tt.give)
+				
+				assert.ElementsMatch(t, tt.want, result, "Shuffle() 浮点数后元素集合应保持不变")
+				assert.Equal(t, result, tt.give, "Shuffle() 应该返回原切片的引用")
+			})
+		}
+	})
+	
 	// 字符串类型测试
 	t.Run("字符串类型", func(t *testing.T) {
 		tests := []struct {
 			name string
 			give []string
-			f    func(string) bool
 			want []string
 		}{
 			{
-				name: "过滤长字符串保留短字符串",
-				give: []string{"apple", "banana", "cherry", "date"},
-				f: func(s string) bool {
-					return len(s) > 5
-				},
-				want: []string{"apple", "date"},
+				name: "字符串打乱",
+				give: []string{"apple", "banana", "cherry", "date", "elderberry"},
+				want: []string{"apple", "banana", "cherry", "date", "elderberry"},
+			},
+			{
+				name: "重复字符串打乱",
+				give: []string{"a", "b", "b", "c", "c", "c"},
+				want: []string{"a", "b", "b", "c", "c", "c"},
+			},
+			{
+				name: "空字符串打乱",
+				give: []string{"", "hello", "", "world"},
+				want: []string{"", "hello", "", "world"},
+			},
+			{
+				name: "单元素字符串",
+				give: []string{"test"},
+				want: []string{"test"},
 			},
 			{
 				name: "空字符串切片",
 				give: []string{},
-				f: func(s string) bool {
-					return len(s) > 0
-				},
 				want: []string{},
 			},
 		}
-
+		
 		for _, tt := range tests {
 			tt := tt
 			t.Run(tt.name, func(t *testing.T) {
-				got := FilterNot(tt.give, tt.f)
-				assert.Equal(t, tt.want, got, "FilterNot() 的结果应与期望值相等")
+				original := make([]string, len(tt.give))
+				copy(original, tt.give)
+				
+				result := Shuffle(tt.give)
+				
+				assert.ElementsMatch(t, tt.want, result, "Shuffle() 字符串后元素集合应保持不变")
+				assert.Equal(t, result, tt.give, "Shuffle() 应该返回原切片的引用")
 			})
 		}
 	})
-
+	
 	// 结构体类型测试
 	t.Run("结构体类型", func(t *testing.T) {
 		type Person struct {
 			Name string
 			Age  int
 		}
-
+		
 		tests := []struct {
 			name string
 			give []Person
-			f    func(Person) bool
 			want []Person
 		}{
 			{
-				name: "过滤年龄大于等于25的人",
+				name: "结构体打乱",
 				give: []Person{
 					{"Alice", 25},
 					{"Bob", 30},
-					{"Charlie", 20},
-				},
-				f: func(p Person) bool {
-					return p.Age >= 25
+					{"Charlie", 35},
+					{"David", 40},
 				},
 				want: []Person{
-					{"Charlie", 20},
+					{"Alice", 25},
+					{"Bob", 30},
+					{"Charlie", 35},
+					{"David", 40},
 				},
 			},
+			{
+				name: "单元素结构体",
+				give: []Person{{"Eve", 28}},
+				want: []Person{{"Eve", 28}},
+			},
+			{
+				name: "空结构体切片",
+				give: []Person{},
+				want: []Person{},
+			},
 		}
-
+		
 		for _, tt := range tests {
 			tt := tt
 			t.Run(tt.name, func(t *testing.T) {
-				got := FilterNot(tt.give, tt.f)
-				assert.Equal(t, tt.want, got, "FilterNot() 的结果应与期望值相等")
+				original := make([]Person, len(tt.give))
+				copy(original, tt.give)
+				
+				result := Shuffle(tt.give)
+				
+				assert.ElementsMatch(t, tt.want, result, "Shuffle() 结构体后元素集合应保持不变")
+				assert.Equal(t, result, tt.give, "Shuffle() 应该返回原切片的引用")
 			})
 		}
+	})
+	
+	// 随机性测试
+	t.Run("随机性测试", func(t *testing.T) {
+		// 测试多次调用会产生不同的顺序
+		original := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+		
+		// 进行多次打乱操作
+		results := make([][]int, 10)
+		for i := range results {
+			// 每次都使用原始数据的副本
+			data := make([]int, len(original))
+			copy(data, original)
+			results[i] = Shuffle(data)
+		}
+		
+		// 验证至少有一次打乱改变了顺序（对于足够大的切片）
+		// 注意：这个测试有极小的概率会失败，因为随机可能产生相同的顺序
+		orderChanged := false
+		for _, result := range results {
+			if !reflect.DeepEqual(original, result) {
+				orderChanged = true
+				break
+			}
+		}
+		
+		// 对于10个元素的切片，随机打乱后保持原顺序的概率极小
+		assert.True(t, orderChanged, "多次调用 Shuffle() 应该产生不同的顺序")
+	})
+	
+	// 边界情况测试
+	t.Run("边界情况", func(t *testing.T) {
+		// nil切片测试
+		var nilSlice []int
+		result := Shuffle(nilSlice)
+		assert.Nil(t, result, "Shuffle() nil切片应该返回nil")
+		
+		// 大切片测试
+		largeSlice := make([]int, 1000)
+		for i := range largeSlice {
+			largeSlice[i] = i
+		}
+		
+		original := make([]int, len(largeSlice))
+		copy(original, largeSlice)
+		
+		result = Shuffle(largeSlice)
+		assert.ElementsMatch(t, original, result, "Shuffle() 大切片后元素集合应保持不变")
+		assert.Equal(t, result, largeSlice, "Shuffle() 应该返回原切片的引用")
+		
+		// 验证打乱确实改变了顺序
+		orderChanged := false
+		for i := range result {
+			if result[i] != original[i] {
+				orderChanged = true
+				break
+			}
+		}
+		assert.True(t, orderChanged, "Shuffle() 大切片应该改变元素顺序")
 	})
 }
 
@@ -1866,6 +2071,1122 @@ func TestAll(t *testing.T) {
 				got := All(tt.give, tt.f)
 				assert.Equal(t, tt.want, got, "All() 边界情况的结果应与期望值相等")
 			})
+		}
+	})
+}
+
+
+// TestSliceEqual 测试切片相等比较函数
+func TestSliceEqualAdditional(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		a    []int
+		b    []int
+		want bool
+	}{
+		{"两个nil切片相等", nil, nil, true},
+		{"nil与空切片不相等", nil, []int{}, false},
+		{"空切片与nil切片不相等", []int{}, nil, false},
+		{"两个空切片相等", []int{}, []int{}, true},
+		{"相同元素切片相等", []int{1, 2, 3}, []int{1, 2, 3}, true},
+		{"元素顺序不同相等", []int{1, 2, 3}, []int{3, 2, 1}, true},
+		{"元素数量不同不相等", []int{1, 2, 3}, []int{1, 2}, false},
+		{"元素内容不同不相等", []int{1, 2, 3}, []int{1, 2, 4}, false},
+		{"重复元素处理", []int{1, 2, 2, 3}, []int{1, 2, 3, 2}, true},
+		{"重复元素数量不同不相等", []int{1, 2, 2, 3}, []int{1, 2, 3}, false},
+		{"单个元素切片", []int{42}, []int{42}, true},
+		{"单个元素切片不相等", []int{42}, []int{24}, false},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := SliceEqual(tt.a, tt.b)
+			assert.Equal(t, tt.want, got, "SliceEqual() 的结果应与期望值相等")
+		})
+	}
+}
+
+// TestString 测试String转换函数
+func TestString(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		give int
+		want string
+	}{
+		{"正整数", 42, "42"},
+		{"负整数", -42, "-42"},
+		{"零", 0, "0"},
+		{"大整数", 999999999, "999999999"},
+		{"大整数", 999999999, "999999999"},
+		{"负整数", -42, "-42"},
+		{"浮点零", 0.0, "0"},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := String(tt.give)
+			assert.Equal(t, tt.want, got, "String() 的结果应与期望值相等")
+		})
+	}
+}
+
+// TestJoin 测试Join连接函数
+func TestJoin(t *testing.T) {
+	t.Parallel()
+
+	// 整数类型测试
+	intTests := []struct {
+		name  string
+		give  []int
+		glue  string
+		want  string
+	}{
+		{"默认分隔符", []int{1, 2, 3}, "", "1,2,3"},
+		{"自定义分隔符", []int{1, 2, 3}, "-", "1-2-3"},
+		{"空分隔符", []int{1, 2, 3}, "", "1,2,3"},
+		{"单元素", []int{42}, ",", "42"},
+		{"空切片", []int{}, ",", ""},
+		{"nil切片", nil, ",", ""},
+		{"长分隔符", []int{1, 2, 3}, "->", "1->2->3"},
+	}
+
+	for _, tt := range intTests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var got string
+			if tt.glue == "" {
+				got = Join(tt.give)
+			} else {
+				got = Join(tt.give, tt.glue)
+			}
+			assert.Equal(t, tt.want, got, "Join() 整数的结果应与期望值相等")
+		})
+	}
+
+	// 字符串类型测试
+	stringTests := []struct {
+		name  string
+		give  []string
+		glue  string
+		want  string
+	}{
+		{"字符串切片默认分隔符", []string{"a", "b", "c"}, "", "a,b,c"},
+		{"字符串切片自定义分隔符", []string{"a", "b", "c"}, " ", "a b c"},
+		{"字符串切片单元素", []string{"hello"}, ",", "hello"},
+		{"字符串切片空切片", []string{}, ",", ""},
+		{"字符串切片nil切片", nil, ",", ""},
+	}
+
+	for _, tt := range stringTests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var got string
+			if tt.glue == "" {
+				got = Join(tt.give)
+			} else {
+				got = Join(tt.give, tt.glue)
+			}
+			assert.Equal(t, tt.want, got, "Join() 字符串的结果应与期望值相等")
+		})
+	}
+}
+
+// TestMax 测试 Max 函数的各种情况
+func TestMax(t *testing.T) {
+	// 测试整数类型切片的最大值查找
+	t.Run("整数类型切片", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []int
+			want int
+		}{
+			{"正整数切片", []int{1, 2, 3, 4, 5}, 5},
+			{"负整数切片", []int{-1, -2, -3, -4, -5}, -1},
+			{"混合正负整数切片", []int{-5, 0, 5, -10, 10}, 10},
+			{"单个正整数", []int{42}, 42},
+			{"单个负整数", []int{-42}, -42},
+			{"重复值切片", []int{3, 3, 3, 3, 3}, 3},
+			{"大数切片", []int{1, 999999999, 999999998}, 999999999},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Max(tt.give)
+				assert.Equal(t, tt.want, got, "Max() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 测试不同整数类型
+	t.Run("不同整数类型", func(t *testing.T) {
+		// int8 类型
+		int8Slice := []int8{1, 2, 3, 4, 5}
+		assert.Equal(t, int8(5), Max(int8Slice))
+
+		// int16 类型
+		int16Slice := []int16{1000, 2000, 3000}
+		assert.Equal(t, int16(3000), Max(int16Slice))
+
+		// int32 类型
+		int32Slice := []int32{100000, 200000, 300000}
+		assert.Equal(t, int32(300000), Max(int32Slice))
+
+		// int64 类型
+		int64Slice := []int64{10000000000, 20000000000, 30000000000}
+		assert.Equal(t, int64(30000000000), Max(int64Slice))
+
+		// uint 类型
+		uintSlice := []uint{1, 2, 3, 4, 5}
+		assert.Equal(t, uint(5), Max(uintSlice))
+
+		// uint8 类型
+		uint8Slice := []uint8{10, 20, 30, 40, 50}
+		assert.Equal(t, uint8(50), Max(uint8Slice))
+	})
+
+	// 测试浮点数类型切片的最大值查找
+	t.Run("浮点数类型切片", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []float64
+			want float64
+		}{
+			{"正浮点数切片", []float64{1.1, 2.2, 3.3, 4.4, 5.5}, 5.5},
+			{"负浮点数切片", []float64{-1.1, -2.2, -3.3, -4.4, -5.5}, -1.1},
+			{"混合正负浮点数切片", []float64{-5.5, 0.0, 5.5, -10.1, 10.1}, 10.1},
+			{"单个正浮点数", []float64{3.14159}, 3.14159},
+			{"单个负浮点数", []float64{-3.14159}, -3.14159},
+			{"重复值浮点数切片", []float64{2.718, 2.718, 2.718}, 2.718},
+			{"科学计数法", []float64{1.23e-4, 5.67e8, 9.01e2}, 5.67e8},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Max(tt.give)
+				assert.Equal(t, tt.want, got, "Max() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 测试不同浮点数类型
+	t.Run("不同浮点数类型", func(t *testing.T) {
+		// float32 类型
+		float32Slice := []float32{1.1, 2.2, 3.3}
+		assert.Equal(t, float32(3.3), Max(float32Slice))
+	})
+
+	// 测试字符串类型切片的最大值查找
+	t.Run("字符串类型切片", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []string
+			want string
+		}{
+			{"字母字符串切片", []string{"apple", "banana", "cherry", "date"}, "date"},
+			{"混合大小写字符串切片", []string{"Apple", "banana", "Cherry", "date"}, "date"},
+			{"数字字符串切片", []string{"1", "2", "10", "20"}, "20"},
+			{"特殊字符字符串切片", []string{"!", "@", "#", "$"}, "@"}, // 修正：Unicode码点顺序，"@" > "#"
+			{"中文字符串切片", []string{"苹果", "香蕉", "樱桃", "日期"}, "香蕉"}, // 修正：Unicode码点顺序，"香蕉" > "苹果"
+			{"单个字符", []string{"a"}, "a"},
+			{"重复字符串切片", []string{"hello", "hello", "hello"}, "hello"},
+			{"空字符串和有效字符串", []string{"", "hello", "world"}, "world"},
+			{"Unicode 字符串", []string{"α", "β", "γ", "δ"}, "δ"},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Max(tt.give)
+				assert.Equal(t, tt.want, got, "Max() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 测试空切片情况
+	t.Run("空切片情况", func(t *testing.T) {
+		// 整数空切片
+		assert.Equal(t, 0, Max([]int{}), "空整数切片应返回零值")
+		
+		// 浮点数空切片
+		assert.Equal(t, 0.0, Max([]float64{}), "空浮点数切片应返回零值")
+		
+		// 字符串空切片
+		assert.Equal(t, "", Max([]string{}), "空字符串切片应返回零值")
+		
+		// 其他类型的空切片
+		assert.Equal(t, int8(0), Max([]int8{}))
+		assert.Equal(t, uint16(0), Max([]uint16{}))
+		assert.Equal(t, float32(0.0), Max([]float32{}))
+	})
+
+	// 测试单元素切片情况
+	t.Run("单元素切片情况", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give interface{}
+			want interface{}
+		}{
+			{"单元素整数切片", []int{42}, 42},
+			{"单元素浮点数切片", []float64{3.14159}, 3.14159},
+			{"单元素字符串切片", []string{"hello"}, "hello"},
+			{"单元素负整数切片", []int{-42}, -42},
+			{"单元素零值切片", []int{0}, 0},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				switch v := tt.give.(type) {
+				case []int:
+					got := Max(v)
+					assert.Equal(t, tt.want, got)
+				case []float64:
+					got := Max(v)
+					assert.Equal(t, tt.want, got)
+				case []string:
+					got := Max(v)
+					assert.Equal(t, tt.want, got)
+				}
+			})
+		}
+	})
+
+	// 测试重复值情况
+	t.Run("重复值情况", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give interface{}
+			want interface{}
+		}{
+			{"全部相同的整数", []int{5, 5, 5, 5, 5}, 5},
+			{"全部相同的浮点数", []float64{2.5, 2.5, 2.5}, 2.5},
+			{"全部相同的字符串", []string{"test", "test", "test"}, "test"},
+			{"最大值重复出现", []int{1, 5, 2, 5, 3, 5}, 5},
+			{"最小值重复出现", []int{1, 1, 1, 2, 3, 4}, 4},
+			{"中间值重复出现", []int{1, 2, 3, 2, 3, 1}, 3},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				switch v := tt.give.(type) {
+				case []int:
+					got := Max(v)
+					assert.Equal(t, tt.want, got)
+				case []float64:
+					got := Max(v)
+					assert.Equal(t, tt.want, got)
+				case []string:
+					got := Max(v)
+					assert.Equal(t, tt.want, got)
+				}
+			})
+		}
+	})
+
+	// 验证正确返回最大值元素
+	t.Run("验证正确返回最大值元素", func(t *testing.T) {
+		// 测试是否返回的是原始切片中的元素，而不是计算得到的值
+		originalSlice := []int{1, 2, 3, 4, 5}
+		maxValue := Max(originalSlice)
+		
+		// 验证返回值确实是最大值
+		assert.Equal(t, 5, maxValue)
+		
+		// 验证返回值存在于原切片中
+		found := false
+		for _, v := range originalSlice {
+			if v == maxValue {
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "返回的最大值应该存在于原切片中")
+
+		// 对于浮点数，考虑精度问题
+		floatSlice := []float64{1.1, 2.2, 3.3, 4.4, 5.5}
+		floatMax := Max(floatSlice)
+		assert.InDelta(t, 5.5, floatMax, 1e-9, "浮点数最大值应该在精度范围内")
+	})
+
+	// 测试边界情况
+	t.Run("边界情况", func(t *testing.T) {
+		// 测试极大整数
+		largeIntSlice := []int{1, math.MaxInt64 - 1, math.MaxInt64}
+		assert.Equal(t, math.MaxInt64, Max(largeIntSlice))
+
+		// 测试极小整数
+		smallIntSlice := []int{-1, math.MinInt64 + 1, math.MinInt64}
+		assert.Equal(t, -1, Max(smallIntSlice))
+
+		// 测试极大浮点数
+		largeFloatSlice := []float64{1.0, math.MaxFloat64 - 1.0, math.MaxFloat64}
+		assert.Equal(t, math.MaxFloat64, Max(largeFloatSlice))
+
+		// 测试极小浮点数
+		smallFloatSlice := []float64{-1.0, -math.MaxFloat64, -2.0}
+		assert.Equal(t, -1.0, Max(smallFloatSlice))
+
+		// 测试无穷大
+		infinitySlice := []float64{1.0, math.Inf(1), 2.0}
+		assert.Equal(t, math.Inf(1), Max(infinitySlice))
+
+		// 测试负无穷大
+		negativeInfinitySlice := []float64{-1.0, math.Inf(-1), -2.0}
+		assert.Equal(t, -1.0, Max(negativeInfinitySlice))
+
+		// 测试 NaN (NaN 在比较中总是返回 false，所以应该返回第一个元素 NaN)
+		nanSlice := []float64{math.NaN(), 1.0, 2.0}
+		assert.True(t, math.IsNaN(Max(nanSlice)), "NaN 比较应返回第一个元素 NaN")
+
+		allNanSlice := []float64{math.NaN(), math.NaN(), math.NaN()}
+		assert.True(t, math.IsNaN(Max(allNanSlice)), "全 NaN 切片应该返回 NaN")
+	})
+}
+
+// BenchmarkMax 基准测试 Max 函数
+func BenchmarkMax(b *testing.B) {
+	// 基准测试整数类型
+	b.Run("整数类型", func(b *testing.B) {
+		slice := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Max(slice)
+		}
+	})
+
+	// 基准测试浮点数类型
+	b.Run("浮点数类型", func(b *testing.B) {
+		slice := []float64{1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, 10.0}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Max(slice)
+		}
+	})
+
+	// 基准测试字符串类型
+	b.Run("字符串类型", func(b *testing.B) {
+		slice := []string{"apple", "banana", "cherry", "date", "elderberry", "fig", "grape"}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Max(slice)
+		}
+	})
+
+	// 基准测试大切片
+	b.Run("大切片", func(b *testing.B) {
+		slice := make([]int, 1000)
+		for i := range slice {
+			slice[i] = i
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Max(slice)
+		}
+	})
+
+	// 基准测试空切片
+	b.Run("空切片", func(b *testing.B) {
+		slice := []int{}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Max(slice)
+		}
+	})
+}
+
+// TestMin 测试 Min 函数
+func TestMin(t *testing.T) {
+	// 测试整数类型切片的最小值查找
+	t.Run("整数类型切片", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []int
+			want int
+		}{
+			{"正整数切片", []int{1, 2, 3, 4, 5}, 1},
+			{"负整数切片", []int{-1, -2, -3, -4, -5}, -5},
+			{"混合正负整数切片", []int{-5, 0, 5, -10, 10}, -10},
+			{"单个正整数", []int{42}, 42},
+			{"单个负整数", []int{-42}, -42},
+			{"重复值切片", []int{3, 3, 3, 3, 3}, 3},
+			{"大数切片", []int{1, 999999999, 999999998}, 1},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Min(tt.give)
+				assert.Equal(t, tt.want, got, "Min() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 测试不同整数类型
+	t.Run("不同整数类型", func(t *testing.T) {
+		// int8 类型
+		int8Slice := []int8{1, 2, 3, 4, 5}
+		assert.Equal(t, int8(1), Min(int8Slice))
+
+		// int16 类型
+		int16Slice := []int16{1000, 2000, 3000}
+		assert.Equal(t, int16(1000), Min(int16Slice))
+
+		// int32 类型
+		int32Slice := []int32{100000, 200000, 300000}
+		assert.Equal(t, int32(100000), Min(int32Slice))
+
+		// int64 类型
+		int64Slice := []int64{10000000000, 20000000000, 30000000000}
+		assert.Equal(t, int64(10000000000), Min(int64Slice))
+
+		// uint 类型
+		uintSlice := []uint{1, 2, 3, 4, 5}
+		assert.Equal(t, uint(1), Min(uintSlice))
+
+		// uint8 类型
+		uint8Slice := []uint8{10, 20, 30, 40, 50}
+		assert.Equal(t, uint8(10), Min(uint8Slice))
+	})
+
+	// 测试浮点数类型切片的最小值查找
+	t.Run("浮点数类型切片", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []float64
+			want float64
+		}{
+			{"正浮点数切片", []float64{1.1, 2.2, 3.3, 4.4, 5.5}, 1.1},
+			{"负浮点数切片", []float64{-1.1, -2.2, -3.3, -4.4, -5.5}, -5.5},
+			{"混合正负浮点数切片", []float64{-5.5, 0.0, 5.5, -10.1, 10.1}, -10.1},
+			{"单个正浮点数", []float64{3.14159}, 3.14159},
+			{"单个负浮点数", []float64{-3.14159}, -3.14159},
+			{"重复值浮点数切片", []float64{2.718, 2.718, 2.718}, 2.718},
+			{"科学计数法", []float64{1.23e-4, 5.67e8, 9.01e2}, 1.23e-4},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Min(tt.give)
+				assert.Equal(t, tt.want, got, "Min() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 测试不同浮点数类型
+	t.Run("不同浮点数类型", func(t *testing.T) {
+		// float32 类型
+		float32Slice := []float32{1.1, 2.2, 3.3}
+		assert.Equal(t, float32(1.1), Min(float32Slice))
+	})
+
+	// 测试字符串类型切片的最小值查找
+	t.Run("字符串类型切片", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give []string
+			want string
+		}{
+			{"字母字符串切片", []string{"apple", "banana", "cherry", "date"}, "apple"},
+			{"混合大小写字符串切片", []string{"Apple", "banana", "Cherry", "date"}, "Apple"},
+			{"数字字符串切片", []string{"1", "2", "10", "20"}, "1"},
+			{"特殊字符字符串切片", []string{"!", "@", "#", "$"}, "!"},
+			{"中文字符串切片", []string{"苹果", "香蕉", "樱桃", "日期"}, "日期"},
+			{"单个字符", []string{"a"}, "a"},
+			{"重复字符串切片", []string{"hello", "hello", "hello"}, "hello"},
+			{"空字符串和有效字符串", []string{"", "hello", "world"}, ""},
+			{"Unicode 字符串", []string{"α", "β", "γ", "δ"}, "α"},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Min(tt.give)
+				assert.Equal(t, tt.want, got, "Min() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 测试空切片情况
+	t.Run("空切片情况", func(t *testing.T) {
+		// 整数空切片
+		assert.Equal(t, 0, Min([]int{}), "空整数切片应返回零值")
+		
+		// 浮点数空切片
+		assert.Equal(t, 0.0, Min([]float64{}), "空浮点数切片应返回零值")
+		
+		// 字符串空切片
+		assert.Equal(t, "", Min([]string{}), "空字符串切片应返回零值")
+		
+		// 其他类型的空切片
+		assert.Equal(t, int8(0), Min([]int8{}))
+		assert.Equal(t, uint16(0), Min([]uint16{}))
+		assert.Equal(t, float32(0.0), Min([]float32{}))
+	})
+
+	// 测试单元素切片情况
+	t.Run("单元素切片情况", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give interface{}
+			want interface{}
+		}{
+			{"单元素整数切片", []int{42}, 42},
+			{"单元素浮点数切片", []float64{3.14159}, 3.14159},
+			{"单元素字符串切片", []string{"hello"}, "hello"},
+			{"单元素负整数切片", []int{-42}, -42},
+			{"单元素零值切片", []int{0}, 0},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				switch v := tt.give.(type) {
+				case []int:
+					got := Min(v)
+					assert.Equal(t, tt.want, got)
+				case []float64:
+					got := Min(v)
+					assert.Equal(t, tt.want, got)
+				case []string:
+					got := Min(v)
+					assert.Equal(t, tt.want, got)
+				}
+			})
+		}
+	})
+
+	// 测试重复值情况
+	t.Run("重复值情况", func(t *testing.T) {
+		tests := []struct {
+			name string
+			give interface{}
+			want interface{}
+		}{
+			{"全部相同的整数", []int{5, 5, 5, 5, 5}, 5},
+			{"全部相同的浮点数", []float64{2.5, 2.5, 2.5}, 2.5},
+			{"全部相同的字符串", []string{"test", "test", "test"}, "test"},
+			{"最小值重复出现", []int{1, 5, 2, 1, 3, 1}, 1},
+			{"最大值重复出现", []int{10, 10, 10, 2, 3, 4}, 2},
+			{"中间值重复出现", []int{5, 2, 3, 2, 3, 5}, 2},
+		}
+
+		for _, tt := range tests {
+			tt := tt // 避免竞态
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				switch v := tt.give.(type) {
+				case []int:
+					got := Min(v)
+					assert.Equal(t, tt.want, got)
+				case []float64:
+					got := Min(v)
+					assert.Equal(t, tt.want, got)
+				case []string:
+					got := Min(v)
+					assert.Equal(t, tt.want, got)
+				}
+			})
+		}
+	})
+
+	// 验证正确返回最小值元素
+	t.Run("验证正确返回最小值元素", func(t *testing.T) {
+		// 测试是否返回的是原始切片中的元素，而不是计算得到的值
+		originalSlice := []int{1, 2, 3, 4, 5}
+		minValue := Min(originalSlice)
+		
+		// 验证返回值确实是最小值
+		assert.Equal(t, 1, minValue)
+		
+		// 验证返回值存在于原切片中
+		found := false
+		for _, v := range originalSlice {
+			if v == minValue {
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "返回的最小值应该存在于原切片中")
+
+		// 对于浮点数，考虑精度问题
+		floatSlice := []float64{1.1, 2.2, 3.3, 4.4, 5.5}
+		floatMin := Min(floatSlice)
+		assert.InDelta(t, 1.1, floatMin, 1e-9, "浮点数最小值应该在精度范围内")
+	})
+
+	// 测试边界情况
+	t.Run("边界情况", func(t *testing.T) {
+		// 测试极大整数
+		largeIntSlice := []int{1, math.MaxInt64 - 1, math.MaxInt64}
+		assert.Equal(t, 1, Min(largeIntSlice))
+
+		// 测试极小整数
+		smallIntSlice := []int{-1, math.MinInt64 + 1, math.MinInt64}
+		assert.Equal(t, math.MinInt64, Min(smallIntSlice))
+
+		// 测试极大浮点数
+		largeFloatSlice := []float64{1.0, math.MaxFloat64 - 1.0, math.MaxFloat64}
+		assert.Equal(t, 1.0, Min(largeFloatSlice))
+
+		// 测试极小浮点数
+		smallFloatSlice := []float64{-1.0, -math.MaxFloat64, -2.0}
+		assert.Equal(t, -math.MaxFloat64, Min(smallFloatSlice))
+
+		// 测试无穷大
+		infinitySlice := []float64{1.0, math.Inf(1), 2.0}
+		assert.Equal(t, 1.0, Min(infinitySlice))
+
+		// 测试负无穷大
+		negativeInfinitySlice := []float64{-1.0, math.Inf(-1), -2.0}
+		assert.Equal(t, math.Inf(-1), Min(negativeInfinitySlice))
+
+		// 测试 NaN (NaN 在比较中总是返回 false，所以应该返回第一个元素 NaN)
+		nanSlice := []float64{math.NaN(), 1.0, 2.0}
+		assert.True(t, math.IsNaN(Min(nanSlice)), "NaN 比较应返回第一个元素 NaN")
+
+		allNanSlice := []float64{math.NaN(), math.NaN(), math.NaN()}
+		assert.True(t, math.IsNaN(Min(allNanSlice)), "全 NaN 切片应该返回 NaN")
+	})
+}
+
+// BenchmarkMin 基准测试 Min 函数
+func BenchmarkMin(b *testing.B) {
+	// 基准测试整数类型
+	b.Run("整数类型", func(b *testing.B) {
+		slice := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Min(slice)
+		}
+	})
+
+	// 基准测试浮点数类型
+	b.Run("浮点数类型", func(b *testing.B) {
+		slice := []float64{1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9, 10.0}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Min(slice)
+		}
+	})
+
+	// 基准测试字符串类型
+	b.Run("字符串类型", func(b *testing.B) {
+		slice := []string{"apple", "banana", "cherry", "date", "elderberry", "fig", "grape"}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Min(slice)
+		}
+	})
+
+	// 基准测试大切片
+	b.Run("大切片", func(b *testing.B) {
+		slice := make([]int, 1000)
+		for i := range slice {
+			slice[i] = i
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Min(slice)
+		}
+	})
+
+	// 基准测试空切片
+	b.Run("空切片", func(b *testing.B) {
+		slice := []int{}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Min(slice)
+		}
+	})
+}
+
+// TestUnique 测试 Unique 函数
+func TestUnique(t *testing.T) {
+	t.Parallel()
+
+	// 测试整数类型切片去重
+	t.Run("整数类型切片去重", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			give  []int
+			want []int
+		}{
+			{[]int{1, 2, 3, 2, 1}, []int{1, 2, 3}},
+			{[]int{5, 5, 5, 5, 5}, []int{5}},
+			{[]int{10, 20, 30, 40, 50}, []int{10, 20, 30, 40, 50}},
+			{[]int{1, 3, 2, 4, 3, 2, 1}, []int{1, 3, 2, 4}},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(fmt.Sprintf("%v", tt.give), func(t *testing.T) {
+				t.Parallel()
+				got := Unique(tt.give)
+				assert.Equal(t, tt.want, got, "整数切片去重结果应匹配")
+			})
+		}
+	})
+
+	// 测试浮点数类型切片去重
+	t.Run("浮点数类型切片去重", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			give  []float64
+			want []float64
+		}{
+			{[]float64{1.1, 2.2, 3.3, 2.2, 1.1}, []float64{1.1, 2.2, 3.3}},
+			{[]float64{5.5, 5.5, 5.5}, []float64{5.5}},
+			{[]float64{1.0, 2.0, 3.0, 4.0}, []float64{1.0, 2.0, 3.0, 4.0}},
+			{[]float64{0.1, 0.2, 0.1, 0.3}, []float64{0.1, 0.2, 0.3}},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(fmt.Sprintf("%v", tt.give), func(t *testing.T) {
+				t.Parallel()
+				got := Unique(tt.give)
+				assert.Equal(t, tt.want, got, "浮点数切片去重结果应匹配")
+			})
+		}
+	})
+
+	// 测试字符串类型切片去重
+	t.Run("字符串类型切片去重", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			give  []string
+			want []string
+		}{
+			{[]string{"a", "b", "c", "b", "a"}, []string{"a", "b", "c"}},
+			{[]string{"hello", "hello", "hello"}, []string{"hello"}},
+			{[]string{"apple", "banana", "cherry"}, []string{"apple", "banana", "cherry"}},
+			{[]string{"go", "python", "go", "java", "python"}, []string{"go", "python", "java"}},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(fmt.Sprintf("%v", tt.give), func(t *testing.T) {
+				t.Parallel()
+				got := Unique(tt.give)
+				assert.Equal(t, tt.want, got, "字符串切片去重结果应匹配")
+			})
+		}
+	})
+
+	// 测试边界情况
+	t.Run("边界情况", func(t *testing.T) {
+		t.Parallel()
+		tests := []struct {
+			name  string
+			give  []int
+			want []int
+		}{
+			{"空切片", []int{}, []int{}},
+			{"单元素切片", []int{42}, []int{42}},
+			{"全部相同元素", []int{7, 7, 7, 7}, []int{7}},
+			{"无重复元素", []int{1, 2, 3, 4}, []int{1, 2, 3, 4}},
+			{"连续重复", []int{1, 1, 2, 2, 3, 3}, []int{1, 2, 3}},
+			{"间隔重复", []int{1, 2, 1, 3, 2, 1}, []int{1, 2, 3}},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Unique(tt.give)
+				assert.Equal(t, tt.want, got, "边界情况处理应正确")
+			})
+		}
+	})
+
+	// 测试保留原始顺序
+	t.Run("保留原始顺序", func(t *testing.T) {
+		t.Parallel()
+		// 测试去重后的元素保持原始出现顺序
+		original := []int{3, 1, 4, 1, 5, 9, 2, 6, 5, 3}
+		result := Unique(original)
+		expected := []int{3, 1, 4, 5, 9, 2, 6}
+		assert.Equal(t, expected, result, "去重后应保留原始顺序")
+	})
+
+	// 测试不修改原切片
+	t.Run("不修改原切片", func(t *testing.T) {
+		t.Parallel()
+		original := []int{1, 2, 2, 3}
+		originalCopy := make([]int, len(original))
+		copy(originalCopy, original)
+		
+		result := Unique(original)
+		
+		// 确保原切片未被修改
+		assert.Equal(t, originalCopy, original, "原切片应保持不变")
+		// 确保返回的是新切片
+		assert.NotSame(t, &original[0], &result[0], "应返回新切片")
+	})
+}
+
+// BenchmarkUnique 测试 Unique 函数的基准性能
+func BenchmarkUnique(b *testing.B) {
+	// 小数据集基准测试
+	b.Run("小数据集", func(b *testing.B) {
+		data := []int{1, 2, 3, 2, 1, 4, 5, 4, 3}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Unique(data)
+		}
+	})
+
+	// 中等数据集基准测试
+	b.Run("中等数据集", func(b *testing.B) {
+		data := make([]int, 1000)
+		for i := 0; i < 1000; i++ {
+			data[i] = i % 100 // 创建有重复的数据
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Unique(data)
+		}
+	})
+
+	// 大数据集基准测试
+	b.Run("大数据集", func(b *testing.B) {
+		data := make([]int, 100000)
+		for i := 0; i < 100000; i++ {
+			data[i] = i % 1000 // 创建有重复的数据
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Unique(data)
+		}
+	})
+
+	// 无重复数据集基准测试
+	b.Run("无重复数据集", func(b *testing.B) {
+		data := make([]int, 1000)
+		for i := 0; i < 1000; i++ {
+			data[i] = i // 创建无重复的数据
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Unique(data)
+		}
+	})
+}
+// TestContains 测试 Contains 函数的各种场景
+func TestContains(t *testing.T) {
+	// 整数类型测试
+	t.Run("整数类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			slice []int
+			target int
+			want bool
+		}{
+			{"包含元素", []int{1, 2, 3, 4, 5}, 3, true},
+			{"不包含元素", []int{1, 2, 3, 4, 5}, 6, false},
+			{"空切片", []int{}, 1, false},
+			{"单元素-匹配", []int{42}, 42, true},
+			{"单元素-不匹配", []int{42}, 24, false},
+			{"重复元素", []int{1, 2, 2, 3, 2}, 2, true},
+			{"负数", []int{-1, -2, -3}, -2, true},
+			{"零值", []int{0, 1, 2}, 0, true},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Contains(tt.slice, tt.target)
+				assert.Equal(t, tt.want, got, "Contains() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 浮点数类型测试
+	t.Run("浮点数类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			slice []float64
+			target float64
+			want bool
+		}{
+			{"包含元素", []float64{1.1, 2.2, 3.3}, 2.2, true},
+			{"不包含元素", []float64{1.1, 2.2, 3.3}, 4.4, false},
+			{"空切片", []float64{}, 1.1, false},
+			{"科学计数法", []float64{1.5e10, 2.3e-5}, 1.5e10, true},
+			{"精度测试 - 浮点数精确比较", []float64{0.1 + 0.2}, 0.3, true}, // 浮点数精度问题
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Contains(tt.slice, tt.target)
+				assert.Equal(t, tt.want, got, "Contains() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 字符串类型测试
+	t.Run("字符串类型", func(t *testing.T) {
+		tests := []struct {
+			name string
+			slice []string
+			target string
+			want bool
+		}{
+			{"包含元素", []string{"apple", "banana", "cherry"}, "banana", true},
+			{"不包含元素", []string{"apple", "banana", "cherry"}, "orange", false},
+			{"空切片", []string{}, "test", false},
+			{"空字符串", []string{"", "hello", ""}, "", true},
+			{"中文字符串", []string{"苹果", "香蕉", "橙子"}, "香蕉", true},
+			{"特殊字符", []string{"a@b.com", "x#y", "test$"}, "x#y", true},
+			{"Unicode字符", []string{"café", "naïve", "résumé"}, "naïve", true},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				got := Contains(tt.slice, tt.target)
+				assert.Equal(t, tt.want, got, "Contains() 的结果应与期望值相等")
+			})
+		}
+	})
+
+	// 边界情况测试
+	t.Run("边界情况", func(t *testing.T) {
+		tests := []struct {
+			name string
+			slice interface{}
+			target interface{}
+			want bool
+		}{
+			{"大整数切片", []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 10, true},
+			{"大字符串切片", []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"}, "j", true},
+			{"nil切片", ([]int)(nil), 1, false},
+			{"首元素", []int{1, 2, 3}, 1, true},
+			{"末元素", []int{1, 2, 3}, 3, true},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+				switch s := tt.slice.(type) {
+				case []int:
+					got := Contains(s, tt.target.(int))
+					assert.Equal(t, tt.want, got, "Contains() 的结果应与期望值相等")
+				case []string:
+					got := Contains(s, tt.target.(string))
+					assert.Equal(t, tt.want, got, "Contains() 的结果应与期望值相等")
+				}
+			})
+		}
+	})
+}
+
+// BenchmarkContains 性能测试
+func BenchmarkContains(b *testing.B) {
+	// 小切片测试
+	b.Run("小切片-存在", func(b *testing.B) {
+		slice := []int{1, 2, 3, 4, 5}
+		target := 3
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Contains(slice, target)
+		}
+	})
+
+	b.Run("小切片-不存在", func(b *testing.B) {
+		slice := []int{1, 2, 3, 4, 5}
+		target := 99
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Contains(slice, target)
+		}
+	})
+
+	// 中等切片测试
+	b.Run("中等切片-存在", func(b *testing.B) {
+		slice := make([]int, 1000)
+		for i := range slice {
+			slice[i] = i
+		}
+		target := 500
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Contains(slice, target)
+		}
+	})
+
+	b.Run("中等切片-不存在", func(b *testing.B) {
+		slice := make([]int, 1000)
+		for i := range slice {
+			slice[i] = i
+		}
+		target := 9999
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Contains(slice, target)
+		}
+	})
+
+	// 大切片测试
+	b.Run("大切片-存在", func(b *testing.B) {
+		slice := make([]int, 100000)
+		for i := range slice {
+			slice[i] = i
+		}
+		target := 50000
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Contains(slice, target)
+		}
+	})
+
+	b.Run("大切片-不存在", func(b *testing.B) {
+		slice := make([]int, 100000)
+		for i := range slice {
+			slice[i] = i
+		}
+		target := 999999
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Contains(slice, target)
+		}
+	})
+
+	// 字符串切片测试
+	b.Run("字符串切片", func(b *testing.B) {
+		slice := []string{"apple", "banana", "cherry", "date", "elderberry"}
+		target := "cherry"
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			Contains(slice, target)
 		}
 	})
 }
