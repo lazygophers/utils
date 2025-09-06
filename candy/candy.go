@@ -10,17 +10,6 @@ import (
 )
 
 
-func Drop[T any](ss []T, n int) []T {
-	if n < 0 {
-		n = 0
-	}
-
-	if n > len(ss) {
-		n = len(ss)
-	}
-
-	return ss[n:]
-}
 
 func Any[T any](ss []T, f func(T) bool) bool {
 	for _, s := range ss {
