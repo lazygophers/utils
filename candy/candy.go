@@ -9,33 +9,6 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func Unique[T constraints.Ordered](ss []T) (ret []T) {
-	// 使用 make 初始化，确保返回空切片而非 nil
-	ret = make([]T, 0)
-	m := make(map[T]struct{}, len(ss))
-	for _, s := range ss {
-		if _, ok := m[s]; !ok {
-			m[s] = struct{}{}
-			ret = append(ret, s)
-		}
-	}
-
-	return
-}
-
-func UniqueUsing[T any](ss []T, f func(T) any) (ret []T) {
-	// 使用 make 初始化，确保返回空切片而非 nil
-	ret = make([]T, 0)
-	m := make(map[any]T, len(ss))
-	for _, s := range ss {
-		if _, ok := m[(f(s))]; !ok {
-			m[(f(s))] = s
-			ret = append(ret, s)
-		}
-	}
-
-	return
-}
 
 func Random[T any](ss []T) (ret T) {
 	if len(ss) == 0 {
