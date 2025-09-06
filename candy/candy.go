@@ -10,11 +10,6 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-
-func Pow[T constraints.Integer | constraints.Float](x, y T) T {
-	return T(math.Pow(float64(x), float64(y)))
-}
-
 func Sqrt[T constraints.Integer | constraints.Float](s T) T {
 	return T(math.Sqrt(float64(s)))
 }
