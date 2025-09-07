@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	
 )
 
 // TestUnique 测试 Unique 函数
@@ -180,4 +179,3 @@ func BenchmarkUnique(b *testing.B) {
 		}
 	})
 }
-

@@ -143,13 +143,13 @@ func TestReduce(t *testing.T) {
 			Name string
 			Age  int
 		}
-		
+
 		people := []Person{
 			{"Alice", 25},
 			{"Bob", 30},
 			{"Charlie", 35},
 		}
-		
+
 		// 找出年龄最大的人
 		f := func(a, b Person) Person {
 			if b.Age > a.Age {
@@ -157,7 +157,7 @@ func TestReduce(t *testing.T) {
 			}
 			return a
 		}
-		
+
 		got := Reduce(people, f)
 		want := Person{"Charlie", 35}
 		assert.Equal(t, want, got, "Reduce() 应能正确处理复杂结构体")
@@ -167,15 +167,15 @@ func TestReduce(t *testing.T) {
 	t.Run("函数组合测试", func(t *testing.T) {
 		t.Parallel()
 		input := []int{1, 2, 3, 4, 5}
-		
+
 		// 正确的平方和计算方式：先平方再求和
 		// 注意：Reduce不适合这种场景，因为它是左结合的
 		// 这里演示的是正确的Reduce用法 - 简单求和
 		sum := func(a, b int) int { return a + b }
-		
+
 		// 使用Reduce计算简单求和
 		got := Reduce(input, sum)
-		
+
 		want := 1 + 2 + 3 + 4 + 5 // 1 + 2 + 3 + 4 + 5 = 15
 		assert.Equal(t, want, got, "Reduce() 应能支持函数组合操作")
 	})
@@ -184,7 +184,7 @@ func TestReduce(t *testing.T) {
 	t.Run("自定义类型测试", func(t *testing.T) {
 		t.Parallel()
 		type Score int
-		
+
 		scores := []Score{80, 85, 90, 95, 100}
 		f := func(a, b Score) Score { return a + b }
 		got := Reduce(scores, f)
@@ -200,12 +200,12 @@ func BenchmarkReduce(b *testing.B) {
 	for i := range data {
 		data[i] = i
 	}
-	
+
 	// 预热
 	Reduce(data, func(a, b int) int { return a + b })
-	
+
 	b.ResetTimer()
-	
+
 	// 执行基准测试
 	for i := 0; i < b.N; i++ {
 		Reduce(data, func(a, b int) int { return a + b })
@@ -215,7 +215,7 @@ func BenchmarkReduce(b *testing.B) {
 // TestReducePanic 测试Reduce函数是否会在异常情况下panic
 func TestReducePanic(t *testing.T) {
 	t.Parallel()
-	
+
 	// 测试传入nil函数是否会导致panic
 	t.Run("传入nil函数", func(t *testing.T) {
 		t.Parallel()
