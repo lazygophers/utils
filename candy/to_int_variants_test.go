@@ -52,6 +52,9 @@ func TestToInt64(t *testing.T) {
 	t.Run("byte slice values", func(t *testing.T) {
 		assert.Equal(t, int64(42), ToInt64([]byte("42")))
 		assert.Equal(t, int64(-42), ToInt64([]byte("-42")))
+		assert.Equal(t, int64(0), ToInt64([]byte("invalid")))
+		assert.Equal(t, int64(0), ToInt64([]byte("")))
+		assert.Equal(t, int64(0), ToInt64([]byte("3.14")))
 	})
 
 	t.Run("unsupported types", func(t *testing.T) {

@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+
 // TestToStringSliceComprehensive 测试 ToStringSlice 函数的所有分支
 func TestToStringSliceComprehensive(t *testing.T) {
 	t.Parallel()
@@ -46,6 +47,8 @@ func TestToStringSliceComprehensive(t *testing.T) {
 		// uint 切片
 		{"[]uint", []uint{1, 2, 3}, ",", []string{"1", "2", "3"}},
 		{"[]uint max", []uint{0, 18446744073709551615}, ",", []string{"0", "18446744073709551615"}},
+
+		// Note: []uint8 is the same type as []byte in Go, so it's handled by the []byte case
 
 		// uint16 切片
 		{"[]uint16", []uint16{1, 2, 3}, ",", []string{"1", "2", "3"}},
@@ -118,7 +121,12 @@ func TestToStringSliceComprehensive(t *testing.T) {
 		{"int", 42, ",", nil},
 		{"nil", nil, ",", nil},
 		{"map", map[string]int{"key": 42}, ",", nil},
-		{"struct", stringTestStruct{ID: 1}, ",", nil},
+		{"struct", struct{ID int}{ID: 1}, ",", nil},
+		
+		// 边界情况测试
+		{"[]byte invalid json", []byte("[invalid}"), ",", []string{"[invalid}"}},
+		{"string invalid json", "[invalid}", ",", []string{"[invalid}"}},
+		{"[]byte partial json", []byte("[1,2"), ",", []string{"[1", "2"}},
 	}
 
 	for _, tt := range tests {
