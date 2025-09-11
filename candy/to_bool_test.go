@@ -1,4 +1,4 @@
-package anyx
+package candy
 
 import (
 	"math"
@@ -149,8 +149,6 @@ func BenchmarkToBool(b *testing.B) {
 
 	var r bool
 	for i := 0; i < b.N; i++ {
-		// To avoid compiler optimizations, we cycle through our test cases
-		// and assign the result to a variable.
 		r = ToBool(cases[i%len(cases)].input)
 	}
 	_ = r

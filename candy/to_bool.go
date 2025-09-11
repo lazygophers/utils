@@ -1,4 +1,4 @@
-package anyx
+package candy
 
 import (
 	"bytes"
@@ -38,12 +38,12 @@ import (
 //
 // 示例:
 //
-//	anyx.ToBool(true)    // true
-//	anyx.ToBool(0)       // false
-//	anyx.ToBool("yes")   // true
-//	anyx.ToBool("off")   // false
-//	anyx.ToBool("hello") // true
-//	anyx.ToBool(nil)     // false
+//	candy.ToBool(true)    // true
+//	candy.ToBool(0)       // false
+//	candy.ToBool("yes")   // true
+//	candy.ToBool("off")   // false
+//	candy.ToBool("hello") // true
+//	candy.ToBool(nil)     // false
 func ToBool(val interface{}) bool {
 	switch x := val.(type) {
 	case bool:

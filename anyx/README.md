@@ -48,16 +48,6 @@ anyx 提供了丰富的类型转换和数据操作功能，包括：
 
 ### 数据结构操作
 
-#### 切片操作
-- [`PluckInt(list, fieldName)`](slice.go:76) - 从结构体切片中提取 int 字段
-- [`PluckInt32(list, fieldName)`](slice.go:80) - 从结构体切片中提取 int32 字段
-- [`PluckInt64(list, fieldName)`](slice.go:88) - 从结构体切片中提取 int64 字段
-- [`PluckUint32(list, fieldName)`](slice.go:84) - 从结构体切片中提取 uint32 字段
-- [`PluckUint64(list, fieldName)`](slice.go:92) - 从结构体切片中提取 uint64 字段
-- [`PluckString(list, fieldName)`](slice.go:96) - 从结构体切片中提取 string 字段
-- [`PluckStringSlice(list, fieldName)`](slice.go:100) - 从结构体切片中提取 []string 字段
-- [`DiffSlice(a, b)`](slice.go:104) - 比较两个切片的差异，返回 (a中有b无的元素, b中有a无的元素)
-- [`RemoveSlice(src, rm)`](slice.go:147) - 从源切片中移除指定元素
 
 #### 映射操作
 - [`CheckValueType(val)`](map.go:21) - 检查值的类型（数字、字符串、布尔）
@@ -81,9 +71,6 @@ anyx 提供了丰富的类型转换和数据操作功能，包括：
 - [`ToMapInt32String(v)`](map.go:422) - 将任意类型转换为 map[int32]string
 - [`ToMapStringArrayString(v)`](map.go:439) - 将任意类型转换为 map[string][]string
 
-#### 深度复制
-- [`DeepCopy(src, dst)`](deep.go:12) - 深度复制结构体
-- [`DeepClone(src)`](deep.go:67) - 深度克隆任意类型
 
 #### 指针操作
 - [`ToPointer[T](v)`](ptr.go:13) - 将值转换为指针（泛型函数）
@@ -129,11 +116,6 @@ anyx 提供了丰富的类型转换和数据操作功能，包括：
 // 基础类型转换
 s := anyx.ToString(42) // "42"
 i := anyx.ToInt("123") // 123
-
-// 深度复制对象
-a := struct{ X int }{42}
-b := struct{ X int }{}
-anyx.DeepCopy(&a, &b)
 
 // 嵌套路径访问
 m := anyx.NewMap(map[string]interface{}{

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/lazygophers/utils/candy"
 	"github.com/lazygophers/utils/json"
 	"go.uber.org/atomic"
 	"gopkg.in/yaml.v3"
@@ -147,7 +148,7 @@ func (p *MapAny) GetBool(key string) bool {
 		return false
 	}
 
-	return ToBool(val)
+	return candy.ToBool(val)
 }
 
 func (p *MapAny) GetInt(key string) int {
@@ -156,7 +157,7 @@ func (p *MapAny) GetInt(key string) int {
 		return 0
 	}
 
-	return ToInt(val)
+	return candy.ToInt(val)
 }
 
 func (p *MapAny) GetInt32(key string) int32 {
@@ -165,7 +166,7 @@ func (p *MapAny) GetInt32(key string) int32 {
 		return 0
 	}
 
-	return ToInt32(val)
+	return candy.ToInt32(val)
 }
 
 func (p *MapAny) GetInt64(key string) int64 {
@@ -174,7 +175,7 @@ func (p *MapAny) GetInt64(key string) int64 {
 		return 0
 	}
 
-	return ToInt64(val)
+	return candy.ToInt64(val)
 }
 
 func (p *MapAny) GetUint16(key string) uint16 {
@@ -183,7 +184,7 @@ func (p *MapAny) GetUint16(key string) uint16 {
 		return 0
 	}
 
-	return ToUint16(val)
+	return candy.ToUint16(val)
 }
 
 func (p *MapAny) GetUint32(key string) uint32 {
@@ -192,7 +193,7 @@ func (p *MapAny) GetUint32(key string) uint32 {
 		return 0
 	}
 
-	return ToUint32(val)
+	return candy.ToUint32(val)
 }
 
 func (p *MapAny) GetUint64(key string) uint64 {
@@ -201,7 +202,7 @@ func (p *MapAny) GetUint64(key string) uint64 {
 		return 0
 	}
 
-	return ToUint64(val)
+	return candy.ToUint64(val)
 }
 
 func (p *MapAny) GetFloat64(key string) float64 {
@@ -210,7 +211,7 @@ func (p *MapAny) GetFloat64(key string) float64 {
 		return 0
 	}
 
-	return ToFloat64(val)
+	return candy.ToFloat64(val)
 }
 
 func (p *MapAny) GetString(key string) string {
@@ -219,7 +220,7 @@ func (p *MapAny) GetString(key string) string {
 		return ""
 	}
 
-	return ToString(val)
+	return candy.ToString(val)
 }
 
 func (p *MapAny) GetBytes(key string) []byte {
@@ -301,7 +302,7 @@ func (p *MapAny) toMap(val interface{}) *MapAny {
 	case map[interface{}]interface{}:
 		m := NewMap(nil)
 		for k, v := range x {
-			m.Set(ToString(k), v)
+			m.Set(candy.ToString(k), v)
 		}
 		return m
 	default:
@@ -432,79 +433,79 @@ func (p *MapAny) GetStringSlice(key string) []string {
 	case []bool:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []int:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []int8:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []int16:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []int32:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []int64:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []uint:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []uint8:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []uint16:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []uint32:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []uint64:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []float32:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []float64:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	case []string:
@@ -518,7 +519,7 @@ func (p *MapAny) GetStringSlice(key string) []string {
 	case []interface{}:
 		var v []string
 		for _, val := range x {
-			v = append(v, ToString(val))
+			v = append(v, candy.ToString(val))
 		}
 		return v
 	default:
@@ -536,61 +537,61 @@ func (p *MapAny) GetUint64Slice(key string) []uint64 {
 	case []bool:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []int:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []int8:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []int16:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []int32:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []int64:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []uint:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []uint8:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []uint16:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []uint32:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []uint64:
@@ -602,31 +603,31 @@ func (p *MapAny) GetUint64Slice(key string) []uint64 {
 	case []float32:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []float64:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []string:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case [][]byte:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	case []interface{}:
 		var v []uint64
 		for _, val := range x {
-			v = append(v, ToUint64(val))
+			v = append(v, candy.ToUint64(val))
 		}
 		return v
 	default:
@@ -640,7 +641,7 @@ func (p *MapAny) GetInt64Slice(key string) []int64 {
 		return nil
 	}
 
-	return ToInt64Slice(val)
+	return candy.ToInt64Slice(val)
 }
 
 func (p *MapAny) GetUint32Slice(key string) []uint32 {
@@ -653,55 +654,55 @@ func (p *MapAny) GetUint32Slice(key string) []uint32 {
 	case []bool:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []int:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []int8:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []int16:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []int32:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []int64:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []uint:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []uint8:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []uint16:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []uint32:
@@ -709,37 +710,37 @@ func (p *MapAny) GetUint32Slice(key string) []uint32 {
 	case []uint64:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []float32:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []float64:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []string:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case [][]byte:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	case []interface{}:
 		var v []uint32
 		for _, val := range x {
-			v = append(v, ToUint32(val))
+			v = append(v, candy.ToUint32(val))
 		}
 		return v
 	default:
@@ -759,7 +760,7 @@ func (p *MapAny) ToSyncMap() *sync.Map {
 func (p *MapAny) ToMap() map[string]interface{} {
 	m := map[string]interface{}{}
 	p.data.Range(func(key, value interface{}) bool {
-		k := ToString(key)
+		k := candy.ToString(key)
 
 		switch x := value.(type) {
 		case float32:
