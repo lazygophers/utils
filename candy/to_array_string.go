@@ -21,8 +21,6 @@ func ToArrayString(v interface{}) []string {
 			}
 			// 否则返回单个元素的切片
 			return []string{x}
-		case []string:
-			return x
 		case nil:
 			return nil
 		default:

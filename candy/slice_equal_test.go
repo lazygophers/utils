@@ -298,10 +298,10 @@ func TestSliceEqualWithNil(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "一个nil一个空切片相等",
+			name: "一个nil一个空切片不相等",
 			a:    nil,
 			b:    []int{},
-			want: false, // 长度不同，返回false
+			want: false, // nil vs empty slice should be false
 		},
 		{
 			name: "一个nil一个非空切片不相等",
@@ -368,6 +368,26 @@ func TestSliceEqualLargeData(t *testing.T) {
 	}
 }
 
+// TestSliceEqualBoundaries tests edge cases for SliceEqual
+func TestSliceEqualBoundaries(t *testing.T) {
+	// Test cases that should trigger the final count verification
+	t.Run("negative count scenario", func(t *testing.T) {
+		// This should trigger a scenario where counts become negative and the final loop catches it
+		a := []int{1, 2, 3, 4, 5}
+		b := []int{6, 7, 8, 9, 10}
+		result := SliceEqual(a, b)
+		assert.False(t, result, "Different elements should return false")
+	})
+	
+	t.Run("partial match with leftovers", func(t *testing.T) {
+		// This should trigger the final count check where some elements have non-zero counts
+		a := []int{1, 2, 2, 3, 3, 3}
+		b := []int{1, 2, 3, 3, 4, 4}
+		result := SliceEqual(a, b)
+		assert.False(t, result, "Different frequency of elements should return false")
+	})
+}
+
 // TestSliceEqual 测试切片相等比较函数
 func TestSliceEqualAdditional(t *testing.T) {
 	t.Parallel()
@@ -390,6 +410,8 @@ func TestSliceEqualAdditional(t *testing.T) {
 		{"重复元素数量不同不相等", []int{1, 2, 2, 3}, []int{1, 2, 3}, false},
 		{"单个元素切片", []int{42}, []int{42}, true},
 		{"单个元素切片不相等", []int{42}, []int{24}, false},
+		// Additional test to trigger final count check
+		{"elements appear different times", []int{1, 2, 3}, []int{1, 1, 2}, false},
 	}
 
 	for _, tt := range tests {
