@@ -527,6 +527,15 @@ func TestDeepEqualUncomparableTypes(t *testing.T) {
 	if DeepEqual(complex1, complex3) {
 		t.Error("Different complex numbers should not be equal")
 	}
+	
+	// Test maps containing functions to trigger panic recovery in default case
+	mapWithFunc1 := map[string]func(){"key": func() { println("test1") }}
+	mapWithFunc2 := map[string]func(){"key": func() { println("test2") }}
+	
+	// This should trigger the panic recovery mechanism in the default case
+	if DeepEqual(mapWithFunc1, mapWithFunc2) {
+		t.Error("Maps with different functions should not be equal")
+	}
 }
 
 // TestDeepEqualEdgeCases tests additional edge cases to improve coverage
@@ -566,12 +575,39 @@ func TestDeepEqualEdgeCases(t *testing.T) {
 		t.Error("Maps with nil keys should be equal")
 	}
 	
-	// Test map where MapIndex returns invalid value
-	mapDifferentKeys := map[string]int{"key1": 1}
-	mapDifferentKeys2 := map[string]int{"key2": 1}
+	// Test map where MapIndex returns invalid value - this should trigger val2.IsValid() == false
+	mapDifferentKeys1 := map[string]int{"key1": 1, "shared": 5}
+	mapDifferentKeys2 := map[string]int{"key2": 1, "shared": 5}
 	
-	if DeepEqual(mapDifferentKeys, mapDifferentKeys2) {
+	if DeepEqual(mapDifferentKeys1, mapDifferentKeys2) {
 		t.Error("Maps with different keys should not be equal")
+	}
+	
+	// Test case where key exists in first map but not in second - should trigger !val2.IsValid()
+	mapMissingKey1 := map[string]int{"key1": 1, "key2": 2}
+	mapMissingKey2 := map[string]int{"key1": 1}
+	
+	if DeepEqual(mapMissingKey1, mapMissingKey2) {
+		t.Error("Map with missing key should not be equal")
+	}
+}
+
+// TestDeepEqualMapInvalidValues tests specific cases for map invalid value paths
+func TestDeepEqualMapInvalidValues(t *testing.T) {
+	// Create a map with a key that will exist in first but not second map
+	// This should specifically trigger the !val2.IsValid() path in line 40
+	m1 := map[string]interface{}{
+		"existing": "value1",
+		"unique":   "value2",
+	}
+	m2 := map[string]interface{}{
+		"existing": "value1",
+		// "unique" key is missing - this should trigger !val2.IsValid()
+	}
+	
+	result := DeepEqual(m1, m2)
+	if result {
+		t.Error("Maps with different key sets should return false")
 	}
 }
 

@@ -127,6 +127,12 @@ func TestToStringSliceComprehensive(t *testing.T) {
 		{"[]byte invalid json", []byte("[invalid}"), ",", []string{"[invalid}"}},
 		{"string invalid json", "[invalid}", ",", []string{"[invalid}"}},
 		{"[]byte partial json", []byte("[1,2"), ",", []string{"[1", "2"}},
+		
+		// 测试空分隔符的更多情况
+		{"[]byte empty sep json valid", []byte("[1,2,3]"), "", []string{"1", "2", "3"}},
+		{"[]byte empty sep not json", []byte("hello"), "", []string{"hello"}},
+		{"string empty sep json valid", "[1,2,3]", "", []string{"1", "2", "3"}},
+		{"string empty sep not json", "hello", "", []string{"hello"}},
 	}
 
 	for _, tt := range tests {

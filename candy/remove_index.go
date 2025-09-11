@@ -11,10 +11,7 @@ func RemoveIndex[T any](ss []T, index int) []T {
 
 	// 处理移除第一个元素的特殊情况
 	if index == 0 {
-		if len(ss) > 0 {
-			return ss[1:]
-		}
-		return make([]T, 0)
+		return ss[1:]
 	}
 
 	// 处理移除最后一个元素的特殊情况

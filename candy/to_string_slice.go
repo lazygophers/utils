@@ -159,9 +159,6 @@ func ToStringSlice(val interface{}, seqs ...string) []string {
 		return ss
 
 	default:
-
 		return nil
 	}
-
-	return nil
 }

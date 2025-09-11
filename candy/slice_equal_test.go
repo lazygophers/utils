@@ -386,6 +386,24 @@ func TestSliceEqualBoundaries(t *testing.T) {
 		result := SliceEqual(a, b)
 		assert.False(t, result, "Different frequency of elements should return false")
 	})
+	
+	t.Run("count zero check scenario", func(t *testing.T) {
+		// This should specifically trigger the final count != 0 check
+		// Create a scenario where the second loop finishes but counts are non-zero
+		a := []int{1, 2, 3, 1, 2}
+		b := []int{1, 2, 1, 2, 4} // 4 is different from 3
+		result := SliceEqual(a, b)
+		assert.False(t, result, "Different elements should return false, checking final count")
+	})
+	
+	t.Run("count equals zero after decrement", func(t *testing.T) {
+		// This should trigger the count == 0 condition in line 26
+		// Create scenario where an element appears multiple times
+		a := []int{1, 1, 2, 2, 3}
+		b := []int{1, 2, 3, 1, 2}
+		result := SliceEqual(a, b)
+		assert.True(t, result, "Same elements with same count should be equal")
+	})
 }
 
 // TestSliceEqual 测试切片相等比较函数
