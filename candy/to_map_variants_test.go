@@ -125,6 +125,24 @@ func TestToMapStringArrayString(t *testing.T) {
 		assert.Equal(t, expected, result)
 	})
 
+	t.Run("nil input", func(t *testing.T) {
+		result := ToMapStringArrayString(nil)
+		assert.Nil(t, result)
+	})
+
+	t.Run("map with different key types", func(t *testing.T) {
+		input := map[int]string{
+			1: "one,two",
+			2: "three",
+		}
+		result := ToMapStringArrayString(input)
+		expected := map[string][]string{
+			"1": {"one", "two"},
+			"2": {"three"},
+		}
+		assert.Equal(t, expected, result)
+	})
+
 	t.Run("non-map input should panic", func(t *testing.T) {
 		input := []string{"not", "a", "map"}
 		assert.Panics(t, func() {
