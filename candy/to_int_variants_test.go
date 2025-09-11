@@ -61,31 +61,121 @@ func TestToInt64(t *testing.T) {
 }
 
 func TestToInt32(t *testing.T) {
-	t.Run("basic conversions", func(t *testing.T) {
+	t.Run("bool values", func(t *testing.T) {
 		assert.Equal(t, int32(1), ToInt32(true))
 		assert.Equal(t, int32(0), ToInt32(false))
+	})
+
+	t.Run("integer types", func(t *testing.T) {
 		assert.Equal(t, int32(42), ToInt32(int(42)))
+		assert.Equal(t, int32(127), ToInt32(int8(127)))
+		assert.Equal(t, int32(32767), ToInt32(int16(32767)))
+		assert.Equal(t, int32(100), ToInt32(int32(100)))
+		assert.Equal(t, int32(1000), ToInt32(int64(1000)))
+		assert.Equal(t, int32(42), ToInt32(uint(42)))
+		assert.Equal(t, int32(255), ToInt32(uint8(255)))
+		assert.Equal(t, int32(65535), ToInt32(uint16(65535)))
+		assert.Equal(t, int32(100), ToInt32(uint32(100)))
+		assert.Equal(t, int32(1000), ToInt32(uint64(1000)))
+	})
+
+	t.Run("float values", func(t *testing.T) {
+		assert.Equal(t, int32(3), ToInt32(float32(3.14)))
+		assert.Equal(t, int32(3), ToInt32(float64(3.14)))
+		assert.Equal(t, int32(-3), ToInt32(float64(-3.14)))
+	})
+
+	t.Run("string values", func(t *testing.T) {
 		assert.Equal(t, int32(42), ToInt32("42"))
+		assert.Equal(t, int32(0), ToInt32("-42")) // negative strings not supported
+		assert.Equal(t, int32(0), ToInt32("0"))
+	})
+
+	t.Run("invalid string values", func(t *testing.T) {
 		assert.Equal(t, int32(0), ToInt32("invalid"))
+		assert.Equal(t, int32(0), ToInt32(""))
+		assert.Equal(t, int32(0), ToInt32("3.14"))
+	})
+
+	t.Run("byte slice values", func(t *testing.T) {
+		assert.Equal(t, int32(42), ToInt32([]byte("42")))
+		assert.Equal(t, int32(0), ToInt32([]byte("-42"))) // negative strings not supported
+	})
+
+	t.Run("unsupported types", func(t *testing.T) {
+		assert.Equal(t, int32(0), ToInt32(nil))
+		assert.Equal(t, int32(0), ToInt32(struct{}{}))
 	})
 }
 
 func TestToInt16(t *testing.T) {
-	t.Run("basic conversions", func(t *testing.T) {
+	t.Run("bool values", func(t *testing.T) {
 		assert.Equal(t, int16(1), ToInt16(true))
 		assert.Equal(t, int16(0), ToInt16(false))
+	})
+
+	t.Run("integer types", func(t *testing.T) {
 		assert.Equal(t, int16(42), ToInt16(int(42)))
+		assert.Equal(t, int16(127), ToInt16(int8(127)))
+		assert.Equal(t, int16(1000), ToInt16(int16(1000)))
+		assert.Equal(t, int16(100), ToInt16(int32(100)))
+		assert.Equal(t, int16(1000), ToInt16(int64(1000)))
+		assert.Equal(t, int16(42), ToInt16(uint(42)))
+		assert.Equal(t, int16(255), ToInt16(uint8(255)))
+		assert.Equal(t, int16(1000), ToInt16(uint16(1000)))
+		assert.Equal(t, int16(100), ToInt16(uint32(100)))
+		assert.Equal(t, int16(1000), ToInt16(uint64(1000)))
+	})
+
+	t.Run("float values", func(t *testing.T) {
+		assert.Equal(t, int16(3), ToInt16(float32(3.14)))
+		assert.Equal(t, int16(3), ToInt16(float64(3.14)))
+	})
+
+	t.Run("string values", func(t *testing.T) {
 		assert.Equal(t, int16(42), ToInt16("42"))
+		assert.Equal(t, int16(0), ToInt16("-42")) // negative strings not supported
+	})
+
+	t.Run("invalid values", func(t *testing.T) {
 		assert.Equal(t, int16(0), ToInt16("invalid"))
+		assert.Equal(t, int16(0), ToInt16(nil))
+		assert.Equal(t, int16(0), ToInt16(struct{}{}))
 	})
 }
 
 func TestToInt8(t *testing.T) {
-	t.Run("basic conversions", func(t *testing.T) {
+	t.Run("bool values", func(t *testing.T) {
 		assert.Equal(t, int8(1), ToInt8(true))
 		assert.Equal(t, int8(0), ToInt8(false))
+	})
+
+	t.Run("integer types", func(t *testing.T) {
 		assert.Equal(t, int8(42), ToInt8(int(42)))
+		assert.Equal(t, int8(127), ToInt8(int8(127)))
+		assert.Equal(t, int8(100), ToInt8(int16(100)))
+		assert.Equal(t, int8(100), ToInt8(int32(100)))
+		assert.Equal(t, int8(100), ToInt8(int64(100)))
+		assert.Equal(t, int8(42), ToInt8(uint(42)))
+		assert.Equal(t, int8(100), ToInt8(uint8(100)))
+		assert.Equal(t, int8(100), ToInt8(uint16(100)))
+		assert.Equal(t, int8(100), ToInt8(uint32(100)))
+		assert.Equal(t, int8(100), ToInt8(uint64(100)))
+	})
+
+	t.Run("float values", func(t *testing.T) {
+		assert.Equal(t, int8(3), ToInt8(float32(3.14)))
+		assert.Equal(t, int8(3), ToInt8(float64(3.14)))
+	})
+
+	t.Run("string values", func(t *testing.T) {
 		assert.Equal(t, int8(42), ToInt8("42"))
+		assert.Equal(t, int8(0), ToInt8("-42")) // negative strings not supported
+	})
+
+	t.Run("invalid values", func(t *testing.T) {
 		assert.Equal(t, int8(0), ToInt8("invalid"))
+		assert.Equal(t, int8(0), ToInt8(nil))
+		assert.Equal(t, int8(0), ToInt8(struct{}{}))
 	})
 }

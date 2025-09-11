@@ -17,7 +17,7 @@ type TestPerson struct {
 // TestEach 测试Each函数
 func TestEach(t *testing.T) {
 	// 测试基本功能：整数切片
-	t.Run("整数切片", func(t *testing.T) {
+	t.Run("integer_slice", func(t *testing.T) {
 		t.Parallel()
 
 		data := []int{1, 2, 3, 4, 5}
@@ -32,7 +32,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试字符串切片
-	t.Run("字符串切片", func(t *testing.T) {
+	t.Run("string_slice", func(t *testing.T) {
 		t.Parallel()
 
 		data := []string{"a", "b", "c"}
@@ -47,7 +47,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试结构体切片
-	t.Run("结构体切片", func(t *testing.T) {
+	t.Run("struct_slice", func(t *testing.T) {
 		t.Parallel()
 
 		type TestItem struct {
@@ -70,7 +70,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试浮点数切片
-	t.Run("浮点数切片", func(t *testing.T) {
+	t.Run("float_slice", func(t *testing.T) {
 		t.Parallel()
 
 		data := []float64{1.1, 2.2, 3.3}
@@ -85,7 +85,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试空切片
-	t.Run("空切片", func(t *testing.T) {
+	t.Run("empty_slice", func(t *testing.T) {
 		t.Parallel()
 
 		data := []int{}
@@ -100,7 +100,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试nil切片
-	t.Run("nil切片", func(t *testing.T) {
+	t.Run("nil_slice", func(t *testing.T) {
 		t.Parallel()
 
 		var data []int
@@ -115,7 +115,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试单元素切片
-	t.Run("单元素切片", func(t *testing.T) {
+	t.Run("single_element_slice", func(t *testing.T) {
 		t.Parallel()
 
 		data := []int{42}
@@ -130,7 +130,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试函数副作用
-	t.Run("函数副作用", func(t *testing.T) {
+	t.Run("function_side_effects", func(t *testing.T) {
 		t.Parallel()
 
 		data := []int{1, 2, 3}
@@ -144,7 +144,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试修改原始切片元素
-	t.Run("修改原始元素", func(t *testing.T) {
+	t.Run("modify_original_elements", func(t *testing.T) {
 		t.Parallel()
 
 		data := []TestPerson{
@@ -163,7 +163,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试指针切片
-	t.Run("指针切片", func(t *testing.T) {
+	t.Run("pointer_slice", func(t *testing.T) {
 		t.Parallel()
 
 		data := []*TestPerson{
@@ -181,7 +181,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试复杂计算
-	t.Run("复杂计算", func(t *testing.T) {
+	t.Run("complex_calculation", func(t *testing.T) {
 		t.Parallel()
 
 		data := []int{1, 2, 3, 4, 5}
@@ -199,7 +199,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试并发安全性
-	t.Run("并发安全", func(t *testing.T) {
+	t.Run("concurrent_safety", func(t *testing.T) {
 		t.Parallel()
 
 		data := []int{1, 2, 3, 4, 5}
@@ -217,7 +217,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试数组
-	t.Run("数组", func(t *testing.T) {
+	t.Run("array", func(t *testing.T) {
 		t.Parallel()
 
 		data := [3]int{1, 2, 3}
@@ -232,7 +232,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试map
-	t.Run("map遍历", func(t *testing.T) {
+	t.Run("map_iteration", func(t *testing.T) {
 		t.Parallel()
 
 		data := map[string]int{"a": 1, "b": 2, "c": 3}
@@ -259,7 +259,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试空map
-	t.Run("空map", func(t *testing.T) {
+	t.Run("empty_map", func(t *testing.T) {
 		t.Parallel()
 
 		data := map[string]int{}
@@ -274,7 +274,7 @@ func TestEach(t *testing.T) {
 	})
 
 	// 测试非切片、数组、map类型应该panic
-	t.Run("不支持的类型panic", func(t *testing.T) {
+	t.Run("unsupported_type_panic", func(t *testing.T) {
 		t.Parallel()
 
 		assert.Panics(t, func() {
