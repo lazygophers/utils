@@ -76,4 +76,19 @@ func TestRemoveIndex(t *testing.T) {
 		expected := []int{1}
 		assert.Equal(t, expected, result)
 	})
+
+	// Additional edge cases to improve coverage
+	t.Run("empty slice with large index", func(t *testing.T) {
+		input := []int{}
+		result := RemoveIndex(input, 100)
+		expected := []int{}
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("nil slice", func(t *testing.T) {
+		var input []int
+		result := RemoveIndex(input, 0)
+		expected := []int{}
+		assert.Equal(t, expected, result)
+	})
 }

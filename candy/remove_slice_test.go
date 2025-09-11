@@ -84,11 +84,30 @@ func TestRemoveSlice(t *testing.T) {
 	})
 
 	t.Run("panic on different types", func(t *testing.T) {
-		// 注意：由于代码中的 bug，这里会 panic 但消息不正确
-		// RemoveSlice 函数在第16行有问题：应该是 reflect.TypeOf(rm) 而不是 reflect.TypeOf(src)
-		// 所以这个测试实际上不会按预期工作，先注释掉
-		// assert.Panics(t, func() {
-		// 	RemoveSlice([]int{1, 2, 3}, []string{"a", "b"})
-		// })
+		assert.Panics(t, func() {
+			RemoveSlice([]int{1, 2, 3}, []string{"a", "b"})
+		})
+	})
+	
+	// Additional test cases to improve coverage
+	t.Run("mixed integers", func(t *testing.T) {
+		src := []int{-1, 0, 1, 2, -2}
+		rm := []int{-1, 1}
+		result := RemoveSlice(src, rm)
+		expected := []int{0, 2, -2}
+		assert.Equal(t, expected, result)
+	})
+	
+	t.Run("large slice", func(t *testing.T) {
+		src := make([]int, 100)
+		for i := 0; i < 100; i++ {
+			src[i] = i
+		}
+		rm := []int{10, 20, 30}
+		result := RemoveSlice(src, rm).([]int)
+		assert.Len(t, result, 97)
+		assert.NotContains(t, result, 10)
+		assert.NotContains(t, result, 20)
+		assert.NotContains(t, result, 30)
 	})
 }
