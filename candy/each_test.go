@@ -215,6 +215,80 @@ func TestEach(t *testing.T) {
 
 		require.Equal(t, []int{2, 4, 6, 8, 10}, result, "Each在并发环境下应该安全工作")
 	})
+
+	// 测试数组
+	t.Run("数组", func(t *testing.T) {
+		t.Parallel()
+
+		data := [3]int{1, 2, 3}
+		var result []int
+
+		Each(data, func(index int, value interface{}) {
+			item := value.(int)
+			result = append(result, item*2)
+		})
+
+		require.Equal(t, []int{2, 4, 6}, result, "Each应该对数组正常工作")
+	})
+
+	// 测试map
+	t.Run("map遍历", func(t *testing.T) {
+		t.Parallel()
+
+		data := map[string]int{"a": 1, "b": 2, "c": 3}
+		var result []int
+		indexSet := make(map[int]bool)
+
+		Each(data, func(index int, value interface{}) {
+			item := value.(int)
+			result = append(result, item)
+			indexSet[index] = true
+		})
+
+		// map遍历顺序不确定，但应该包含所有值
+		assert.Len(t, result, 3)
+		assert.Contains(t, result, 1)
+		assert.Contains(t, result, 2)
+		assert.Contains(t, result, 3)
+
+		// 索引应该是0,1,2
+		assert.Equal(t, 3, len(indexSet))
+		assert.True(t, indexSet[0])
+		assert.True(t, indexSet[1])
+		assert.True(t, indexSet[2])
+	})
+
+	// 测试空map
+	t.Run("空map", func(t *testing.T) {
+		t.Parallel()
+
+		data := map[string]int{}
+		var result []int
+
+		Each(data, func(index int, value interface{}) {
+			item := value.(int)
+			result = append(result, item)
+		})
+
+		require.Empty(t, result, "Each处理空map时不应该执行函数")
+	})
+
+	// 测试非切片、数组、map类型应该panic
+	t.Run("不支持的类型panic", func(t *testing.T) {
+		t.Parallel()
+
+		assert.Panics(t, func() {
+			Each("not a collection", func(index int, value interface{}) {})
+		}, "Each对不支持的类型应该panic")
+
+		assert.Panics(t, func() {
+			Each(42, func(index int, value interface{}) {})
+		}, "Each对不支持的类型应该panic")
+
+		assert.Panics(t, func() {
+			Each(struct{}{}, func(index int, value interface{}) {})
+		}, "Each对不支持的类型应该panic")
+	})
 }
 
 // BenchmarkEach 测试Each函数的性能

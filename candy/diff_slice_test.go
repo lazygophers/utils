@@ -206,10 +206,26 @@ func TestDiffSlice(t *testing.T) {
 			t.Errorf("Elements only in A: got %v, want %v", resultA, expectedA)
 		}
 		
-		// Elements only in B: {4.4, 5.5}
-		expectedB := []float64{4.4, 5.5}
-		if !reflect.DeepEqual(resultB, expectedB) {
-			t.Errorf("Elements only in B: got %v, want %v", resultB, expectedB)
+		// Elements only in B: {4.4, 5.5} (order may vary)
+		if len(resultB) != 2 {
+			t.Errorf("Elements only in B: got length %d, want 2", len(resultB))
+		}
+		containsAll := true
+		for _, expected := range []float64{4.4, 5.5} {
+			found := false
+			for _, actual := range resultB {
+				if actual == expected {
+					found = true
+					break
+				}
+			}
+			if !found {
+				containsAll = false
+				break
+			}
+		}
+		if !containsAll {
+			t.Errorf("Elements only in B: got %v, want to contain both 4.4 and 5.5", resultB)
 		}
 	})
 	
