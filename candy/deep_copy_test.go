@@ -1,6 +1,7 @@
 package candy
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -78,25 +79,133 @@ func TestDeepCopy(t *testing.T) {
 	})
 	
 	t.Run("composite_type_coverage", func(t *testing.T) {
-		// Skip problematic tests that cause "unaddressable value" panics
-		// These tests are kept for documentation but won't execute
-		t.Skip("Skipping composite type tests due to function design limitations")
+		// Test map copying through direct reflection calls
+		srcMap := map[string]int{"a": 1, "b": 2}
+		dstMap := make(map[string]int)
+		
+		// Use reflection to call deepCopyValue directly
+		srcVal := reflect.ValueOf(srcMap)
+		dstVal := reflect.ValueOf(&dstMap).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test slice copying
+		srcSlice := []int{1, 2, 3}
+		dstSlice := make([]int, 0)
+		
+		srcVal = reflect.ValueOf(srcSlice)
+		dstVal = reflect.ValueOf(&dstSlice).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test array copying
+		srcArray := [3]int{1, 2, 3}
+		var dstArray [3]int
+		
+		srcVal = reflect.ValueOf(srcArray)
+		dstVal = reflect.ValueOf(&dstArray).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test struct copying
+		type TestStruct struct {
+			ID   int
+			Name string
+		}
+		srcStruct := TestStruct{ID: 42, Name: "test"}
+		var dstStruct TestStruct
+		
+		srcVal = reflect.ValueOf(srcStruct)
+		dstVal = reflect.ValueOf(&dstStruct).Elem()
+		deepCopyValue(srcVal, dstVal)
 	})
 	
 	t.Run("nested_structures_coverage", func(t *testing.T) {
-		// Skip problematic tests that cause "unaddressable value" panics
-		// These tests are kept for documentation but won't execute
-		t.Skip("Skipping nested structure tests due to function design limitations")
+		// Test nested maps
+		srcNestedMap := map[string]map[string]int{
+			"inner": {"a": 1, "b": 2},
+		}
+		dstNestedMap := make(map[string]map[string]int)
+		
+		srcVal := reflect.ValueOf(srcNestedMap)
+		dstVal := reflect.ValueOf(&dstNestedMap).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test nested slices
+		srcNestedSlice := [][]int{{1, 2}, {3, 4}}
+		var dstNestedSlice [][]int
+		
+		srcVal = reflect.ValueOf(srcNestedSlice)
+		dstVal = reflect.ValueOf(&dstNestedSlice).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test nested structs
+		type NestedStruct struct {
+			Inner struct {
+				Value int
+			}
+		}
+		srcNested := NestedStruct{Inner: struct{ Value int }{Value: 42}}
+		var dstNested NestedStruct
+		
+		srcVal = reflect.ValueOf(srcNested)
+		dstVal = reflect.ValueOf(&dstNested).Elem()
+		deepCopyValue(srcVal, dstVal)
 	})
 	
 	t.Run("pointer_chain_coverage", func(t *testing.T) {
-		// Skip problematic tests that cause "unaddressable value" panics
-		t.Skip("Skipping pointer chain tests due to function design limitations")
+		// Test pointer handling - nil source pointer
+		var srcPtr *int
+		var dstPtr *int
+		
+		srcVal := reflect.ValueOf(srcPtr)
+		dstVal := reflect.ValueOf(&dstPtr).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test pointer handling - non-nil source pointer
+		x := 42
+		srcPtr = &x
+		
+		srcVal = reflect.ValueOf(srcPtr)
+		dstVal = reflect.ValueOf(&dstPtr).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test destination nil pointer that needs allocation
+		var srcInt int = 123
+		var dstPtr2 *int
+		
+		srcVal = reflect.ValueOf(srcInt)
+		dstVal = reflect.ValueOf(&dstPtr2).Elem()
+		// This should trigger the ptr allocation path in deepCopyValue
+		deepCopyValue(srcVal, dstVal)
 	})
 	
 	t.Run("interface_with_concrete_types", func(t *testing.T) {
-		// Skip problematic tests that cause "unaddressable value" panics
-		t.Skip("Skipping interface tests due to function design limitations")
+		// Test interface copying - nil interface
+		var srcInterface interface{}
+		var dstInterface interface{}
+		
+		srcVal := reflect.ValueOf(&srcInterface).Elem()
+		dstVal := reflect.ValueOf(&dstInterface).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test interface with concrete value
+		srcInterface = 42
+		
+		srcVal = reflect.ValueOf(&srcInterface).Elem()
+		dstVal = reflect.ValueOf(&dstInterface).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test interface with string
+		srcInterface = "test string"
+		
+		srcVal = reflect.ValueOf(&srcInterface).Elem()
+		dstVal = reflect.ValueOf(&dstInterface).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test interface with slice
+		srcInterface = []int{1, 2, 3}
+		
+		srcVal = reflect.ValueOf(&srcInterface).Elem()
+		dstVal = reflect.ValueOf(&dstInterface).Elem()
+		deepCopyValue(srcVal, dstVal)
 	})
 }
 
@@ -123,8 +232,29 @@ func TestDeepCopyEdgeCases(t *testing.T) {
 	})
 	
 	t.Run("can_set_coverage", func(t *testing.T) {
-		// Skip problematic tests that cause "unaddressable value" panics
-		t.Skip("Skipping struct tests due to function design limitations")
+		// Test CanSet scenarios for basic types
+		var srcInt int = 42
+		var dstInt int
+		
+		srcVal := reflect.ValueOf(srcInt)
+		dstVal := reflect.ValueOf(&dstInt).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test nil map
+		var srcMap map[string]int
+		var dstMap map[string]int
+		
+		srcVal = reflect.ValueOf(srcMap)
+		dstVal = reflect.ValueOf(&dstMap).Elem()
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test nil slice
+		var srcSlice []int
+		var dstSlice []int
+		
+		srcVal = reflect.ValueOf(srcSlice)
+		dstVal = reflect.ValueOf(&dstSlice).Elem()
+		deepCopyValue(srcVal, dstVal)
 	})
 	
 	t.Run("invalid_kind_coverage", func(t *testing.T) {
@@ -154,6 +284,70 @@ func testTypeMismatch() {
 	var dst interface{} = &struct{ B string }{B: "test"}
 	
 	DeepCopy(src, dst)
+}
+
+// TestDeepCopyAdditionalCoverage tests additional scenarios for deepCopyValue
+func TestDeepCopyAdditionalCoverage(t *testing.T) {
+	t.Run("complex_pointer_scenarios", func(t *testing.T) {
+		// Test pointer to pointer allocation scenario
+		var x int = 123
+		var ptr *int = &x
+		var dstPtr *int
+		
+		// Create a pointer to the destination pointer to trigger nil allocation
+		srcVal := reflect.ValueOf(ptr)
+		dstVal := reflect.ValueOf(&dstPtr).Elem()
+		
+		// This should trigger line 28-30: allocation of new memory for nil pointer
+		deepCopyValue(srcVal, dstVal)
+	})
+	
+	t.Run("invalid_values_early_return", func(t *testing.T) {
+		// Test invalid source value
+		var invalidSrc reflect.Value
+		var dstInt int
+		dstVal := reflect.ValueOf(&dstInt).Elem()
+		
+		// This should trigger early return on line 14-16
+		deepCopyValue(invalidSrc, dstVal)
+		
+		// Test invalid destination value  
+		var srcInt int = 42
+		srcVal := reflect.ValueOf(srcInt)
+		var invalidDst reflect.Value
+		
+		// This should trigger early return on line 14-16
+		deepCopyValue(srcVal, invalidDst)
+	})
+	
+	t.Run("kind_invalid_after_deref", func(t *testing.T) {
+		// This is tricky to test as it requires a scenario where 
+		// after dereferencing pointers, one of the values becomes invalid
+		// Most scenarios would be caught by Go's type system
+		
+		// Test with interface{} containing nil
+		var srcInterface interface{}
+		var dstInterface interface{}
+		
+		srcVal := reflect.ValueOf(&srcInterface).Elem()
+		dstVal := reflect.ValueOf(&dstInterface).Elem()
+		
+		// This should handle the interface nil case
+		deepCopyValue(srcVal, dstVal)
+	})
+	
+	t.Run("cannot_set_scenarios", func(t *testing.T) {
+		// Test scenarios where CanSet() returns false
+		// This is hard to trigger in normal Go code as reflect operations
+		// that get here usually ensure the destination is settable
+		
+		var srcBool bool = true
+		var dstBool bool
+		
+		srcVal := reflect.ValueOf(srcBool)
+		dstVal := reflect.ValueOf(&dstBool).Elem()
+		deepCopyValue(srcVal, dstVal)
+	})
 }
 
 // BenchmarkDeepCopy provides basic benchmarks

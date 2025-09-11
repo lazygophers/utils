@@ -13,7 +13,7 @@ func RemoveSlice(src interface{}, rm interface{}) interface{} {
 		panic("a is not slice")
 	}
 
-	bt := reflect.TypeOf(src)
+	bt := reflect.TypeOf(rm)
 	if bt.Kind() != reflect.Slice {
 		panic("b is not slice")
 	}

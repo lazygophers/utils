@@ -14,11 +14,45 @@ func TestToUint16(t *testing.T) {
 		input interface{} // 输入值
 		want  uint16    // 期望的输出结果
 	}{
-		{"int positive", 50000, 50000},     // 正整数的正常转换
-		{"int overflow", 70000, 4464},     // 超过 uint16 范围的整数，测试溢出处理
-		{"float negative", -100.5, 65436}, // 负浮点数的转换，测试补码处理
-		{"string valid", "65535", 65535}, // 有效字符串的转换
-		{"max uint16", uint16(65535), 65535}, // uint16 最大值的转换
+		// Bool values
+		{"bool_true", true, 1},
+		{"bool_false", false, 0},
+		
+		// Integer types
+		{"int_positive", 50000, 50000},
+		{"int_overflow", 70000, 4464},
+		{"int8_value", int8(127), 127},
+		{"int16_value", int16(32767), 32767},
+		{"int32_value", int32(100), 100},
+		{"int64_value", int64(1000), 1000},
+		{"uint_value", uint(42), 42},
+		{"uint8_value", uint8(255), 255},
+		{"uint16_max", uint16(65535), 65535},
+		{"uint32_value", uint32(100), 100},
+		{"uint64_value", uint64(1000), 1000},
+		
+		// Float values
+		{"float32_positive", float32(3.14), 3},
+		{"float64_positive", float64(3.14), 3},
+		{"float_negative", -100.5, 65436}, // 负浮点数的转换，测试补码处理
+		
+		// String values
+		{"string_valid", "65535", 65535},
+		{"string_zero", "0", 0},
+		{"string_small", "42", 42},
+		{"string_invalid", "invalid", 0},
+		{"string_empty", "", 0},
+		{"string_negative", "-42", 0},
+		{"string_float", "3.14", 0},
+		
+		// Byte slice values
+		{"byte_slice_valid", []byte("42"), 42},
+		{"byte_slice_invalid", []byte("invalid"), 0},
+		
+		// Unsupported types
+		{"nil_value", nil, 0},
+		{"struct_value", struct{}{}, 0},
+		{"map_value", map[string]int{}, 0},
 	}
 
 	// 遍历所有测试用例

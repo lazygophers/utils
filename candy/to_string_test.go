@@ -58,6 +58,7 @@ func TestToString(t *testing.T) {
 		{"struct", stringTestStruct{ID: 1, Name: "test", Age: 25}, `{"ID":1,"Name":"test","Age":25}`},
 		{"slice", []int{1, 2, 3}, "[1,2,3]"},
 		{"map", map[string]int{"key": 42}, `{"key":42}`},
+		{"channel", make(chan int), ""},  // channels cannot be marshaled to JSON, should return empty string
 	}
 
 	for _, tt := range tests {

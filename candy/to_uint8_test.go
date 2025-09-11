@@ -36,8 +36,43 @@ func TestToUint8(t *testing.T) {
 		{"string valid", "128", 128},     // 有效的数字字符串
 		{"string invalid", "abc", 0},     // 无效的字符串，返回 0
 		
+		// 更多整数类型测试
+		{"int8 positive", int8(100), 100},
+		{"int8 negative", int8(-10), 246}, // -10 -> 256-10 = 246
+		{"int16", int16(200), 200},
+		{"int32", int32(150), 150},
+		{"int64", int64(180), 180},
+		{"uint", uint(220), 220},
+		{"uint16", uint16(300), 44}, // 300 & 0xFF = 44
+		{"uint32", uint32(500), 244}, // 500 & 0xFF = 244
+		{"uint64", uint64(1000), 232}, // 1000 & 0xFF = 232
+		
+		// 更多浮点数测试
+		{"float32", float32(123.9), 123},
+		{"float64", float64(200.7), 200},
+		{"float negative", float64(-5.5), 251}, // -5 -> 256-5 = 251
+		
+		// 更多字符串测试
+		{"string zero", "0", 0},
+		{"string max", "255", 255},
+		{"string overflow", "256", 0}, // should fail parsing for uint8
+		{"string empty", "", 0},
+		{"string negative", "-1", 0}, // negative should fail
+		
+		// 字节切片测试
+		{"byte slice valid", []byte("100"), 100},
+		{"byte slice invalid", []byte("xyz"), 0},
+		{"byte slice empty", []byte(""), 0},
+		{"byte slice overflow", []byte("300"), 0},
+		
+		// 不支持的类型
+		{"nil", nil, 0},
+		{"struct", struct{}{}, 0},
+		{"slice", []int{1, 2, 3}, 0},
+		
 		// 边界值测试
 		{"max uint8", uint8(255), 255},   // uint8 的最大值
+		{"min uint8", uint8(0), 0},       // uint8 的最小值
 	}
 
 	// 遍历所有测试用例

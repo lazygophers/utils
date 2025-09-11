@@ -469,6 +469,148 @@ func TestDeepEqualSpecialTypes(t *testing.T) {
 	}
 }
 
+// TestDeepEqualUncomparableTypes specifically tests the panic recovery mechanism
+func TestDeepEqualUncomparableTypes(t *testing.T) {
+	// Test slices containing uncomparable types (functions)
+	fn1 := func() int { return 42 }
+	fn2 := func() int { return 43 }
+	
+	// Functions are not comparable, should trigger panic recovery
+	if DeepEqual(fn1, fn2) {
+		t.Error("Different functions should not be equal")
+	}
+	if DeepEqual(fn1, fn1) {
+		t.Error("Functions should not be equal due to being uncomparable")
+	}
+	
+	// Test maps containing uncomparable types
+	map1 := map[string]func(){"key": func() {}}
+	map2 := map[string]func(){"key": func() {}}
+	
+	// Maps with function values are technically comparable at the map level
+	// but the function values themselves are not
+	if DeepEqual(map1, map2) {
+		t.Error("Maps with function values should not be equal")
+	}
+	
+	// Test channels (another uncomparable type in certain contexts)
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+	defer close(ch1)
+	defer close(ch2)
+	
+	// Test channels in complex structures
+	structWithChan1 := struct{ Ch chan int }{Ch: ch1}
+	structWithChan2 := struct{ Ch chan int }{Ch: ch2}
+	
+	if DeepEqual(structWithChan1, structWithChan2) {
+		t.Error("Structs with different channels should not be equal")
+	}
+	
+	// Test slices containing channels
+	sliceWithChans1 := []chan int{ch1}
+	sliceWithChans2 := []chan int{ch2}
+	
+	if DeepEqual(sliceWithChans1, sliceWithChans2) {
+		t.Error("Slices with different channels should not be equal")
+	}
+	
+	// Test complex types that trigger panic recovery
+	complex1 := complex(1.0, 2.0)
+	complex2 := complex(1.0, 2.0)
+	complex3 := complex(3.0, 4.0)
+	
+	// Complex numbers should be comparable
+	if !DeepEqual(complex1, complex2) {
+		t.Error("Equal complex numbers should be equal")
+	}
+	if DeepEqual(complex1, complex3) {
+		t.Error("Different complex numbers should not be equal")
+	}
+	
+	// Test maps containing functions to trigger panic recovery in default case
+	mapWithFunc1 := map[string]func(){"key": func() { println("test1") }}
+	mapWithFunc2 := map[string]func(){"key": func() { println("test2") }}
+	
+	// This should trigger the panic recovery mechanism in the default case
+	if DeepEqual(mapWithFunc1, mapWithFunc2) {
+		t.Error("Maps with different functions should not be equal")
+	}
+}
+
+// TestDeepEqualEdgeCases tests additional edge cases to improve coverage
+func TestDeepEqualEdgeCases(t *testing.T) {
+	// Test map with missing key
+	m1 := map[string]int{"a": 1, "b": 2}
+	m2 := map[string]int{"a": 1}
+	
+	if DeepEqual(m1, m2) {
+		t.Error("Maps with different key sets should not be equal")
+	}
+	
+	// Test map with key that doesn't exist in second map
+	m3 := map[string]int{"a": 1, "c": 3}
+	if DeepEqual(m1, m3) {
+		t.Error("Maps with different keys should not be equal")
+	}
+	
+	// Test invalid reflect values
+	var nilInterface interface{}
+	var anotherNilInterface interface{}
+	
+	if !DeepEqual(nilInterface, anotherNilInterface) {
+		t.Error("Two nil interfaces should be equal")
+	}
+	
+	// Test mixed valid/invalid values
+	if DeepEqual(42, nilInterface) {
+		t.Error("Valid value should not equal nil interface")
+	}
+	
+	// Test map with nil key issue - this should trigger the !val1.IsValid() || !val2.IsValid() path
+	mapWithNilValue := map[interface{}]int{nil: 42}
+	mapWithNilValue2 := map[interface{}]int{nil: 42}
+	
+	if !DeepEqual(mapWithNilValue, mapWithNilValue2) {
+		t.Error("Maps with nil keys should be equal")
+	}
+	
+	// Test map where MapIndex returns invalid value - this should trigger val2.IsValid() == false
+	mapDifferentKeys1 := map[string]int{"key1": 1, "shared": 5}
+	mapDifferentKeys2 := map[string]int{"key2": 1, "shared": 5}
+	
+	if DeepEqual(mapDifferentKeys1, mapDifferentKeys2) {
+		t.Error("Maps with different keys should not be equal")
+	}
+	
+	// Test case where key exists in first map but not in second - should trigger !val2.IsValid()
+	mapMissingKey1 := map[string]int{"key1": 1, "key2": 2}
+	mapMissingKey2 := map[string]int{"key1": 1}
+	
+	if DeepEqual(mapMissingKey1, mapMissingKey2) {
+		t.Error("Map with missing key should not be equal")
+	}
+}
+
+// TestDeepEqualMapInvalidValues tests specific cases for map invalid value paths
+func TestDeepEqualMapInvalidValues(t *testing.T) {
+	// Create a map with a key that will exist in first but not second map
+	// This should specifically trigger the !val2.IsValid() path in line 40
+	m1 := map[string]interface{}{
+		"existing": "value1",
+		"unique":   "value2",
+	}
+	m2 := map[string]interface{}{
+		"existing": "value1",
+		// "unique" key is missing - this should trigger !val2.IsValid()
+	}
+	
+	result := DeepEqual(m1, m2)
+	if result {
+		t.Error("Maps with different key sets should return false")
+	}
+}
+
 // TestDeepEqualCoverage ensures we cover all code paths
 func TestDeepEqualCoverage(t *testing.T) {
 	// Test map key not found case

@@ -37,10 +37,34 @@ func TestToUint(t *testing.T) {
 		{"map", map[string]int{"a": 1}, 0},         // 映射类型不支持
 		{"nil pointer", (*int)(nil), 0},           // nil 指针返回 0
 		
+		// 更多类型测试
+		{"int8", int8(100), 100},
+		{"int16", int16(1000), 1000}, 
+		{"int32", int32(50000), 50000},
+		{"int64", int64(70000), 70000},
+		{"uint8", uint8(255), 255},
+		{"uint16", uint16(65535), 65535},
+		{"uint32", uint32(100000), 100000},
+		{"uint64", uint64(200000), 200000},
+		{"float32", float32(2.71), 2},
+		{"float64", float64(2.71), 2},
+		
 		// 边界值测试
 		{"max int", 1<<63 - 1, 9223372036854775807}, // 最大 int64 值
 		{"min int", -1 << 63, 9223372036854775808}, // 最小 int64 值
 		{"max uint", ^uint(0), ^uint(0)},          // 最大 uint 值
+		
+		// 更多字符串测试
+		{"string empty", "", 0},
+		{"string negative", "-10", 0}, // negative strings should fail parsing for uint
+		{"string large", "18446744073709551615", 18446744073709551615},
+		
+		// 更多字节切片测试
+		{"byte slice empty", []byte(""), 0},
+		{"byte slice negative", []byte("-10"), 0},
+		
+		// nil 测试
+		{"nil", nil, 0},
 	}
 
 	// 遍历所有测试用例
