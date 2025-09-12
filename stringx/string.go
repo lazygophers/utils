@@ -10,17 +10,29 @@ import (
 )
 
 func ToString(b []byte) string {
+	log.Debugf("ToString: converting byte slice of length %d", len(b))
 	if b == nil {
+		log.Debug("ToString: nil byte slice provided")
 		return ""
 	}
-	return *(*string)(unsafe.Pointer(&b))
+	if len(b) == 0 {
+		log.Debug("ToString: empty byte slice provided")
+		return ""
+	}
+	result := *(*string)(unsafe.Pointer(&b))
+	log.Debugf("ToString: converted to string of length %d", len(result))
+	return result
 }
 
 func ToBytes(s string) []byte {
+	log.Debugf("ToBytes: converting string of length %d", len(s))
 	if s == "" {
+		log.Debug("ToBytes: empty string provided")
 		return nil
 	}
-	return *(*[]byte)(unsafe.Pointer(&s))
+	result := *(*[]byte)(unsafe.Pointer(&s))
+	log.Debugf("ToBytes: converted to byte slice of length %d", len(result))
+	return result
 }
 
 // Camel2Snake 驼峰转蛇形
@@ -41,6 +53,11 @@ func Camel2Snake(s string) string {
 
 // Snake2Camel 蛇形转驼峰
 func Snake2Camel(s string) string {
+	log.Debugf("Snake2Camel: converting %q", s)
+	if s == "" {
+		log.Debug("Snake2Camel: empty string provided")
+		return ""
+	}
 	var b bytes.Buffer
 	upper := true
 	for _, v := range s {
@@ -48,18 +65,25 @@ func Snake2Camel(s string) string {
 			upper = true
 		} else {
 			if upper {
-				b.WriteString(string(v - 32))
+				b.WriteRune(unicode.ToUpper(v))
 				upper = false
 			} else {
-				b.WriteString(string(v))
+				b.WriteRune(v)
 			}
 		}
 	}
-	return b.String()
+	result := b.String()
+	log.Debugf("Snake2Camel result: %q", result)
+	return result
 }
 
 // Snake2SmallCamel 蛇形转小驼峰
 func Snake2SmallCamel(s string) string {
+	log.Debugf("Snake2SmallCamel: converting %q", s)
+	if s == "" {
+		log.Debug("Snake2SmallCamel: empty string provided")
+		return ""
+	}
 	var b bytes.Buffer
 	upper := false
 	isFirst := true
@@ -71,14 +95,16 @@ func Snake2SmallCamel(s string) string {
 				isFirst = false
 				b.WriteRune(unicode.ToLower(v))
 			} else if upper {
-				b.WriteString(string(v - 32))
+				b.WriteRune(unicode.ToUpper(v))
 				upper = false
 			} else {
-				b.WriteString(string(v))
+				b.WriteRune(v)
 			}
 		}
 	}
-	return b.String()
+	result := b.String()
+	log.Debugf("Snake2SmallCamel result: %q", result)
+	return result
 }
 
 // ToSnake 蛇形
@@ -205,6 +231,15 @@ func ToSmallCamel(s string) string {
 
 // SplitLen 按长度分割字符串
 func SplitLen(s string, max int) []string {
+	log.Debugf("SplitLen: splitting string of length %d with max length %d", len(s), max)
+	if max <= 0 {
+		log.Error("SplitLen: max length must be positive")
+		return []string{s}
+	}
+	if s == "" {
+		log.Debug("SplitLen: empty string provided")
+		return []string{}
+	}
 	var lines []string
 	b := log.GetBuffer()
 	defer log.PutBuffer(b)
@@ -221,24 +256,46 @@ func SplitLen(s string, max int) []string {
 		lines = append(lines, b.String())
 	}
 
+	log.Debugf("SplitLen result: %d lines", len(lines))
 	return lines
 }
 
 // Shorten 缩短字符串
 func Shorten(s string, max int) string {
+	log.Debugf("Shorten: shortening string of length %d to max %d", len(s), max)
+	if max < 0 {
+		log.Error("Shorten: max length cannot be negative")
+		return ""
+	}
 	if len(s) <= max {
+		log.Debug("Shorten: string already within limit")
 		return s
 	}
 
-	return s[:max]
+	result := s[:max]
+	log.Debugf("Shorten result: %q", result)
+	return result
 }
 
 func ShortenShow(s string, max int) string {
+	log.Debugf("ShortenShow: shortening string of length %d to max %d with ellipsis", len(s), max)
+	if max < 0 {
+		log.Error("ShortenShow: max length cannot be negative")
+		return "..."
+	}
 	if len(s) <= max {
+		log.Debug("ShortenShow: string already within limit")
 		return s
 	}
 
-	return s[:max] + "..."
+	if max < 3 {
+		log.Warn("ShortenShow: max length is less than 3, returning ellipsis only")
+		return "..."
+	}
+
+	result := s[:max-3] + "..."
+	log.Debugf("ShortenShow result: %q", result)
+	return result
 }
 
 func IsUpper[M string | []rune](r M) bool {
@@ -256,11 +313,18 @@ func IsDigit[M string | []rune](r M) bool {
 }
 
 func Reverse(s string) string {
-	var b bytes.Buffer
-	for i := len(s) - 1; i >= 0; i-- {
-		b.WriteString(string(s[i]))
+	log.Debugf("Reverse: reversing string of length %d", len(s))
+	if s == "" {
+		log.Debug("Reverse: empty string provided")
+		return ""
 	}
-	return b.String()
+	runes := []rune(s)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	result := string(runes)
+	log.Debugf("Reverse result: %q", result)
+	return result
 }
 
 func Quote(s string) string {
