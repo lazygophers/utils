@@ -98,7 +98,7 @@ func TestEqualFold(t *testing.T) {
 		{"", "a", false},
 		{"测试", "测试", true},
 		{"Ñoël", "ñoël", true},
-		{"straße", "STRASSE", true}, // German ß case folding
+		{"straße", "STRASSE", false}, // German ß doesn't fold to SS
 	}
 
 	for _, tc := range testCases {
@@ -304,7 +304,7 @@ func TestLastIndexAny(t *testing.T) {
 		chars    string
 		expected int
 	}{
-		{"hello", "aeiou", 1}, // Only 'e' at index 1
+		{"hello", "aeiou", 4}, // Last vowel 'o' at index 4
 		{"hello world", "aeiou", 7}, // 'o' at index 7
 		{"hello", "xyz", -1},
 		{"hello", "", -1},
@@ -359,7 +359,7 @@ func TestReplace(t *testing.T) {
 		{"hello world hello", "hello", "hi", -1, "hi world hi"},
 		{"hello world hello", "xyz", "abc", 1, "hello world hello"},
 		{"", "old", "new", 1, ""},
-		{"test", "", "x", 3, "xxtxexsxtx"}, // Replace empty string
+		{"test", "", "x", 3, "xtxexst"}, // Replace empty string (limited by n)
 		{"测试测试", "测试", "检查", 1, "检查测试"},
 	}
 
@@ -502,7 +502,7 @@ func TestTitle(t *testing.T) {
 		{"hello world", "Hello World"},
 		{"", ""},
 		{"a", "A"},
-		{"123abc", "123Abc"},
+		{"123abc", "123abc"}, // Numbers don't create word boundaries
 		{"测试 字符串", "测试 字符串"}, // Chinese characters don't change
 		{"hello-world", "Hello-World"},
 	}

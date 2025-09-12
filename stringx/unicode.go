@@ -1,35 +1,25 @@
 package stringx
 
-import (
-	"github.com/lazygophers/log"
-	"unicode"
-)
+import "unicode"
 
 func AllDigit(s string) bool {
-	log.Debugf("AllDigit: checking if all characters in %q are digits", s)
 	if s == "" {
-		log.Debug("AllDigit: empty string provided, returning true")
 		return true
 	}
 	for _, c := range s {
 		if !unicode.IsDigit(c) {
-			log.Debugf("AllDigit: found non-digit character %q", c)
 			return false
 		}
 	}
-	log.Debug("AllDigit: all characters are digits")
 	return true
 }
 
 func HasDigit(s string) bool {
-	log.Debugf("HasDigit: checking if any character in %q is a digit", s)
 	for _, c := range s {
 		if unicode.IsDigit(c) {
-			log.Debugf("HasDigit: found digit character %q", c)
 			return true
 		}
 	}
-	log.Debug("HasDigit: no digit characters found")
 	return false
 }
 
@@ -232,29 +222,22 @@ func HasTitle(s string) bool {
 }
 
 func AllLetterOrDigit(s string) bool {
-	log.Debugf("AllLetterOrDigit: checking if all characters in %q are letters or digits", s)
 	if s == "" {
-		log.Debug("AllLetterOrDigit: empty string provided, returning true")
 		return true
 	}
 	for _, c := range s {
 		if !unicode.IsLetter(c) && !unicode.IsDigit(c) {
-			log.Debugf("AllLetterOrDigit: found character %q that is neither letter nor digit", c)
 			return false
 		}
 	}
-	log.Debug("AllLetterOrDigit: all characters are letters or digits")
 	return true
 }
 
 func HasLetterOrDigit(s string) bool {
-	log.Debugf("HasLetterOrDigit: checking if any character in %q is a letter or digit", s)
 	for _, c := range s {
 		if unicode.IsLetter(c) || unicode.IsDigit(c) {
-			log.Debugf("HasLetterOrDigit: found letter or digit character %q", c)
 			return true
 		}
 	}
-	log.Debug("HasLetterOrDigit: no letter or digit characters found")
 	return false
 }

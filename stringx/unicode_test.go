@@ -183,7 +183,7 @@ func TestAllSymbol(t *testing.T) {
 		{"123", false},
 		{"$100", false}, // Mixed
 		{"@#$", false},  // These are punctuation, not symbols
-		{"😀", false},   // Emoji is not a symbol in Unicode classification
+		{"😀", true},   // Emoji is classified as a symbol in Unicode
 		{"∑∏∫", true},   // Mathematical symbols
 	}
 
@@ -250,13 +250,13 @@ func TestHasMark(t *testing.T) {
 		input    string
 		expected bool
 	}{
-		{"é", true},     // Contains combining mark
+		{"é", false},     // Precomposed character, not a combining mark
 		{"", false},     // Empty string case
 		{"cafe", false}, // No combining marks
-		{"café", true},  // Contains combining mark
-		{"résumé", true}, // Contains combining marks
+		{"café", false},  // Precomposed characters, no combining marks
+		{"résumé", false}, // Precomposed characters, no combining marks
 		{"hello", false},
-		{"naïve", true}, // Contains diaeresis mark
+		{"naïve", false}, // Precomposed characters, no combining marks
 	}
 
 	for _, tc := range testCases {
@@ -274,7 +274,7 @@ func TestAllPunct(t *testing.T) {
 		input    string
 		expected bool
 	}{
-		{"!@#$%", true},
+		{"!@#$%", false}, // $ is classified as symbol, not punctuation
 		{"", true}, // Empty string case
 		{".,;:", true},
 		{"()[]{}", true},
@@ -742,16 +742,24 @@ func TestUnicodeEdgeCases(t *testing.T) {
 
 	t.Run("unicode_normalization", func(t *testing.T) {
 		// Test with different Unicode normalization forms
-		s1 := "é" // Single character with accent
-		s2 := "e\u0301" // 'e' + combining acute accent
+		s1 := "é" // Single character with accent (precomposed)
+		s2 := "e\u0301" // 'e' + combining acute accent (decomposed)
 		
-		// Both should be treated as having letters and marks
+		// Both should be treated as having letters
 		if !HasLetter(s1) || !HasLetter(s2) {
 			t.Error("Both normalized forms should have letters")
 		}
 		
-		if !HasMark(s1) || !HasMark(s2) {
-			t.Error("Both normalized forms should have marks")
+		// Only the decomposed form (s2) has actual combining marks
+		// The precomposed form (s1) is treated as a single letter
+		if !HasMark(s2) {
+			t.Error("Decomposed form should have marks")
+		}
+		
+		// The precomposed form may or may not have marks depending on Unicode implementation
+		// This is acceptable behavior - test passes if either has marks
+		if !HasMark(s1) && !HasMark(s2) {
+			t.Error("At least one form should have detectable marks")
 		}
 	})
 

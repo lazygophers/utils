@@ -10,29 +10,20 @@ import (
 )
 
 func ToString(b []byte) string {
-	log.Debugf("ToString: converting byte slice of length %d", len(b))
 	if b == nil {
-		log.Debug("ToString: nil byte slice provided")
 		return ""
 	}
 	if len(b) == 0 {
-		log.Debug("ToString: empty byte slice provided")
 		return ""
 	}
-	result := *(*string)(unsafe.Pointer(&b))
-	log.Debugf("ToString: converted to string of length %d", len(result))
-	return result
+	return *(*string)(unsafe.Pointer(&b))
 }
 
 func ToBytes(s string) []byte {
-	log.Debugf("ToBytes: converting string of length %d", len(s))
 	if s == "" {
-		log.Debug("ToBytes: empty string provided")
 		return nil
 	}
-	result := *(*[]byte)(unsafe.Pointer(&s))
-	log.Debugf("ToBytes: converted to byte slice of length %d", len(result))
-	return result
+	return *(*[]byte)(unsafe.Pointer(&s))
 }
 
 // Camel2Snake 驼峰转蛇形
@@ -53,9 +44,7 @@ func Camel2Snake(s string) string {
 
 // Snake2Camel 蛇形转驼峰
 func Snake2Camel(s string) string {
-	log.Debugf("Snake2Camel: converting %q", s)
 	if s == "" {
-		log.Debug("Snake2Camel: empty string provided")
 		return ""
 	}
 	var b bytes.Buffer
@@ -72,16 +61,12 @@ func Snake2Camel(s string) string {
 			}
 		}
 	}
-	result := b.String()
-	log.Debugf("Snake2Camel result: %q", result)
-	return result
+	return b.String()
 }
 
 // Snake2SmallCamel 蛇形转小驼峰
 func Snake2SmallCamel(s string) string {
-	log.Debugf("Snake2SmallCamel: converting %q", s)
 	if s == "" {
-		log.Debug("Snake2SmallCamel: empty string provided")
 		return ""
 	}
 	var b bytes.Buffer
@@ -94,34 +79,61 @@ func Snake2SmallCamel(s string) string {
 			if isFirst {
 				isFirst = false
 				b.WriteRune(unicode.ToLower(v))
+				upper = false // Reset upper flag after first character
 			} else if upper {
 				b.WriteRune(unicode.ToUpper(v))
 				upper = false
 			} else {
-				b.WriteRune(v)
+				// Convert to lowercase for consistency in camelCase
+				b.WriteRune(unicode.ToLower(v))
 			}
 		}
 	}
-	result := b.String()
-	log.Debugf("Snake2SmallCamel result: %q", result)
-	return result
+	return b.String()
 }
 
 // ToSnake 蛇形
 func ToSnake(s string) string {
 	var b bytes.Buffer
-	for i, v := range s {
+	runes := []rune(s)
+	for i, v := range runes {
 		if unicode.IsLetter(v) || unicode.IsNumber(v) {
-			if unicode.IsUpper(v) {
-				if i > 0 {
-					b.WriteRune('_')
+			needsUnderscore := false
+			
+			// Check if we need an underscore before this character
+			if i > 0 {
+				prev := runes[i-1]
+				// Add underscore for uppercase letters (camelCase -> camel_case)
+				if unicode.IsUpper(v) && unicode.IsLetter(prev) {
+					needsUnderscore = true
 				}
+				// Add underscore when transitioning from letter to number
+				if unicode.IsNumber(v) && unicode.IsLetter(prev) {
+					needsUnderscore = true
+				}
+				// Add underscore when transitioning from number to letter  
+				if unicode.IsLetter(v) && unicode.IsNumber(prev) {
+					needsUnderscore = true
+				}
+			}
+			
+			if needsUnderscore {
+				b.WriteRune('_')
+			}
+			
+			if unicode.IsUpper(v) {
 				b.WriteRune(unicode.ToLower(v))
 			} else {
 				b.WriteRune(v)
 			}
 		} else {
-			b.WriteRune('_')
+			// Only add underscore if the last character wasn't an underscore
+			if b.Len() > 0 {
+				lastRune := []rune(b.String())
+				if len(lastRune) == 0 || lastRune[len(lastRune)-1] != '_' {
+					b.WriteRune('_')
+				}
+			}
 		}
 	}
 
@@ -131,18 +143,45 @@ func ToSnake(s string) string {
 // ToKebab
 func ToKebab(s string) string {
 	var b bytes.Buffer
-	for i, v := range s {
+	runes := []rune(s)
+	for i, v := range runes {
 		if unicode.IsLetter(v) || unicode.IsNumber(v) {
-			if unicode.IsUpper(v) {
-				if i > 0 {
-					b.WriteRune('-')
+			needsHyphen := false
+			
+			// Check if we need a hyphen before this character
+			if i > 0 {
+				prev := runes[i-1]
+				// Add hyphen for uppercase letters (camelCase -> camel-case)
+				if unicode.IsUpper(v) && unicode.IsLetter(prev) {
+					needsHyphen = true
 				}
+				// Add hyphen when transitioning from letter to number
+				if unicode.IsNumber(v) && unicode.IsLetter(prev) {
+					needsHyphen = true
+				}
+				// Add hyphen when transitioning from number to letter  
+				if unicode.IsLetter(v) && unicode.IsNumber(prev) {
+					needsHyphen = true
+				}
+			}
+			
+			if needsHyphen {
+				b.WriteRune('-')
+			}
+			
+			if unicode.IsUpper(v) {
 				b.WriteRune(unicode.ToLower(v))
 			} else {
 				b.WriteRune(v)
 			}
 		} else {
-			b.WriteRune('-')
+			// Only add hyphen if the last character wasn't a hyphen
+			if b.Len() > 0 {
+				lastRune := []rune(b.String())
+				if len(lastRune) == 0 || lastRune[len(lastRune)-1] != '-' {
+					b.WriteRune('-')
+				}
+			}
 		}
 	}
 
@@ -153,16 +192,27 @@ func ToKebab(s string) string {
 func ToCamel(s string) string {
 	var b bytes.Buffer
 	upper := true
+	prevWasNumber := false
 	for _, v := range s {
 		if unicode.IsLetter(v) || unicode.IsNumber(v) {
-			if upper {
-				b.WriteRune(unicode.ToUpper(v))
+			if upper || (prevWasNumber && unicode.IsLetter(v)) {
+				if unicode.IsLetter(v) {
+					b.WriteRune(unicode.ToUpper(v))
+				} else {
+					b.WriteRune(v)
+				}
 				upper = false
 			} else {
-				b.WriteRune(v)
+				if unicode.IsLetter(v) {
+					b.WriteRune(unicode.ToLower(v))
+				} else {
+					b.WriteRune(v)
+				}
 			}
+			prevWasNumber = unicode.IsNumber(v)
 		} else {
 			upper = true
+			prevWasNumber = false
 		}
 	}
 	return b.String()
@@ -170,18 +220,45 @@ func ToCamel(s string) string {
 
 func ToSlash(s string) string {
 	var b bytes.Buffer
-	for i, v := range s {
+	runes := []rune(s)
+	for i, v := range runes {
 		if unicode.IsLetter(v) || unicode.IsNumber(v) {
-			if unicode.IsUpper(v) {
-				if i > 0 {
-					b.WriteRune('/')
+			needsSlash := false
+			
+			// Check if we need a slash before this character
+			if i > 0 {
+				prev := runes[i-1]
+				// Add slash for uppercase letters (camelCase -> camel/case)
+				if unicode.IsUpper(v) && unicode.IsLetter(prev) {
+					needsSlash = true
 				}
+				// Add slash when transitioning from letter to number
+				if unicode.IsNumber(v) && unicode.IsLetter(prev) {
+					needsSlash = true
+				}
+				// Add slash when transitioning from number to letter  
+				if unicode.IsLetter(v) && unicode.IsNumber(prev) {
+					needsSlash = true
+				}
+			}
+			
+			if needsSlash {
+				b.WriteRune('/')
+			}
+			
+			if unicode.IsUpper(v) {
 				b.WriteRune(unicode.ToLower(v))
 			} else {
 				b.WriteRune(v)
 			}
 		} else {
-			b.WriteRune('/')
+			// Only add slash if the last character wasn't a slash
+			if b.Len() > 0 {
+				lastRune := []rune(b.String())
+				if len(lastRune) == 0 || lastRune[len(lastRune)-1] != '/' {
+					b.WriteRune('/')
+				}
+			}
 		}
 	}
 	return b.String()
@@ -189,18 +266,45 @@ func ToSlash(s string) string {
 
 func ToDot(s string) string {
 	var b bytes.Buffer
-	for i, v := range s {
+	runes := []rune(s)
+	for i, v := range runes {
 		if unicode.IsLetter(v) || unicode.IsNumber(v) {
-			if unicode.IsUpper(v) {
-				if i > 0 {
-					b.WriteRune('.')
+			needsDot := false
+			
+			// Check if we need a dot before this character
+			if i > 0 {
+				prev := runes[i-1]
+				// Add dot for uppercase letters (camelCase -> camel.case)
+				if unicode.IsUpper(v) && unicode.IsLetter(prev) {
+					needsDot = true
 				}
+				// Add dot when transitioning from letter to number
+				if unicode.IsNumber(v) && unicode.IsLetter(prev) {
+					needsDot = true
+				}
+				// Add dot when transitioning from number to letter  
+				if unicode.IsLetter(v) && unicode.IsNumber(prev) {
+					needsDot = true
+				}
+			}
+			
+			if needsDot {
+				b.WriteRune('.')
+			}
+			
+			if unicode.IsUpper(v) {
 				b.WriteRune(unicode.ToLower(v))
 			} else {
 				b.WriteRune(v)
 			}
 		} else {
-			b.WriteRune('.')
+			// Only add dot if the last character wasn't a dot
+			if b.Len() > 0 {
+				lastRune := []rune(b.String())
+				if len(lastRune) == 0 || lastRune[len(lastRune)-1] != '.' {
+					b.WriteRune('.')
+				}
+			}
 		}
 	}
 	return b.String()
@@ -211,19 +315,35 @@ func ToSmallCamel(s string) string {
 	var b bytes.Buffer
 	upper := false
 	isFirst := true
+	prevWasNumber := false
 	for _, v := range s {
 		if unicode.IsLetter(v) || unicode.IsNumber(v) {
 			if isFirst {
 				isFirst = false
-				b.WriteRune(unicode.ToLower(v))
-			} else if upper {
-				b.WriteRune(unicode.ToUpper(v))
+				if unicode.IsLetter(v) {
+					b.WriteRune(unicode.ToLower(v))
+				} else {
+					b.WriteRune(v)
+				}
+				upper = false
+			} else if upper || (prevWasNumber && unicode.IsLetter(v)) {
+				if unicode.IsLetter(v) {
+					b.WriteRune(unicode.ToUpper(v))
+				} else {
+					b.WriteRune(v)
+				}
 				upper = false
 			} else {
-				b.WriteRune(v)
+				if unicode.IsLetter(v) {
+					b.WriteRune(unicode.ToLower(v))
+				} else {
+					b.WriteRune(v)
+				}
 			}
+			prevWasNumber = unicode.IsNumber(v)
 		} else if !isFirst {
 			upper = true
+			prevWasNumber = false
 		}
 	}
 	return b.String()
@@ -231,24 +351,24 @@ func ToSmallCamel(s string) string {
 
 // SplitLen 按长度分割字符串
 func SplitLen(s string, max int) []string {
-	log.Debugf("SplitLen: splitting string of length %d with max length %d", len(s), max)
 	if max <= 0 {
-		log.Error("SplitLen: max length must be positive")
 		return []string{s}
 	}
 	if s == "" {
-		log.Debug("SplitLen: empty string provided")
 		return []string{}
 	}
 	var lines []string
 	b := log.GetBuffer()
 	defer log.PutBuffer(b)
-
+	
+	runeCount := 0
 	for _, r := range []rune(s) {
 		b.WriteRune(r)
-		if b.Len() >= max {
+		runeCount++
+		if runeCount >= max {
 			lines = append(lines, b.String())
 			b.Reset()
+			runeCount = 0
 		}
 	}
 
@@ -256,46 +376,31 @@ func SplitLen(s string, max int) []string {
 		lines = append(lines, b.String())
 	}
 
-	log.Debugf("SplitLen result: %d lines", len(lines))
 	return lines
 }
 
 // Shorten 缩短字符串
 func Shorten(s string, max int) string {
-	log.Debugf("Shorten: shortening string of length %d to max %d", len(s), max)
 	if max < 0 {
-		log.Error("Shorten: max length cannot be negative")
 		return ""
 	}
 	if len(s) <= max {
-		log.Debug("Shorten: string already within limit")
 		return s
 	}
-
-	result := s[:max]
-	log.Debugf("Shorten result: %q", result)
-	return result
+	return s[:max]
 }
 
 func ShortenShow(s string, max int) string {
-	log.Debugf("ShortenShow: shortening string of length %d to max %d with ellipsis", len(s), max)
 	if max < 0 {
-		log.Error("ShortenShow: max length cannot be negative")
 		return "..."
 	}
 	if len(s) <= max {
-		log.Debug("ShortenShow: string already within limit")
 		return s
 	}
-
 	if max < 3 {
-		log.Warn("ShortenShow: max length is less than 3, returning ellipsis only")
 		return "..."
 	}
-
-	result := s[:max-3] + "..."
-	log.Debugf("ShortenShow result: %q", result)
-	return result
+	return s[:max-3] + "..."
 }
 
 func IsUpper[M string | []rune](r M) bool {
@@ -313,18 +418,14 @@ func IsDigit[M string | []rune](r M) bool {
 }
 
 func Reverse(s string) string {
-	log.Debugf("Reverse: reversing string of length %d", len(s))
 	if s == "" {
-		log.Debug("Reverse: empty string provided")
 		return ""
 	}
 	runes := []rune(s)
 	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
 		runes[i], runes[j] = runes[j], runes[i]
 	}
-	result := string(runes)
-	log.Debugf("Reverse result: %q", result)
-	return result
+	return string(runes)
 }
 
 func Quote(s string) string {
