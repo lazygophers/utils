@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// Mock failure functions
+// Mock failure functions for BLAKE2 dependency injection
 func FailingBLAKE2bNew(size int, key []byte) (hash.Hash, error) {
 	return nil, errors.New("simulated BLAKE2b New failure")
 }
@@ -15,8 +15,8 @@ func FailingBLAKE2sNew256(key []byte) (hash.Hash, error) {
 	return nil, errors.New("simulated BLAKE2s New256 failure")
 }
 
-// TestHash_100PercentCoverage tests all error paths in hash functions
-func TestHash_100PercentCoverage(t *testing.T) {
+// TestHashComplete_100PercentCoverage tests all error paths in hash functions
+func TestHashComplete_100PercentCoverage(t *testing.T) {
 	// Save original functions
 	originalBLAKE2bNew := blake2bNew
 	originalBLAKE2sNew256 := blake2sNew256
@@ -49,18 +49,16 @@ func TestHash_100PercentCoverage(t *testing.T) {
 	}
 
 	// Test 2a: Trigger BLAKE2s New256 failure in original BLAKE2s function
-	// This will test the error path in the original BLAKE2s function
 	_, err = BLAKE2s(validData, 32)
 	if err == nil {
 		t.Error("Expected BLAKE2s New256 error in BLAKE2s function")
 	}
 
-	// Test 3: Trigger existing BLAKE2s error path in original BLAKE2s function
 	// Reset functions to original
 	blake2bNew = originalBLAKE2bNew
 	blake2sNew256 = originalBLAKE2sNew256
 
-	// Test with invalid size (already tested in main test file, but ensure coverage)
+	// Test all remaining error paths
 	_, err = BLAKE2s(validData, 0)
 	if err == nil {
 		t.Error("Expected error for BLAKE2s with size 0")
@@ -71,7 +69,6 @@ func TestHash_100PercentCoverage(t *testing.T) {
 		t.Error("Expected error for BLAKE2s with negative size")
 	}
 
-	// Test 4: Test BLAKE2b function error paths
 	_, err = BLAKE2b(validData, 0)
 	if err == nil {
 		t.Error("Expected error for BLAKE2b with size 0")
@@ -82,7 +79,6 @@ func TestHash_100PercentCoverage(t *testing.T) {
 		t.Error("Expected error for BLAKE2b with size > 64")
 	}
 
-	// Test 5: Test SHAKE functions error paths
 	_, err = SHAKE128(validData, 0)
 	if err == nil {
 		t.Error("Expected error for SHAKE128 with size 0")
@@ -103,7 +99,6 @@ func TestHash_100PercentCoverage(t *testing.T) {
 		t.Error("Expected error for SHAKE256 with negative size")
 	}
 
-	// Test 6: Test BLAKE2bWithKey error paths
 	_, err = BLAKE2bWithKey(validData, validKey, 0)
 	if err == nil {
 		t.Error("Expected error for BLAKE2bWithKey with size 0")
@@ -347,5 +342,60 @@ func TestHashTypeVariations(t *testing.T) {
 
 	if HMACSHA512(keyString, testString) != HMACSHA512(keyBytes, testBytes) {
 		t.Error("HMACSHA512 should produce same result for string and []byte")
+	}
+
+	// Test FNV functions with different input types
+	if Hash32(testString) != Hash32(testBytes) {
+		t.Error("Hash32 should produce same result for string and []byte")
+	}
+
+	if Hash32a(testString) != Hash32a(testBytes) {
+		t.Error("Hash32a should produce same result for string and []byte")
+	}
+
+	if Hash64(testString) != Hash64(testBytes) {
+		t.Error("Hash64 should produce same result for string and []byte")
+	}
+
+	if Hash64a(testString) != Hash64a(testBytes) {
+		t.Error("Hash64a should produce same result for string and []byte")
+	}
+
+	// Test CRC functions with different input types
+	if CRC32(testString) != CRC32(testBytes) {
+		t.Error("CRC32 should produce same result for string and []byte")
+	}
+
+	if CRC64(testString) != CRC64(testBytes) {
+		t.Error("CRC64 should produce same result for string and []byte")
+	}
+
+	// Test SHA3 functions with different input types
+	if SHA3_224(testString) != SHA3_224(testBytes) {
+		t.Error("SHA3_224 should produce same result for string and []byte")
+	}
+
+	if SHA3_256(testString) != SHA3_256(testBytes) {
+		t.Error("SHA3_256 should produce same result for string and []byte")
+	}
+
+	if SHA3_384(testString) != SHA3_384(testBytes) {
+		t.Error("SHA3_384 should produce same result for string and []byte")
+	}
+
+	if SHA3_512(testString) != SHA3_512(testBytes) {
+		t.Error("SHA3_512 should produce same result for string and []byte")
+	}
+
+	shake128String, _ := SHAKE128(testString, 32)
+	shake128Bytes, _ := SHAKE128(testBytes, 32)
+	if shake128String != shake128Bytes {
+		t.Error("SHAKE128 should produce same result for string and []byte")
+	}
+
+	shake256String, _ := SHAKE256(testString, 32)
+	shake256Bytes, _ := SHAKE256(testBytes, 32)
+	if shake256String != shake256Bytes {
+		t.Error("SHAKE256 should produce same result for string and []byte")
 	}
 }
