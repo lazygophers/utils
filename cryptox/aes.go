@@ -286,3 +286,53 @@ func DecryptCTR(key, ciphertext []byte) ([]byte, error) {
 	stream.XORKeyStream(ciphertext, ciphertext)
 	return ciphertext, nil
 }
+
+// EncryptOFB 使用 AES-256 在 OFB 模式下加密明文。
+func EncryptOFB(key, plaintext []byte) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, errors.New("invalid key length: must be 32 bytes")
+	}
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	_, err = io.ReadFull(rand.Reader, iv)
+	if err != nil {
+		return nil, err
+	}
+
+	stream := cipher.NewOFB(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+	return ciphertext, nil
+}
+
+// DecryptOFB 使用 AES-256 在 OFB 模式下解密密文。
+func DecryptOFB(key, ciphertext []byte) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, errors.New("invalid key length: must be 32 bytes")
+	}
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ciphertext) < aes.BlockSize {
+		return nil, errors.New("ciphertext too short")
+	}
+
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+
+	if len(iv) != aes.BlockSize {
+		return nil, errors.New("invalid IV length")
+	}
+
+	stream := cipher.NewOFB(block, iv)
+	stream.XORKeyStream(ciphertext, ciphertext)
+	return ciphertext, nil
+}
