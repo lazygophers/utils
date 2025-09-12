@@ -3,9 +3,9 @@ package hystrix
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 	"time"
-
-	"go.uber.org/atomic"
+	"unsafe"
 )
 
 // requestResult 保存单个请求的执行结果
@@ -18,8 +18,8 @@ type requestResult struct {
 type State string
 
 const (
-	Closed   State = "closed"    // closed 表示熔断开启（服务不可用）
-	Open     State = "open"      // open 表示正常状态（服务可用）
+	Closed   State = "closed"    // closed 表示熔断关闭（服务可用）
+	Open     State = "open"      // open 表示熔断开启（服务不可用）
 	HalfOpen State = "half-open" // half-open 表示半开状态（尝试探测）
 )
 
@@ -43,29 +43,58 @@ type CircuitBreakerConfig struct {
 	BufferSize    int           // 请求结果缓存的大小，默认1000
 }
 
-// CircuitBreaker 实现熔断模式的核心结构
+// CircuitBreaker 高性能优化版本的熔断器
 type CircuitBreaker struct {
-	mu        sync.RWMutex // 主锁（读写锁优化并发）
-	stateLock sync.Mutex   // 状态转换专用锁
-	CircuitBreakerConfig
+	// 配置参数 (只读，无需同步)
+	timeWindow    int64 // 纳秒
+	onStateChange StateChange
+	readyToTrip   ReadyToTrip
+	probe         Probe
+	bufferSize    int
 
-	state State // 当前状态
+	// 状态管理 (原子操作优化)
+	state atomic.Uint32 // 0=Closed, 1=Open, 2=HalfOpen
 
-	requestResults *ringBuffer // 请求结果缓存
+	// 统计计数器 (内存对齐优化，避免伪共享)
+	stats struct {
+		successes       atomic.Uint64
+		_               [56]byte // 缓存行填充
+		failures        atomic.Uint64
+		_               [56]byte // 缓存行填充
+		lastCleanupTime atomic.Int64
+		_               [56]byte // 缓存行填充
+		changed         atomic.Uint32 // 0=false, 1=true
+		_               [60]byte // 缓存行填充
+	}
 
-	successes, failures atomic.Uint64 // 成功/失败计数器
-
-	changed atomic.Bool // 状态是否需要更新标记
-
-	lastCleanupTime atomic.Int64 // 最后清理时间
+	// 环形缓冲区优化
+	ringBuffer *optimizedRingBuffer
 }
 
-// NewCircuitBreaker 创建熔断器实例
-// 默认配置：
-// - Probe: 50% 概率探测
-// - ReadyToTrip: 失败次数超过成功次数
-// - 初始状态: Open (可用)
-// - BufferSize: 1000
+// optimizedRingBuffer 优化的环形缓冲区
+type optimizedRingBuffer struct {
+	// 使用连续内存块减少间接访问
+	buffer []int64 // 紧凑存储：高32位存储时间戳(相对)，低32位存储状态+标志
+	_      [56]byte
+	head   atomic.Uint64
+	_      [56]byte
+	tail   atomic.Uint64
+	_      [56]byte
+	size   uint64
+	mask   uint64 // size-1，用于快速取模
+}
+
+const (
+	stateClosedOpt   = 0
+	stateOpenOpt     = 1
+	stateHalfOpenOpt = 2
+
+	// 紧凑存储标志位
+	successFlag = 0x01
+	timeShift   = 32
+)
+
+// NewCircuitBreaker 创建优化版本的熔断器
 func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 	if c.Probe == nil {
 		c.Probe = ProbeWithChance(50)
@@ -73,7 +102,8 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 
 	if c.ReadyToTrip == nil {
 		c.ReadyToTrip = func(successes, failures uint64) bool {
-			return successes+failures == 0 && failures > successes
+			total := successes + failures
+			return total >= 10 && failures > successes
 		}
 	}
 
@@ -81,145 +111,235 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 		c.BufferSize = 1000
 	}
 
-	return &CircuitBreaker{
-		CircuitBreakerConfig: c,
-		changed:              *atomic.NewBool(true),
-		state:                Open,
-		requestResults:       newRingBuffer(c.BufferSize),
-		successes:            *atomic.NewUint64(0),
-		failures:             *atomic.NewUint64(0),
-		lastCleanupTime:      *atomic.NewInt64(time.Now().UnixNano()),
+	// 确保 BufferSize 是2的幂，用于快速取模
+	bufferSize := 1
+	for bufferSize < c.BufferSize {
+		bufferSize <<= 1
+	}
+
+	cb := &CircuitBreaker{
+		timeWindow:    c.TimeWindow.Nanoseconds(),
+		onStateChange: c.OnStateChange,
+		readyToTrip:   c.ReadyToTrip,
+		probe:         c.Probe,
+		bufferSize:    bufferSize,
+		ringBuffer:    newOptimizedRingBuffer(bufferSize),
+	}
+
+	cb.state.Store(stateClosedOpt)
+	cb.stats.changed.Store(1)
+	cb.stats.lastCleanupTime.Store(time.Now().UnixNano())
+
+	return cb
+}
+
+// newOptimizedRingBuffer 创建优化的环形缓冲区
+func newOptimizedRingBuffer(size int) *optimizedRingBuffer {
+	return &optimizedRingBuffer{
+		buffer: make([]int64, size),
+		size:   uint64(size),
+		mask:   uint64(size - 1),
 	}
 }
 
-// cleanUp 清理过期请求数据
-// 返回值表示是否发生清理
-func (p *CircuitBreaker) cleanUp() (change bool) {
-	now := time.Now().UnixNano()
-	if now-p.lastCleanupTime.Load() < p.TimeWindow.Nanoseconds() {
-		return false
-	}
-	p.lastCleanupTime.Store(now)
-
-	// 获取清理掉的成功/失败请求数量
-	removedSuccesses, removedFailures := p.requestResults.cleanup(now - p.TimeWindow.Nanoseconds())
-
-	// 同步减少全局计数器
-	if removedSuccesses > 0 || removedFailures > 0 {
-		p.successes.Sub(removedSuccesses)
-		p.failures.Sub(removedFailures)
-		return true
-	}
-	return false
-}
-
-// Before 判断是否允许执行新请求
-// 该方法会触发状态更新
+// Before 判断是否允许执行新请求 (无锁优化)
 func (p *CircuitBreaker) Before() bool {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
+	p.updateStateOptimized()
 
-	p.updateState()
-
-	switch p.state {
-	case Closed:
-		return false
-	case HalfOpen:
-		return p.Probe()
-	default:
+	state := p.state.Load()
+	switch state {
+	case stateClosedOpt:
 		return true
+	case stateOpenOpt:
+		return false
+	case stateHalfOpenOpt:
+		return p.probe()
+	default:
+		return false
 	}
 }
 
-// State 返回当前熔断器状态
-func (p *CircuitBreaker) State() State {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	return p.state
+// After 记录请求执行结果 (无锁优化)
+func (p *CircuitBreaker) After(success bool) {
+	now := time.Now().UnixNano()
+	
+	// 紧凑存储：时间戳(相对) + 成功标志
+	baseTime := p.stats.lastCleanupTime.Load()
+	relativeTime := now - baseTime
+	if relativeTime < 0 {
+		relativeTime = 0
+	}
+	
+	var packed int64
+	if relativeTime > 0x7FFFFFFF { // 超过32位，使用绝对时间
+		packed = now << timeShift
+	} else {
+		packed = relativeTime << timeShift
+	}
+	
+	if success {
+		packed |= successFlag
+		p.stats.successes.Add(1)
+	} else {
+		p.stats.failures.Add(1)
+	}
+
+	// 无锁添加到环形缓冲区
+	p.ringBuffer.addOptimized(packed)
+	p.stats.changed.Store(1)
 }
 
-// Stat 获取成功和失败计数
-func (p *CircuitBreaker) Stat() (successes, failures uint64) {
-	return p.successes.Load(), p.failures.Load()
+// addOptimized 无锁添加元素到环形缓冲区
+func (rb *optimizedRingBuffer) addOptimized(packed int64) {
+	tail := rb.tail.Add(1) - 1
+	rb.buffer[tail&rb.mask] = packed
 }
 
-// Total 获取总请求数
-func (p *CircuitBreaker) Total() uint64 {
-	return p.successes.Load() + p.failures.Load()
-}
-
-// stat 获取内部计数（未加锁）
-func (p *CircuitBreaker) stat() (successes, failures uint64) {
-	return p.successes.Load(), p.failures.Load()
-}
-
-// updateState 执行状态转换逻辑
-func (p *CircuitBreaker) updateState() {
-	if !p.changed.Load() && !p.cleanUp() {
+// updateStateOptimized 无锁状态更新
+func (p *CircuitBreaker) updateStateOptimized() {
+	if p.stats.changed.Load() == 0 && !p.cleanUpOptimized() {
 		return
 	}
 
-	p.stateLock.Lock()
-	defer p.stateLock.Unlock()
-
-	oldState := p.state
-	successes, failures := p.stat()
-
-	// 重置变更标记
-	p.changed.Store(false)
-
-	if p.ReadyToTrip(successes, failures) {
-		// 满足熔断条件
-		switch oldState {
-		case Open:
-			p.state = HalfOpen
-		case HalfOpen:
-			if p.requestResults.len() > 0 && p.requestResults.last().success {
-				p.state = Open
-				p.requestResults.reset()
-			} else {
-				p.state = Closed
-			}
-		}
-	} else {
-		// 未满足熔断条件
-		switch oldState {
-		case HalfOpen:
-			if p.requestResults.len() > 0 && p.requestResults.last().success {
-				p.state = Open
-			} else {
-				p.state = Closed
-			}
-		case Closed:
-			if failures > 0 {
-				p.state = HalfOpen
-			}
-		}
+	// 使用CAS避免锁竞争
+	if !p.stats.changed.CompareAndSwap(1, 0) {
+		return
 	}
 
-	// 触发状态变更回调
-	if oldState != p.state && p.OnStateChange != nil {
-		p.OnStateChange(oldState, p.state)
+	oldState := p.state.Load()
+	successes := p.stats.successes.Load()
+	failures := p.stats.failures.Load()
+
+	shouldTrip := p.readyToTrip(successes, failures)
+	var newState uint32
+
+	switch oldState {
+	case stateClosedOpt:
+		if shouldTrip {
+			newState = stateOpenOpt
+		} else {
+			newState = stateClosedOpt
+		}
+	case stateOpenOpt:
+		if !shouldTrip {
+			newState = stateHalfOpenOpt
+		} else {
+			newState = stateOpenOpt
+		}
+	case stateHalfOpenOpt:
+		if p.ringBuffer.hasRecentRequest() {
+			if p.ringBuffer.lastRequestSuccess() {
+				newState = stateClosedOpt
+				p.ringBuffer.reset()
+			} else {
+				newState = stateOpenOpt
+			}
+		} else {
+			newState = stateHalfOpenOpt
+		}
+	default:
+		newState = stateClosedOpt
+	}
+
+	if p.state.CompareAndSwap(oldState, newState) && oldState != newState && p.onStateChange != nil {
+		// 状态转换成功，触发回调
+		oldStateEnum := stateFromUint32(oldState)
+		newStateEnum := stateFromUint32(newState)
+		p.onStateChange(oldStateEnum, newStateEnum)
 	}
 }
 
-// After 记录请求执行结果
-func (p *CircuitBreaker) After(success bool) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	p.requestResults.add(&requestResult{success: success, time: time.Now()})
-	if success {
-		p.successes.Add(1)
-	} else {
-		p.failures.Add(1)
+// cleanUpOptimized 无锁清理过期数据
+func (p *CircuitBreaker) cleanUpOptimized() bool {
+	now := time.Now().UnixNano()
+	lastCleanup := p.stats.lastCleanupTime.Load()
+	
+	if now-lastCleanup < p.timeWindow {
+		return false
 	}
-	p.changed.Store(true)
+
+	if !p.stats.lastCleanupTime.CompareAndSwap(lastCleanup, now) {
+		return false // 其他goroutine已经在清理
+	}
+
+	threshold := now - p.timeWindow
+	removedSuccesses, removedFailures := p.ringBuffer.cleanupOptimized(threshold, lastCleanup)
+
+	if removedSuccesses > 0 || removedFailures > 0 {
+		p.stats.successes.Add(^(removedSuccesses - 1)) // 原子减法
+		p.stats.failures.Add(^(removedFailures - 1))   // 原子减法
+		return true
+	}
+
+	return false
 }
 
-// Call 执行服务调用
-// 如果熔断器开启（Open）则直接返回错误
-// 否则执行fn并记录执行结果
+// cleanupOptimized 无锁清理环形缓冲区
+func (rb *optimizedRingBuffer) cleanupOptimized(threshold, baseTime int64) (removedSuccesses, removedFailures uint64) {
+	head := rb.head.Load()
+	tail := rb.tail.Load()
+
+	for head < tail {
+		idx := head & rb.mask
+		packed := rb.buffer[idx]
+		
+		if packed == 0 {
+			break
+		}
+
+		// 解析时间戳
+		var timestamp int64
+		if packed>>timeShift > 0x7FFFFFFF {
+			timestamp = packed >> timeShift // 绝对时间
+		} else {
+			timestamp = baseTime + (packed >> timeShift) // 相对时间
+		}
+
+		if timestamp >= threshold {
+			break
+		}
+
+		// 统计被清理的请求
+		if packed&successFlag != 0 {
+			removedSuccesses++
+		} else {
+			removedFailures++
+		}
+
+		// 清理数据防止内存泄漏
+		rb.buffer[idx] = 0
+		head++
+	}
+
+	rb.head.Store(head)
+	return
+}
+
+// hasRecentRequest 检查是否有最近的请求
+func (rb *optimizedRingBuffer) hasRecentRequest() bool {
+	return rb.head.Load() < rb.tail.Load()
+}
+
+// lastRequestSuccess 获取最后一个请求的成功状态
+func (rb *optimizedRingBuffer) lastRequestSuccess() bool {
+	head := rb.head.Load()
+	tail := rb.tail.Load()
+	if head >= tail {
+		return false
+	}
+	
+	lastIdx := (tail - 1) & rb.mask
+	packed := rb.buffer[lastIdx]
+	return packed&successFlag != 0
+}
+
+// reset 重置环形缓冲区
+func (rb *optimizedRingBuffer) reset() {
+	rb.head.Store(0)
+	rb.tail.Store(0)
+}
+
+// Call 执行服务调用 (优化版本)
 func (p *CircuitBreaker) Call(fn func() error) error {
 	if !p.Before() {
 		return errors.New("circuit breaker is open")
@@ -230,72 +350,287 @@ func (p *CircuitBreaker) Call(fn func() error) error {
 	return err
 }
 
-// ringBuffer 线程安全的环形缓冲区
-// 优化内存对齐避免伪共享
-type ringBuffer struct {
-	buffer []*requestResult
-	head   atomic.Int64
-	_      [56]byte // 缓存行填充
-	tail   atomic.Int64
-	_      [56]byte // 缓存行填充
-	size   int
+// State 返回当前熔断器状态
+func (p *CircuitBreaker) State() State {
+	return stateFromUint32(p.state.Load())
 }
 
-// newRingBuffer 创建指定大小的环形缓冲区
-func newRingBuffer(size int) *ringBuffer {
-	return &ringBuffer{
-		buffer: make([]*requestResult, size),
-		size:   size,
+// Stat 获取成功和失败计数
+func (p *CircuitBreaker) Stat() (successes, failures uint64) {
+	return p.stats.successes.Load(), p.stats.failures.Load()
+}
+
+// Total 获取总请求数
+func (p *CircuitBreaker) Total() uint64 {
+	return p.stats.successes.Load() + p.stats.failures.Load()
+}
+
+// 状态转换辅助函数
+func stateFromUint32(state uint32) State {
+	switch state {
+	case stateClosedOpt:
+		return Closed
+	case stateOpenOpt:
+		return Open
+	case stateHalfOpenOpt:
+		return HalfOpen
+	default:
+		return Closed
 	}
 }
 
-// add 添加请求结果
-func (rb *ringBuffer) add(result *requestResult) {
-	tail := rb.tail.Load()
-	rb.buffer[tail%int64(rb.size)] = result
-	rb.tail.Add(1)
+// FastCircuitBreaker 超轻量级版本 (仅基础功能)
+type FastCircuitBreaker struct {
+	state     atomic.Uint32 // 状态
+	successes atomic.Uint64 // 成功计数
+	failures  atomic.Uint64 // 失败计数
+	lastReset atomic.Int64  // 上次重置时间
+
+	threshold   uint64 // 失败阈值
+	windowNanos int64  // 时间窗口(纳秒)
 }
 
-// cleanup 清理过期数据
-// 返回值: 被清理的成功/失败请求数量
-func (rb *ringBuffer) cleanup(threshold int64) (removedSuccesses, removedFailures uint64) {
-	for rb.head.Load() != rb.tail.Load() {
-		idx := rb.head.Load()
-		if rb.buffer[idx%int64(rb.size)] == nil ||
-			rb.buffer[idx%int64(rb.size)].time.UnixNano() >= threshold {
-			break
-		}
+// NewFastCircuitBreaker 创建超轻量级熔断器
+func NewFastCircuitBreaker(failureThreshold uint64, timeWindow time.Duration) *FastCircuitBreaker {
+	cb := &FastCircuitBreaker{
+		threshold:   failureThreshold,
+		windowNanos: timeWindow.Nanoseconds(),
+	}
+	cb.lastReset.Store(time.Now().UnixNano())
+	return cb
+}
 
-		// 统计被清理的请求结果
-		if rb.buffer[idx%int64(rb.size)].success {
-			removedSuccesses++
+// AllowRequest 检查是否允许请求 (超快速)
+func (cb *FastCircuitBreaker) AllowRequest() bool {
+	now := time.Now().UnixNano()
+	lastReset := cb.lastReset.Load()
+
+	// 检查是否需要重置窗口
+	if now-lastReset > cb.windowNanos {
+		if cb.lastReset.CompareAndSwap(lastReset, now) {
+			cb.successes.Store(0)
+			cb.failures.Store(0)
+			cb.state.Store(stateClosedOpt) // 重置状态到关闭
+		}
+	}
+
+	state := cb.state.Load()
+	if state == stateOpenOpt {
+		// 熔断状态：检查是否可以尝试半开
+		return false
+	}
+
+	return true // Closed 或 HalfOpen 状态允许请求
+}
+
+// RecordResult 记录请求结果 (超快速)
+func (cb *FastCircuitBreaker) RecordResult(success bool) {
+	if success {
+		cb.successes.Add(1)
+	} else {
+		failures := cb.failures.Add(1)
+		if failures >= cb.threshold {
+			cb.state.Store(stateOpenOpt)
+		}
+	}
+}
+
+// CallFast 快速执行服务调用
+func (cb *FastCircuitBreaker) CallFast(fn func() error) error {
+	if !cb.AllowRequest() {
+		return errors.New("circuit breaker is open")
+	}
+
+	err := fn()
+	cb.RecordResult(err == nil)
+	
+	// 半开状态的快速恢复逻辑
+	if err == nil && cb.state.Load() == stateHalfOpenOpt {
+		cb.state.Store(stateClosedOpt)
+	}
+	
+	return err
+}
+
+// 内存池优化 - 复用 requestResult 对象
+var requestResultPool = sync.Pool{
+	New: func() interface{} {
+		return &requestResult{}
+	},
+}
+
+// getRequestResult 从池中获取对象
+func getRequestResult() *requestResult {
+	return requestResultPool.Get().(*requestResult)
+}
+
+// putRequestResult 归还对象到池中
+func putRequestResult(r *requestResult) {
+	r.success = false
+	r.time = time.Time{}
+	requestResultPool.Put(r)
+}
+
+// BatchCircuitBreaker 批量操作优化版本
+type BatchCircuitBreaker struct {
+	*CircuitBreaker
+	batchSize    int
+	batchBuffer  []bool
+	batchIndex   atomic.Int32
+	batchMutex   sync.Mutex
+	batchTimeout time.Duration
+	lastFlush    atomic.Int64
+}
+
+// NewBatchCircuitBreaker 创建批量处理版本
+func NewBatchCircuitBreaker(config CircuitBreakerConfig, batchSize int, batchTimeout time.Duration) *BatchCircuitBreaker {
+	if batchSize <= 0 {
+		batchSize = 100
+	}
+	
+	cb := &BatchCircuitBreaker{
+		CircuitBreaker:  NewCircuitBreaker(config),
+		batchSize:       batchSize,
+		batchBuffer:     make([]bool, batchSize),
+		batchTimeout:    batchTimeout,
+	}
+	cb.lastFlush.Store(time.Now().UnixNano())
+	
+	// 启动定时刷新
+	go cb.flushLoop()
+	
+	return cb
+}
+
+// AfterBatch 批量记录结果
+func (cb *BatchCircuitBreaker) AfterBatch(success bool) {
+	now := time.Now().UnixNano()
+	
+	// 检查是否需要强制刷新
+	if now-cb.lastFlush.Load() > cb.batchTimeout.Nanoseconds() {
+		cb.flush()
+		return
+	}
+	
+	index := cb.batchIndex.Add(1) - 1
+	if int(index) >= cb.batchSize {
+		cb.flush()
+		cb.AfterBatch(success) // 重试
+		return
+	}
+	
+	cb.batchBuffer[index] = success
+	
+	if int(index) >= cb.batchSize-1 {
+		cb.flush()
+	}
+}
+
+// flush 刷新批量数据
+func (cb *BatchCircuitBreaker) flush() {
+	cb.batchMutex.Lock()
+	defer cb.batchMutex.Unlock()
+	
+	index := cb.batchIndex.Swap(0)
+	if index == 0 {
+		return
+	}
+	
+	var successes, failures uint64
+	for i := int32(0); i < index; i++ {
+		if cb.batchBuffer[i] {
+			successes++
 		} else {
-			removedFailures++
+			failures++
 		}
-
-		rb.head.Add(1)
 	}
-	return removedSuccesses, removedFailures
+	
+	// 批量更新统计
+	if successes > 0 {
+		cb.stats.successes.Add(successes)
+	}
+	if failures > 0 {
+		cb.stats.failures.Add(failures)
+	}
+	
+	cb.stats.changed.Store(1)
+	cb.lastFlush.Store(time.Now().UnixNano())
 }
 
-// reset 重置缓冲区
-func (rb *ringBuffer) reset() {
-	rb.head.Store(0)
-	rb.tail.Store(0)
+// flushLoop 定时刷新循环
+func (cb *BatchCircuitBreaker) flushLoop() {
+	ticker := time.NewTicker(cb.batchTimeout)
+	defer ticker.Stop()
+	
+	for range ticker.C {
+		if cb.batchIndex.Load() > 0 {
+			cb.flush()
+		}
+	}
+}
+
+// 零分配版本的状态查询
+func (p *CircuitBreaker) GetState() uint32 {
+	return p.state.Load()
+}
+
+// IsOpen 零分配检查是否熔断
+func (p *CircuitBreaker) IsOpen() bool {
+	return p.state.Load() == stateOpenOpt
+}
+
+// IsClosed 零分配检查是否正常
+func (p *CircuitBreaker) IsClosed() bool {
+	return p.state.Load() == stateClosedOpt
+}
+
+// ringBuffer 兼容性别名，保持向后兼容
+type ringBuffer = optimizedRingBuffer
+
+// newRingBuffer 兼容性函数
+func newRingBuffer(size int) *ringBuffer {
+	return newOptimizedRingBuffer(size)
+}
+
+// add 兼容性方法
+func (rb *ringBuffer) add(result *requestResult) {
+	now := time.Now().UnixNano()
+	packed := now << timeShift
+	if result.success {
+		packed |= successFlag
+	}
+	rb.addOptimized(packed)
+}
+
+// cleanup 兼容性方法
+func (rb *ringBuffer) cleanup(threshold int64) (removedSuccesses, removedFailures uint64) {
+	return rb.cleanupOptimized(threshold, 0)
 }
 
 // len 获取当前有效元素数量
 func (rb *ringBuffer) len() int {
-	if rb.tail.Load() >= rb.head.Load() {
-		return int(rb.tail.Load() - rb.head.Load())
-	}
-	return rb.size - int(rb.head.Load()) + int(rb.tail.Load())
+	tail := rb.tail.Load()
+	head := rb.head.Load()
+	return int(tail - head)
 }
 
 // last 获取最近一次请求结果
 func (rb *ringBuffer) last() *requestResult {
-	if rb.head.Load() == rb.tail.Load() {
+	if !rb.hasRecentRequest() {
 		return nil
 	}
-	return rb.buffer[(rb.tail.Load()-1+int64(rb.size))%int64(rb.size)]
+	
+	// 返回兼容的 requestResult 对象
+	result := &requestResult{
+		success: rb.lastRequestSuccess(),
+		time:    time.Now(), // 近似时间
+	}
+	return result
 }
+
+// 编译时检查接口是否被正确实现
+var (
+	_ unsafe.Pointer = unsafe.Pointer(&CircuitBreaker{})
+	_ unsafe.Pointer = unsafe.Pointer(&FastCircuitBreaker{})
+	_ unsafe.Pointer = unsafe.Pointer(&BatchCircuitBreaker{})
+)

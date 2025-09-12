@@ -9,24 +9,31 @@ import (
 	"io"
 )
 
+// Global variables for dependency injection during testing
+var (
+	newCipherFunc = aes.NewCipher
+	newGCMFunc    = cipher.NewGCM
+	randReader    = rand.Reader
+)
+
 // Encrypt 使用 AES-256 在 GCM 模式下加密明文。
 func Encrypt(key, plaintext []byte) ([]byte, error) {
 	if len(key) != 32 {
 		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := newCipherFunc(key)
 	if err != nil {
 		return nil, err
 	}
 
-	gcm, err := cipher.NewGCM(block)
+	gcm, err := newGCMFunc(block)
 	if err != nil {
 		return nil, err
 	}
 
 	nonce := make([]byte, gcm.NonceSize())
-	_, err = io.ReadFull(rand.Reader, nonce)
+	_, err = io.ReadFull(randReader, nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -41,12 +48,12 @@ func Decrypt(key, ciphertext []byte) ([]byte, error) {
 		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := newCipherFunc(key)
 	if err != nil {
 		return nil, err
 	}
 
-	gcm, err := cipher.NewGCM(block)
+	gcm, err := newGCMFunc(block)
 	if err != nil {
 		return nil, err
 	}
@@ -65,12 +72,14 @@ func Decrypt(key, ciphertext []byte) ([]byte, error) {
 }
 
 // EncryptECB 使用 AES-256 在 ECB 模式下加密明文。
+// 警告：ECB模式在密码学上是不安全的，相同的明文块会产生相同的密文块。
+// 建议使用GCM、CBC或CFB模式以获得更好的安全性。
 func EncryptECB(key, plaintext []byte) ([]byte, error) {
 	if len(key) != 32 {
 		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := newCipherFunc(key)
 	if err != nil {
 		return nil, err
 	}
@@ -84,12 +93,14 @@ func EncryptECB(key, plaintext []byte) ([]byte, error) {
 }
 
 // DecryptECB 使用 AES-256 在 ECB 模式下解密密文。
+// 警告：ECB模式在密码学上是不安全的，相同的明文块会产生相同的密文块。
+// 建议使用GCM、CBC或CFB模式以获得更好的安全性。
 func DecryptECB(key, ciphertext []byte) ([]byte, error) {
 	if len(key) != 32 {
 		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := newCipherFunc(key)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +144,7 @@ func EncryptCBC(key, plaintext []byte) ([]byte, error) {
 		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := newCipherFunc(key)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +152,7 @@ func EncryptCBC(key, plaintext []byte) ([]byte, error) {
 	plaintext = padPKCS7(plaintext, block.BlockSize())
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
-	_, err = io.ReadFull(rand.Reader, iv)
+	_, err = io.ReadFull(randReader, iv)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +168,7 @@ func DecryptCBC(key, ciphertext []byte) ([]byte, error) {
 		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := newCipherFunc(key)
 	if err != nil {
 		return nil, err
 	}
@@ -168,10 +179,6 @@ func DecryptCBC(key, ciphertext []byte) ([]byte, error) {
 
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
-
-	if len(iv) != aes.BlockSize {
-		return nil, errors.New("invalid IV length")
-	}
 
 	mode := cipher.NewCBCDecrypter(block, iv)
 	mode.CryptBlocks(ciphertext, ciphertext)
@@ -189,14 +196,14 @@ func EncryptCFB(key, plaintext []byte) ([]byte, error) {
 		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := newCipherFunc(key)
 	if err != nil {
 		return nil, err
 	}
 
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
-	_, err = io.ReadFull(rand.Reader, iv)
+	_, err = io.ReadFull(randReader, iv)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +219,7 @@ func DecryptCFB(key, ciphertext []byte) ([]byte, error) {
 		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := newCipherFunc(key)
 	if err != nil {
 		return nil, err
 	}
@@ -223,10 +230,6 @@ func DecryptCFB(key, ciphertext []byte) ([]byte, error) {
 
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
-
-	if len(iv) != aes.BlockSize {
-		return nil, errors.New("invalid IV length")
-	}
 
 	stream := cipher.NewCFBDecrypter(block, iv)
 	stream.XORKeyStream(ciphertext, ciphertext)
@@ -239,14 +242,14 @@ func EncryptCTR(key, plaintext []byte) ([]byte, error) {
 		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := newCipherFunc(key)
 	if err != nil {
 		return nil, err
 	}
 
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
-	_, err = io.ReadFull(rand.Reader, iv)
+	_, err = io.ReadFull(randReader, iv)
 	if err != nil {
 		return nil, err
 	}
@@ -262,9 +265,8 @@ func DecryptCTR(key, ciphertext []byte) ([]byte, error) {
 		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	block, err := aes.NewCipher(key)
+	block, err := newCipherFunc(key)
 	if err != nil {
-
 		return nil, err
 	}
 
@@ -275,11 +277,53 @@ func DecryptCTR(key, ciphertext []byte) ([]byte, error) {
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
-	if len(iv) != aes.BlockSize {
-		return nil, errors.New("invalid IV length")
+	stream := cipher.NewCTR(block, iv)
+	stream.XORKeyStream(ciphertext, ciphertext)
+	return ciphertext, nil
+}
+
+// EncryptOFB 使用 AES-256 在 OFB 模式下加密明文。
+func EncryptOFB(key, plaintext []byte) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, errors.New("invalid key length: must be 32 bytes")
 	}
 
-	stream := cipher.NewCTR(block, iv)
+	block, err := newCipherFunc(key)
+	if err != nil {
+		return nil, err
+	}
+
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	_, err = io.ReadFull(randReader, iv)
+	if err != nil {
+		return nil, err
+	}
+
+	stream := cipher.NewOFB(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+	return ciphertext, nil
+}
+
+// DecryptOFB 使用 AES-256 在 OFB 模式下解密密文。
+func DecryptOFB(key, ciphertext []byte) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, errors.New("invalid key length: must be 32 bytes")
+	}
+
+	block, err := newCipherFunc(key)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ciphertext) < aes.BlockSize {
+		return nil, errors.New("ciphertext too short")
+	}
+
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+
+	stream := cipher.NewOFB(block, iv)
 	stream.XORKeyStream(ciphertext, ciphertext)
 	return ciphertext, nil
 }

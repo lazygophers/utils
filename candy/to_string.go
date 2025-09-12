@@ -1,7 +1,6 @@
 package candy
 
 import (
-	"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -28,25 +27,25 @@ func ToString(val interface{}) string {
 		}
 		return "0"
 	case int:
-		return fmt.Sprintf("%d", x)
+		return strconv.FormatInt(int64(x), 10)
 	case int8:
-		return fmt.Sprintf("%d", x)
+		return strconv.FormatInt(int64(x), 10)
 	case int16:
-		return fmt.Sprintf("%d", x)
+		return strconv.FormatInt(int64(x), 10)
 	case int32:
-		return fmt.Sprintf("%d", x)
+		return strconv.FormatInt(int64(x), 10)
 	case int64:
-		return fmt.Sprintf("%d", x)
+		return strconv.FormatInt(x, 10)
 	case uint:
-		return fmt.Sprintf("%d", x)
+		return strconv.FormatUint(uint64(x), 10)
 	case uint8:
-		return fmt.Sprintf("%d", x)
+		return strconv.FormatUint(uint64(x), 10)
 	case uint16:
-		return fmt.Sprintf("%d", x)
+		return strconv.FormatUint(uint64(x), 10)
 	case uint32:
-		return fmt.Sprintf("%d", x)
+		return strconv.FormatUint(uint64(x), 10)
 	case uint64:
-		return fmt.Sprintf("%d", x)
+		return strconv.FormatUint(x, 10)
 	case float32:
 		if math.Floor(float64(x)) == float64(x) {
 			return strconv.FormatFloat(float64(x), 'f', 0, 32)
@@ -55,7 +54,7 @@ func ToString(val interface{}) string {
 		return strconv.FormatFloat(float64(x), 'f', 15, 32)
 	case float64:
 		if math.Floor(x) == x {
-			return fmt.Sprintf("%.0f", x)
+			return strconv.FormatFloat(x, 'f', 0, 64)
 		}
 
 		return strconv.FormatFloat(x, 'f', 6, 64)

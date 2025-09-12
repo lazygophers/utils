@@ -8,5 +8,5 @@ func IsLocalIp(ip string) bool {
 		return false
 	}
 
-	return i.IsPrivate()
+	return i.IsPrivate() || i.IsLoopback() || i.IsLinkLocalUnicast()
 }

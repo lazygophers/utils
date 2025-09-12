@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
+	"fmt"
 	"golang.org/x/crypto/sha3"
 	"hash"
 )
@@ -14,7 +15,7 @@ import (
 func hmacEncode(key, data string, h func() hash.Hash) string {
 	sha := hmac.New(h, []byte(key))
 	sha.Write([]byte(data))
-	return string(sha.Sum(nil))
+	return fmt.Sprintf("%x", sha.Sum(nil))
 }
 
 // HmacMd5 使用 MD5 哈希算法进行 HMAC 编码

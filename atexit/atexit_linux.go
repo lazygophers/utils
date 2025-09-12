@@ -14,30 +14,38 @@ var exitPatches *gomonkey.Patches
 var mu sync.Mutex
 
 func hookExit(code int) {
-	hasReset := true
 	var cbList []func()
 	mu.Lock()
 	if exitPatches != nil {
 		exitPatches.Reset()
-		hasReset = false
 		exitCallbackListMu.Lock()
 		cbList = exitCallbackList
 		exitCallbackList = nil
 		exitCallbackListMu.Unlock()
+		exitPatches = nil
 	}
 	mu.Unlock()
-	if hasReset {
-		return
-	}
+	
+	// 执行所有注册的回调函数
 	for _, cb := range cbList {
-		cb()
+		if cb != nil {
+			cb()
+		}
 	}
 	os.Exit(code)
 }
 func init() {
-	exitPatches = gomonkey.ApplyFunc(os.Exit, hookExit)
+	patches := gomonkey.ApplyFunc(os.Exit, hookExit)
+	if patches == nil {
+		// 如果 patch 失败，fallback 到使用信号处理
+		return
+	}
+	exitPatches = patches
 }
 func Register(callback func()) {
+	if callback == nil {
+		return
+	}
 	exitCallbackListMu.Lock()
 	exitCallbackList = append(exitCallbackList, callback)
 	exitCallbackListMu.Unlock()

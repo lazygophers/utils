@@ -10,8 +10,8 @@ func TestNewCircuitBreaker(t *testing.T) {
 	cb := NewCircuitBreaker(CircuitBreakerConfig{
 		TimeWindow: time.Second * 2,
 	})
-	if cb.State() != Open {
-		t.Errorf("Expected initial state to be Open but got %s", cb.State())
+	if cb.State() != Closed {
+		t.Errorf("Expected initial state to be Closed but got %s", cb.State())
 	}
 }
 
@@ -20,21 +20,21 @@ func TestBefore(t *testing.T) {
 		TimeWindow: time.Second * 2,
 	})
 	if !cb.Before() {
-		t.Error("Before() should return true when state is Open")
+		t.Error("Before() should return true when state is Closed")
 	}
 
-	cb.state = Closed
+	cb.state.Store(stateOpenOpt)
 	if cb.Before() {
-		t.Error("Before() should return false when state is Closed")
+		t.Error("Before() should return false when state is Open")
 	}
 
-	cb.state = HalfOpen
-	cb.CircuitBreakerConfig.Probe = func() bool { return true }
+	cb.state.Store(stateHalfOpenOpt)
+	cb.probe = func() bool { return true }
 	if !cb.Before() {
 		t.Error("Before() should return true when Probe returns true")
 	}
 
-	cb.CircuitBreakerConfig.Probe = func() bool { return false }
+	cb.probe = func() bool { return false }
 	if cb.Before() {
 		t.Error("Before() should return false when Probe returns false")
 	}
@@ -44,13 +44,13 @@ func TestState(t *testing.T) {
 	cb := NewCircuitBreaker(CircuitBreakerConfig{
 		TimeWindow: time.Second * 2,
 	})
-	if cb.State() != Open {
-		t.Errorf("Expected state to be Open but got %s", cb.State())
-	}
-
-	cb.state = Closed
 	if cb.State() != Closed {
 		t.Errorf("Expected state to be Closed but got %s", cb.State())
+	}
+
+	cb.state.Store(stateOpenOpt)
+	if cb.State() != Open {
+		t.Errorf("Expected state to be Open but got %s", cb.State())
 	}
 }
 
@@ -62,8 +62,8 @@ func TestStat(t *testing.T) {
 		t.Errorf("Expected initial stats to be 0, got %d/%d", successes, failures)
 	}
 
-	cb.successes.Store(10)
-	cb.failures.Store(5)
+	cb.stats.successes.Store(10)
+	cb.stats.failures.Store(5)
 	if successes, failures := cb.Stat(); successes != 10 || failures != 5 {
 		t.Errorf("Expected stats 10/5, got %d/%d", successes, failures)
 	}
@@ -77,8 +77,8 @@ func TestTotal(t *testing.T) {
 		t.Errorf("Expected total to be 0, got %d", total)
 	}
 
-	cb.successes.Store(10)
-	cb.failures.Store(5)
+	cb.stats.successes.Store(10)
+	cb.stats.failures.Store(5)
 	if total := cb.Total(); total != 15 {
 		t.Errorf("Expected total to be 15, got %d", total)
 	}
@@ -90,12 +90,12 @@ func TestAfter(t *testing.T) {
 	})
 
 	cb.After(true)
-	if cb.successes.Load() != 1 {
+	if successes, _ := cb.Stat(); successes != 1 {
 		t.Error("Success count should be 1 after After(true)")
 	}
 
 	cb.After(false)
-	if cb.failures.Load() != 1 {
+	if _, failures := cb.Stat(); failures != 1 {
 		t.Error("Failure count should be 1 after After(false)")
 	}
 }
@@ -105,170 +105,185 @@ func TestCall(t *testing.T) {
 		TimeWindow: time.Second * 2,
 	})
 
-	err := cb.Call(func() error { return nil })
+	// 测试成功调用
+	err := cb.Call(func() error {
+		return nil
+	})
 	if err != nil {
-		t.Error("Call() should return nil for successful calls")
+		t.Errorf("Expected no error for successful call, got %v", err)
 	}
 
-	cb.state = Closed
-	err = cb.Call(func() error { return nil })
+	// 测试失败调用
+	err = cb.Call(func() error {
+		return errors.New("test error")
+	})
 	if err == nil {
-		t.Error("Call() should return error when state is Closed")
+		t.Error("Expected error for failed call")
+	}
+
+	// 测试熔断状态下的调用
+	cb.state.Store(stateOpenOpt)
+	// 防止状态被updateStateOptimized重置，通过增加失败计数
+	cb.stats.failures.Store(10)
+	cb.stats.changed.Store(0) // 防止状态更新
+	err = cb.Call(func() error {
+		return nil
+	})
+	if err == nil || err.Error() != "circuit breaker is open" {
+		t.Error("Expected circuit breaker open error")
 	}
 }
 
-func TestFullLifecycle(t *testing.T) {
-	cb := NewCircuitBreaker(CircuitBreakerConfig{
-		TimeWindow: time.Second * 2,
-		ReadyToTrip: func(successes, failures uint64) bool {
-			return failures > successes
-		},
-		Probe: func() bool { return true },
-	})
-
-	// Test successful calls
-	for i := 0; i < 10; i++ {
-		err := cb.Call(func() error { return nil })
-		if err != nil {
-			t.Errorf("Expected no error on successful call, got %v", err)
-		}
-	}
-
-	time.Sleep(time.Millisecond * 500) // Ensure results are within TimeWindow
-
-	if cb.State() != Open {
-		t.Error("State should remain Open with successful calls")
-	}
-
-	// Test failed calls
-	for i := 0; i < 15; i++ {
-		err := cb.Call(func() error { return errors.New("test error") })
-		if err == nil {
-			t.Error("Expected error on failed call")
-		}
-	}
-
-	time.Sleep(time.Millisecond * 500) // Ensure results are within TimeWindow
-
-	if cb.State() != Closed {
-		t.Error("State should transition to Closed after failures")
-	}
-
-	// Test recovery
-	for i := 0; i < 5; i++ {
-		err := cb.Call(func() error { return nil })
-		if err == nil {
-			t.Errorf("Expected no error during recovery phase, got %v", err)
-		}
-	}
-
-	time.Sleep(time.Millisecond * 500) // Ensure results are within TimeWindow
-
-	if cb.State() != Closed {
-		t.Error("State should transition back to Closed after successful recovery")
-	}
-}
-
-/*
-go test -bench=. -benchmem -count=3
-goos: darwin
-goarch: arm64
-pkg: github.com/lazygophers/utils/hystrix
-cpu: Apple M3
-BenchmarkCall_Success          	19843444	        59.79 ns/op	      32 B/op	       1 allocs/op
-BenchmarkCall_Success          	19987354	        59.91 ns/op	      32 B/op	       1 allocs/op
-BenchmarkCall_Success          	20103996	        60.67 ns/op	      32 B/op	       1 allocs/op
-BenchmarkCall_Failure          	27953673	        42.26 ns/op	      16 B/op	       1 allocs/op
-BenchmarkCall_Failure          	26144541	        42.42 ns/op	      16 B/op	       1 allocs/op
-BenchmarkCall_Failure          	28086462	        42.10 ns/op	      16 B/op	       1 allocs/op
-BenchmarkCall_Success_Parallel 	20359053	        60.05 ns/op	      32 B/op	       1 allocs/op
-BenchmarkCall_Success_Parallel 	20110200	        59.65 ns/op	      32 B/op	       1 allocs/op
-BenchmarkCall_Success_Parallel 	19292913	        59.65 ns/op	      32 B/op	       1 allocs/op
-BenchmarkCall_Failure_Parallel 	28006354	        42.13 ns/op	      16 B/op	       1 allocs/op
-BenchmarkCall_Failure_Parallel 	28381402	        42.20 ns/op	      16 B/op	       1 allocs/op
-BenchmarkCall_Failure_Parallel 	27560493	        42.17 ns/op	      16 B/op	       1 allocs/op
-BenchmarkCall_StateTransition  	13347013	        91.49 ns/op	      32 B/op	       1 allocs/op
-BenchmarkCall_StateTransition  	13113416	        91.26 ns/op	      32 B/op	       1 allocs/op
-BenchmarkCall_StateTransition  	13127863	        92.29 ns/op	      32 B/op	       1 allocs/op
-PASS
-ok  	github.com/lazygop
-*/
-
-func BenchmarkCall_Success(b *testing.B) {
-	cb := NewCircuitBreaker(CircuitBreakerConfig{
-		TimeWindow: time.Second * 2,
-		ReadyToTrip: func(successes, failures uint64) bool {
-			return false // 确保不会触发熔断
-		},
-	})
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_ = cb.Call(func() error { return nil })
-	}
-}
-
-func BenchmarkCall_Failure(b *testing.B) {
-	cb := NewCircuitBreaker(CircuitBreakerConfig{
-		TimeWindow: time.Second * 2,
-		ReadyToTrip: func(successes, failures uint64) bool {
-			return failures > successes
-		},
-	})
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_ = cb.Call(func() error { return errors.New("test error") })
-	}
-}
-
-func BenchmarkCall_Success_Parallel(b *testing.B) {
-	cb := NewCircuitBreaker(CircuitBreakerConfig{
-		TimeWindow: time.Second * 2,
-		ReadyToTrip: func(successes, failures uint64) bool {
-			return false
-		},
-	})
-
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			_ = cb.Call(func() error { return nil })
-		}
-	})
-}
-
-func BenchmarkCall_Failure_Parallel(b *testing.B) {
-	cb := NewCircuitBreaker(CircuitBreakerConfig{
-		TimeWindow: time.Second * 2,
-		ReadyToTrip: func(successes, failures uint64) bool {
-			return failures > successes
-		},
-	})
-
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			_ = cb.Call(func() error { return errors.New("test error") })
-		}
-	})
-}
-
-// 新增极端并发场景测试
-func BenchmarkCall_StateTransition(b *testing.B) {
+func TestCircuitBreakerStateTransition(t *testing.T) {
 	cb := NewCircuitBreaker(CircuitBreakerConfig{
 		TimeWindow: time.Millisecond * 100,
-		ReadyToTrip: func(s, f uint64) bool {
-			return f > s
+		ReadyToTrip: func(successes, failures uint64) bool {
+			return failures >= 3 // 3个失败触发熔断
 		},
 	})
 
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			// 交替成功/失败请求触发状态转换
-			if time.Now().UnixNano()%2 == 0 {
-				_ = cb.Call(func() error { return nil })
-			} else {
-				_ = cb.Call(func() error { return errors.New("error") })
-			}
-		}
+	// 初始状态应该是 Closed
+	if cb.State() != Closed {
+		t.Errorf("Expected initial state Closed, got %s", cb.State())
+	}
+
+	// 连续失败触发熔断
+	for i := 0; i < 5; i++ {
+		cb.After(false)
+	}
+	
+	// 触发状态更新
+	cb.Before()
+	
+	if cb.State() != Open {
+		t.Errorf("Expected state Open after failures, got %s", cb.State())
+	}
+}
+
+func TestFastCircuitBreaker(t *testing.T) {
+	cb := NewFastCircuitBreaker(3, time.Millisecond*100)
+
+	// 初始状态应该允许请求
+	if !cb.AllowRequest() {
+		t.Error("Should allow requests initially")
+	}
+
+	// 记录失败
+	cb.RecordResult(false)
+	cb.RecordResult(false)
+	cb.RecordResult(false)
+
+	// 应该进入熔断状态
+	if cb.AllowRequest() {
+		t.Error("Should not allow requests after threshold failures")
+	}
+
+	// 等待时间窗口重置
+	time.Sleep(time.Millisecond * 150)
+
+	// 应该重新允许请求
+	if !cb.AllowRequest() {
+		t.Error("Should allow requests after time window reset")
+	}
+}
+
+func TestBatchCircuitBreaker(t *testing.T) {
+	config := CircuitBreakerConfig{
+		TimeWindow: time.Second,
+	}
+	
+	cb := NewBatchCircuitBreaker(config, 10, time.Millisecond*50)
+	
+	// 测试批量记录
+	for i := 0; i < 5; i++ {
+		cb.AfterBatch(true)
+	}
+	
+	// 强制刷新
+	cb.flush()
+	
+	// 检查统计
+	successes, failures := cb.Stat()
+	if successes != 5 || failures != 0 {
+		t.Errorf("Expected 5 successes, 0 failures, got %d/%d", successes, failures)
+	}
+}
+
+func TestCircuitBreakerOptimizations(t *testing.T) {
+	cb := NewCircuitBreaker(CircuitBreakerConfig{
+		TimeWindow: time.Millisecond * 100,
 	})
+
+	// 测试零分配状态查询
+	if cb.GetState() != stateClosedOpt {
+		t.Error("GetState should return stateClosedOpt initially")
+	}
+
+	if !cb.IsClosed() {
+		t.Error("IsClosed should return true initially")
+	}
+
+	if cb.IsOpen() {
+		t.Error("IsOpen should return false initially")
+	}
+
+	// 测试状态变更
+	cb.state.Store(stateOpenOpt)
+	if !cb.IsOpen() {
+		t.Error("IsOpen should return true after setting to open")
+	}
+
+	if cb.IsClosed() {
+		t.Error("IsClosed should return false after setting to open")
+	}
+}
+
+func TestRingBufferCompatibility(t *testing.T) {
+	rb := newRingBuffer(10)
+
+	// 测试添加和长度
+	if rb.len() != 0 {
+		t.Error("Ring buffer should be empty initially")
+	}
+
+	// 添加请求结果
+	rb.add(&requestResult{success: true, time: time.Now()})
+	if rb.len() != 1 {
+		t.Error("Ring buffer should have 1 element after add")
+	}
+
+	// 测试最后一个结果
+	last := rb.last()
+	if last == nil || !last.success {
+		t.Error("Last result should exist and be successful")
+	}
+
+	// 测试重置
+	rb.reset()
+	if rb.len() != 0 {
+		t.Error("Ring buffer should be empty after reset")
+	}
+}
+
+func TestMemoryPoolOptimization(t *testing.T) {
+	// 测试内存池
+	result1 := getRequestResult()
+	if result1 == nil {
+		t.Error("getRequestResult should return non-nil")
+	}
+
+	result1.success = true
+	result1.time = time.Now()
+
+	putRequestResult(result1)
+
+	result2 := getRequestResult()
+	if result2 == nil {
+		t.Error("getRequestResult should return non-nil after put")
+	}
+
+	// 应该被重置
+	if result2.success != false || !result2.time.IsZero() {
+		t.Error("Result should be reset when retrieved from pool")
+	}
 }

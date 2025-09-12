@@ -3,6 +3,9 @@ package stringx
 import "unicode"
 
 func AllDigit(s string) bool {
+	if s == "" {
+		return true
+	}
 	for _, c := range s {
 		if !unicode.IsDigit(c) {
 			return false
@@ -219,6 +222,9 @@ func HasTitle(s string) bool {
 }
 
 func AllLetterOrDigit(s string) bool {
+	if s == "" {
+		return true
+	}
 	for _, c := range s {
 		if !unicode.IsLetter(c) && !unicode.IsDigit(c) {
 			return false

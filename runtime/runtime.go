@@ -29,6 +29,7 @@ func CachePanicWithHandle(handle func(err interface{})) {
 		if handle != nil {
 			handle(err)
 		}
+		// 不再重新panic，真正"缓存"（消化）panic
 	}
 }
 
@@ -77,8 +78,8 @@ func UserConfigDir() string {
 }
 
 func UserCacheDir() string {
-	execPath, _ := os.UserCacheDir()
-	return execPath
+	path, _ := os.UserCacheDir()
+	return path
 }
 
 func LazyConfigDir() string {
