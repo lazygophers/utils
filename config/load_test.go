@@ -11,14 +11,14 @@ import (
 )
 
 type TestConfig struct {
-	Name     string `json:"name" yaml:"name" toml:"name" ini:"name" validate:"required"`
-	Port     int    `json:"port" yaml:"port" toml:"port" ini:"port" validate:"min=1,max=65535"`
-	Debug    bool   `json:"debug" yaml:"debug" toml:"debug" ini:"debug"`
+	Name     string `json:"name" yaml:"name" toml:"name" ini:"name" xml:"name" properties:"name" env:"name" validate:"required"`
+	Port     int    `json:"port" yaml:"port" toml:"port" ini:"port" xml:"port" properties:"port" env:"port" validate:"min=1,max=65535"`
+	Debug    bool   `json:"debug" yaml:"debug" toml:"debug" ini:"debug" xml:"debug" properties:"debug" env:"debug"`
 	Database struct {
-		Host     string `json:"host" yaml:"host" toml:"host" ini:"host"`
-		Username string `json:"username" yaml:"username" toml:"username" ini:"username"`
-		Password string `json:"password" yaml:"password" toml:"password" ini:"password"`
-	} `json:"database" yaml:"database" toml:"database" ini:"database"`
+		Host     string `json:"host" yaml:"host" toml:"host" ini:"host" xml:"host" properties:"host" env:"host"`
+		Username string `json:"username" yaml:"username" toml:"username" ini:"username" xml:"username" properties:"username" env:"username"`
+		Password string `json:"password" yaml:"password" toml:"password" ini:"password" xml:"password" properties:"password" env:"password"`
+	} `json:"database" yaml:"database" toml:"database" ini:"database" xml:"database" properties:"database" env:"database"`
 }
 
 func TestRegisterParser(t *testing.T) {
@@ -857,5 +857,381 @@ func TestCoverageImprovements(t *testing.T) {
 		err = LoadConfigSkipValidate(&config, configFile)
 		// INI库相对宽容，可能不会报错，这取决于具体的错误类型
 		// 主要是验证不会崩溃
+	})
+}
+
+// TestNewConfigFormats 测试新添加的配置文件格式
+func TestNewConfigFormats(t *testing.T) {
+	originalConfigPath := configPath
+	defer func() {
+		configPath = originalConfigPath
+	}()
+
+	t.Run("XML format", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "xml_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "config.xml")
+		xmlContent := `<?xml version="1.0" encoding="UTF-8"?>
+<TestConfig>
+  <name>xmltest</name>
+  <port>8080</port>
+  <debug>true</debug>
+  <database>
+    <host>localhost</host>
+    <username>testuser</username>
+    <password>testpass</password>
+  </database>
+</TestConfig>`
+		
+		err = os.WriteFile(configFile, []byte(xmlContent), 0644)
+		require.NoError(t, err)
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "xmltest", config.Name)
+		assert.Equal(t, 8080, config.Port)
+		assert.True(t, config.Debug)
+		assert.Equal(t, "localhost", config.Database.Host)
+		assert.Equal(t, "testuser", config.Database.Username)
+		assert.Equal(t, "testpass", config.Database.Password)
+	})
+
+	t.Run("Properties format", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "properties_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "config.properties")
+		propertiesContent := `# Configuration file
+name=proptest
+port=9090
+debug=true
+# Database configuration
+database.host=db.example.com
+database.username=propuser
+database.password=proppass
+`
+
+		err = os.WriteFile(configFile, []byte(propertiesContent), 0644)
+		require.NoError(t, err)
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "proptest", config.Name)
+		assert.Equal(t, 9090, config.Port)
+		assert.True(t, config.Debug)
+		assert.Equal(t, "db.example.com", config.Database.Host)
+		assert.Equal(t, "propuser", config.Database.Username)
+		assert.Equal(t, "proppass", config.Database.Password)
+	})
+
+	t.Run("Properties format with colon separator", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "properties_colon_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "config.properties")
+		propertiesContent := `name: colontest
+port: 7070
+debug: false
+database.host: colon.example.com
+database.username: colonuser
+database.password: colonpass
+`
+
+		err = os.WriteFile(configFile, []byte(propertiesContent), 0644)
+		require.NoError(t, err)
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "colontest", config.Name)
+		assert.Equal(t, 7070, config.Port)
+		assert.False(t, config.Debug)
+		assert.Equal(t, "colon.example.com", config.Database.Host)
+		assert.Equal(t, "colonuser", config.Database.Username)
+		assert.Equal(t, "colonpass", config.Database.Password)
+	})
+
+	t.Run("Env format", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, ".env")
+		envContent := `# Environment variables
+name="envtest"
+port=6060
+debug=true
+# Database settings
+database.host="env.example.com"
+database.username='envuser'
+database.password="envpass"
+`
+
+		err = os.WriteFile(configFile, []byte(envContent), 0644)
+		require.NoError(t, err)
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "envtest", config.Name)
+		assert.Equal(t, 6060, config.Port)
+		assert.True(t, config.Debug)
+		assert.Equal(t, "env.example.com", config.Database.Host)
+		assert.Equal(t, "envuser", config.Database.Username)
+		assert.Equal(t, "envpass", config.Database.Password)
+	})
+
+	t.Run("XML write and read", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "xml_write_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "write_test.xml")
+		configPath = configFile
+
+		// 创建测试配置
+		originalConfig := TestConfig{
+			Name:  "writetest",
+			Port:  3030,
+			Debug: false,
+		}
+		originalConfig.Database.Host = "write.example.com"
+		originalConfig.Database.Username = "writeuser"
+		originalConfig.Database.Password = "writepass"
+
+		// 写入配置
+		err = SetConfig(originalConfig)
+		assert.NoError(t, err)
+
+		// 读取配置
+		var readConfig TestConfig
+		err = LoadConfigSkipValidate(&readConfig, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, originalConfig.Name, readConfig.Name)
+		assert.Equal(t, originalConfig.Port, readConfig.Port)
+		assert.Equal(t, originalConfig.Debug, readConfig.Debug)
+		assert.Equal(t, originalConfig.Database.Host, readConfig.Database.Host)
+		assert.Equal(t, originalConfig.Database.Username, readConfig.Database.Username)
+		assert.Equal(t, originalConfig.Database.Password, readConfig.Database.Password)
+	})
+
+	t.Run("Properties write and read", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "properties_write_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "write_test.properties")
+		configPath = configFile
+
+		// 创建测试配置
+		originalConfig := TestConfig{
+			Name:  "prop-writetest",
+			Port:  4040,
+			Debug: true,
+		}
+		originalConfig.Database.Host = "prop-write.example.com"
+		originalConfig.Database.Username = "propwriteuser"
+		originalConfig.Database.Password = "propwritepass"
+
+		// 写入配置
+		err = SetConfig(originalConfig)
+		assert.NoError(t, err)
+
+		// 读取配置
+		var readConfig TestConfig
+		err = LoadConfigSkipValidate(&readConfig, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, originalConfig.Name, readConfig.Name)
+		assert.Equal(t, originalConfig.Port, readConfig.Port)
+		assert.Equal(t, originalConfig.Debug, readConfig.Debug)
+		assert.Equal(t, originalConfig.Database.Host, readConfig.Database.Host)
+		assert.Equal(t, originalConfig.Database.Username, readConfig.Database.Username)
+		assert.Equal(t, originalConfig.Database.Password, readConfig.Database.Password)
+	})
+
+	t.Run("Env write and read", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "env_write_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "write_test.env")
+		configPath = configFile
+
+		// 创建测试配置
+		originalConfig := TestConfig{
+			Name:  "env writetest with spaces",
+			Port:  5050,
+			Debug: false,
+		}
+		originalConfig.Database.Host = "env-write.example.com"
+		originalConfig.Database.Username = "envwriteuser"
+		originalConfig.Database.Password = "env write pass"
+
+		// 写入配置
+		err = SetConfig(originalConfig)
+		assert.NoError(t, err)
+
+		// 读取配置
+		var readConfig TestConfig
+		err = LoadConfigSkipValidate(&readConfig, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, originalConfig.Name, readConfig.Name)
+		assert.Equal(t, originalConfig.Port, readConfig.Port)
+		assert.Equal(t, originalConfig.Debug, readConfig.Debug)
+		assert.Equal(t, originalConfig.Database.Host, readConfig.Database.Host)
+		assert.Equal(t, originalConfig.Database.Username, readConfig.Database.Username)
+		assert.Equal(t, originalConfig.Database.Password, readConfig.Database.Password)
+	})
+}
+
+// TestPropertiesSpecialCases 测试 Properties 格式的特殊情况
+func TestPropertiesSpecialCases(t *testing.T) {
+	originalConfigPath := configPath
+	defer func() {
+		configPath = originalConfigPath
+	}()
+
+	t.Run("properties with escape characters", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "properties_escape_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "config.properties")
+		propertiesContent := `name=test\\nwith\\nnewlines
+port=8080
+debug=true
+database.host=localhost\\twithtab
+`
+
+		err = os.WriteFile(configFile, []byte(propertiesContent), 0644)
+		require.NoError(t, err)
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "test\nwith\nnewlines", config.Name)
+		assert.Equal(t, "localhost\twithtab", config.Database.Host)
+	})
+
+	t.Run("properties with comments", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "properties_comments_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "config.properties")
+		propertiesContent := `# Main configuration
+name=commenttest
+# This is also a comment
+! This is an alternative comment style
+port=8080
+debug=true
+`
+
+		err = os.WriteFile(configFile, []byte(propertiesContent), 0644)
+		require.NoError(t, err)
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "commenttest", config.Name)
+		assert.Equal(t, 8080, config.Port)
+	})
+}
+
+// TestEnvSpecialCases 测试 Env 格式的特殊情况
+func TestEnvSpecialCases(t *testing.T) {
+	originalConfigPath := configPath
+	defer func() {
+		configPath = originalConfigPath
+	}()
+
+	t.Run("env with single quotes", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_single_quotes_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, ".env")
+		envContent := `name='single quoted value'
+port=8080
+debug='true'
+`
+
+		err = os.WriteFile(configFile, []byte(envContent), 0644)
+		require.NoError(t, err)
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "single quoted value", config.Name)
+		assert.Equal(t, 8080, config.Port)
+		assert.True(t, config.Debug)
+	})
+
+	t.Run("env with double quotes", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_double_quotes_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, ".env")
+		envContent := `name="double quoted value"
+port=8080
+debug="false"
+`
+
+		err = os.WriteFile(configFile, []byte(envContent), 0644)
+		require.NoError(t, err)
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "double quoted value", config.Name)
+		assert.Equal(t, 8080, config.Port)
+		assert.False(t, config.Debug)
+	})
+
+	t.Run("env without quotes", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_no_quotes_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, ".env")
+		envContent := `name=noquotesvalue
+port=8080
+debug=true
+`
+
+		err = os.WriteFile(configFile, []byte(envContent), 0644)
+		require.NoError(t, err)
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "noquotesvalue", config.Name)
+		assert.Equal(t, 8080, config.Port)
+		assert.True(t, config.Debug)
 	})
 }
