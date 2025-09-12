@@ -27,6 +27,8 @@ require (
 	modernc.org/libc v1.61.13
 )
 
+require gopkg.in/ini.v1 v1.67.0 // indirect
+
 require (
 	atomicgo.dev/cursor v0.2.0 // indirect
 	atomicgo.dev/keyboard v0.2.9 // indirect

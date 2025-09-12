@@ -47,26 +47,84 @@ func main() {
 }
 ```
 
-### 多配置源合并
+### 多格式配置文件支持
+
+#### JSON 格式
+```json
+{
+    "app": {
+        "name": "MyApp",
+        "port": 8080,
+        "debug": true
+    },
+    "database": {
+        "host": "localhost",
+        "username": "user"
+    }
+}
+```
+
+#### YAML 格式
+```yaml
+app:
+  name: MyApp
+  port: 8080
+  debug: true
+database:
+  host: localhost
+  username: user
+```
+
+#### TOML 格式
+```toml
+[app]
+name = "MyApp"
+port = 8080
+debug = true
+
+[database]
+host = "localhost"
+username = "user"
+```
+
+#### INI 格式
+```ini
+[app]
+name = MyApp
+port = 8080
+debug = true
+
+[database]
+host = localhost
+username = user
+```
+
+### 加载配置示例
 
 ```go
-// 创建配置管理器
-cfg := config.New()
+type Config struct {
+    App struct {
+        Name  string `json:"name" yaml:"name" toml:"name" ini:"name"`
+        Port  int    `json:"port" yaml:"port" toml:"port" ini:"port"`
+        Debug bool   `json:"debug" yaml:"debug" toml:"debug" ini:"debug"`
+    } `json:"app" yaml:"app" toml:"app" ini:"app"`
+    Database struct {
+        Host     string `json:"host" yaml:"host" toml:"host" ini:"host"`
+        Username string `json:"username" yaml:"username" toml:"username" ini:"username"`
+    } `json:"database" yaml:"database" toml:"database" ini:"database"`
+}
 
-// 设置默认值
-cfg.SetDefault("app.name", "MyApp")
-cfg.SetDefault("app.version", "1.0.0")
-
-// 从文件加载
-cfg.LoadFile("config.json")
-
-// 从环境变量加载（前缀为 APP_）
-cfg.LoadEnv("APP")
-
-// 监听配置变化
-cfg.Watch("database.url", func(oldValue, newValue string) {
-    fmt.Printf("Database URL changed from %s to %s\n", oldValue, newValue)
-})
+func main() {
+    var cfg Config
+    
+    // 支持多种格式：.json, .yaml, .yml, .toml, .ini
+    err := config.LoadConfig(&cfg, "config.ini")
+    if err != nil {
+        panic(err)
+    }
+    
+    fmt.Printf("App: %s running on port %d\n", cfg.App.Name, cfg.App.Port)
+}
 ```
 
 ## 文档

@@ -8,6 +8,7 @@ import (
 	"github.com/lazygophers/utils/osx"
 	"github.com/lazygophers/utils/runtime"
 	"github.com/pelletier/go-toml/v2"
+	"gopkg.in/ini.v1"
 	"gopkg.in/yaml.v3"
 	"io"
 	"os"
@@ -53,6 +54,24 @@ var supportedExtMap = map[string]supportedExt{
 		},
 		Marshaler: func(writer io.Writer, v interface{}) error {
 			return yaml.NewEncoder(writer).Encode(v)
+		},
+	},
+	".ini": {
+		Unmarshaler: func(reader io.Reader, v interface{}) error {
+			cfg, err := ini.Load(reader)
+			if err != nil {
+				return err
+			}
+			return cfg.MapTo(v)
+		},
+		Marshaler: func(writer io.Writer, v interface{}) error {
+			cfg := ini.Empty()
+			err := cfg.ReflectFrom(v)
+			if err != nil {
+				return err
+			}
+			_, err = cfg.WriteTo(writer)
+			return err
 		},
 	},
 }
