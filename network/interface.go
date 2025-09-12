@@ -6,7 +6,7 @@ import (
 )
 
 func GetInterfaceIpByName(name string, prev6 bool) string {
-	inter, err := net.InterfaceByName("eth0")
+	inter, err := net.InterfaceByName(name)
 	if err != nil {
 		log.Debugf("err:%v", err)
 		return ""
@@ -25,17 +25,17 @@ func GetInterfaceIpByAddrs(address []net.Addr, prev6 bool) string {
 	var v4 string
 	for _, addr := range address {
 		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To16() != nil {
-				// v6 的地址
+			if ipnet.IP.To4() == nil && ipnet.IP.To16() != nil {
+				// v6 的地址 (To4()为nil表示不是IPv4，但To16()不为nil表示是有效IP)
 				if prev6 {
-					return ipnet.IP.To16().String()
+					return ipnet.IP.String()
 				}
 			} else if ipnet.IP.To4() != nil {
 				// v4 地址
 				if !prev6 {
-					return ipnet.IP.To4().String()
+					return ipnet.IP.String()
 				} else {
-					v4 = ipnet.IP.To4().String()
+					v4 = ipnet.IP.String()
 				}
 			}
 		}
