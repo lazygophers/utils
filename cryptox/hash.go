@@ -153,7 +153,8 @@ func BLAKE2b[M string | []byte](s M, size int) (string, error) {
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
-// BLAKE2s 计算输入字符串或字节切片的 BLAKE2s 哈希值，并返回指定长度的十六进制表示的字符串。
+// BLAKE2s 计算输入字符串或字节切片的 BLAKE2s 哈希值，并返回256位十六进制表示的字符串。
+// 注意：BLAKE2s 固定输出256位，size参数被忽略以保持兼容性。
 func BLAKE2s[M string | []byte](s M, size int) (string, error) {
 	if size <= 0 {
 		return "", fmt.Errorf("size must be greater than 0")

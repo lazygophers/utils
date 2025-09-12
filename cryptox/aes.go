@@ -65,6 +65,8 @@ func Decrypt(key, ciphertext []byte) ([]byte, error) {
 }
 
 // EncryptECB 使用 AES-256 在 ECB 模式下加密明文。
+// 警告：ECB模式在密码学上是不安全的，相同的明文块会产生相同的密文块。
+// 建议使用GCM、CBC或CFB模式以获得更好的安全性。
 func EncryptECB(key, plaintext []byte) ([]byte, error) {
 	if len(key) != 32 {
 		return nil, errors.New("invalid key length: must be 32 bytes")
@@ -84,6 +86,8 @@ func EncryptECB(key, plaintext []byte) ([]byte, error) {
 }
 
 // DecryptECB 使用 AES-256 在 ECB 模式下解密密文。
+// 警告：ECB模式在密码学上是不安全的，相同的明文块会产生相同的密文块。
+// 建议使用GCM、CBC或CFB模式以获得更好的安全性。
 func DecryptECB(key, ciphertext []byte) ([]byte, error) {
 	if len(key) != 32 {
 		return nil, errors.New("invalid key length: must be 32 bytes")
@@ -264,7 +268,6 @@ func DecryptCTR(key, ciphertext []byte) ([]byte, error) {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-
 		return nil, err
 	}
 
