@@ -304,3 +304,151 @@ func TestBLAKE2sInternalError(t *testing.T) {
 		}
 	}
 }
+
+// Test new hash functions
+func TestSHA1(t *testing.T) {
+	input := "test"
+	expected := "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3"
+	result := SHA1(input)
+	if result != expected {
+		t.Errorf("SHA1(%s) = %s; want %s", input, result, expected)
+	}
+}
+
+func TestRIPEMD160(t *testing.T) {
+	input := "test"
+	expected := "5e52fee47e6b070565f74372468cdc699de89107"
+	result := RIPEMD160(input)
+	if result != expected {
+		t.Errorf("RIPEMD160(%s) = %s; want %s", input, result, expected)
+	}
+}
+
+func TestKeccak256(t *testing.T) {
+	input := "test"
+	expected := "9c22ff5f21f0b81b113e63f7db6da94fedef11b2119b4088b89664fb9a3cb658"
+	result := Keccak256(input)
+	if result != expected {
+		t.Errorf("Keccak256(%s) = %s; want %s", input, result, expected)
+	}
+}
+
+func TestBLAKE2b512(t *testing.T) {
+	input := "test"
+	expected := "a71079d42853dea26e453004338670a53814b78137ffbed07603a41d76a483aa9bc33b582f77d30a65e6f29a896c0411f38312e1d66e0bf16386c86a89bea572"
+	result := BLAKE2b512(input)
+	if result != expected {
+		t.Errorf("BLAKE2b512(%s) = %s; want %s", input, result, expected)
+	}
+}
+
+func TestBLAKE2b256(t *testing.T) {
+	input := "test"
+	expected := "928b20366943e2afd11ebc0eae2e53a93bf177a4fcf35bcc64d503704e65e202"
+	result := BLAKE2b256(input)
+	if result != expected {
+		t.Errorf("BLAKE2b256(%s) = %s; want %s", input, result, expected)
+	}
+}
+
+func TestBLAKE2s256(t *testing.T) {
+	input := "test"
+	expected := "f308fc02ce9172ad02a7d75800ecfc027109bc67987ea32aba9b8dcc7b10150e"
+	result := BLAKE2s256(input)
+	if result != expected {
+		t.Errorf("BLAKE2s256(%s) = %s; want %s", input, result, expected)
+	}
+}
+
+func TestBLAKE2bWithKey(t *testing.T) {
+	input := "test"
+	key := []byte("key")
+	size := 32
+	result, err := BLAKE2bWithKey(input, key, size)
+	if err != nil {
+		t.Errorf("BLAKE2bWithKey(%s, %v, %d) returned error: %v", input, key, size, err)
+	}
+	// Verify it returns correct length
+	if len(result) != size*2 {
+		t.Errorf("BLAKE2bWithKey(%s, %v, %d) returned wrong length: got %d, want %d", input, key, size, len(result), size*2)
+	}
+}
+
+func TestBLAKE2sWithKey(t *testing.T) {
+	input := "test"
+	key := []byte("key")
+	result, err := BLAKE2sWithKey(input, key)
+	if err != nil {
+		t.Errorf("BLAKE2sWithKey(%s, %v) returned error: %v", input, key, err)
+	}
+	if len(result) != 64 { // 32 bytes * 2 hex chars
+		t.Errorf("BLAKE2sWithKey(%s, %v) returned wrong length: got %d, want 64", input, key, len(result))
+	}
+}
+
+func TestHMACMd5(t *testing.T) {
+	key := "key"
+	message := "test"
+	expected := "1d4a2743c056e467ff3f09c9af31de7e"
+	result := HMACMd5(key, message)
+	if result != expected {
+		t.Errorf("HMACMd5(%s, %s) = %s; want %s", key, message, result, expected)
+	}
+}
+
+func TestHMACSHA1(t *testing.T) {
+	key := "key"
+	message := "test"
+	expected := "671f54ce0c540f78ffe1e26dcf9c2a047aea4fda"
+	result := HMACSHA1(key, message)
+	if result != expected {
+		t.Errorf("HMACSHA1(%s, %s) = %s; want %s", key, message, result, expected)
+	}
+}
+
+func TestHMACSHA256(t *testing.T) {
+	key := "key"
+	message := "test"
+	expected := "02afb56304902c656fcb737cdd03de6205bb6d401da2812efd9b2d36a08af159"
+	result := HMACSHA256(key, message)
+	if result != expected {
+		t.Errorf("HMACSHA256(%s, %s) = %s; want %s", key, message, result, expected)
+	}
+}
+
+func TestHMACSHA384(t *testing.T) {
+	key := "key"
+	message := "test"
+	expected := "160a099ad9d6dadb46311cb4e6dfe98aca9ca519c2e0fedc8dc45da419b1173039cc131f0b5f68b2bbc2b635109b57a8"
+	result := HMACSHA384(key, message)
+	if result != expected {
+		t.Errorf("HMACSHA384(%s, %s) = %s; want %s", key, message, result, expected)
+	}
+}
+
+func TestHMACSHA512(t *testing.T) {
+	key := "key"
+	message := "test"
+	expected := "287a0fb89a7fbdfa5b5538636918e537a5b83065e4ff331268b7aaa115dde047a9b0f4fb5b828608fc0b6327f10055f7637b058e9e0dbb9e698901a3e6dd461c"
+	result := HMACSHA512(key, message)
+	if result != expected {
+		t.Errorf("HMACSHA512(%s, %s) = %s; want %s", key, message, result, expected)
+	}
+}
+
+// Test error conditions for new hash functions
+func TestNewHashErrorConditions(t *testing.T) {
+	data := "test"
+	key := []byte("key")
+	
+	// Test BLAKE2bWithKey with invalid sizes
+	_, err := BLAKE2bWithKey(data, key, 0)
+	if err == nil {
+		t.Error("Expected error for BLAKE2bWithKey with size 0")
+	}
+	
+	_, err = BLAKE2bWithKey(data, key, 65)
+	if err == nil {
+		t.Error("Expected error for BLAKE2bWithKey with size > 64")
+	}
+}

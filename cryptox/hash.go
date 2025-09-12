@@ -1,16 +1,25 @@
 package cryptox
 
 import (
+	"crypto/hmac"
 	"crypto/md5"
+	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
 	"golang.org/x/crypto/blake2b"
 	"golang.org/x/crypto/blake2s"
+	"golang.org/x/crypto/ripemd160"
 	"golang.org/x/crypto/sha3"
 	"hash/crc32"
 	"hash/crc64"
 	"hash/fnv"
+)
+
+// Global variables for dependency injection during testing
+var (
+	blake2bNew    = blake2b.New
+	blake2sNew256 = blake2s.New256
 )
 
 // Md5 计算输入字符串或字节切片的 MD5 哈希值，并返回十六进制表示的字符串。
@@ -160,10 +169,110 @@ func BLAKE2s[M string | []byte](s M, size int) (string, error) {
 		return "", fmt.Errorf("size must be greater than 0")
 	}
 	var key []byte
-	h, err := blake2s.New256(key)
+	h, err := blake2sNew256(key)
 	if err != nil {
 		return "", fmt.Errorf("failed to create BLAKE2s hash: %w", err)
 	}
 	_, _ = h.Write([]byte(s))
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
+}
+
+// SHA1 计算输入字符串或字节切片的 SHA1 哈希值，并返回十六进制表示的字符串。
+// 注意：SHA1 已被认为不安全，仅用于兼容性目的。
+func SHA1[M string | []byte](s M) string {
+	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
+}
+
+// RIPEMD160 计算输入字符串或字节切片的 RIPEMD-160 哈希值，并返回十六进制表示的字符串。
+func RIPEMD160[M string | []byte](s M) string {
+	h := ripemd160.New()
+	_, _ = h.Write([]byte(s))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// Keccak256 计算输入字符串或字节切片的 Keccak-256 哈希值，并返回十六进制表示的字符串。
+// 注意：这是原始的 Keccak，不是 NIST 标准化的 SHA3。
+func Keccak256[M string | []byte](s M) string {
+	h := sha3.NewLegacyKeccak256()
+	_, _ = h.Write([]byte(s))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// BLAKE2b512 计算输入字符串或字节切片的 BLAKE2b-512 哈希值，并返回十六进制表示的字符串。
+func BLAKE2b512[M string | []byte](s M) string {
+	h, _ := blake2b.New512(nil)
+	_, _ = h.Write([]byte(s))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// BLAKE2b256 计算输入字符串或字节切片的 BLAKE2b-256 哈希值，并返回十六进制表示的字符串。
+func BLAKE2b256[M string | []byte](s M) string {
+	h, _ := blake2b.New256(nil)
+	_, _ = h.Write([]byte(s))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// BLAKE2s256 计算输入字符串或字节切片的 BLAKE2s-256 哈希值，并返回十六进制表示的字符串。
+func BLAKE2s256[M string | []byte](s M) string {
+	h, _ := blake2s.New256(nil)
+	_, _ = h.Write([]byte(s))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// BLAKE2bWithKey 使用密钥计算输入字符串或字节切片的 BLAKE2b 哈希值，并返回指定长度的十六进制表示的字符串。
+func BLAKE2bWithKey[M string | []byte](s M, key []byte, size int) (string, error) {
+	if size <= 0 || size > 64 {
+		return "", fmt.Errorf("size must be between 1 and 64 bytes")
+	}
+	h, err := blake2bNew(size, key)
+	if err != nil {
+		return "", fmt.Errorf("failed to create BLAKE2b hash with key: %w", err)
+	}
+	_, _ = h.Write([]byte(s))
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
+}
+
+// BLAKE2sWithKey 使用密钥计算输入字符串或字节切片的 BLAKE2s 哈希值，并返回256位十六进制表示的字符串。
+func BLAKE2sWithKey[M string | []byte](s M, key []byte) (string, error) {
+	h, err := blake2sNew256(key)
+	if err != nil {
+		return "", fmt.Errorf("failed to create BLAKE2s hash with key: %w", err)
+	}
+	_, _ = h.Write([]byte(s))
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
+}
+
+// HMACMd5 使用 MD5 作为底层哈希函数计算 HMAC 值，并返回十六进制表示的字符串。
+func HMACMd5[M string | []byte](key, message M) string {
+	h := hmac.New(md5.New, []byte(key))
+	_, _ = h.Write([]byte(message))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// HMACSHA1 使用 SHA1 作为底层哈希函数计算 HMAC 值，并返回十六进制表示的字符串。
+func HMACSHA1[M string | []byte](key, message M) string {
+	h := hmac.New(sha1.New, []byte(key))
+	_, _ = h.Write([]byte(message))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// HMACSHA256 使用 SHA256 作为底层哈希函数计算 HMAC 值，并返回十六进制表示的字符串。
+func HMACSHA256[M string | []byte](key, message M) string {
+	h := hmac.New(sha256.New, []byte(key))
+	_, _ = h.Write([]byte(message))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// HMACSHA384 使用 SHA384 作为底层哈希函数计算 HMAC 值，并返回十六进制表示的字符串。
+func HMACSHA384[M string | []byte](key, message M) string {
+	h := hmac.New(sha512.New384, []byte(key))
+	_, _ = h.Write([]byte(message))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+// HMACSHA512 使用 SHA512 作为底层哈希函数计算 HMAC 值，并返回十六进制表示的字符串。
+func HMACSHA512[M string | []byte](key, message M) string {
+	h := hmac.New(sha512.New, []byte(key))
+	_, _ = h.Write([]byte(message))
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
