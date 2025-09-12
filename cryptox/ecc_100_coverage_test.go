@@ -1,6 +1,7 @@
 package cryptox
 
 import (
+	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/sha256"
 	"errors"
@@ -471,5 +472,566 @@ func TestECCRealWorldScenarios(t *testing.T) {
 
 	if string(aliceShared) == string(charlieShared) {
 		t.Error("Different key pairs should produce different shared secrets")
+	}
+}
+
+// TestECDHMissingCoverage tests specific ECDH error paths to reach 100% coverage
+func TestECDHMissingCoverage(t *testing.T) {
+	// Test ECDHComputeShared with public key not on curve (artificial case)
+	// This will test the curve validation path
+	keyPair1, err := GenerateECDHP256Key()
+	if err != nil {
+		t.Fatalf("Failed to generate key pair 1: %v", err)
+	}
+
+	keyPair2, err := GenerateECDHP256Key() 
+	if err != nil {
+		t.Fatalf("Failed to generate key pair 2: %v", err)
+	}
+
+	// Test different curves mismatch
+	keyPairP384, err := GenerateECDHP384Key()
+	if err != nil {
+		t.Fatalf("Failed to generate P384 key: %v", err)
+	}
+
+	_, err = ECDHComputeShared(keyPair1.PrivateKey, keyPairP384.PublicKey)
+	if err == nil {
+		t.Error("Expected error for curve mismatch")
+	}
+
+	// Test ValidateECDHKeyPair with mismatched keys
+	// Create key pair with wrong public key
+	wrongKeyPair := &ECDHKeyPair{
+		PrivateKey: keyPair1.PrivateKey,
+		PublicKey:  keyPair2.PublicKey, // Different public key
+	}
+
+	err = ValidateECDHKeyPair(wrongKeyPair)
+	if err == nil {
+		t.Error("Expected error for mismatched key pair")
+	}
+
+	// Test ECDHSharedSecretTest to ensure it executes without error
+	// We don't assert on the match result since different keys could theoretically match
+	_, err = ECDHSharedSecretTest(keyPair1, keyPair2)
+	if err != nil {
+		t.Errorf("ECDHSharedSecretTest should not error with valid keys: %v", err)
+	}
+
+	// Test with same key pair (should match)
+	match, err := ECDHSharedSecretTest(keyPair1, keyPair1)
+	if err != nil {
+		t.Errorf("ECDHSharedSecretTest should not error with same key: %v", err)
+	}
+	if !match {
+		t.Error("Same key pair should have matching secrets")
+	}
+
+	// Test ECDHComputeSharedWithKDF with key length exactly equal to hash length
+	derivedKey, err := ECDHComputeSharedWithKDF(keyPair1.PrivateKey, keyPair2.PublicKey, 32, sha256.New)
+	if err != nil {
+		t.Errorf("KDF should work with key length equal to hash length: %v", err)
+	}
+	if len(derivedKey) != 32 {
+		t.Errorf("Expected key length 32, got %d", len(derivedKey))
+	}
+
+	// Test with key length less than hash length (truncation path)
+	derivedKey2, err := ECDHComputeSharedWithKDF(keyPair1.PrivateKey, keyPair2.PublicKey, 16, sha256.New)
+	if err != nil {
+		t.Errorf("KDF should work with key length less than hash length: %v", err)
+	}
+	if len(derivedKey2) != 16 {
+		t.Errorf("Expected key length 16, got %d", len(derivedKey2))
+	}
+}
+
+// TestPEMEncodingErrorPaths tests the remaining PEM encoding/decoding paths
+func TestPEMEncodingErrorPaths(t *testing.T) {
+	// Generate test keys
+	ecdsaKeyPair, err := GenerateECDSAP256Key()
+	if err != nil {
+		t.Fatalf("Failed to generate ECDSA key pair: %v", err)
+	}
+
+	// Test ECDSAPrivateKeyToPEM success path and internal error handling
+	pemData, err := ECDSAPrivateKeyToPEM(ecdsaKeyPair.PrivateKey)
+	if err != nil {
+		t.Errorf("ECDSAPrivateKeyToPEM should succeed: %v", err)
+	}
+	if len(pemData) == 0 {
+		t.Error("PEM data should not be empty")
+	}
+
+	// Test ECDSAPublicKeyToPEM success path
+	pubPemData, err := ECDSAPublicKeyToPEM(ecdsaKeyPair.PublicKey)
+	if err != nil {
+		t.Errorf("ECDSAPublicKeyToPEM should succeed: %v", err)
+	}
+	if len(pubPemData) == 0 {
+		t.Error("Public PEM data should not be empty")
+	}
+
+	// Test PEM parsing with edge cases that trigger different code paths
+
+	// Test malformed ASN.1 in private key PEM
+	malformedPrivatePEM := `-----BEGIN EC PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg
+-----END EC PRIVATE KEY-----`
+
+	_, err = ECDSAPrivateKeyFromPEM([]byte(malformedPrivatePEM))
+	if err == nil {
+		t.Error("Expected error for malformed private key ASN.1")
+	}
+
+	// Test malformed ASN.1 in public key PEM  
+	malformedPublicPEM := `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE
+-----END PUBLIC KEY-----`
+
+	_, err = ECDSAPublicKeyFromPEM([]byte(malformedPublicPEM))
+	if err == nil {
+		t.Error("Expected error for malformed public key ASN.1")
+	}
+
+	// Test with non-EC algorithms (should fail the type assertion)
+	rsaPublicPEM := `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1hKkprG8j0jLH9s7IqiK
+6VgKtCWNOhd2HWqe1bF/Xy4yU1R1ZRswRWuAHVEJl2Gx4H2Xc7k/lP7I0nN1Q8Xs
+F9Pl5b3r6ZkQXVmV1tTc8GmZ7u4mQ3b1x8cNlmPX7r7a6Q5H8VvT1K2tG3k6w8Kn
+8r7S7Gx1V8R5L5S8s2r5qT7QGk7o5R8L8F2I7d2uV1X7cM4W8K8r7S7K7I1M7V7Q
+7K7J3Q8O7p5f2c4D3b8r7X6K8s7S7Q7K7k7G1V8L8F2I7t4n7w7S4U7o3h6G3s3S3K
+5Q4I3j4K3m7p7N5T7w7R9s7T7K7Q8K7G3s7S7K8n8s7w6h7I4K2Q4K2A6J4K2E5E7X
+2Q3W3E2G3X7N5C7V3K5L8K5Q7K2A5D7P1K5Q3K3A5X3K5N5c2L5T5w7I2I2K8K8K5A
+5D7K7J7w7T4w7r7b3j4k7s5j7k5s7s5v7e7t3e6h2c4n5j7h1j2z4m8h6f7j8i5l7l
+5k7s5j7k5s7s5v7e7t3e6h2c4n5j7h1j2z4m8h6f7j8i5l7l5k7s5j7k5s7s5v7e7t
+3e6h2c4n5j7h1j2z4m8h6f7j8i5l7l5k7s5j7k5s7s5v7e7t3e6h2c4n5j7h1j2z4m
+8h6f7j8i5l7l5k7s5j7k5s7s5v7e7t3e6h2c4n5j7h1j2z4m8h6f7j8i5l7lQIDAQAB
+-----END PUBLIC KEY-----`
+
+	_, err = ECDSAPublicKeyFromPEM([]byte(rsaPublicPEM))
+	if err == nil {
+		t.Error("Expected error for RSA public key in ECDSA parser")
+	}
+}
+
+// TestECDHSpecificCoveragePaths tests specific code paths to reach 100%
+func TestECDHSpecificCoveragePaths(t *testing.T) {
+	// Generate key pairs for testing
+	keyPair1, err := GenerateECDHP256Key()
+	if err != nil {
+		t.Fatalf("Failed to generate key pair: %v", err)
+	}
+
+	// Create an invalid public key by modifying coordinates to be off the curve
+	// This should trigger the IsOnCurve check in ECDHComputeShared
+	invalidPublicKey := &ecdsa.PublicKey{
+		Curve: elliptic.P256(),
+		X:     big.NewInt(1), // Invalid point 
+		Y:     big.NewInt(1), // Invalid point
+	}
+
+	_, err = ECDHComputeShared(keyPair1.PrivateKey, invalidPublicKey)
+	if err == nil {
+		t.Error("Expected error for public key not on curve")
+	}
+
+	// Create key pair with mismatched curve types to trigger ValidateECDHKeyPair paths
+	keyPairP384, err := GenerateECDHP384Key()
+	if err != nil {
+		t.Fatalf("Failed to generate P384 key pair: %v", err)
+	}
+
+	// Test ValidateECDHKeyPair with curve mismatch
+	mismatchedKeyPair := &ECDHKeyPair{
+		PrivateKey: keyPair1.PrivateKey,       // P256
+		PublicKey:  keyPairP384.PublicKey,     // P384
+	}
+
+	err = ValidateECDHKeyPair(mismatchedKeyPair)
+	if err == nil {
+		t.Error("Expected error for curve mismatch in key pair")
+	}
+
+	// Test ValidateECDHKeyPair with invalid public key coordinates
+	invalidCoordKeyPair := &ECDHKeyPair{
+		PrivateKey: keyPair1.PrivateKey,
+		PublicKey:  invalidPublicKey,
+	}
+
+	err = ValidateECDHKeyPair(invalidCoordKeyPair)
+	if err == nil {
+		t.Error("Expected error for invalid public key coordinates")
+	}
+}
+
+// TestECDSASpecificCoveragePaths tests ECDSA specific paths for 100% coverage
+func TestECDSASpecificCoveragePaths(t *testing.T) {
+	// Test successful PEM operations to trigger success paths
+	keyPair, err := GenerateECDSAP256Key()
+	if err != nil {
+		t.Fatalf("Failed to generate ECDSA key pair: %v", err)
+	}
+
+	// Test ECDSAPrivateKeyToPEM success path (85.7% -> 100%)
+	privPEM, err := ECDSAPrivateKeyToPEM(keyPair.PrivateKey)
+	if err != nil {
+		t.Errorf("ECDSAPrivateKeyToPEM should succeed: %v", err)
+	}
+	if len(privPEM) == 0 {
+		t.Error("Private PEM should not be empty")
+	}
+
+	// Test ECDSAPublicKeyToPEM success path (85.7% -> 100%)
+	pubPEM, err := ECDSAPublicKeyToPEM(keyPair.PublicKey)
+	if err != nil {
+		t.Errorf("ECDSAPublicKeyToPEM should succeed: %v", err)
+	}
+	if len(pubPEM) == 0 {
+		t.Error("Public PEM should not be empty")
+	}
+
+	// Test ECDSAPrivateKeyFromPEM success path (90.9% -> 100%)
+	decodedPriv, err := ECDSAPrivateKeyFromPEM(privPEM)
+	if err != nil {
+		t.Errorf("ECDSAPrivateKeyFromPEM should succeed: %v", err)
+	}
+	if decodedPriv == nil {
+		t.Error("Decoded private key should not be nil")
+	}
+
+	// Test ECDSAPublicKeyFromPEM success path (78.6% -> 100%)
+	decodedPub, err := ECDSAPublicKeyFromPEM(pubPEM)
+	if err != nil {
+		t.Errorf("ECDSAPublicKeyFromPEM should succeed: %v", err)
+	}
+	if decodedPub == nil {
+		t.Error("Decoded public key should not be nil")
+	}
+
+	// Test with malformed DER signature to trigger ECDSASignatureFromBytes error paths
+	
+	// DER with sequence tag but wrong type for first integer
+	malformedDER1 := []byte{0x30, 0x08, 0x04, 0x02, 0x01, 0x01, 0x02, 0x02, 0x01, 0x01}
+	_, _, err = ECDSASignatureFromBytes(malformedDER1)
+	if err == nil {
+		t.Error("Expected error for malformed DER with wrong type")
+	}
+
+	// DER with sequence but truncated after r length
+	malformedDER2 := []byte{0x30, 0x08, 0x02, 0x02, 0x01}
+	_, _, err = ECDSASignatureFromBytes(malformedDER2)
+	if err == nil {
+		t.Error("Expected error for truncated DER after r length")
+	}
+
+	// DER with sequence but wrong type for second integer (s)
+	malformedDER3 := []byte{0x30, 0x08, 0x02, 0x02, 0x01, 0x01, 0x04, 0x02, 0x01, 0x01}
+	_, _, err = ECDSASignatureFromBytes(malformedDER3)
+	if err == nil {
+		t.Error("Expected error for malformed DER with wrong s type")
+	}
+
+	// DER with sequence but truncated after s length
+	malformedDER4 := []byte{0x30, 0x08, 0x02, 0x02, 0x01, 0x01, 0x02, 0x02, 0x01}
+	_, _, err = ECDSASignatureFromBytes(malformedDER4)
+	if err == nil {
+		t.Error("Expected error for truncated DER after s length")
+	}
+
+	// DER with truncated sequence length
+	malformedDER5 := []byte{0x30, 0xFF, 0x02, 0x02, 0x01, 0x01}
+	_, _, err = ECDSASignatureFromBytes(malformedDER5)
+	if err == nil {
+		t.Error("Expected error for truncated sequence")
+	}
+
+	// Test ECDSAPrivateKeyFromPEM with invalid ASN.1 structure
+	invalidASN1PEM := []byte(`-----BEGIN EC PRIVATE KEY-----
+MIGUAgEAMBAGByqGSM49AgEGBSuBBAAKBHQwcgIBAQQgTest
+-----END EC PRIVATE KEY-----`)
+	
+	_, err = ECDSAPrivateKeyFromPEM(invalidASN1PEM)
+	if err == nil {
+		t.Error("Expected error for invalid ASN.1 structure")
+	}
+
+	// Test ECDSAPublicKeyFromPEM with invalid algorithm identifier
+	invalidAlgoIdPEM := []byte(`-----BEGIN PUBLIC KEY-----
+MFMwDQYJKoZIhvcNAQEBBQADQgAwPwIBAAKCAQEAxxx
+-----END PUBLIC KEY-----`)
+	
+	_, err = ECDSAPublicKeyFromPEM(invalidAlgoIdPEM)
+	if err == nil {
+		t.Error("Expected error for invalid algorithm identifier")
+	}
+
+	// Test with completely invalid PEM content
+	invalidPEMContent := []byte(`-----BEGIN EC PRIVATE KEY-----
+invalid base64 content here!!!
+-----END EC PRIVATE KEY-----`)
+	
+	_, err = ECDSAPrivateKeyFromPEM(invalidPEMContent)
+	if err == nil {
+		t.Error("Expected error for invalid PEM content")
+	}
+
+	// Test public key PEM with invalid content
+	invalidPublicPEMContent := []byte(`-----BEGIN PUBLIC KEY-----
+invalid base64 content here!!!
+-----END PUBLIC KEY-----`)
+	
+	_, err = ECDSAPublicKeyFromPEM(invalidPublicPEMContent)
+	if err == nil {
+		t.Error("Expected error for invalid public PEM content")
+	}
+}
+
+// TestECDHAndECDSAMissingCoverage specifically targets the remaining uncovered lines
+func TestECDHAndECDSAMissingCoverage(t *testing.T) {
+	// Generate key pairs for testing
+	keyPair1, err := GenerateECDHP256Key()
+	if err != nil {
+		t.Fatalf("Failed to generate ECDH key pair 1: %v", err)
+	}
+
+	keyPair2, err := GenerateECDHP256Key()
+	if err != nil {
+		t.Fatalf("Failed to generate ECDH key pair 2: %v", err)
+	}
+
+	// Test ECDHSharedSecretTest with error path
+	// Create an invalid key pair that will cause ECDHComputeShared to fail
+	invalidPublicKey := &ecdsa.PublicKey{
+		Curve: elliptic.P256(),
+		X:     big.NewInt(0), // Point at infinity (invalid)
+		Y:     big.NewInt(1),
+	}
+
+	invalidKeyPair := &ECDHKeyPair{
+		PrivateKey: keyPair1.PrivateKey,
+		PublicKey:  invalidPublicKey,
+	}
+
+	// This should trigger the error path in ECDHSharedSecretTest (71.4% -> 100%)
+	_, err = ECDHSharedSecretTest(keyPair1, invalidKeyPair)
+	if err == nil {
+		t.Error("Expected error in ECDHSharedSecretTest with invalid public key")
+	}
+
+	// Test second error path in ECDHSharedSecretTest
+	_, err = ECDHSharedSecretTest(invalidKeyPair, keyPair1)
+	if err == nil {
+		t.Error("Expected error in ECDHSharedSecretTest with invalid key pair as first param")
+	}
+
+	// Test ValidateECDHKeyPair with all error conditions (92.9% -> 100%)
+	
+	// Test with nil key pair
+	err = ValidateECDHKeyPair(nil)
+	if err == nil {
+		t.Error("Expected error for nil key pair")
+	}
+
+	// Test with nil private key in key pair
+	keyPairWithNilPrivate := &ECDHKeyPair{
+		PrivateKey: nil,
+		PublicKey:  keyPair1.PublicKey,
+	}
+	err = ValidateECDHKeyPair(keyPairWithNilPrivate)
+	if err == nil {
+		t.Error("Expected error for nil private key")
+	}
+
+	// Test with nil public key in key pair
+	keyPairWithNilPublic := &ECDHKeyPair{
+		PrivateKey: keyPair1.PrivateKey,
+		PublicKey:  nil,
+	}
+	err = ValidateECDHKeyPair(keyPairWithNilPublic)
+	if err == nil {
+		t.Error("Expected error for nil public key")
+	}
+
+	// Test ValidateECDHKeyPair with the ECDHKeyPair struct method
+	validPair := &ECDHKeyPair{
+		PrivateKey: keyPair1.PrivateKey,
+		PublicKey:  keyPair1.PublicKey,
+	}
+	err = ValidateECDHKeyPair(validPair)
+	if err != nil {
+		t.Errorf("ValidateECDHKeyPair should succeed with valid pair: %v", err)
+	}
+
+	// Test ECDHComputeSharedWithKDF with all error paths (95.5% -> 100%)
+	
+	// Test with 0 key length
+	_, err = ECDHComputeSharedWithKDF(keyPair1.PrivateKey, keyPair2.PublicKey, 0, nil)
+	if err == nil {
+		t.Error("Expected error for zero key length in ECDHComputeSharedWithKDF")
+	}
+
+	// Test with negative key length
+	_, err = ECDHComputeSharedWithKDF(keyPair1.PrivateKey, keyPair2.PublicKey, -1, nil)
+	if err == nil {
+		t.Error("Expected error for negative key length in ECDHComputeSharedWithKDF")
+	}
+
+	// Test with nil KDF function (line 89)
+	_, err = ECDHComputeSharedWithKDF(keyPair1.PrivateKey, keyPair2.PublicKey, 32, nil)
+	if err == nil {
+		t.Error("Expected error for nil KDF function in ECDHComputeSharedWithKDF")
+	}
+
+	// Test with invalid public key (should trigger ECDHComputeShared error)
+	_, err = ECDHComputeSharedWithKDF(keyPair1.PrivateKey, invalidPublicKey, 32, sha256.New)
+	if err == nil {
+		t.Error("Expected error for invalid public key in ECDHComputeSharedWithKDF")
+	}
+
+	// Test counter mode expansion (key length > hash output length)
+	largeKey, err := ECDHComputeSharedWithKDF(keyPair1.PrivateKey, keyPair2.PublicKey, 100, sha256.New)
+	if err != nil {
+		t.Errorf("ECDHComputeSharedWithKDF should work with large key length: %v", err)
+	}
+	if len(largeKey) != 100 {
+		t.Errorf("Expected key length 100, got %d", len(largeKey))
+	}
+
+	// Test ECDHComputeShared with all error paths (90.0% -> 100%)
+	
+	// Test with nil private key
+	_, err = ECDHComputeShared(nil, keyPair1.PublicKey)
+	if err == nil {
+		t.Error("Expected error for nil private key in ECDHComputeShared")
+	}
+
+	// Test with nil public key
+	_, err = ECDHComputeShared(keyPair1.PrivateKey, nil)
+	if err == nil {
+		t.Error("Expected error for nil public key in ECDHComputeShared")
+	}
+
+	// Test with invalid public key coordinates (not on curve)
+	_, err = ECDHComputeShared(keyPair1.PrivateKey, invalidPublicKey)
+	if err == nil {
+		t.Error("Expected error for public key not on curve in ECDHComputeShared")
+	}
+
+	// Test curve mismatch
+	keyPairP384, err := GenerateECDHP384Key()
+	if err != nil {
+		t.Fatalf("Failed to generate P384 key pair: %v", err)
+	}
+	
+	_, err = ECDHComputeShared(keyPair1.PrivateKey, keyPairP384.PublicKey)
+	if err == nil {
+		t.Error("Expected error for curve mismatch in ECDHComputeShared")
+	}
+
+	// Test successful ECDHComputeShared to hit the success path (line 77-80)
+	sharedSecret, err := ECDHComputeShared(keyPair1.PrivateKey, keyPair2.PublicKey)
+	if err != nil {
+		t.Errorf("ECDHComputeShared should succeed with valid keys: %v", err)
+	}
+	if len(sharedSecret) == 0 {
+		t.Error("Shared secret should not be empty")
+	}
+
+	// Test ECDHSharedSecretTest with nil key pairs (to trigger nil check)
+	_, err = ECDHSharedSecretTest(nil, keyPair1)
+	if err == nil {
+		t.Error("Expected error for nil keyPair1 in ECDHSharedSecretTest")
+	}
+
+	_, err = ECDHSharedSecretTest(keyPair1, nil)
+	if err == nil {
+		t.Error("Expected error for nil keyPair2 in ECDHSharedSecretTest")
+	}
+
+	// Test ECDHSharedSecretTest to trigger the secret length comparison and byte comparison
+	// Create two valid but different key pairs
+	_, err = ECDHSharedSecretTest(keyPair1, keyPair2)
+	if err != nil {
+		t.Errorf("ECDHSharedSecretTest with valid but different keys should not error: %v", err)
+	}
+
+	// Test ValidateECDHKeyPair with key pair where public key doesn't match private key
+	// Create a mismatched key pair (same curve, but wrong public key)
+	mismatchedPubKeyPair := &ECDHKeyPair{
+		PrivateKey: keyPair1.PrivateKey,
+		PublicKey:  keyPair2.PublicKey,
+	}
+	err = ValidateECDHKeyPair(mismatchedPubKeyPair)
+	if err == nil {
+		t.Error("Expected error for public key not matching private key")
+	}
+}
+
+// TestFinalCoverageEdgeCases targets the last remaining uncovered lines
+func TestFinalCoverageEdgeCases(t *testing.T) {
+	// Generate ECDSA key pairs for PEM testing
+	ecdsaKeyPair, err := GenerateECDSAP256Key()
+	if err != nil {
+		t.Fatalf("Failed to generate ECDSA key pair: %v", err)
+	}
+
+	// Test the success path of ECDSAPrivateKeyToPEM to reach 100%
+	privPEM, err := ECDSAPrivateKeyToPEM(ecdsaKeyPair.PrivateKey)
+	if err != nil {
+		t.Errorf("ECDSAPrivateKeyToPEM should succeed: %v", err)
+	}
+
+	// Test the success path of ECDSAPublicKeyToPEM to reach 100%
+	pubPEM, err := ECDSAPublicKeyToPEM(ecdsaKeyPair.PublicKey)
+	if err != nil {
+		t.Errorf("ECDSAPublicKeyToPEM should succeed: %v", err)
+	}
+
+	// Test ECDSA PEM round-trip to trigger all success paths
+	decodedPriv, err := ECDSAPrivateKeyFromPEM(privPEM)
+	if err != nil {
+		t.Errorf("ECDSAPrivateKeyFromPEM should succeed: %v", err)
+	}
+	if decodedPriv == nil {
+		t.Error("Decoded private key should not be nil")
+	}
+
+	decodedPub, err := ECDSAPublicKeyFromPEM(pubPEM)
+	if err != nil {
+		t.Errorf("ECDSAPublicKeyFromPEM should succeed: %v", err)
+	}
+	if decodedPub == nil {
+		t.Error("Decoded public key should not be nil")
+	}
+
+	// Test ECDSASignatureFromBytes with various malformed inputs to trigger all error paths
+	
+	// Empty input
+	_, _, err = ECDSASignatureFromBytes([]byte{})
+	if err == nil {
+		t.Error("Expected error for empty signature bytes")
+	}
+
+	// Non-sequence tag
+	malformedDER := []byte{0x04, 0x08, 0x02, 0x02, 0x01, 0x01, 0x02, 0x02, 0x01, 0x01}
+	_, _, err = ECDSASignatureFromBytes(malformedDER)
+	if err == nil {
+		t.Error("Expected error for non-sequence tag")
+	}
+
+	// Too short to read sequence length
+	malformedDER = []byte{0x30}
+	_, _, err = ECDSASignatureFromBytes(malformedDER)
+	if err == nil {
+		t.Error("Expected error for truncated sequence length")
+	}
+
+	// Sequence length longer than remaining bytes
+	malformedDER = []byte{0x30, 0xFF, 0x02, 0x02}
+	_, _, err = ECDSASignatureFromBytes(malformedDER)
+	if err == nil {
+		t.Error("Expected error for sequence length exceeding data")
 	}
 }
