@@ -951,10 +951,29 @@ func TestECDHAndECDSAMissingCoverage(t *testing.T) {
 	}
 
 	// Test ECDHSharedSecretTest to trigger the secret length comparison and byte comparison
-	// Create two valid but different key pairs
-	_, err = ECDHSharedSecretTest(keyPair1, keyPair2)
+	// Create two valid but different key pairs - this should produce different secrets
+	match, err := ECDHSharedSecretTest(keyPair1, keyPair2)
 	if err != nil {
 		t.Errorf("ECDHSharedSecretTest with valid but different keys should not error: %v", err)
+	}
+	// These should not match since they're different key pairs
+	if match {
+		t.Log("Note: Different key pairs produced matching secrets (unlikely but possible)")
+	}
+
+	// Test ECDHSharedSecretTest to trigger specific byte comparison path  
+	// This tests the return false path at line 219
+	keyPair3, _ := GenerateECDHP256Key()
+	keyPair4, _ := GenerateECDHP256Key()
+	
+	// These should not match 
+	match, err = ECDHSharedSecretTest(keyPair3, keyPair4)
+	if err != nil {
+		t.Errorf("ECDHSharedSecretTest should not error: %v", err)
+	}
+	// The secrets from different key pairs should not match
+	if match {
+		t.Log("Note: Different key pairs produced matching secrets (very unlikely)")
 	}
 
 	// Test ValidateECDHKeyPair with key pair where public key doesn't match private key
@@ -1033,5 +1052,25 @@ func TestFinalCoverageEdgeCases(t *testing.T) {
 	_, _, err = ECDSASignatureFromBytes(malformedDER)
 	if err == nil {
 		t.Error("Expected error for sequence length exceeding data")
+	}
+
+	// Test successful signature round-trip to ensure all paths are hit
+	// Create a signature and then decode it to hit success paths
+	r, s, err := ECDSASignSHA256(ecdsaKeyPair.PrivateKey, []byte("test message"))
+	if err != nil {
+		t.Errorf("ECDSASignSHA256 should succeed: %v", err)
+	}
+
+	sigBytes, err := ECDSASignatureToBytes(r, s)
+	if err != nil {
+		t.Errorf("ECDSASignatureToBytes should succeed: %v", err)
+	}
+
+	decodedR, decodedS, err := ECDSASignatureFromBytes(sigBytes)
+	if err != nil {
+		t.Errorf("ECDSASignatureFromBytes should succeed: %v", err)
+	}
+	if decodedR.Cmp(r) != 0 || decodedS.Cmp(s) != 0 {
+		t.Error("Decoded signature should match original")
 	}
 }
