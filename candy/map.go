@@ -17,12 +17,16 @@ package candy
 //	    return n * 2
 //	})
 //	// doubled 为 []int{2, 4, 6, 8, 10}
-func Map[T, U any](ss []T, f func(T) U) (ret []U) {
-	// 预分配切片容量，避免频繁扩容
-	ret = make([]U, 0, len(ss))
-	for _, s := range ss {
-		ret = append(ret, f(s))
+func Map[T, U any](ss []T, f func(T) U) []U {
+	if len(ss) == 0 {
+		return []U{}
+	}
+	
+	// 直接分配最终长度的切片，避免 append 操作
+	ret := make([]U, len(ss))
+	for i, s := range ss {
+		ret[i] = f(s)
 	}
 
-	return
+	return ret
 }

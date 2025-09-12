@@ -22,14 +22,18 @@ package candy
 //   - 使用 make 初始化返回切片，确保返回空切片而非 nil
 //   - 该函数不会修改原始切片
 //   - 时间复杂度为 O(n)，其中 n 为切片长度
-func Filter[T any](ss []T, f func(T) bool) (ret []T) {
-	// 使用 make 初始化，确保返回空切片而非 nil
-	ret = make([]T, 0)
+func Filter[T any](ss []T, f func(T) bool) []T {
+	if len(ss) == 0 {
+		return []T{}
+	}
+	
+	// 使用原始长度的1/4作为初始容量预估，减少重新分配
+	ret := make([]T, 0, len(ss)/4+1)
 	for _, s := range ss {
 		if f(s) {
 			ret = append(ret, s)
 		}
 	}
 
-	return
+	return ret
 }

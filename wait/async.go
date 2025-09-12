@@ -31,18 +31,24 @@ var (
 //  5. 关闭通道并等待所有任务完成
 //  6. 将 WaitGroup 放回对象池
 func Async[M any](process int, push func(chan M), logic func(M)) {
-	c := make(chan M, process)
+	if process <= 0 {
+		return
+	}
+	
+	c := make(chan M, process*2) // 增加缓冲区大小，避免阻塞
 
 	w := Wgp.Get().(*sync.WaitGroup)
-	defer Wgp.Put(w)
+	defer func() {
+		w.Wait()
+		Wgp.Put(w)
+	}()
 
 	w.Add(process)
 	for i := 0; i < process; i++ {
 		routine.GoWithRecover(func() error {
 			defer w.Done()
 
-			var x M
-			for x = range c {
+			for x := range c {
 				logic(x)
 			}
 
@@ -52,8 +58,6 @@ func Async[M any](process int, push func(chan M), logic func(M)) {
 
 	push(c)
 	close(c)
-
-	w.Wait()
 }
 
 // AsyncAlwaysWithChan 使用指定数量的协程持续处理通道中的任务

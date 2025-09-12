@@ -24,7 +24,7 @@ func BenchmarkOriginalVsOptimized(b *testing.B) {
 	})
 	
 	b.Run("Optimized", func(b *testing.B) {
-		cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+		cb := NewCircuitBreaker(CircuitBreakerConfig{
 			TimeWindow: time.Second,
 			ReadyToTrip: func(s, f uint64) bool {
 				return false
@@ -62,7 +62,7 @@ func BenchmarkBeforeComparison(b *testing.B) {
 	})
 	
 	b.Run("Optimized_Before", func(b *testing.B) {
-		cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+		cb := NewCircuitBreaker(CircuitBreakerConfig{
 			TimeWindow: time.Second,
 			ReadyToTrip: func(s, f uint64) bool { return false },
 		})
@@ -97,7 +97,7 @@ func BenchmarkAfterComparison(b *testing.B) {
 	})
 	
 	b.Run("Optimized_After", func(b *testing.B) {
-		cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+		cb := NewCircuitBreaker(CircuitBreakerConfig{
 			TimeWindow: time.Second,
 		})
 		
@@ -142,7 +142,7 @@ func BenchmarkStateQueryComparison(b *testing.B) {
 	})
 	
 	b.Run("Optimized_State", func(b *testing.B) {
-		cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+		cb := NewCircuitBreaker(CircuitBreakerConfig{
 			TimeWindow: time.Second,
 		})
 		
@@ -153,7 +153,7 @@ func BenchmarkStateQueryComparison(b *testing.B) {
 	})
 	
 	b.Run("Optimized_GetState", func(b *testing.B) {
-		cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+		cb := NewCircuitBreaker(CircuitBreakerConfig{
 			TimeWindow: time.Second,
 		})
 		
@@ -164,7 +164,7 @@ func BenchmarkStateQueryComparison(b *testing.B) {
 	})
 	
 	b.Run("Optimized_IsOpen", func(b *testing.B) {
-		cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+		cb := NewCircuitBreaker(CircuitBreakerConfig{
 			TimeWindow: time.Second,
 		})
 		
@@ -192,7 +192,7 @@ func BenchmarkConcurrentPerformance(b *testing.B) {
 	})
 	
 	b.Run("Optimized_Concurrent", func(b *testing.B) {
-		cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+		cb := NewCircuitBreaker(CircuitBreakerConfig{
 			TimeWindow: time.Second,
 			ReadyToTrip: func(s, f uint64) bool { return false },
 		})
@@ -234,7 +234,7 @@ func BenchmarkMemoryUsage(b *testing.B) {
 	b.Run("Optimized_Memory", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+			cb := NewCircuitBreaker(CircuitBreakerConfig{
 				TimeWindow: time.Second,
 			})
 			cb.After(true)
@@ -285,7 +285,7 @@ func BenchmarkHighLoad(b *testing.B) {
 	})
 	
 	b.Run("Optimized_HighLoad", func(b *testing.B) {
-		cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+		cb := NewCircuitBreaker(CircuitBreakerConfig{
 			TimeWindow: time.Millisecond * 100,
 			ReadyToTrip: func(s, f uint64) bool {
 				return f > s && f+s > 1000
@@ -355,7 +355,7 @@ func BenchmarkStateTransitions(b *testing.B) {
 	})
 	
 	b.Run("Optimized_StateTransitions", func(b *testing.B) {
-		cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+		cb := NewCircuitBreaker(CircuitBreakerConfig{
 			TimeWindow: time.Millisecond * 10,
 			ReadyToTrip: func(s, f uint64) bool {
 				return f > s
@@ -376,7 +376,7 @@ func BenchmarkStateTransitions(b *testing.B) {
 // TestOptimizedFunctionality 测试优化版本的功能正确性
 func TestOptimizedFunctionality(t *testing.T) {
 	t.Run("OptimizedCircuitBreaker", func(t *testing.T) {
-		cb := NewOptimizedCircuitBreaker(CircuitBreakerConfig{
+		cb := NewCircuitBreaker(CircuitBreakerConfig{
 			TimeWindow: time.Second,
 			ReadyToTrip: func(s, f uint64) bool {
 				return f >= 3 && s+f >= 3 // 至少3个样本且失败次数>=3
