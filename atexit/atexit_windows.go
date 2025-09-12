@@ -1,4 +1,4 @@
-//go:build !linux && !windows && !darwin
+//go:build windows
 
 package atexit
 
@@ -15,12 +15,12 @@ var (
 	signalOnce  sync.Once
 )
 
-// 初始化信号处理 - 通用Unix系统
+// 初始化信号处理 - Windows特定信号
 func initSignalHandler() {
 	signalOnce.Do(func() {
 		c := make(chan os.Signal, 1)
-		// 通用Unix信号处理
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		// Windows 支持的信号
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 		
 		go func() {
 			<-c
@@ -44,7 +44,7 @@ func executeCallbacks() {
 				defer func() {
 					// 捕获回调函数中的panic，避免影响其他回调的执行
 					if r := recover(); r != nil {
-						// 通用系统的错误处理
+						// Windows 可以使用事件日志记录
 					}
 				}()
 				cb()

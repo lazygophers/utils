@@ -1,4 +1,4 @@
-//go:build !linux && !windows && !darwin
+//go:build darwin
 
 package atexit
 
@@ -15,12 +15,17 @@ var (
 	signalOnce  sync.Once
 )
 
-// 初始化信号处理 - 通用Unix系统
+// 初始化信号处理 - macOS特定优化
 func initSignalHandler() {
 	signalOnce.Do(func() {
 		c := make(chan os.Signal, 1)
-		// 通用Unix信号处理
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		// macOS 支持更多的 Unix 信号
+		signal.Notify(c, 
+			syscall.SIGINT, 
+			syscall.SIGTERM, 
+			syscall.SIGHUP,  // 终端断开
+			syscall.SIGQUIT, // 退出信号
+		)
 		
 		go func() {
 			<-c
@@ -44,7 +49,7 @@ func executeCallbacks() {
 				defer func() {
 					// 捕获回调函数中的panic，避免影响其他回调的执行
 					if r := recover(); r != nil {
-						// 通用系统的错误处理
+						// macOS 可以使用系统日志
 					}
 				}()
 				cb()
