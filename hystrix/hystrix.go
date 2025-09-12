@@ -18,8 +18,8 @@ type requestResult struct {
 type State string
 
 const (
-	Closed   State = "closed"    // closed 表示熔断开启（服务不可用）
-	Open     State = "open"      // open 表示正常状态（服务可用）
+	Closed   State = "closed"    // closed 表示熔断关闭（服务可用）
+	Open     State = "open"      // open 表示熔断开启（服务不可用）
 	HalfOpen State = "half-open" // half-open 表示半开状态（尝试探测）
 )
 
@@ -63,8 +63,8 @@ type CircuitBreaker struct {
 // NewCircuitBreaker 创建熔断器实例
 // 默认配置：
 // - Probe: 50% 概率探测
-// - ReadyToTrip: 失败次数超过成功次数
-// - 初始状态: Open (可用)
+// - ReadyToTrip: 失败次数超过成功次数且有足够样本
+// - 初始状态: Closed (可用)
 // - BufferSize: 1000
 func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 	if c.Probe == nil {
@@ -73,7 +73,8 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 
 	if c.ReadyToTrip == nil {
 		c.ReadyToTrip = func(successes, failures uint64) bool {
-			return successes+failures == 0 && failures > successes
+			total := successes + failures
+			return total >= 10 && failures > successes // 至少10个样本且失败率超过50%
 		}
 	}
 
@@ -84,7 +85,7 @@ func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker {
 	return &CircuitBreaker{
 		CircuitBreakerConfig: c,
 		changed:              *atomic.NewBool(true),
-		state:                Open,
+		state:                Closed,
 		requestResults:       newRingBuffer(c.BufferSize),
 		successes:            *atomic.NewUint64(0),
 		failures:             *atomic.NewUint64(0),
@@ -123,11 +124,13 @@ func (p *CircuitBreaker) Before() bool {
 
 	switch p.state {
 	case Closed:
-		return false
+		return true  // Closed = 可用
+	case Open:
+		return false // Open = 不可用
 	case HalfOpen:
 		return p.Probe()
 	default:
-		return true
+		return false
 	}
 }
 
@@ -168,31 +171,33 @@ func (p *CircuitBreaker) updateState() {
 	// 重置变更标记
 	p.changed.Store(false)
 
-	if p.ReadyToTrip(successes, failures) {
-		// 满足熔断条件
-		switch oldState {
-		case Open:
-			p.state = HalfOpen
-		case HalfOpen:
-			if p.requestResults.len() > 0 && p.requestResults.last().success {
-				p.state = Open
-				p.requestResults.reset()
-			} else {
-				p.state = Closed
-			}
+	// 状态转换逻辑：
+	// Closed -> Open: 满足熔断条件（失败率过高）
+	// Open -> HalfOpen: 时间窗口内没有新请求或需要探测恢复
+	// HalfOpen -> Closed: 探测请求成功，恢复正常
+	// HalfOpen -> Open: 探测请求失败，继续熔断
+
+	shouldTrip := p.ReadyToTrip(successes, failures)
+
+	switch oldState {
+	case Closed:
+		if shouldTrip {
+			p.state = Open
 		}
-	} else {
-		// 未满足熔断条件
-		switch oldState {
-		case HalfOpen:
-			if p.requestResults.len() > 0 && p.requestResults.last().success {
-				p.state = Open
-			} else {
-				p.state = Closed
-			}
-		case Closed:
-			if failures > 0 {
-				p.state = HalfOpen
+	case Open:
+		if !shouldTrip {
+			p.state = HalfOpen
+		}
+	case HalfOpen:
+		if p.requestResults.len() > 0 {
+			lastResult := p.requestResults.last()
+			if lastResult != nil {
+				if lastResult.success {
+					p.state = Closed // 探测成功，恢复正常
+					p.requestResults.reset()
+				} else {
+					p.state = Open // 探测失败，继续熔断
+				}
 			}
 		}
 	}
@@ -261,18 +266,20 @@ func (rb *ringBuffer) add(result *requestResult) {
 func (rb *ringBuffer) cleanup(threshold int64) (removedSuccesses, removedFailures uint64) {
 	for rb.head.Load() != rb.tail.Load() {
 		idx := rb.head.Load()
-		if rb.buffer[idx%int64(rb.size)] == nil ||
-			rb.buffer[idx%int64(rb.size)].time.UnixNano() >= threshold {
+		elem := rb.buffer[idx%int64(rb.size)]
+		if elem == nil || elem.time.UnixNano() >= threshold {
 			break
 		}
 
 		// 统计被清理的请求结果
-		if rb.buffer[idx%int64(rb.size)].success {
+		if elem.success {
 			removedSuccesses++
 		} else {
 			removedFailures++
 		}
 
+		// 防止内存泄漏：清理指针
+		rb.buffer[idx%int64(rb.size)] = nil
 		rb.head.Add(1)
 	}
 	return removedSuccesses, removedFailures
@@ -286,10 +293,9 @@ func (rb *ringBuffer) reset() {
 
 // len 获取当前有效元素数量
 func (rb *ringBuffer) len() int {
-	if rb.tail.Load() >= rb.head.Load() {
-		return int(rb.tail.Load() - rb.head.Load())
-	}
-	return rb.size - int(rb.head.Load()) + int(rb.tail.Load())
+	tail := rb.tail.Load()
+	head := rb.head.Load()
+	return int(tail - head) // 简化计算，适用于任何情况
 }
 
 // last 获取最近一次请求结果
