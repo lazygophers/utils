@@ -25,9 +25,8 @@ func TestRegister(t *testing.T) {
 	exitCallbackListMu.Unlock()
 
 	// 测试注册回调函数
-	called := false
 	Register(func() {
-		called = true
+		// do nothing - just testing registration
 	})
 
 	// 检查是否添加到列表中
