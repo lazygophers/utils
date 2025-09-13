@@ -13,7 +13,7 @@ require (
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/jchavannes/go-pgp v0.0.0-20200131171414-e5978e6d02b4
 	github.com/jinzhu/now v1.1.5
-	github.com/lazygophers/log v0.0.0-20250831085436-81e28e7df56a
+	github.com/lazygophers/log v0.0.0-20250913134650-48b80840fd6d
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/petermattis/goid v0.0.0-20250904145737-900bdf8bb490
 	github.com/pkg/errors v0.9.1
@@ -58,8 +58,6 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
-	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible // indirect
-	github.com/lestrrat-go/strftime v1.1.1 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
