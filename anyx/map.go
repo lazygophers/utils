@@ -2,7 +2,6 @@ package anyx
 
 import (
 	"fmt"
-	"maps"
 	"reflect"
 
 	"golang.org/x/exp/constraints"
@@ -457,7 +456,12 @@ func MapValuesFloat64(m interface{}) []float64 {
 }
 
 func MergeMap[K constraints.Ordered, V any](source, target map[K]V) map[K]V {
-	res := maps.Clone(source)
+	res := make(map[K]V, len(source))
+	
+	// Manual clone implementation
+	for k, v := range source {
+		res[k] = v
+	}
 
 	if len(target) > 0 {
 		for k, v := range target {
