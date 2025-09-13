@@ -1,0 +1,92 @@
+name: 📖 Documentation
+description: Report an issue or suggest improvements for documentation
+title: "[Docs]: "
+labels: ["documentation", "triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve our documentation! Clear documentation benefits everyone.
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation type
+      description: What type of documentation issue is this?
+      options:
+        - Missing documentation
+        - Incorrect documentation
+        - Unclear documentation
+        - Outdated documentation
+        - Translation issue
+        - API reference
+        - Examples needed
+        - Tutorial needed
+    validations:
+      required: true
+
+  - type: textarea
+    id: location
+    attributes:
+      label: Documentation location
+      description: Where is the documentation issue located?
+      placeholder: |
+        - URL: https://github.com/lazygophers/utils/...
+        - File: README.md, docs/api.md, etc.
+        - Function/Module: candy.ToInt, config.Load, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue description
+      description: Describe the documentation issue in detail
+      placeholder: |
+        What is wrong or missing?
+        What makes it confusing?
+        What information is needed?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested-improvement
+    attributes:
+      label: Suggested improvement
+      description: How should the documentation be improved?
+      placeholder: |
+        Specific suggestions for improvement
+        Better wording, examples, structure, etc.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any additional context that might help us understand the issue
+      placeholder: |
+        - User perspective: beginner/intermediate/advanced
+        - Use case that led to confusion
+        - Related documentation that works well
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      description: Which language version needs attention?
+      options:
+        - English
+        - 中文 (Chinese)
+        - 繁體中文 (Traditional Chinese)
+        - العربية (Arabic)
+        - All languages
+        - Other
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/lazygophers/utils/blob/master/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🚀 GitHub Discussions
+    url: https://github.com/lazygophers/utils/discussions
+    about: Ask questions, share ideas, and discuss with the community
+  - name: 💬 Community Chat
+    url: https://discord.gg/lazygophers
+    about: Join our Discord community for real-time discussions
+  - name: 📚 Documentation
+    url: https://github.com/lazygophers/utils/tree/master/docs
+    about: Read the comprehensive documentation and guides
+  - name: 🌐 Website
+    url: https://lazygophers.github.io/utils
+    about: Visit our official website for more resources

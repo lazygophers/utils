@@ -1,0 +1,126 @@
+name: ⚡ Performance Issue
+description: Report a performance problem or suggest optimization
+title: "[Performance]: "
+labels: ["performance", "triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping us optimize LazyGophers Utils! Performance improvements benefit all users.
+
+  - type: textarea
+    id: performance-issue
+    attributes:
+      label: Performance issue description
+      description: Describe the performance problem you're experiencing
+      placeholder: |
+        - What operation is slow?
+        - How does it impact your application?
+        - What are the symptoms?
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected-functions
+    attributes:
+      label: Affected functions/modules
+      description: Which specific functions or modules are involved?
+      placeholder: |
+        - Module: candy, config, xtime, etc.
+        - Functions: candy.ToInt, config.Load, etc.
+        - Operations: conversion, parsing, calculation, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: benchmark-data
+    attributes:
+      label: Benchmark data
+      description: Please provide benchmark results or performance measurements
+      render: shell
+      placeholder: |
+        BenchmarkFunction-8    1000000    1234 ns/op    567 B/op    8 allocs/op
+        
+        Or timing data:
+        Operation took: 2.5 seconds
+        Memory usage: 150MB
+        CPU usage: 90%
+
+  - type: textarea
+    id: code-sample
+    attributes:
+      label: Code sample
+      description: Provide a minimal code sample that demonstrates the performance issue
+      render: go
+      placeholder: |
+        package main
+        
+        import (
+            "testing"
+            "github.com/lazygophers/utils/candy"
+        )
+        
+        func BenchmarkSlow(b *testing.B) {
+            for i := 0; i < b.N; i++ {
+                // Your slow code here
+            }
+        }
+    validations:
+      required: true
+
+  - type: textarea
+    id: input-size
+    attributes:
+      label: Input size and characteristics
+      description: Describe the size and nature of data being processed
+      placeholder: |
+        - Data size: 1MB, 100K records, etc.
+        - Data type: JSON, CSV, binary, etc.
+        - Data characteristics: nested, flat, sparse, etc.
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment details
+      description: Relevant environment information
+      placeholder: |
+        - Go version: go1.24.0
+        - OS: Linux/macOS/Windows
+        - Architecture: amd64/arm64
+        - Hardware: CPU, memory specs
+        - Container: Docker, k8s, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-performance
+    attributes:
+      label: Expected performance
+      description: What performance do you expect or need?
+      placeholder: |
+        - Target execution time: < 100ms
+        - Target memory usage: < 10MB
+        - Target throughput: 1000 ops/sec
+        - Comparison with alternatives
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed solution
+      description: If you have ideas for optimization, please share them
+      placeholder: |
+        - Algorithm improvements
+        - Memory optimization
+        - Caching strategies
+        - Parallel processing
+        - Other suggestions
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/lazygophers/utils/blob/master/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

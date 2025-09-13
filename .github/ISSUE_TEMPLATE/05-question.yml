@@ -1,0 +1,122 @@
+name: ❓ Question
+description: Ask a question about using LazyGophers Utils
+title: "[Question]: "
+labels: ["question", "triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for your interest in LazyGophers Utils! We're here to help you use our library effectively.
+        
+        **Before asking**: Please check if your question is already answered in:
+        - 📚 [Documentation](https://github.com/lazygophers/utils/tree/master/docs)
+        - 🔍 [Existing issues](https://github.com/lazygophers/utils/issues)
+        - 📖 [README files](https://github.com/lazygophers/utils)
+
+  - type: dropdown
+    id: question-type
+    attributes:
+      label: Question type
+      description: What kind of question is this?
+      options:
+        - How to use a specific function
+        - Best practices
+        - Integration help
+        - Troubleshooting
+        - Architecture guidance
+        - Performance optimization
+        - General usage
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Please ask your question clearly and provide context
+      placeholder: |
+        What are you trying to accomplish?
+        What specific help do you need?
+        What have you tried so far?
+    validations:
+      required: true
+
+  - type: textarea
+    id: code-context
+    attributes:
+      label: Code context
+      description: If applicable, provide relevant code that shows what you're trying to do
+      render: go
+      placeholder: |
+        package main
+        
+        import "github.com/lazygophers/utils/candy"
+        
+        func main() {
+            // What you're trying to do
+        }
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Related module
+      description: Which module is your question about?
+      options:
+        - candy (Type conversion utilities)
+        - config (Configuration management)
+        - cryptox (Cryptographic operations)
+        - event (Event-driven programming)
+        - hystrix (Circuit breaker)
+        - routine (Goroutine management)
+        - wait (Synchronization utilities)
+        - xtime (Time operations)
+        - Multiple modules
+        - General/Core
+        - Not sure
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: What you expected
+      description: What did you expect to happen or achieve?
+      placeholder: I expected...
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: What actually happened
+      description: What actually happened instead?
+      placeholder: Instead, what happened was...
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Relevant environment details
+      placeholder: |
+        - Go version: go1.24.0
+        - LazyGophers Utils version: v1.0.0
+        - OS: Linux/macOS/Windows
+        - Any other relevant details
+
+  - type: textarea
+    id: research
+    attributes:
+      label: What you've tried
+      description: What have you already tried to solve this?
+      placeholder: |
+        - Checked documentation: yes/no
+        - Searched existing issues: yes/no
+        - Tried different approaches: describe them
+        - Other research done
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/lazygophers/utils/blob/master/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
