@@ -1,73 +1,73 @@
-# 贡献指南
+# Contributing Guide
 
-欢迎为 LazyGophers Utils 项目做出贡献！我们非常感谢社区的每一份力量。
+Welcome to contribute to the LazyGophers Utils project! We greatly appreciate every contribution from the community.
 
-[![Contributors](https://img.shields.io/badge/Contributors-Welcome-brightgreen.svg)](#如何贡献)
-[![Code Style](https://img.shields.io/badge/Code%20Style-Go%20Standard-blue.svg)](#代码规范)
+[![Contributors](https://img.shields.io/badge/Contributors-Welcome-brightgreen.svg)](#how-to-contribute)
+[![Code Style](https://img.shields.io/badge/Code%20Style-Go%20Standard-blue.svg)](#code-standards)
 
-## 🤝 如何贡献
+## 🤝 How to Contribute
 
-### 贡献类型
+### Types of Contributions
 
-我们欢迎以下类型的贡献：
+We welcome the following types of contributions:
 
-- 🐛 **Bug 修复** - 修复已知问题
-- ✨ **新功能** - 添加新的工具函数或模块
-- 📚 **文档改进** - 完善文档、添加示例
-- 🎨 **代码优化** - 性能优化、重构
-- 🧪 **测试改进** - 增加测试覆盖率、修复测试问题
-- 🌐 **国际化** - 添加多语言支持
+- 🐛 **Bug Fixes** - Fix known issues
+- ✨ **New Features** - Add new utility functions or modules
+- 📚 **Documentation Improvements** - Enhance documentation, add examples
+- 🎨 **Code Optimization** - Performance optimization, refactoring
+- 🧪 **Test Improvements** - Increase test coverage, fix test issues
+- 🌐 **Internationalization** - Add multi-language support
 
-### 贡献流程
+### Contribution Process
 
-#### 1. 准备工作
+#### 1. Preparation
 
-**Fork 项目**
+**Fork the Project**
 ```bash
-# 1. Fork 本项目到你的 GitHub 账户
-# 2. Clone 你的 fork 到本地
+# 1. Fork this project to your GitHub account
+# 2. Clone your fork locally
 git clone https://github.com/YOUR_USERNAME/utils.git
 cd utils
 
-# 3. 添加原项目作为上游仓库
+# 3. Add the original project as upstream repository
 git remote add upstream https://github.com/lazygophers/utils.git
 
-# 4. 创建新的特性分支
+# 4. Create a new feature branch
 git checkout -b feature/your-awesome-feature
 ```
 
-**设置开发环境**
+**Set up Development Environment**
 ```bash
-# 安装依赖
+# Install dependencies
 go mod tidy
 
-# 验证环境
-go version  # 需要 Go 1.24.0+
-go test ./... # 确保所有测试通过
+# Verify environment
+go version  # Requires Go 1.24.0+
+go test ./... # Ensure all tests pass
 ```
 
-#### 2. 开发阶段
+#### 2. Development Phase
 
-**编写代码**
-- 遵循 [代码规范](#代码规范)
-- 为新功能编写测试用例
-- 确保测试覆盖率不低于现有水平
-- 添加必要的文档注释
+**Write Code**
+- Follow [Code Standards](#code-standards)
+- Write test cases for new features
+- Ensure test coverage doesn't drop below current level
+- Add necessary documentation comments
 
-**提交规范**
+**Commit Standards**
 ```bash
-# 使用规范的提交信息格式
-git commit -m "feat(module): 添加新的工具函数
+# Use standardized commit message format
+git commit -m "feat(module): add new utility function
 
-- 新增 FormatDuration 函数
-- 支持多种时间格式输出
-- 添加完整的测试用例
-- 更新相关文档
+- Add FormatDuration function
+- Support multiple time format outputs
+- Add comprehensive test cases
+- Update related documentation
 
 Closes #123"
 ```
 
-**提交信息格式**：
+**Commit Message Format**:
 ```
 <type>(<scope>): <subject>
 
@@ -76,79 +76,79 @@ Closes #123"
 <footer>
 ```
 
-**Type 类型**：
-- `feat`: 新功能
-- `fix`: Bug 修复  
-- `docs`: 文档更新
-- `style`: 代码格式调整
-- `refactor`: 代码重构
-- `perf`: 性能优化
-- `test`: 测试相关
-- `chore`: 构建工具或依赖更新
+**Type Categories**:
+- `feat`: New features
+- `fix`: Bug fixes  
+- `docs`: Documentation updates
+- `style`: Code formatting adjustments
+- `refactor`: Code refactoring
+- `perf`: Performance optimization
+- `test`: Test-related
+- `chore`: Build tools or dependency updates
 
-**Scope 范围** (可选)：
-- `candy`: candy 模块
-- `xtime`: xtime 模块
-- `config`: config 模块
-- `cryptox`: cryptox 模块
-- 等等...
+**Scope Range** (optional):
+- `candy`: candy module
+- `xtime`: xtime module
+- `config`: config module
+- `cryptox`: cryptox module
+- etc...
 
-#### 3. 测试验证
+#### 3. Testing and Validation
 
-**运行测试**
+**Run Tests**
 ```bash
-# 运行所有测试
+# Run all tests
 go test -v ./...
 
-# 检查测试覆盖率
+# Check test coverage
 go test -cover -v ./...
 
-# 运行基准测试
+# Run benchmark tests
 go test -bench=. ./...
 
-# 检查代码格式
+# Check code formatting
 go fmt ./...
 
-# 静态分析
+# Static analysis
 go vet ./...
 ```
 
-**性能测试**
+**Performance Testing**
 ```bash
-# 运行性能测试
+# Run performance tests
 go test -bench=BenchmarkYourFunction -benchmem ./...
 
-# 确保性能没有明显退化
+# Ensure no significant performance regression
 ```
 
-#### 4. 创建 Pull Request
+#### 4. Create Pull Request
 
-**推送到你的 fork**
+**Push to Your Fork**
 ```bash
 git push origin feature/your-awesome-feature
 ```
 
-**创建 PR**
-1. 访问 GitHub 上的项目页面
-2. 点击 "New Pull Request"
-3. 选择你的分支
-4. 填写 PR 描述（参考 [PR 模板](#pr-模板)）
-5. 确保通过所有检查
+**Create PR**
+1. Visit the project page on GitHub
+2. Click "New Pull Request"
+3. Select your branch
+4. Fill in PR description (refer to [PR Template](#pr-template))
+5. Ensure all checks pass
 
-#### 5. 代码审查
+#### 5. Code Review
 
-- 维护者会审查你的代码
-- 根据反馈进行修改
-- 保持沟通和合作态度
-- 测试通过后将被合并
+- Maintainers will review your code
+- Make modifications based on feedback
+- Maintain communication and cooperative attitude
+- Will be merged after tests pass
 
-## 📝 代码规范
+## 📝 Code Standards
 
-### Go 代码风格
+### Go Code Style
 
-**基本规范**
+**Basic Standards**
 ```go
-// ✅ 好的示例
+// ✅ Good example
 package candy
 
 import (
@@ -159,46 +159,46 @@ import (
     "github.com/lazygophers/log"
 )
 
-// FormatDuration 格式化时间间隔为人类可读的字符串
-// 支持多种精度级别，自动选择合适的单位显示
+// FormatDuration formats time duration into human-readable string
+// Supports multiple precision levels, automatically chooses appropriate units
 //
-// 参数:
-//   - duration: 要格式化的时间间隔
-//   - precision: 精度级别 (1-3)
+// Parameters:
+//   - duration: time duration to format
+//   - precision: precision level (1-3)
 //
-// 返回值:
-//   - string: 格式化后的字符串，如 "2小时30分钟"
+// Returns:
+//   - string: formatted string, like "2 hours 30 minutes"
 //
-// 示例:
-//   FormatDuration(90*time.Minute, 2) // 返回 "1小时30分钟"
-//   FormatDuration(45*time.Second, 1) // 返回 "45秒"
+// Example:
+//   FormatDuration(90*time.Minute, 2) // returns "1 hour 30 minutes"
+//   FormatDuration(45*time.Second, 1) // returns "45 seconds"
 func FormatDuration(duration time.Duration, precision int) string {
     if duration == 0 {
-        return "0秒"
+        return "0 seconds"
     }
     
-    // 实现逻辑...
+    // Implementation logic...
     return result
 }
 ```
 
-**命名规范**
-- 使用 CamelCase（驼峰命名）
-- 函数名使用动词开头：`Get`, `Set`, `Format`, `Parse`
-- 常量使用全大写：`const MaxRetries = 3`
-- 私有成员使用小写开头：`internalHelper`
-- 包名使用小写单个单词：`candy`, `xtime`
+**Naming Conventions**
+- Use CamelCase
+- Function names start with verbs: `Get`, `Set`, `Format`, `Parse`
+- Constants use ALL_CAPS: `const MaxRetries = 3`
+- Private members use lowercase: `internalHelper`
+- Package names use lowercase single words: `candy`, `xtime`
 
-**注释规范**
-- 所有公共函数必须有注释
-- 注释以函数名开头
-- 包含参数说明、返回值说明  
-- 提供使用示例
-- 中文注释，简洁明了
+**Comment Standards**
+- All public functions must have comments
+- Comments start with function name
+- Include parameter and return value descriptions  
+- Provide usage examples
+- English comments, concise and clear
 
-**错误处理**
+**Error Handling**
 ```go
-// ✅ 推荐的错误处理方式
+// ✅ Recommended error handling approach
 func ProcessData(data []byte) (*Result, error) {
     if len(data) == 0 {
         log.Warn("Empty data provided")
@@ -215,44 +215,44 @@ func ProcessData(data []byte) (*Result, error) {
 }
 ```
 
-### 项目结构规范
+### Project Structure Standards
 
-**模块组织**
+**Module Organization**
 ```
 utils/
-├── README.md           # 项目总览
-├── CONTRIBUTING.md     # 贡献指南  
-├── CLAUDE.md          # Claude Code 指令
-├── go.mod             # Go 模块定义
-├── must.go            # 核心工具函数
-├── candy/             # 数据处理工具
-│   ├── README.md      # 模块文档
-│   ├── to_string.go   # 类型转换
+├── README.md           # Project overview
+├── CONTRIBUTING.md     # Contributing guide  
+├── SECURITY.md        # Security policy
+├── go.mod             # Go module definition
+├── must.go            # Core utility functions
+├── candy/             # Data processing tools
+│   ├── README.md      # Module documentation
+│   ├── to_string.go   # Type conversion
 │   └── to_string_test.go
-├── xtime/             # 时间处理工具  
-│   ├── README.md      # 详细使用文档
-│   ├── TESTING.md     # 测试报告
-│   ├── PERFORMANCE.md # 性能报告
-│   ├── calendar.go    # 日历功能
+├── xtime/             # Time processing tools  
+│   ├── README.md      # Detailed usage documentation
+│   ├── TESTING.md     # Test reports
+│   ├── PERFORMANCE.md # Performance reports
+│   ├── calendar.go    # Calendar functionality
 │   └── calendar_test.go
 └── ...
 ```
 
-**文件命名**
-- 使用小写字母和下划线：`to_string.go`
-- 测试文件后缀：`_test.go`
-- 基准测试：`_benchmark_test.go`
-- 文档文件：`README.md`, `TESTING.md`
+**File Naming**
+- Use lowercase letters and underscores: `to_string.go`
+- Test file suffix: `_test.go`
+- Benchmark tests: `_benchmark_test.go`
+- Documentation files: `README.md`, `TESTING.md`
 
-### 测试规范
+### Testing Standards
 
-**测试覆盖率要求**
-- 新功能测试覆盖率必须 ≥ 90%
-- 不能降低整体测试覆盖率
-- 包含正常用例和边界用例
-- 错误处理路径必须测试
+**Test Coverage Requirements**
+- New feature test coverage must be ≥ 90%
+- Cannot reduce overall test coverage
+- Include normal and edge cases
+- Error handling paths must be tested
 
-**测试示例**
+**Test Example**
 ```go
 func TestFormatDuration(t *testing.T) {
     testCases := []struct {
@@ -262,18 +262,18 @@ func TestFormatDuration(t *testing.T) {
         want      string
     }{
         {
-            name:      "零时间",
+            name:      "zero time",
             duration:  0,
             precision: 1,
-            want:      "0秒",
+            want:      "0 seconds",
         },
         {
-            name:      "90分钟高精度",
+            name:      "90 minutes high precision",
             duration:  90 * time.Minute,
             precision: 2,
-            want:      "1小时30分钟",
+            want:      "1 hour 30 minutes",
         },
-        // 更多测试用例...
+        // More test cases...
     }
     
     for _, tc := range testCases {
@@ -284,7 +284,7 @@ func TestFormatDuration(t *testing.T) {
     }
 }
 
-// 基准测试
+// Benchmark test
 func BenchmarkFormatDuration(b *testing.B) {
     duration := 90 * time.Minute
     
@@ -295,155 +295,155 @@ func BenchmarkFormatDuration(b *testing.B) {
 }
 ```
 
-## 🎯 开发重点领域
+## 🎯 Key Development Areas
 
-### 高优先级
+### High Priority
 
-1. **xtime 模块增强**
-   - 农历节气功能完善
-   - 性能优化
-   - 更多文化特色功能
+1. **xtime Module Enhancement**
+   - Lunar calendar and solar terms functionality improvement
+   - Performance optimization
+   - More cultural-specific features
 
-2. **candy 模块扩展**  
-   - 类型转换函数
-   - 数据处理工具
-   - 性能优化
+2. **candy Module Extension**  
+   - Type conversion functions
+   - Data processing tools
+   - Performance optimization
 
-3. **测试覆盖率提升**
-   - 目标：所有模块 > 90%
-   - 边界用例补充
-   - 性能测试完善
+3. **Test Coverage Improvement**
+   - Target: All modules > 90%
+   - Edge case supplementation
+   - Performance test improvement
 
-### 中优先级
+### Medium Priority
 
-4. **新工具模块**
-   - AI/ML 工具函数
-   - 云服务集成工具
-   - 微服务工具
+4. **New Utility Modules**
+   - AI/ML utility functions
+   - Cloud service integration tools
+   - Microservice tools
 
-5. **文档完善**
-   - API 参考文档
-   - 最佳实践指南
-   - 性能优化指南
+5. **Documentation Enhancement**
+   - API reference documentation
+   - Best practices guide
+   - Performance optimization guide
 
-### 欢迎贡献的功能
+### Welcome Contributions
 
-- 🌏 **多语言支持** - 英文文档、错误信息国际化
-- 📊 **更多数据格式支持** - XML, YAML, TOML 处理
-- 🔧 **开发工具** - 代码生成、配置管理
-- 🎨 **UI/UX 工具** - 颜色处理、格式化输出
-- 🔐 **安全工具** - 加密解密、签名验证
+- 🌏 **Multi-language Support** - English documentation, error message internationalization
+- 📊 **More Data Format Support** - XML, YAML, TOML processing
+- 🔧 **Development Tools** - Code generation, configuration management
+- 🎨 **UI/UX Tools** - Color processing, formatted output
+- 🔐 **Security Tools** - Encryption/decryption, signature verification
 
-## 📋 PR 模板
+## 📋 PR Template
 
-创建 PR 时请使用以下模板：
+Please use the following template when creating a PR:
 
 ```markdown
-## 变更描述
+## Change Description
 
-简要描述本次变更的内容和目的。
+Brief description of the content and purpose of this change.
 
-## 变更类型
+## Change Type
 
-- [ ] Bug 修复
-- [ ] 新功能
-- [ ] 文档更新
-- [ ] 性能优化  
-- [ ] 代码重构
-- [ ] 测试改进
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Documentation update
+- [ ] Performance optimization  
+- [ ] Code refactoring
+- [ ] Test improvement
 
-## 详细变更
+## Detailed Changes
 
-### 新增功能
-- 新增了 `FormatDuration` 函数
-- 支持多种精度级别
-- 添加了中文时间单位显示
+### New Features
+- Added `FormatDuration` function
+- Support multiple precision levels
+- Added Chinese time unit display
 
-### 修复问题  
-- 修复了时区转换的 bug (#123)
-- 解决了内存泄漏问题
+### Fixed Issues  
+- Fixed timezone conversion bug (#123)
+- Resolved memory leak issue
 
-### 性能优化
-- 优化了字符串拼接性能
-- 减少了 30% 的内存分配
+### Performance Optimization
+- Optimized string concatenation performance
+- Reduced memory allocation by 30%
 
-## 测试说明
+## Testing Description
 
-- [ ] 所有测试通过
-- [ ] 新增测试用例
-- [ ] 测试覆盖率 ≥ 90%
-- [ ] 基准测试通过
+- [ ] All tests pass
+- [ ] Added new test cases
+- [ ] Test coverage ≥ 90%
+- [ ] Benchmark tests pass
 
-**测试覆盖率**: 92.5%
+**Test Coverage**: 92.5%
 
-## 文档更新
+## Documentation Updates
 
-- [ ] 更新了 README.md
-- [ ] 添加了函数注释
-- [ ] 更新了示例代码
+- [ ] Updated README.md
+- [ ] Added function comments
+- [ ] Updated example code
 
-## 兼容性
+## Compatibility
 
-- [ ] 向后兼容
-- [ ] 需要版本升级 (说明原因)
-- [ ] 破坏性变更 (详细说明)
+- [ ] Backward compatible
+- [ ] Requires version upgrade (explain reason)
+- [ ] Breaking changes (detailed explanation)
 
-## 检查清单
+## Checklist
 
-- [ ] 代码遵循项目规范
-- [ ] 通过了 `go fmt` 格式检查
-- [ ] 通过了 `go vet` 静态检查
-- [ ] 所有测试通过
-- [ ] 文档已更新
-- [ ] 提交信息符合规范
+- [ ] Code follows project standards
+- [ ] Passed `go fmt` format check
+- [ ] Passed `go vet` static check
+- [ ] All tests pass
+- [ ] Documentation updated
+- [ ] Commit messages follow standards
 
-## 相关 Issue
+## Related Issues
 
 Closes #123
 Refs #456
 
-## 截图/演示
+## Screenshots/Demo
 
-如有必要，请提供截图或演示。
+Provide screenshots or demos if necessary.
 ```
 
-## 🐛 Bug 报告
+## 🐛 Bug Reports
 
-发现 Bug？请使用以下模板创建 Issue：
+Found a bug? Please use the following template to create an Issue:
 
 ```markdown
-## Bug 描述
+## Bug Description
 
-简要描述遇到的问题。
+Brief description of the issue encountered.
 
-## 重现步骤
+## Reproduction Steps
 
-1. 执行步骤 1
-2. 执行步骤 2  
-3. 观察结果
+1. Execute step 1
+2. Execute step 2  
+3. Observe result
 
-## 期望行为
+## Expected Behavior
 
-描述你期望看到的正确行为。
+Describe the correct behavior you expect to see.
 
-## 实际行为
+## Actual Behavior
 
-描述实际观察到的错误行为。
+Describe the actual erroneous behavior observed.
 
-## 环境信息
+## Environment Information
 
-- **操作系统**: macOS 12.0
-- **Go 版本**: 1.24.0
-- **Utils 版本**: v1.2.0
-- **其他相关信息**:
+- **Operating System**: macOS 12.0
+- **Go Version**: 1.24.0
+- **Utils Version**: v1.2.0
+- **Other relevant information**:
 
-## 错误日志
+## Error Logs
 
 ```
 paste error logs here
 ```
 
-## 最小可复现示例
+## Minimal Reproducible Example
 
 ```go
 package main
@@ -453,101 +453,103 @@ import (
 )
 
 func main() {
-    // 最小的错误复现代码
+    // Minimal error reproduction code
 }
 ```
 ```
 
-## ✨ 功能请求
+## ✨ Feature Requests
 
-想要新功能？请使用以下模板：
+Want a new feature? Please use the following template:
 
 ```markdown
-## 功能描述
+## Feature Description
 
-描述你希望添加的功能。
+Describe the feature you'd like to add.
 
-## 使用场景
+## Use Cases
 
-描述什么情况下会用到这个功能。
+Describe when this feature would be used.
 
-## 建议的 API 设计
+## Suggested API Design
 
 ```go
-// 建议的函数签名和使用方式
+// Suggested function signature and usage
 func NewAwesomeFunction(param string) (Result, error) {
     // ...
 }
 ```
 
-## 替代方案
+## Alternative Solutions
 
-是否考虑过其他解决方案？
+Have you considered other solutions?
 
-## 额外信息
+## Additional Information
 
-其他相关信息或参考资料。
+Other relevant information or references.
 ```
 
-## 🏆 贡献者认可
+## 🏆 Contributor Recognition
 
-### 贡献类型认可
+### Contribution Type Recognition
 
-我们会根据贡献类型给予不同的认可：
+We will give different recognition based on contribution types:
 
-- 🥇 **核心贡献者** - 长期活跃，重要功能贡献
-- 🥈 **积极贡献者** - 多次有价值贡献  
-- 🥉 **社区贡献者** - Bug 修复、文档改进
-- 🌟 **首次贡献者** - 欢迎第一次贡献
+- 🥇 **Core Contributors** - Long-term active, important feature contributions
+- 🥈 **Active Contributors** - Multiple valuable contributions  
+- 🥉 **Community Contributors** - Bug fixes, documentation improvements
+- 🌟 **First-time Contributors** - Welcome first-time contributions
 
-### 贡献统计
+### Contribution Statistics
 
-我们会在以下地方展示贡献者：
+We will showcase contributors in the following places:
 
-- README.md 贡献者列表
-- 发布说明中的致谢
-- 项目官网（如有）
-- 年度贡献者报告
+- README.md contributor list
+- Acknowledgments in release notes
+- Project website (if available)
+- Annual contributor reports
 
-## 💬 沟通交流
+## 💬 Communication
 
-### 获取帮助
+### Getting Help
 
-- 📖 **文档问题**: 查看各模块的 README.md
-- 🐛 **Bug 报告**: [GitHub Issues](https://github.com/lazygophers/utils/issues)
-- 💡 **功能讨论**: [GitHub Discussions](https://github.com/lazygophers/utils/discussions)
-- ❓ **使用问题**: [GitHub Discussions Q&A](https://github.com/lazygophers/utils/discussions/categories/q-a)
+- 📖 **Documentation Issues**: Check README.md for each module
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/lazygophers/utils/issues)
+- 💡 **Feature Discussions**: [GitHub Discussions](https://github.com/lazygophers/utils/discussions)
+- ❓ **Usage Questions**: [GitHub Discussions Q&A](https://github.com/lazygophers/utils/discussions/categories/q-a)
 
-### 讨论规范
+### Discussion Standards
 
-请遵循以下沟通规范：
+Please follow these communication standards:
 
-- 使用友善和专业的语言
-- 详细描述问题和建议
-- 提供足够的上下文信息
-- 尊重不同观点和意见
-- 积极参与建设性讨论
+- Use friendly and professional language
+- Provide detailed problem descriptions and suggestions
+- Provide sufficient context information
+- Respect different viewpoints and opinions
+- Actively participate in constructive discussions
 
-## 📜 许可证
+## 📜 License
 
-本项目采用 [GNU Affero General Public License v3.0](LICENSE) 许可证。
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
 
-**贡献即表示同意**：
-- 你拥有所提交代码的版权
-- 同意将代码以 AGPL v3.0 许可证发布
-- 遵守项目的贡献者行为准则
+**Contributing means agreeing**:
+- You own the copyright to the submitted code
+- Agree to release code under AGPL v3.0 license
+- Follow the project's contributor code of conduct
 
-## 🙏 致谢
+## 🙏 Acknowledgments
 
-感谢所有为 LazyGophers Utils 项目做出贡献的开发者！
+Thanks to all developers who have contributed to the LazyGophers Utils project!
 
-**特别感谢**：
-- 所有提交 Issue 和 PR 的贡献者
-- 提供建议和反馈的社区成员
-- 帮助改进文档的志愿者
+**Special Thanks**:
+- All contributors who submitted Issues and PRs
+- Community members who provided suggestions and feedback
+- Volunteers who helped improve documentation
 
 ---
 
+**Available in other languages:** [简体中文](CONTRIBUTING_zh.md) | [繁體中文](CONTRIBUTING_zh-Hant.md) | [Français](CONTRIBUTING_fr.md) | [Русский](CONTRIBUTING_ru.md) | [Español](CONTRIBUTING_es.md) | [العربية](CONTRIBUTING_ar.md)
+
 **Happy Coding! 🎉**
 
-有任何问题随时联系维护者团队，我们很乐意帮助你开始贡献之旅！
+Feel free to contact the maintainer team anytime if you have questions. We're happy to help you start your contribution journey!

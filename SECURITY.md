@@ -144,6 +144,8 @@ We maintain a security changelog for transparency:
 
 ---
 
+**Available in other languages:** [简体中文](SECURITY_zh.md) | [繁體中文](SECURITY_zh-Hant.md) | [Français](SECURITY_fr.md) | [Русский](SECURITY_ru.md) | [Español](SECURITY_es.md) | [العربية](SECURITY_ar.md)
+
 **Note**: This security policy is subject to updates. Please check the latest version in the repository.
 
 Last updated: 2025-09-13
