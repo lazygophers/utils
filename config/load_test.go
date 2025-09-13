@@ -1509,9 +1509,9 @@ func TestSetFieldValueCompleteTypes(t *testing.T) {
 func TestGetFieldTagNameComplete(t *testing.T) {
 	t.Run("test all tag priorities", func(t *testing.T) {
 		type TagTestStruct struct {
-			Field1 string `properties:"prop_name" env:"env_name" json:"json_name" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
-			Field2 string `env:"env_name" json:"json_name" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
-			Field3 string `json:"json_name" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
+			Field1 string `properties:"prop_name" env:"env_name" json:"json_name1" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
+			Field2 string `env:"env_name" json:"json_name2" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
+			Field3 string `json:"json_name3" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
 			Field4 string `yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
 			Field5 string `toml:"toml_name" ini:"ini_name"`
 			Field6 string `ini:"ini_name"`

@@ -15,12 +15,12 @@ import (
 func TestRegister(t *testing.T) {
 	// 保存原始状态
 	originalCallbacks := callbacks
-	originalOnce := signalOnce
 	defer func() {
 		callbacksMu.Lock()
 		callbacks = originalCallbacks
 		callbacksMu.Unlock()
-		signalOnce = originalOnce
+		// 重置 signalOnce 使用新实例
+		signalOnce = sync.Once{}
 	}()
 	
 	// 重置状态
@@ -74,12 +74,12 @@ func TestRegisterNil(t *testing.T) {
 func TestRegisterConcurrent(t *testing.T) {
 	// 保存原始状态
 	originalCallbacks := callbacks
-	originalOnce := signalOnce
 	defer func() {
 		callbacksMu.Lock()
 		callbacks = originalCallbacks
 		callbacksMu.Unlock()
-		signalOnce = originalOnce
+		// 重置 signalOnce 使用新实例
+		signalOnce = sync.Once{}
 	}()
 	
 	// 重置状态
@@ -284,12 +284,12 @@ func TestMacOSSIGTERMHandling(t *testing.T) {
 // 基准测试
 func BenchmarkRegister(b *testing.B) {
 	originalCallbacks := callbacks
-	originalOnce := signalOnce
 	defer func() {
 		callbacksMu.Lock()
 		callbacks = originalCallbacks
 		callbacksMu.Unlock()
-		signalOnce = originalOnce
+		// 重置 signalOnce 使用新实例
+		signalOnce = sync.Once{}
 	}()
 	
 	b.ResetTimer()
@@ -302,12 +302,12 @@ func BenchmarkRegister(b *testing.B) {
 
 func BenchmarkRegisterConcurrent(b *testing.B) {
 	originalCallbacks := callbacks
-	originalOnce := signalOnce
 	defer func() {
 		callbacksMu.Lock()
 		callbacks = originalCallbacks
 		callbacksMu.Unlock()
-		signalOnce = originalOnce
+		// 重置 signalOnce 使用新实例
+		signalOnce = sync.Once{}
 	}()
 	
 	b.ResetTimer()
