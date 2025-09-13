@@ -89,13 +89,13 @@ func TestHmacSha3_512(t *testing.T) {
 func TestHmacReturnsHexFormat(t *testing.T) {
 	key := "testKey"
 	data := "testData"
-	
+
 	// Test that HMAC functions return hex strings (even characters, only hex digits)
 	result := HmacSha256(key, data)
 	if len(result) != 64 { // SHA256 produces 32 bytes = 64 hex chars
 		t.Errorf("HmacSha256 should return 64 hex characters, got %d", len(result))
 	}
-	
+
 	// Check if result contains only hex characters
 	for _, char := range result {
 		if !((char >= '0' && char <= '9') || (char >= 'a' && char <= 'f')) {

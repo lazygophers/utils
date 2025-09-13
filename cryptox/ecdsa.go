@@ -222,7 +222,7 @@ func ECDSASignatureToBytes(r, s *big.Int) ([]byte, error) {
 	// 构建 DER 结构
 	rDER := append([]byte{0x02, byte(len(rBytes))}, rBytes...)
 	sDER := append([]byte{0x02, byte(len(sBytes))}, sBytes...)
-	
+
 	signature := append(rDER, sDER...)
 	derEncoded := append([]byte{0x30, byte(len(signature))}, signature...)
 

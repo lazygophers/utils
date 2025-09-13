@@ -13,16 +13,16 @@ import (
 
 // Global variables for dependency injection during testing
 var (
-	rsaGenerateKey    = rsa.GenerateKey
-	rsaEncryptOAEP    = rsa.EncryptOAEP
+	rsaGenerateKey     = rsa.GenerateKey
+	rsaEncryptOAEP     = rsa.EncryptOAEP
 	rsaEncryptPKCS1v15 = rsa.EncryptPKCS1v15
-	rsaDecryptOAEP    = rsa.DecryptOAEP
+	rsaDecryptOAEP     = rsa.DecryptOAEP
 	rsaDecryptPKCS1v15 = rsa.DecryptPKCS1v15
-	rsaSignPSS        = rsa.SignPSS
-	rsaSignPKCS1v15   = rsa.SignPKCS1v15
-	rsaVerifyPSS      = rsa.VerifyPSS
-	rsaVerifyPKCS1v15 = rsa.VerifyPKCS1v15
-	rsaRandReader     = rand.Reader
+	rsaSignPSS         = rsa.SignPSS
+	rsaSignPKCS1v15    = rsa.SignPKCS1v15
+	rsaVerifyPSS       = rsa.VerifyPSS
+	rsaVerifyPKCS1v15  = rsa.VerifyPKCS1v15
+	rsaRandReader      = rand.Reader
 )
 
 // RSAKeyPair 表示 RSA 公私钥对
@@ -107,7 +107,7 @@ func PrivateKeyFromPEM(pemData []byte) (*rsa.PrivateKey, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse PKCS8 private key: %w", err)
 		}
-		
+
 		var ok bool
 		privateKey, ok = key.(*rsa.PrivateKey)
 		if !ok {
@@ -144,7 +144,7 @@ func PublicKeyFromPEM(pemData []byte) (*rsa.PublicKey, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse PKIX public key: %w", err)
 		}
-		
+
 		var ok bool
 		publicKey, ok = key.(*rsa.PublicKey)
 		if !ok {
@@ -294,7 +294,7 @@ func RSAMaxMessageLength(publicKey *rsa.PublicKey, padding string) (int, error) 
 	}
 
 	keySize := publicKey.Size()
-	
+
 	switch padding {
 	case "OAEP":
 		// OAEP: keySize - 2*hashLen - 2 (SHA256 hash length is 32 bytes)

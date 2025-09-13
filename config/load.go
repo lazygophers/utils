@@ -184,7 +184,7 @@ func LoadConfigSkipValidate(c any, paths ...string) error {
 	}
 
 	// NOTE: 从环境变量中获取
-	if configPath == ""{
+	if configPath == "" {
 		log.Warnf("Try to load config from environment variable(LAZYGOPHERS_CONFIG)")
 		configPath = os.Getenv("LAZYGOPHERS_CONFIG")
 		if configPath != "" && !osx.IsFile(configPath) {
@@ -262,7 +262,6 @@ func SetConfig(c any) error {
 			log.Errorf("err:%v", err)
 			return nil
 		}
-
 	} else {
 		log.Errorf("unsupported config file format:%v", ext)
 		return fmt.Errorf("unsupported config file format:%v", ext)
@@ -275,13 +274,13 @@ func SetConfig(c any) error {
 func parseProperties(reader io.Reader, v interface{}) error {
 	props := make(map[string]string)
 	scanner := bufio.NewScanner(reader)
-	
+
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "!") {
 			continue
 		}
-		
+
 		// 找到第一个 = 或 : 作为分隔符
 		sepIndex := -1
 		for i, char := range line {
@@ -290,27 +289,27 @@ func parseProperties(reader io.Reader, v interface{}) error {
 				break
 			}
 		}
-		
+
 		if sepIndex == -1 {
 			continue
 		}
-		
+
 		key := strings.TrimSpace(line[:sepIndex])
 		value := strings.TrimSpace(line[sepIndex+1:])
-		
+
 		// 处理转义字符
 		value = strings.ReplaceAll(value, "\\\\", "\\")
 		value = strings.ReplaceAll(value, "\\n", "\n")
 		value = strings.ReplaceAll(value, "\\t", "\t")
 		value = strings.ReplaceAll(value, "\\r", "\r")
-		
+
 		props[key] = value
 	}
-	
+
 	if err := scanner.Err(); err != nil {
 		return err
 	}
-	
+
 	return mapToStruct(props, v)
 }
 
@@ -320,20 +319,20 @@ func writeProperties(writer io.Writer, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	
+
 	for key, value := range props {
 		// 转义特殊字符
 		valueStr := fmt.Sprintf("%v", value)
 		valueStr = strings.ReplaceAll(valueStr, "\n", "\\n")
 		valueStr = strings.ReplaceAll(valueStr, "\t", "\\t")
 		valueStr = strings.ReplaceAll(valueStr, "\r", "\\r")
-		
+
 		_, err := fmt.Fprintf(writer, "%s=%s\n", key, valueStr)
 		if err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -341,22 +340,22 @@ func writeProperties(writer io.Writer, v interface{}) error {
 func parseEnvFile(reader io.Reader, v interface{}) error {
 	props := make(map[string]string)
 	scanner := bufio.NewScanner(reader)
-	
+
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		
+
 		// 找到第一个 = 作为分隔符
 		sepIndex := strings.Index(line, "=")
 		if sepIndex == -1 {
 			continue
 		}
-		
+
 		key := strings.TrimSpace(line[:sepIndex])
 		value := strings.TrimSpace(line[sepIndex+1:])
-		
+
 		// 处理引号包围的值
 		if len(value) >= 2 {
 			if (value[0] == '"' && value[len(value)-1] == '"') ||
@@ -364,14 +363,14 @@ func parseEnvFile(reader io.Reader, v interface{}) error {
 				value = value[1 : len(value)-1]
 			}
 		}
-		
+
 		props[key] = value
 	}
-	
+
 	if err := scanner.Err(); err != nil {
 		return err
 	}
-	
+
 	return mapToStruct(props, v)
 }
 
@@ -381,21 +380,21 @@ func writeEnvFile(writer io.Writer, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	
+
 	for key, value := range props {
 		valueStr := fmt.Sprintf("%v", value)
-		
+
 		// 如果值包含空格、特殊字符，则用双引号包围
 		if strings.ContainsAny(valueStr, " \t\n\r\"'\\") {
 			valueStr = strconv.Quote(valueStr)
 		}
-		
+
 		_, err := fmt.Fprintf(writer, "%s=%s\n", key, valueStr)
 		if err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -405,24 +404,24 @@ func mapToStruct(props map[string]string, v interface{}) error {
 	if rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Struct {
 		return fmt.Errorf("v must be a pointer to struct")
 	}
-	
+
 	rv = rv.Elem()
 	rt := rv.Type()
-	
+
 	for i := 0; i < rt.NumField(); i++ {
 		field := rt.Field(i)
 		fieldValue := rv.Field(i)
-		
+
 		if !fieldValue.CanSet() {
 			continue
 		}
-		
+
 		// 获取字段标签名
 		tagName := getFieldTagName(field)
 		if tagName == "" {
 			continue
 		}
-		
+
 		// 检查是否为嵌套结构体
 		if fieldValue.Kind() == reflect.Struct {
 			err := parseNestedStruct(props, fieldValue, tagName)
@@ -431,7 +430,7 @@ func mapToStruct(props map[string]string, v interface{}) error {
 			}
 			continue
 		}
-		
+
 		// 从 map 中获取值
 		if propValue, exists := props[tagName]; exists {
 			err := setFieldValue(fieldValue, propValue)
@@ -440,43 +439,43 @@ func mapToStruct(props map[string]string, v interface{}) error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
 // structToMap 将结构体转换为 map
 func structToMap(v interface{}) (map[string]interface{}, error) {
 	result := make(map[string]interface{})
-	
+
 	rv := reflect.ValueOf(v)
 	if rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
 	}
-	
+
 	if rv.Kind() != reflect.Struct {
 		return nil, fmt.Errorf("v must be a struct or pointer to struct")
 	}
-	
+
 	rt := rv.Type()
-	
+
 	for i := 0; i < rt.NumField(); i++ {
 		field := rt.Field(i)
 		fieldValue := rv.Field(i)
-		
+
 		tagName := getFieldTagName(field)
 		if tagName == "" {
 			continue
 		}
-		
+
 		if fieldValue.Kind() == reflect.Struct {
 			// 处理嵌套结构体
 			structMapToFlat(result, fieldValue, tagName)
 			continue
 		}
-		
+
 		result[tagName] = fieldValue.Interface()
 	}
-	
+
 	return result, nil
 }
 
@@ -484,7 +483,7 @@ func structToMap(v interface{}) (map[string]interface{}, error) {
 func getFieldTagName(field reflect.StructField) string {
 	// 优先级: properties > env > json > yaml > toml > ini
 	tags := []string{"properties", "env", "json", "yaml", "toml", "ini"}
-	
+
 	for _, tag := range tags {
 		if tagValue := field.Tag.Get(tag); tagValue != "" && tagValue != "-" {
 			// 处理 json:",omitempty" 这样的格式
@@ -494,7 +493,7 @@ func getFieldTagName(field reflect.StructField) string {
 			return tagValue
 		}
 	}
-	
+
 	return strings.ToLower(field.Name)
 }
 
@@ -530,29 +529,29 @@ func setFieldValue(fieldValue reflect.Value, propValue string) error {
 	default:
 		return fmt.Errorf("unsupported field type: %s", fieldValue.Kind())
 	}
-	
+
 	return nil
 }
 
 // parseNestedStruct 解析嵌套结构体
 func parseNestedStruct(props map[string]string, structValue reflect.Value, prefix string) error {
 	structType := structValue.Type()
-	
+
 	for i := 0; i < structType.NumField(); i++ {
 		field := structType.Field(i)
 		fieldValue := structValue.Field(i)
-		
+
 		if !fieldValue.CanSet() {
 			continue
 		}
-		
+
 		tagName := getFieldTagName(field)
 		if tagName == "" {
 			continue
 		}
-		
+
 		fullKey := prefix + "." + tagName
-		
+
 		if fieldValue.Kind() == reflect.Struct {
 			err := parseNestedStruct(props, fieldValue, fullKey)
 			if err != nil {
@@ -565,25 +564,25 @@ func parseNestedStruct(props map[string]string, structValue reflect.Value, prefi
 			}
 		}
 	}
-	
+
 	return nil
 }
 
 // structMapToFlat 将嵌套结构体展平到 map 中
 func structMapToFlat(result map[string]interface{}, structValue reflect.Value, prefix string) {
 	structType := structValue.Type()
-	
+
 	for i := 0; i < structType.NumField(); i++ {
 		field := structType.Field(i)
 		fieldValue := structValue.Field(i)
-		
+
 		tagName := getFieldTagName(field)
 		if tagName == "" {
 			continue
 		}
-		
+
 		fullKey := prefix + "." + tagName
-		
+
 		if fieldValue.Kind() == reflect.Struct {
 			structMapToFlat(result, fieldValue, fullKey)
 		} else {
@@ -598,7 +597,7 @@ func writeHCLFile(writer io.Writer, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	
+
 	_, err = writer.Write([]byte(hclContent))
 	return err
 }
@@ -609,23 +608,23 @@ func structToHCL(v interface{}, indent string) (string, error) {
 	if rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
 	}
-	
+
 	if rv.Kind() != reflect.Struct {
 		return fmt.Sprintf("%v", v), nil
 	}
-	
+
 	rt := rv.Type()
 	var result strings.Builder
-	
+
 	for i := 0; i < rt.NumField(); i++ {
 		field := rt.Field(i)
 		fieldValue := rv.Field(i)
-		
+
 		tagName := getHCLFieldTagName(field)
 		if tagName == "" {
 			continue
 		}
-		
+
 		if fieldValue.Kind() == reflect.Struct {
 			nestedContent, err := structToHCL(fieldValue.Interface(), indent+"  ")
 			if err != nil {
@@ -637,7 +636,7 @@ func structToHCL(v interface{}, indent string) (string, error) {
 			result.WriteString(fmt.Sprintf("%s%s = %s\n", indent, tagName, value))
 		}
 	}
-	
+
 	return result.String(), nil
 }
 
@@ -645,7 +644,7 @@ func structToHCL(v interface{}, indent string) (string, error) {
 func getHCLFieldTagName(field reflect.StructField) string {
 	// 优先级: hcl > json > yaml > toml > ini
 	tags := []string{"hcl", "json", "yaml", "toml", "ini"}
-	
+
 	for _, tag := range tags {
 		if tagValue := field.Tag.Get(tag); tagValue != "" && tagValue != "-" {
 			if commaIndex := strings.Index(tagValue, ","); commaIndex != -1 {
@@ -654,7 +653,7 @@ func getHCLFieldTagName(field reflect.StructField) string {
 			return tagValue
 		}
 	}
-	
+
 	return strings.ToLower(field.Name)
 }
 

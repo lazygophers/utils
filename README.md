@@ -227,7 +227,7 @@ func GetUser(id int) (*User, error) {
 
 - Go 1.24.0+
 - [`github.com/go-playground/validator/v10`](https://github.com/go-playground/validator) - 结构体验证
-- [`github.com/mcuadros/go-defaults`](https://github.com/mcuadros/go-defaults) - 默认值设置
+- [`github.com/lazygophers/utils/defaults`](./defaults) - 默认值设置
 - [`github.com/lazygophers/log`](https://github.com/lazygophers/log) - 日志库
 - 更多依赖请查看 [`go.mod`](go.mod) 文件
 

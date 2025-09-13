@@ -11,9 +11,8 @@ import (
 	"reflect"
 
 	"github.com/lazygophers/log"
+	"github.com/lazygophers/utils/defaults"
 	"github.com/lazygophers/utils/json"
-
-	"github.com/mcuadros/go-defaults"
 	"github.com/pkg/errors"
 )
 

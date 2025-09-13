@@ -43,7 +43,7 @@ func ToInt64Slice(val interface{}) []int64 {
 	case []int64:
 		var v []int64
 		for _, val := range x {
-			v = append(v, int64(val))
+			v = append(v, val)
 		}
 		return v
 	case []uint:

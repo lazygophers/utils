@@ -9,7 +9,7 @@ import (
 func TestCopy_FinalCoverage(t *testing.T) {
 	// 尝试覆盖Copy函数的最后6.7%
 	// 基于代码分析，未覆盖的可能是某个错误处理分支
-	
+
 	t.Run("copy_with_various_file_sizes", func(t *testing.T) {
 		// 测试不同大小的文件复制
 		tmpDir, err := os.MkdirTemp("", "copy_final_test_*")
@@ -26,7 +26,7 @@ func TestCopy_FinalCoverage(t *testing.T) {
 			{"empty_file", 0, []byte("")},
 			{"small_file", 10, []byte("0123456789")},
 			{"medium_file", 1024, make([]byte, 1024)},
-			{"large_file", 64*1024, make([]byte, 64*1024)}, // 64KB
+			{"large_file", 64 * 1024, make([]byte, 64*1024)}, // 64KB
 		}
 
 		for _, tc := range testCases {

@@ -19,7 +19,7 @@ func TimeDuration4Sleep(s ...time.Duration) time.Duration {
 	r := getFastRand()
 	result := time.Duration(r.Int63n(int64(end-start))) + start
 	putFastRand(r)
-	
+
 	return result
 }
 
@@ -41,7 +41,7 @@ func FastTimeDuration4Sleep(s ...time.Duration) time.Duration {
 	globalMu.Lock()
 	result := time.Duration(globalRand.Int63n(int64(end-start))) + start
 	globalMu.Unlock()
-	
+
 	return result
 }
 
@@ -56,7 +56,7 @@ func RandomDuration(min, max time.Duration) time.Duration {
 	r := getFastRand()
 	result := min + time.Duration(r.Int63n(int64(max-min+1)))
 	putFastRand(r)
-	
+
 	return result
 }
 
@@ -72,7 +72,7 @@ func RandomTime(start, end time.Time) time.Time {
 	r := getFastRand()
 	randomDiff := time.Duration(r.Int63n(int64(diff)))
 	putFastRand(r)
-	
+
 	return start.Add(randomDiff)
 }
 
@@ -82,7 +82,7 @@ func RandomTimeInDay(date time.Time) time.Time {
 	startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 	// 当天结束时间（下一天的开始时间）
 	endOfDay := startOfDay.Add(24 * time.Hour)
-	
+
 	return RandomTime(startOfDay, endOfDay)
 }
 
@@ -91,10 +91,10 @@ func RandomTimeInHour(baseTime time.Time, hour int) time.Time {
 	if hour < 0 || hour > 23 {
 		hour = baseTime.Hour()
 	}
-	
+
 	startOfHour := time.Date(baseTime.Year(), baseTime.Month(), baseTime.Day(), hour, 0, 0, 0, baseTime.Location())
 	endOfHour := startOfHour.Add(time.Hour)
-	
+
 	return RandomTime(startOfHour, endOfHour)
 }
 
@@ -103,7 +103,7 @@ func BatchRandomDuration(min, max time.Duration, count int) []time.Duration {
 	if count <= 0 {
 		return nil
 	}
-	
+
 	if min > max {
 		min, max = max, min
 	} else if min == max {
@@ -113,15 +113,15 @@ func BatchRandomDuration(min, max time.Duration, count int) []time.Duration {
 		}
 		return results
 	}
-	
+
 	results := make([]time.Duration, count)
 	r := getFastRand()
-	
+
 	diff := int64(max - min + 1)
 	for i := 0; i < count; i++ {
 		results[i] = min + time.Duration(r.Int63n(diff))
 	}
-	
+
 	putFastRand(r)
 	return results
 }
@@ -144,21 +144,21 @@ func Jitter(duration time.Duration, jitterPercent float64) time.Duration {
 	if jitterPercent <= 0 {
 		return duration
 	}
-	
+
 	if jitterPercent > 100 {
 		jitterPercent = 100
 	}
-	
+
 	// 计算抖动范围
 	jitterRange := time.Duration(float64(duration) * jitterPercent / 100)
-	
+
 	// 生成 [-jitterRange, +jitterRange] 的随机变化
 	randomJitter := RandomDuration(-jitterRange, jitterRange)
-	
+
 	result := duration + randomJitter
 	if result < 0 {
 		result = 0
 	}
-	
+
 	return result
 }

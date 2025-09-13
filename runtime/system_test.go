@@ -9,11 +9,11 @@ func TestIsWindows(t *testing.T) {
 	t.Run("is_windows_consistency", func(t *testing.T) {
 		result := IsWindows()
 		expected := runtime.GOOS == "windows"
-		
+
 		if result != expected {
 			t.Errorf("IsWindows() = %v, expected %v (runtime.GOOS = %s)", result, expected, runtime.GOOS)
 		}
-		
+
 		t.Logf("IsWindows() = %v (runtime.GOOS = %s)", result, runtime.GOOS)
 	})
 }
@@ -22,11 +22,11 @@ func TestIsDarwin(t *testing.T) {
 	t.Run("is_darwin_consistency", func(t *testing.T) {
 		result := IsDarwin()
 		expected := runtime.GOOS == "darwin"
-		
+
 		if result != expected {
 			t.Errorf("IsDarwin() = %v, expected %v (runtime.GOOS = %s)", result, expected, runtime.GOOS)
 		}
-		
+
 		t.Logf("IsDarwin() = %v (runtime.GOOS = %s)", result, runtime.GOOS)
 	})
 }
@@ -35,11 +35,11 @@ func TestIsLinux(t *testing.T) {
 	t.Run("is_linux_consistency", func(t *testing.T) {
 		result := IsLinux()
 		expected := runtime.GOOS == "linux"
-		
+
 		if result != expected {
 			t.Errorf("IsLinux() = %v, expected %v (runtime.GOOS = %s)", result, expected, runtime.GOOS)
 		}
-		
+
 		t.Logf("IsLinux() = %v (runtime.GOOS = %s)", result, runtime.GOOS)
 	})
 }
@@ -50,7 +50,7 @@ func TestSystemDetectionMutualExclusion(t *testing.T) {
 		windows := IsWindows()
 		darwin := IsDarwin()
 		linux := IsLinux()
-		
+
 		trueCount := 0
 		if windows {
 			trueCount++
@@ -61,12 +61,12 @@ func TestSystemDetectionMutualExclusion(t *testing.T) {
 		if linux {
 			trueCount++
 		}
-		
+
 		if trueCount != 1 {
 			t.Errorf("Exactly one system should be detected as true, but %d were true (Windows: %v, Darwin: %v, Linux: %v)",
 				trueCount, windows, darwin, linux)
 		}
-		
+
 		t.Logf("System detection: Windows=%v, Darwin=%v, Linux=%v", windows, darwin, linux)
 	})
 }
@@ -82,7 +82,7 @@ func TestSystemDetectionCompleteness(t *testing.T) {
 			if IsDarwin() || IsLinux() {
 				t.Error("Should not detect Darwin or Linux when running on Windows")
 			}
-			
+
 		case "darwin":
 			if !IsDarwin() {
 				t.Error("Should detect Darwin when runtime.GOOS is 'darwin'")
@@ -90,7 +90,7 @@ func TestSystemDetectionCompleteness(t *testing.T) {
 			if IsWindows() || IsLinux() {
 				t.Error("Should not detect Windows or Linux when running on Darwin")
 			}
-			
+
 		case "linux":
 			if !IsLinux() {
 				t.Error("Should detect Linux when runtime.GOOS is 'linux'")
@@ -98,7 +98,7 @@ func TestSystemDetectionCompleteness(t *testing.T) {
 			if IsWindows() || IsDarwin() {
 				t.Error("Should not detect Windows or Darwin when running on Linux")
 			}
-			
+
 		default:
 			// 对于其他系统（如freebsd, openbsd等），所有函数都应该返回false
 			if IsWindows() || IsDarwin() || IsLinux() {
@@ -133,11 +133,11 @@ func TestSystemDetectionStability(t *testing.T) {
 	t.Run("multiple_calls_return_same_result", func(t *testing.T) {
 		// 多次调用应该返回相同结果
 		iterations := 1000
-		
+
 		firstWindows := IsWindows()
 		firstDarwin := IsDarwin()
 		firstLinux := IsLinux()
-		
+
 		for i := 0; i < iterations; i++ {
 			if IsWindows() != firstWindows {
 				t.Errorf("IsWindows() returned inconsistent result on iteration %d", i)
@@ -149,7 +149,7 @@ func TestSystemDetectionStability(t *testing.T) {
 				t.Errorf("IsLinux() returned inconsistent result on iteration %d", i)
 			}
 		}
-		
+
 		t.Logf("All %d calls returned consistent results", iterations)
 	})
 }
@@ -159,9 +159,9 @@ func TestSystemDetectionConcurrency(t *testing.T) {
 	t.Run("concurrent_calls_are_safe", func(t *testing.T) {
 		const numGoroutines = 100
 		const callsPerGoroutine = 100
-		
+
 		results := make(chan [3]bool, numGoroutines)
-		
+
 		for i := 0; i < numGoroutines; i++ {
 			go func() {
 				var localResults [3]bool
@@ -173,11 +173,11 @@ func TestSystemDetectionConcurrency(t *testing.T) {
 				results <- localResults
 			}()
 		}
-		
+
 		// 收集所有结果
 		var firstResult [3]bool
 		var firstSet = false
-		
+
 		for i := 0; i < numGoroutines; i++ {
 			result := <-results
 			if !firstSet {
@@ -189,7 +189,7 @@ func TestSystemDetectionConcurrency(t *testing.T) {
 				}
 			}
 		}
-		
+
 		t.Logf("All concurrent calls returned consistent results: %v", firstResult)
 	})
 }

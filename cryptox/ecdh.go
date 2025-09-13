@@ -107,7 +107,7 @@ func ECDHComputeSharedWithKDF(privateKey *ecdsa.PrivateKey, publicKey *ecdsa.Pub
 	// 如果需要更长的密钥，使用计数器模式扩展
 	result := make([]byte, 0, keyLength)
 	counter := uint32(0)
-	
+
 	for len(result) < keyLength {
 		h := kdf()
 		h.Write(sharedSecret)

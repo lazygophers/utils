@@ -39,7 +39,7 @@ func TestNewMap(t *testing.T) {
 		m := map[string]interface{}{}
 		mapAny := NewMap(m)
 		assert.NotNil(t, mapAny)
-		
+
 		val, err := mapAny.Get("nonexistent")
 		assert.Equal(t, ErrNotFound, err)
 		assert.Nil(t, val)
@@ -70,7 +70,7 @@ func TestNewMapWithJson(t *testing.T) {
 		mapAny, err := NewMapWithJson(jsonData)
 		assert.NoError(t, err)
 		assert.NotNil(t, mapAny)
-		
+
 		val, err := mapAny.Get("nonexistent")
 		assert.Equal(t, ErrNotFound, err)
 		assert.Nil(t, val)
@@ -111,7 +111,7 @@ func TestNewMapWithAny(t *testing.T) {
 			Age    int    `json:"age"`
 			Active bool   `json:"active"`
 		}
-		
+
 		data := TestStruct{Name: "John", Age: 30, Active: true}
 		mapAny, err := NewMapWithAny(data)
 		assert.NoError(t, err)
@@ -128,7 +128,7 @@ func TestNewMapWithAny(t *testing.T) {
 		type SimpleStruct struct {
 			Value string `json:"value"`
 		}
-		
+
 		data := SimpleStruct{Value: "test"}
 		mapAny, err := NewMapWithAny(data)
 		assert.NoError(t, err)
@@ -148,7 +148,7 @@ func TestNewMapWithAny(t *testing.T) {
 		// It's very difficult to trigger a YAML unmarshal error when JSON marshal succeeds
 		// because YAML is a superset of JSON. However, we can at least test the happy path
 		// more thoroughly to understand the function behavior
-		
+
 		type ComplexStruct struct {
 			StringField string                 `json:"string_field"`
 			IntField    int                    `json:"int_field"`
@@ -156,7 +156,7 @@ func TestNewMapWithAny(t *testing.T) {
 			MapField    map[string]interface{} `json:"map_field"`
 			SliceField  []string               `json:"slice_field"`
 		}
-		
+
 		data := ComplexStruct{
 			StringField: "test",
 			IntField:    42,
@@ -164,19 +164,19 @@ func TestNewMapWithAny(t *testing.T) {
 			MapField:    map[string]interface{}{"nested": "value"},
 			SliceField:  []string{"item1", "item2"},
 		}
-		
+
 		mapAny, err := NewMapWithAny(data)
 		assert.NoError(t, err)
 		assert.NotNil(t, mapAny)
 		assert.Equal(t, "test", mapAny.GetString("string_field"))
 		assert.Equal(t, 42, mapAny.GetInt("int_field"))
 		assert.True(t, mapAny.GetBool("bool_field"))
-		
+
 		// Test nested map
 		nestedMap := mapAny.GetMap("map_field")
 		assert.NotNil(t, nestedMap)
 		assert.Equal(t, "value", nestedMap.GetString("nested"))
-		
+
 		// Test slice
 		slice := mapAny.GetSlice("slice_field")
 		assert.Len(t, slice, 2)
@@ -188,24 +188,24 @@ func TestNewMapWithAny(t *testing.T) {
 		// Since it's very difficult to trigger YAML parsing errors when JSON marshal succeeds,
 		// we'll create a test that demonstrates the error handling path exists
 		// In practice, this error is very rare since YAML is a superset of JSON
-		
+
 		// This tests the normal happy path, which is the most common case
 		type SimpleStruct struct {
 			Name string `json:"name"`
 			Age  int    `json:"age"`
 		}
-		
+
 		data := SimpleStruct{
 			Name: "Test",
 			Age:  25,
 		}
-		
+
 		mapAny, err := NewMapWithAny(data)
 		assert.NoError(t, err)
 		assert.NotNil(t, mapAny)
 		assert.Equal(t, "Test", mapAny.GetString("name"))
 		assert.Equal(t, 25, mapAny.GetInt("age"))
-		
+
 		// Note: The YAML error path (line 64) is extremely difficult to trigger
 		// in normal circumstances since YAML is a superset of JSON
 		// This path exists for completeness but is rarely executed in practice
@@ -215,7 +215,7 @@ func TestNewMapWithAny(t *testing.T) {
 func TestMapAny_EnableCut(t *testing.T) {
 	mapAny := NewMap(nil)
 	result := mapAny.EnableCut(".")
-	
+
 	assert.True(t, mapAny.cut.Load())
 	assert.Equal(t, ".", mapAny.seq.Load())
 	assert.Equal(t, mapAny, result) // should return self for chaining
@@ -224,7 +224,7 @@ func TestMapAny_EnableCut(t *testing.T) {
 func TestMapAny_DisableCut(t *testing.T) {
 	mapAny := NewMap(nil).EnableCut(".")
 	result := mapAny.DisableCut()
-	
+
 	assert.False(t, mapAny.cut.Load())
 	assert.Equal(t, mapAny, result) // should return self for chaining
 }
@@ -233,11 +233,11 @@ func TestMapAny_Set(t *testing.T) {
 	mapAny := NewMap(nil)
 	mapAny.Set("key1", "value1")
 	mapAny.Set("key2", 42)
-	
+
 	val, err := mapAny.Get("key1")
 	assert.NoError(t, err)
 	assert.Equal(t, "value1", val)
-	
+
 	val, err = mapAny.Get("key2")
 	assert.NoError(t, err)
 	assert.Equal(t, 42, val)
@@ -315,7 +315,7 @@ func TestMapAny_GetWithCut(t *testing.T) {
 		mapAny := NewMap(map[string]interface{}{
 			"test": "value",
 		}).EnableCut(".")
-		
+
 		// Test accessing with separator at end which creates empty keys
 		val, err := mapAny.Get("test.")
 		assert.Equal(t, ErrNotFound, err)
@@ -341,22 +341,22 @@ func TestMapAny_GetWithCut(t *testing.T) {
 				"level2": "value",
 			},
 		}).EnableCut(".")
-		
+
 		// Create a scenario that exhausts all keys in the loop
 		// This should trigger line 133: return nil, false
 		// when len(keys) == 0 after the for loop
-		
+
 		// This simulates a case where keys are consumed in the loop but no final key remains
-		val, err := mapAny.Get("level1.")  // Note the trailing dot
+		val, err := mapAny.Get("level1.") // Note the trailing dot
 		assert.Equal(t, ErrNotFound, err)
 		assert.Nil(t, val)
 	})
-	
+
 	t.Run("test get with toMap returning nil", func(t *testing.T) {
 		mapAny := NewMap(map[string]interface{}{
 			"level1": "not_a_map_string", // This will cause toMap to return nil for some cases
 		}).EnableCut(".")
-		
+
 		// This should trigger line 120: return nil, false when toMap returns nil
 		val, err := mapAny.Get("level1.level2")
 		assert.Equal(t, ErrNotFound, err)
@@ -652,7 +652,7 @@ func TestMapAny_toMap(t *testing.T) {
 		type UnmarshalableStruct struct {
 			Channel chan int `json:"channel"`
 		}
-		
+
 		data := UnmarshalableStruct{Channel: make(chan int)}
 		result := mapAny.toMap(data)
 		assert.NotNil(t, result)
@@ -670,23 +670,23 @@ func TestMapAny_toMap(t *testing.T) {
 
 func TestMapAny_GetSlice(t *testing.T) {
 	mapAny := NewMap(map[string]interface{}{
-		"bool_slice":    []bool{true, false},
-		"int_slice":     []int{1, 2, 3},
-		"int8_slice":    []int8{1, 2},
-		"int16_slice":   []int16{1, 2},
-		"int32_slice":   []int32{1, 2},
-		"int64_slice":   []int64{1, 2},
-		"uint_slice":    []uint{1, 2},
-		"uint8_slice":   []uint8{1, 2},
-		"uint16_slice":  []uint16{1, 2},
-		"uint32_slice":  []uint32{1, 2},
-		"uint64_slice":  []uint64{1, 2},
-		"float32_slice": []float32{1.1, 2.2},
-		"float64_slice": []float64{1.1, 2.2},
-		"string_slice":  []string{"a", "b"},
-		"bytes_slice":   [][]byte{[]byte("a"), []byte("b")},
+		"bool_slice":      []bool{true, false},
+		"int_slice":       []int{1, 2, 3},
+		"int8_slice":      []int8{1, 2},
+		"int16_slice":     []int16{1, 2},
+		"int32_slice":     []int32{1, 2},
+		"int64_slice":     []int64{1, 2},
+		"uint_slice":      []uint{1, 2},
+		"uint8_slice":     []uint8{1, 2},
+		"uint16_slice":    []uint16{1, 2},
+		"uint32_slice":    []uint32{1, 2},
+		"uint64_slice":    []uint64{1, 2},
+		"float32_slice":   []float32{1.1, 2.2},
+		"float64_slice":   []float64{1.1, 2.2},
+		"string_slice":    []string{"a", "b"},
+		"bytes_slice":     [][]byte{[]byte("a"), []byte("b")},
 		"interface_slice": []interface{}{1, "a", true},
-		"unknown":       "not a slice",
+		"unknown":         "not a slice",
 	})
 
 	t.Run("bool slice", func(t *testing.T) {
@@ -1239,14 +1239,14 @@ func TestMapAny_ToSyncMap(t *testing.T) {
 
 func TestMapAny_ToMap(t *testing.T) {
 	mapAny := NewMap(map[string]interface{}{
-		"string": "hello",
-		"int":    42,
-		"bool":   true,
-		"float32": float32(3.5),
-		"float64": 2.71,
-		"float32_int": float32(4.0),  // Should convert to int32
-		"float64_int": 5.0,           // Should convert to int64
-		"bytes": []byte("world"),
+		"string":      "hello",
+		"int":         42,
+		"bool":        true,
+		"float32":     float32(3.5),
+		"float64":     2.71,
+		"float32_int": float32(4.0), // Should convert to int32
+		"float64_int": 5.0,          // Should convert to int64
+		"bytes":       []byte("world"),
 		"nested": NewMap(map[string]interface{}{
 			"inner": "value",
 		}),
@@ -1254,7 +1254,7 @@ func TestMapAny_ToMap(t *testing.T) {
 	})
 
 	result := mapAny.ToMap()
-	
+
 	assert.Equal(t, "hello", result["string"])
 	assert.Equal(t, 42, result["int"])
 	assert.Equal(t, true, result["bool"])
@@ -1263,12 +1263,12 @@ func TestMapAny_ToMap(t *testing.T) {
 	assert.Equal(t, int32(4), result["float32_int"]) // float32 4.0 -> int32
 	assert.Equal(t, int64(5), result["float64_int"]) // float64 5.0 -> int64
 	assert.Equal(t, []byte("world"), result["bytes"])
-	
+
 	// Nested MapAny should be converted to map[string]interface{}
 	nested, ok := result["nested"].(map[string]interface{})
 	assert.True(t, ok)
 	assert.Equal(t, "value", nested["inner"])
-	
+
 	// Unknown type should be preserved
 	unknown, ok := result["unknown"].(struct{ Name string })
 	assert.True(t, ok)
@@ -1367,14 +1367,14 @@ func TestMapAny_Concurrent(t *testing.T) {
 
 	// Verify some data was written
 	assert.True(t, mapAny.Exists("counter"))
-	
+
 	// Count how many keys were set
 	count := 0
 	mapAny.Range(func(key, value interface{}) bool {
 		count++
 		return true
 	})
-	
+
 	// Should have at least the original "counter" key plus some new ones
 	assert.Greater(t, count, 1)
 }

@@ -20,13 +20,13 @@ func initSignalHandler() {
 	signalOnce.Do(func() {
 		c := make(chan os.Signal, 1)
 		// macOS 支持更多的 Unix 信号
-		signal.Notify(c, 
-			syscall.SIGINT, 
-			syscall.SIGTERM, 
+		signal.Notify(c,
+			syscall.SIGINT,
+			syscall.SIGTERM,
 			syscall.SIGHUP,  // 终端断开
 			syscall.SIGQUIT, // 退出信号
 		)
-		
+
 		go func() {
 			<-c
 			executeCallbacks()
@@ -41,7 +41,7 @@ func executeCallbacks() {
 	cbList := make([]func(), len(callbacks))
 	copy(cbList, callbacks)
 	callbacksMu.RUnlock()
-	
+
 	// 按注册顺序执行回调
 	for _, cb := range cbList {
 		if cb != nil {
@@ -63,11 +63,12 @@ func Register(callback func()) {
 	if callback == nil {
 		return
 	}
-	
+
 	// 首次注册时初始化信号处理
 	initSignalHandler()
-	
+
 	callbacksMu.Lock()
 	callbacks = append(callbacks, callback)
 	callbacksMu.Unlock()
 }
+

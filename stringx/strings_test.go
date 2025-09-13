@@ -304,7 +304,7 @@ func TestLastIndexAny(t *testing.T) {
 		chars    string
 		expected int
 	}{
-		{"hello", "aeiou", 4}, // Last vowel 'o' at index 4
+		{"hello", "aeiou", 4},       // Last vowel 'o' at index 4
 		{"hello world", "aeiou", 7}, // 'o' at index 7
 		{"hello", "xyz", -1},
 		{"hello", "", -1},

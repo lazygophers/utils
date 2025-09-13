@@ -15,6 +15,6 @@ var (
 	Goarm   string
 	Goamd64 string
 	Gomips  string
-	
+
 	Description string
 )

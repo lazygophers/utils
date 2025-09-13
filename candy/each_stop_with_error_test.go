@@ -38,8 +38,8 @@ func TestEachStopWithError(t *testing.T) {
 			wantCall: 5,
 		},
 		{
-			name:    "第一个元素就返回错误",
-			input:   []int{1, 2, 3, 4, 5},
+			name:  "第一个元素就返回错误",
+			input: []int{1, 2, 3, 4, 5},
 			fn: func(n int) error {
 				if n == 1 {
 					return testError
@@ -50,8 +50,8 @@ func TestEachStopWithError(t *testing.T) {
 			wantCall: 1,
 		},
 		{
-			name:    "中间元素返回错误",
-			input:   []int{1, 2, 3, 4, 5},
+			name:  "中间元素返回错误",
+			input: []int{1, 2, 3, 4, 5},
 			fn: func(n int) error {
 				if n == 3 {
 					return testError
@@ -62,8 +62,8 @@ func TestEachStopWithError(t *testing.T) {
 			wantCall: 3,
 		},
 		{
-			name:    "最后一个元素返回错误",
-			input:   []int{1, 2, 3, 4, 5},
+			name:  "最后一个元素返回错误",
+			input: []int{1, 2, 3, 4, 5},
 			fn: func(n int) error {
 				if n == 5 {
 					return testError
@@ -74,22 +74,22 @@ func TestEachStopWithError(t *testing.T) {
 			wantCall: 5,
 		},
 		{
-			name:    "单元素切片无错误",
-			input:   []int{42},
+			name:     "单元素切片无错误",
+			input:    []int{42},
 			fn:       func(n int) error { return nil },
 			wantErr:  nil,
 			wantCall: 1,
 		},
 		{
-			name:    "单元素切片有错误",
-			input:   []int{42},
+			name:     "单元素切片有错误",
+			input:    []int{42},
 			fn:       func(n int) error { return testError },
 			wantErr:  testError,
 			wantCall: 1,
 		},
 		{
-			name:    "验证错误传递",
-			input:   []int{1, 2, 3},
+			name:  "验证错误传递",
+			input: []int{1, 2, 3},
 			fn: func(n int) error {
 				if n == 2 {
 					return anotherError
@@ -149,8 +149,8 @@ func TestEachStopWithErrorString(t *testing.T) {
 			wantCall: 3,
 		},
 		{
-			name:    "字符串处理遇到错误",
-			input:   []string{"hello", "world", "go"},
+			name:  "字符串处理遇到错误",
+			input: []string{"hello", "world", "go"},
 			fn: func(s string) error {
 				if s == "world" {
 					return testError

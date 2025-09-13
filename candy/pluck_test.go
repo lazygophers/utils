@@ -80,19 +80,19 @@ func TestPluckSliceArray(t *testing.T) {
 		// 创建一个简单的三维slice来触发 46-66 分支但避免bug
 		// 由于代码中的变量名重复使用问题，我们需要小心选择数据
 		nestedSlices := [][][]string{
-			{{"a"}},  // 只有一个元素，避免内层循环变量冲突
+			{{"a"}}, // 只有一个元素，避免内层循环变量冲突
 		}
-		
+
 		// 直接调用pluck函数测试
 		result := pluck(nestedSlices, "", []string{})
-		
+
 		// 基于实际代码行为，结果应该是：[["a"], nil, ...]（长度取决于计算）
 		// 让我们先验证这个分支被执行，不管结果如何
 		assert.NotNil(t, result)
 		resultSlice := result.([][]string)
 		assert.True(t, len(resultSlice) >= 1)
 	})
-	
+
 	t.Run("空三维slice", func(t *testing.T) {
 		// 测试空的三维slice
 		emptyNested := [][][]int{}
@@ -100,20 +100,20 @@ func TestPluckSliceArray(t *testing.T) {
 		expected := []int{}
 		assert.Equal(t, expected, result)
 	})
-	
+
 	t.Run("三维slice分支复杂情况", func(t *testing.T) {
 		// 测试更复杂的三维slice结构
 		nestedWithMultiple := [][][]int{
 			{{1, 2}, {3}},
 			{{4}},
 		}
-		
+
 		// 尽管有变量名重复使用的问题，这个函数可能仍能执行
 		// 只验证它不返回nil并且能执行完成
 		result := pluck(nestedWithMultiple, "", []int{})
 		assert.NotNil(t, result)
 	})
-	
+
 	t.Run("非结构体元素类型触发default分支panic", func(t *testing.T) {
 		// 测试字符串类型的切片，应该触发default分支的panic
 		stringList := []string{"hello", "world"}
@@ -121,21 +121,21 @@ func TestPluckSliceArray(t *testing.T) {
 			PluckInt(stringList, "ID")
 		})
 	})
-	
+
 	t.Run("空slice返回默认值", func(t *testing.T) {
 		emptySlice := [][][]int{}
 		result := pluck(emptySlice, "", [][]int{})
 		expected := [][]int{}
 		assert.Equal(t, expected, result)
 	})
-	
+
 	t.Run("空slice返回默认值", func(t *testing.T) {
-		emptySlice := []struct{ID int}{}
+		emptySlice := []struct{ ID int }{}
 		result := PluckInt(emptySlice, "ID")
 		expected := []int{}
 		assert.Equal(t, expected, result)
 	})
-	
+
 	t.Run("不支持的元素类型", func(t *testing.T) {
 		// 测试默认分支的panic
 		unsupportedList := []map[string]int{{"key": 1}}
@@ -143,19 +143,19 @@ func TestPluckSliceArray(t *testing.T) {
 			PluckInt(unsupportedList, "ID")
 		})
 	})
-	
+
 	t.Run("包含指针的结构体slice", func(t *testing.T) {
 		type User struct {
 			ID int
 		}
-		
+
 		// 测试带指针的情况，应该会进入第18-20行的解指针循环
 		users := []*User{{ID: 1}, {ID: 2}}
 		result := PluckInt(users, "ID")
 		expected := []int{1, 2}
 		assert.Equal(t, expected, result)
 	})
-	
+
 	t.Run("元素不是结构体panic", func(t *testing.T) {
 		// 这应该触发 "element is not a struct" panic (line 37)
 		pointerToInt := []*int{new(int)}
@@ -163,20 +163,20 @@ func TestPluckSliceArray(t *testing.T) {
 			PluckInt(pointerToInt, "ID")
 		})
 	})
-	
+
 	t.Run("Invalid值处理 - nil指针会panic", func(t *testing.T) {
 		// 创建一个包含nil指针的切片来测试，实际上会导致panic
 		type User struct {
 			ID int
 		}
-		
+
 		users := []*User{{ID: 1}, nil, {ID: 3}}
 		// nil指针解引用会导致panic
 		assert.Panics(t, func() {
 			PluckInt(users, "ID")
 		})
 	})
-	
+
 	t.Run("非Array或Slice类型触发panic", func(t *testing.T) {
 		// 测试传入非slice/array类型，应该触发第72行的panic
 		notAnArray := "this is a string"
@@ -184,19 +184,19 @@ func TestPluckSliceArray(t *testing.T) {
 			PluckInt(notAnArray, "ID")
 		})
 	})
-	
+
 	t.Run("多层指针解引用", func(t *testing.T) {
 		// 测试多重指针的解引用循环 (lines 18-20 和 33-35)
 		type User struct {
 			ID int
 		}
-		
+
 		// 创建指向指针的指针
 		user1 := &User{ID: 42}
 		user2 := &User{ID: 84}
 		puser1 := &user1
 		puser2 := &user2
-		
+
 		users := []*(*User){puser1, puser2}
 		result := PluckInt(users, "ID")
 		expected := []int{42, 84}

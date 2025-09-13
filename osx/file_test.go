@@ -188,9 +188,9 @@ func TestIsDir(t *testing.T) {
 			expected: false,
 		},
 		{
-			name: "current directory",
-			path: ".",
-			setup: func() (string, func()) { return "", func() {} },
+			name:     "current directory",
+			path:     ".",
+			setup:    func() (string, func()) { return "", func() {} },
 			expected: true,
 		},
 	}

@@ -12,7 +12,7 @@ import (
 // Global variables for dependency injection during testing
 var (
 	blowfishNewCipher  func([]byte) (*blowfish.Cipher, error) = blowfish.NewCipher
-	blowfishRandReader = rand.Reader
+	blowfishRandReader                                        = rand.Reader
 )
 
 // BlowfishEncryptECB 使用 Blowfish 在 ECB 模式下加密明文

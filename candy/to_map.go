@@ -27,6 +27,5 @@ func ToMap(v interface{}) map[string]interface{} {
 		}
 
 	}
-
 	return ToMapStringAny(v)
 }

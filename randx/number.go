@@ -57,7 +57,7 @@ func Intn(n int) int {
 	if n == 1 {
 		return 0
 	}
-	
+
 	r := getFastRand()
 	result := r.Intn(n)
 	putFastRand(r)
@@ -94,7 +94,7 @@ func Int64n(n int64) int64 {
 	if n == 1 {
 		return 0
 	}
-	
+
 	r := getFastRand()
 	result := r.Int63n(n)
 	putFastRand(r)
@@ -243,14 +243,14 @@ func BatchIntn(n int, count int) []int {
 	if count <= 0 {
 		return nil
 	}
-	
+
 	results := make([]int, count)
 	r := getFastRand()
-	
+
 	for i := 0; i < count; i++ {
 		results[i] = r.Intn(n)
 	}
-	
+
 	putFastRand(r)
 	return results
 }
@@ -260,14 +260,14 @@ func BatchInt64n(n int64, count int) []int64 {
 	if count <= 0 {
 		return nil
 	}
-	
+
 	results := make([]int64, count)
 	r := getFastRand()
-	
+
 	for i := 0; i < count; i++ {
 		results[i] = r.Int63n(n)
 	}
-	
+
 	putFastRand(r)
 	return results
 }
@@ -277,14 +277,14 @@ func BatchFloat64(count int) []float64 {
 	if count <= 0 {
 		return nil
 	}
-	
+
 	results := make([]float64, count)
 	r := getFastRand()
-	
+
 	for i := 0; i < count; i++ {
 		results[i] = r.Float64()
 	}
-	
+
 	putFastRand(r)
 	return results
 }

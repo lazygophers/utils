@@ -7,38 +7,38 @@ import (
 
 // Calendar 日历信息，包含公历和农历的综合信息
 type Calendar struct {
-	*Time                // 嵌入增强的时间类型
-	lunar   *Lunar       // 农历信息
-	zodiac  ZodiacInfo   // 生肖天干地支信息  
-	season  SeasonInfo   // 节气季节信息
+	*Time             // 嵌入增强的时间类型
+	lunar  *Lunar     // 农历信息
+	zodiac ZodiacInfo // 生肖天干地支信息
+	season SeasonInfo // 节气季节信息
 }
 
 // ZodiacInfo 生肖天干地支信息
 type ZodiacInfo struct {
-	Animal       string // 生肖：鼠、牛、虎...
-	SkyTrunk     string // 天干：甲、乙、丙...
-	EarthBranch  string // 地支：子、丑、寅...
-	YearGanZhi   string // 年干支：甲子、乙丑...
-	MonthGanZhi  string // 月干支
-	DayGanZhi    string // 日干支
-	HourGanZhi   string // 时干支
+	Animal      string // 生肖：鼠、牛、虎...
+	SkyTrunk    string // 天干：甲、乙、丙...
+	EarthBranch string // 地支：子、丑、寅...
+	YearGanZhi  string // 年干支：甲子、乙丑...
+	MonthGanZhi string // 月干支
+	DayGanZhi   string // 日干支
+	HourGanZhi  string // 时干支
 }
 
 // SeasonInfo 节气季节信息
 type SeasonInfo struct {
-	CurrentTerm     string    // 当前节气
-	NextTerm        string    // 下个节气
-	NextTermTime    time.Time // 下个节气时间
-	Season          string    // 季节：春、夏、秋、冬
-	SeasonProgress  float64   // 季节进度(0-1)
-	YearProgress    float64   // 年度进度(0-1)
+	CurrentTerm    string    // 当前节气
+	NextTerm       string    // 下个节气
+	NextTermTime   time.Time // 下个节气时间
+	Season         string    // 季节：春、夏、秋、冬
+	SeasonProgress float64   // 季节进度(0-1)
+	YearProgress   float64   // 年度进度(0-1)
 }
 
 // 天干地支常量
 var (
-	skyTrunks = [10]string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
+	skyTrunks     = [10]string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
 	earthBranches = [12]string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
-	seasons = [4]string{"春", "夏", "秋", "冬"}
+	seasons       = [4]string{"春", "夏", "秋", "冬"}
 )
 
 // NewCalendar 创建日历对象，包含完整的农历和节气信息
@@ -47,10 +47,10 @@ func NewCalendar(t time.Time) *Calendar {
 		Time:  With(t),
 		lunar: WithLunar(t),
 	}
-	
+
 	cal.zodiac = cal.calculateZodiac()
 	cal.season = cal.calculateSeason()
-	
+
 	return cal
 }
 
@@ -69,7 +69,7 @@ func (c *Calendar) Lunar() *Lunar {
 // LunarDate 获取农历日期字符串，格式：农历二零二三年八月十五
 func (c *Calendar) LunarDate() string {
 	year := c.lunar.YearAlias()
-	month := c.lunar.MonthAlias() 
+	month := c.lunar.MonthAlias()
 	day := c.lunar.DayAlias()
 	return fmt.Sprintf("农历%s年%s%s", year, month, day)
 }
@@ -123,8 +123,8 @@ func (c *Calendar) HourGanZhi() string {
 
 // FullGanZhi 完整干支信息，格式：癸卯年 甲申月 己巳日 乙亥时
 func (c *Calendar) FullGanZhi() string {
-	return fmt.Sprintf("%s年 %s月 %s日 %s时", 
-		c.zodiac.YearGanZhi, c.zodiac.MonthGanZhi, 
+	return fmt.Sprintf("%s年 %s月 %s日 %s时",
+		c.zodiac.YearGanZhi, c.zodiac.MonthGanZhi,
 		c.zodiac.DayGanZhi, c.zodiac.HourGanZhi)
 }
 
@@ -160,7 +160,7 @@ func (c *Calendar) SeasonProgress() float64 {
 	return c.season.SeasonProgress
 }
 
-// YearProgress 年度进度(0-1)  
+// YearProgress 年度进度(0-1)
 func (c *Calendar) YearProgress() float64 {
 	return c.season.YearProgress
 }
@@ -169,10 +169,10 @@ func (c *Calendar) YearProgress() float64 {
 
 // String 完整的日历信息字符串
 func (c *Calendar) String() string {
-	return fmt.Sprintf("%s %s %s %s", 
+	return fmt.Sprintf("%s %s %s %s",
 		c.Time.Format("2006年01月02日"),
 		c.LunarDateShort(),
-		c.AnimalWithYear(), 
+		c.AnimalWithYear(),
 		c.CurrentSolarTerm())
 }
 
@@ -194,36 +194,36 @@ func (c *Calendar) DetailedString() string {
 func (c *Calendar) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"solar": map[string]interface{}{
-			"date":     c.Time.Format("2006-01-02"),
-			"time":     c.Time.Format("15:04:05"),
-			"weekday":  c.Time.Weekday().String(),
+			"date":      c.Time.Format("2006-01-02"),
+			"time":      c.Time.Format("15:04:05"),
+			"weekday":   c.Time.Weekday().String(),
 			"timestamp": c.Time.Unix(),
 		},
 		"lunar": map[string]interface{}{
-			"year":      c.lunar.Year(),
-			"month":     c.lunar.Month(),
-			"day":       c.lunar.Day(),
-			"date":      c.LunarDate(),
-			"dateShort": c.LunarDateShort(),
+			"year":       c.lunar.Year(),
+			"month":      c.lunar.Month(),
+			"day":        c.lunar.Day(),
+			"date":       c.LunarDate(),
+			"dateShort":  c.LunarDateShort(),
 			"isLeapYear": c.IsLunarLeapYear(),
-			"leapMonth": c.LunarLeapMonth(),
+			"leapMonth":  c.LunarLeapMonth(),
 		},
 		"zodiac": map[string]interface{}{
-			"animal":       c.Animal(),
-			"yearGanZhi":   c.YearGanZhi(),
-			"monthGanZhi":  c.MonthGanZhi(),
-			"dayGanZhi":    c.DayGanZhi(),
-			"hourGanZhi":   c.HourGanZhi(),
-			"fullGanZhi":   c.FullGanZhi(),
+			"animal":      c.Animal(),
+			"yearGanZhi":  c.YearGanZhi(),
+			"monthGanZhi": c.MonthGanZhi(),
+			"dayGanZhi":   c.DayGanZhi(),
+			"hourGanZhi":  c.HourGanZhi(),
+			"fullGanZhi":  c.FullGanZhi(),
 		},
 		"season": map[string]interface{}{
-			"current":           c.CurrentSolarTerm(),
-			"next":              c.NextSolarTerm(),
-			"nextTime":          c.NextSolarTermTime(),
-			"daysToNext":        c.DaysToNextTerm(),
-			"season":            c.Season(),
-			"seasonProgress":    c.SeasonProgress(),
-			"yearProgress":      c.YearProgress(),
+			"current":        c.CurrentSolarTerm(),
+			"next":           c.NextSolarTerm(),
+			"nextTime":       c.NextSolarTermTime(),
+			"daysToNext":     c.DaysToNextTerm(),
+			"season":         c.Season(),
+			"seasonProgress": c.SeasonProgress(),
+			"yearProgress":   c.YearProgress(),
 		},
 	}
 }
@@ -232,42 +232,42 @@ func (c *Calendar) ToMap() map[string]interface{} {
 func (c *Calendar) calculateZodiac() ZodiacInfo {
 	// 获取农历年月日时信息
 	lunarYear := c.lunar.Year()
-	
+
 	// 计算生肖（基于农历年）
 	animal := c.lunar.Animal()
-	
+
 	// 计算年干支（基于农历年）
 	yearTrunk := skyTrunks[(lunarYear-4)%10]
 	yearBranch := earthBranches[(lunarYear-4)%12]
 	yearGanZhi := yearTrunk + yearBranch
-	
+
 	// 计算月干支（基于公历月，简化计算）
 	month := int(c.Time.Month())
 	monthTrunk := skyTrunks[(month-1)%10]
 	monthBranch := earthBranches[(month-1)%12]
 	monthGanZhi := monthTrunk + monthBranch
-	
+
 	// 计算日干支（基于公历日期，简化计算）
 	dayOfYear := c.Time.YearDay()
 	dayTrunk := skyTrunks[(dayOfYear-1)%10]
 	dayBranch := earthBranches[(dayOfYear-1)%12]
 	dayGanZhi := dayTrunk + dayBranch
-	
+
 	// 计算时干支
 	hour := c.Time.Hour()
 	hourIndex := (hour + 1) / 2 % 12
 	hourTrunk := skyTrunks[hour%10]
 	hourBranch := earthBranches[hourIndex]
 	hourGanZhi := hourTrunk + hourBranch
-	
+
 	return ZodiacInfo{
-		Animal:       animal,
-		SkyTrunk:     yearTrunk,
-		EarthBranch:  yearBranch,
-		YearGanZhi:   yearGanZhi,
-		MonthGanZhi:  monthGanZhi,
-		DayGanZhi:    dayGanZhi,
-		HourGanZhi:   hourGanZhi,
+		Animal:      animal,
+		SkyTrunk:    yearTrunk,
+		EarthBranch: yearBranch,
+		YearGanZhi:  yearGanZhi,
+		MonthGanZhi: monthGanZhi,
+		DayGanZhi:   dayGanZhi,
+		HourGanZhi:  hourGanZhi,
 	}
 }
 
@@ -277,18 +277,18 @@ func (c *Calendar) calculateSeason() SeasonInfo {
 	now := c.Time.Time
 	nextSolarterm := NextSolarterm(now)
 	nextTermTime := nextSolarterm.Time()
-	
+
 	// 获取当前节气（简化：基于月份）
 	month := int(now.Month())
 	var currentTerm, season string
 	var seasonProgress float64
-	
+
 	switch {
 	case month >= 2 && month <= 4: // 春季
 		season = "春"
 		currentTerm = []string{"立春", "雨水", "惊蛰", "春分", "清明", "谷雨"}[(month-2)*2+now.Day()/15]
 		seasonProgress = float64(month-2)/3.0 + float64(now.Day())/90.0
-	case month >= 5 && month <= 7: // 夏季  
+	case month >= 5 && month <= 7: // 夏季
 		season = "夏"
 		currentTerm = []string{"立夏", "小满", "芒种", "夏至", "小暑", "大暑"}[(month-5)*2+now.Day()/15]
 		seasonProgress = float64(month-5)/3.0 + float64(now.Day())/90.0
@@ -301,12 +301,12 @@ func (c *Calendar) calculateSeason() SeasonInfo {
 		currentTerm = []string{"立冬", "小雪", "大雪", "冬至", "小寒", "大寒"}[((month+9)%12)*2+now.Day()/15]
 		seasonProgress = float64((month+9)%12)/3.0 + float64(now.Day())/90.0
 	}
-	
+
 	// 计算年度进度
 	startOfYear := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, now.Location())
 	endOfYear := time.Date(now.Year()+1, 1, 1, 0, 0, 0, 0, now.Location())
 	yearProgress := float64(now.Sub(startOfYear)) / float64(endOfYear.Sub(startOfYear))
-	
+
 	return SeasonInfo{
 		CurrentTerm:    currentTerm,
 		NextTerm:       nextSolarterm.String(),

@@ -21,7 +21,7 @@ func Map[T, U any](ss []T, f func(T) U) []U {
 	if len(ss) == 0 {
 		return []U{}
 	}
-	
+
 	// 直接分配最终长度的切片，避免 append 操作
 	ret := make([]U, len(ss))
 	for i, s := range ss {

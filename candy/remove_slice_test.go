@@ -88,7 +88,7 @@ func TestRemoveSlice(t *testing.T) {
 			RemoveSlice([]int{1, 2, 3}, []string{"a", "b"})
 		})
 	})
-	
+
 	// Additional test cases to improve coverage
 	t.Run("mixed integers", func(t *testing.T) {
 		src := []int{-1, 0, 1, 2, -2}
@@ -97,7 +97,7 @@ func TestRemoveSlice(t *testing.T) {
 		expected := []int{0, 2, -2}
 		assert.Equal(t, expected, result)
 	})
-	
+
 	t.Run("large slice", func(t *testing.T) {
 		src := make([]int, 100)
 		for i := 0; i < 100; i++ {

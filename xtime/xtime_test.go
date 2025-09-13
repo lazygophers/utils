@@ -33,10 +33,10 @@ func TestConstants(t *testing.T) {
 	t.Run("work_month_constants", func(t *testing.T) {
 		expectedWorkMonth := xtime.Day*21 + xtime.HalfDay
 		assert.Equal(t, expectedWorkMonth, xtime.WorkDayMonth)
-		
+
 		expectedResetMonth := xtime.Day*8 + xtime.HalfDay
 		assert.Equal(t, expectedResetMonth, xtime.ResetDayMonth)
-		
+
 		assert.Equal(t, xtime.Day*30, xtime.Month)
 	})
 
@@ -52,7 +52,7 @@ func TestConstants(t *testing.T) {
 		assert.Equal(t, xtime.WorkDayWeek+xtime.ResetDayWeek, xtime.Week)
 		assert.True(t, xtime.HalfHour*2 == xtime.Hour)
 		assert.True(t, xtime.HalfDay*2 == xtime.Day)
-		
+
 		// Verify larger units are composed correctly
 		assert.True(t, xtime.Year > xtime.Month*12)
 		assert.True(t, xtime.Decade > xtime.Year*10)

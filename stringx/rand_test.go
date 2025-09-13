@@ -33,7 +33,7 @@ func TestRandLetters(t *testing.T) {
 		if len(result) != length {
 			t.Errorf("RandLetters(%d) length = %d, expected %d", length, len(result), length)
 		}
-		
+
 		// Verify all characters are letters (a-z, A-Z)
 		matched, err := regexp.MatchString("^[a-zA-Z]+$", result)
 		if err != nil {
@@ -49,12 +49,12 @@ func TestRandLetters(t *testing.T) {
 		results := make(map[string]bool)
 		length := 8
 		iterations := 100
-		
+
 		for i := 0; i < iterations; i++ {
 			result := RandLetters(length)
 			results[result] = true
 		}
-		
+
 		// Should have high diversity (at least 90% unique)
 		if len(results) < int(float64(iterations)*0.9) {
 			t.Errorf("RandLetters not random enough: got %d unique strings out of %d", len(results), iterations)
@@ -83,7 +83,7 @@ func TestRandLowerLetters(t *testing.T) {
 		if len(result) != length {
 			t.Errorf("RandLowerLetters(%d) length = %d, expected %d", length, len(result), length)
 		}
-		
+
 		// Verify all characters are lowercase letters (a-z)
 		matched, err := regexp.MatchString("^[a-z]+$", result)
 		if err != nil {
@@ -116,7 +116,7 @@ func TestRandUpperLetters(t *testing.T) {
 		if len(result) != length {
 			t.Errorf("RandUpperLetters(%d) length = %d, expected %d", length, len(result), length)
 		}
-		
+
 		// Verify all characters are uppercase letters (A-Z)
 		matched, err := regexp.MatchString("^[A-Z]+$", result)
 		if err != nil {
@@ -149,7 +149,7 @@ func TestRandNumbers(t *testing.T) {
 		if len(result) != length {
 			t.Errorf("RandNumbers(%d) length = %d, expected %d", length, len(result), length)
 		}
-		
+
 		// Verify all characters are digits (0-9)
 		matched, err := regexp.MatchString("^[0-9]+$", result)
 		if err != nil {
@@ -182,7 +182,7 @@ func TestRandLetterNumbers(t *testing.T) {
 		if len(result) != length {
 			t.Errorf("RandLetterNumbers(%d) length = %d, expected %d", length, len(result), length)
 		}
-		
+
 		// Verify all characters are alphanumeric (a-z, A-Z, 0-9)
 		matched, err := regexp.MatchString("^[a-zA-Z0-9]+$", result)
 		if err != nil {
@@ -198,7 +198,7 @@ func TestRandLetterNumbers(t *testing.T) {
 		length := 100
 		hasLetter := false
 		hasNumber := false
-		
+
 		for i := 0; i < 10; i++ {
 			result := RandLetterNumbers(length)
 			for _, char := range result {
@@ -213,7 +213,7 @@ func TestRandLetterNumbers(t *testing.T) {
 				break
 			}
 		}
-		
+
 		if !hasLetter || !hasNumber {
 			t.Error("RandLetterNumbers should eventually generate both letters and numbers")
 		}
@@ -241,7 +241,7 @@ func TestRandLowerLetterNumbers(t *testing.T) {
 		if len(result) != length {
 			t.Errorf("RandLowerLetterNumbers(%d) length = %d, expected %d", length, len(result), length)
 		}
-		
+
 		// Verify all characters are lowercase alphanumeric (a-z, 0-9)
 		matched, err := regexp.MatchString("^[a-z0-9]+$", result)
 		if err != nil {
@@ -274,7 +274,7 @@ func TestRandUpperLetterNumbers(t *testing.T) {
 		if len(result) != length {
 			t.Errorf("RandUpperLetterNumbers(%d) length = %d, expected %d", length, len(result), length)
 		}
-		
+
 		// Verify all characters are uppercase alphanumeric (A-Z, 0-9)
 		matched, err := regexp.MatchString("^[A-Z0-9]+$", result)
 		if err != nil {
@@ -331,17 +331,17 @@ func TestRandStringWithSeed(t *testing.T) {
 		seed := []rune("abc123")
 		length := 10
 		result := RandStringWithSeed(length, seed)
-		
+
 		if len(result) != length {
 			t.Errorf("RandStringWithSeed length = %d, expected %d", len(result), length)
 		}
-		
+
 		// Verify all characters are from the seed
 		seedMap := make(map[rune]bool)
 		for _, r := range seed {
 			seedMap[r] = true
 		}
-		
+
 		for _, r := range result {
 			if !seedMap[r] {
 				t.Errorf("RandStringWithSeed result contains %q which is not in seed %v", r, seed)
@@ -353,17 +353,17 @@ func TestRandStringWithSeed(t *testing.T) {
 		seed := []rune("测试🎉😀")
 		length := 6
 		result := RandStringWithSeed(length, seed)
-		
+
 		if len([]rune(result)) != length {
 			t.Errorf("RandStringWithSeed unicode length = %d, expected %d", len([]rune(result)), length)
 		}
-		
+
 		// Verify all characters are from the seed
 		seedMap := make(map[rune]bool)
 		for _, r := range seed {
 			seedMap[r] = true
 		}
-		
+
 		for _, r := range []rune(result) {
 			if !seedMap[r] {
 				t.Errorf("RandStringWithSeed result contains %q which is not in unicode seed %v", r, seed)
@@ -375,7 +375,7 @@ func TestRandStringWithSeed(t *testing.T) {
 		seed := []rune("ab")
 		length := 1000
 		result := RandStringWithSeed(length, seed)
-		
+
 		countA := 0
 		countB := 0
 		for _, r := range result {
@@ -386,7 +386,7 @@ func TestRandStringWithSeed(t *testing.T) {
 				countB++
 			}
 		}
-		
+
 		// Check if distribution is roughly 50/50 (within 10% tolerance)
 		tolerance := length / 10
 		expectedCount := length / 2
@@ -436,20 +436,20 @@ func TestPerformanceComparison(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping performance test in short mode")
 	}
-	
+
 	t.Run("large_string_generation", func(t *testing.T) {
 		length := 10000
-		
+
 		start := time.Now()
 		result := RandLetterNumbers(length)
 		duration := time.Since(start)
-		
+
 		if len(result) != length {
 			t.Errorf("Generated string length %d, expected %d", len(result), length)
 		}
-		
+
 		t.Logf("Generated %d character string in %v", length, duration)
-		
+
 		// Should complete within reasonable time (1 second)
 		if duration > time.Second {
 			t.Errorf("String generation took too long: %v", duration)
@@ -467,26 +467,26 @@ func TestEdgeCases(t *testing.T) {
 				t.Logf("Expected behavior: panicked with large length: %v", r)
 			}
 		}()
-		
+
 		// This might panic due to memory allocation, which is expected
 		_ = RandStringWithSeed(1000000, []rune("a"))
 	})
-	
+
 	t.Run("special_characters_seed", func(t *testing.T) {
 		seed := []rune("!@#$%^&*()_+{}|:<>?")
 		length := 20
 		result := RandStringWithSeed(length, seed)
-		
+
 		if len(result) != length {
 			t.Errorf("Special characters seed length = %d, expected %d", len(result), length)
 		}
-		
+
 		// Verify all characters are from the seed
 		seedMap := make(map[rune]bool)
 		for _, r := range seed {
 			seedMap[r] = true
 		}
-		
+
 		for _, r := range result {
 			if !seedMap[r] {
 				t.Errorf("Result contains %q which is not in special characters seed", r)

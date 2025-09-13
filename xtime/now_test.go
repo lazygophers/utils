@@ -17,7 +17,7 @@ func TestNow(t *testing.T) {
 		// Now should return current time wrapped in xtime.Time
 		assert.NotNil(t, now)
 		assert.NotNil(t, now.Config)
-		
+
 		// Time should be between before and after
 		assert.True(t, now.Time.After(before.Add(-time.Second)), "Now should be after before time")
 		assert.True(t, now.Time.Before(after.Add(time.Second)), "Now should be before after time")
@@ -25,7 +25,7 @@ func TestNow(t *testing.T) {
 
 	t.Run("now_config_defaults", func(t *testing.T) {
 		now := xtime.Now()
-		
+
 		assert.Equal(t, time.Monday, now.Config.WeekStartDay)
 		assert.Equal(t, time.Local, now.Config.TimeLocation)
 		assert.Empty(t, now.Config.TimeFormats)
@@ -65,7 +65,7 @@ func TestBeginningMethods(t *testing.T) {
 	t.Run("beginning_of_minute", func(t *testing.T) {
 		result := xt.BeginningOfMinute()
 		expected := time.Date(2023, 6, 15, 14, 30, 0, 0, time.UTC)
-		
+
 		assert.Equal(t, expected, result.Time)
 		assert.Equal(t, 0, result.Second())
 		assert.Equal(t, 0, result.Nanosecond())
@@ -74,7 +74,7 @@ func TestBeginningMethods(t *testing.T) {
 	t.Run("beginning_of_hour", func(t *testing.T) {
 		result := xt.BeginningOfHour()
 		expected := time.Date(2023, 6, 15, 14, 0, 0, 0, time.UTC)
-		
+
 		assert.Equal(t, expected, result.Time)
 		assert.Equal(t, 0, result.Minute())
 		assert.Equal(t, 0, result.Second())
@@ -84,7 +84,7 @@ func TestBeginningMethods(t *testing.T) {
 	t.Run("beginning_of_day", func(t *testing.T) {
 		result := xt.BeginningOfDay()
 		expected := time.Date(2023, 6, 15, 0, 0, 0, 0, time.UTC)
-		
+
 		assert.Equal(t, expected, result.Time)
 		assert.Equal(t, 0, result.Hour())
 		assert.Equal(t, 0, result.Minute())
@@ -94,7 +94,7 @@ func TestBeginningMethods(t *testing.T) {
 	t.Run("beginning_of_week_monday", func(t *testing.T) {
 		// 2023-06-15 was a Thursday
 		result := xt.BeginningOfWeek() // Default Monday start
-		
+
 		// Should go back to Monday 2023-06-12
 		assert.Equal(t, time.Monday, result.Weekday())
 		assert.Equal(t, 12, result.Day())
@@ -106,7 +106,7 @@ func TestBeginningMethods(t *testing.T) {
 		// Test with Sunday as week start
 		xt.Config.WeekStartDay = time.Sunday
 		result := xt.BeginningOfWeek()
-		
+
 		// Should go back to Sunday 2023-06-11
 		assert.Equal(t, time.Sunday, result.Weekday())
 		assert.Equal(t, 11, result.Day())
@@ -119,29 +119,29 @@ func TestBeginningMethods(t *testing.T) {
 		saturday := time.Date(2023, 6, 17, 14, 30, 0, 0, time.UTC) // Saturday
 		satWrapped := xtime.With(saturday)
 		satWrapped.Config.WeekStartDay = time.Wednesday // Wednesday = 3
-		
+
 		result := satWrapped.BeginningOfWeek()
 		// Saturday(6) < Wednesday(3) is false, so should go back to Wednesday 2023-06-14
 		assert.Equal(t, time.Wednesday, result.Weekday())
 		assert.Equal(t, 14, result.Day())
-		
+
 		// Test edge case where weekday < weekStartDayInt is true
-		// Use a Sunday (weekday=0) with Tuesday start (weekday=2) 
+		// Use a Sunday (weekday=0) with Tuesday start (weekday=2)
 		sunday := time.Date(2023, 6, 18, 14, 30, 0, 0, time.UTC) // Sunday
 		sunWrapped := xtime.With(sunday)
 		sunWrapped.Config.WeekStartDay = time.Tuesday // Tuesday = 2
-		
+
 		result2 := sunWrapped.BeginningOfWeek()
 		// Sunday(0) < Tuesday(2) is true, should use: weekday + 7 - weekStartDayInt = 0 + 7 - 2 = 5
 		// This means go back 5 days from Sunday to Tuesday
-		assert.Equal(t, time.Tuesday, result2.Weekday()) 
+		assert.Equal(t, time.Tuesday, result2.Weekday())
 		assert.Equal(t, 13, result2.Day()) // June 13, 2023 was a Tuesday
 	})
 
 	t.Run("beginning_of_month", func(t *testing.T) {
 		result := xt.BeginningOfMonth()
 		expected := time.Date(2023, 6, 1, 0, 0, 0, 0, time.UTC)
-		
+
 		assert.Equal(t, expected, result.Time)
 		assert.Equal(t, 1, result.Day())
 		assert.Equal(t, 0, result.Hour())
@@ -151,7 +151,7 @@ func TestBeginningMethods(t *testing.T) {
 		result := xt.BeginningOfQuarter()
 		// June is in Q2, so should go to April 1st
 		expected := time.Date(2023, 4, 1, 0, 0, 0, 0, time.UTC)
-		
+
 		assert.Equal(t, expected, result.Time)
 		assert.Equal(t, time.April, result.Month())
 		assert.Equal(t, 1, result.Day())
@@ -161,7 +161,7 @@ func TestBeginningMethods(t *testing.T) {
 		result := xt.BeginningOfHalf()
 		// June is in second half, so should go to January 1st
 		expected := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
-		
+
 		assert.Equal(t, expected, result.Time)
 		assert.Equal(t, time.January, result.Month())
 		assert.Equal(t, 1, result.Day())
@@ -170,7 +170,7 @@ func TestBeginningMethods(t *testing.T) {
 	t.Run("beginning_of_year", func(t *testing.T) {
 		result := xt.BeginningOfYear()
 		expected := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
-		
+
 		assert.Equal(t, expected, result.Time)
 		assert.Equal(t, time.January, result.Month())
 		assert.Equal(t, 1, result.Day())
@@ -183,7 +183,7 @@ func TestEndMethods(t *testing.T) {
 
 	t.Run("end_of_minute", func(t *testing.T) {
 		result := xt.EndOfMinute()
-		
+
 		assert.Equal(t, 14, result.Hour())
 		assert.Equal(t, 30, result.Minute())
 		assert.Equal(t, 59, result.Second())
@@ -192,7 +192,7 @@ func TestEndMethods(t *testing.T) {
 
 	t.Run("end_of_hour", func(t *testing.T) {
 		result := xt.EndOfHour()
-		
+
 		assert.Equal(t, 14, result.Hour())
 		assert.Equal(t, 59, result.Minute())
 		assert.Equal(t, 59, result.Second())
@@ -201,7 +201,7 @@ func TestEndMethods(t *testing.T) {
 
 	t.Run("end_of_day", func(t *testing.T) {
 		result := xt.EndOfDay()
-		
+
 		assert.Equal(t, 15, result.Day())
 		assert.Equal(t, 23, result.Hour())
 		assert.Equal(t, 59, result.Minute())
@@ -211,7 +211,7 @@ func TestEndMethods(t *testing.T) {
 
 	t.Run("end_of_week", func(t *testing.T) {
 		result := xt.EndOfWeek()
-		
+
 		// Should be end of Sunday (next week's Sunday minus 1 nanosecond)
 		assert.Equal(t, time.Sunday, result.Weekday())
 		assert.Equal(t, 18, result.Day()) // 2023-06-18
@@ -222,7 +222,7 @@ func TestEndMethods(t *testing.T) {
 
 	t.Run("end_of_month", func(t *testing.T) {
 		result := xt.EndOfMonth()
-		
+
 		assert.Equal(t, time.June, result.Month())
 		assert.Equal(t, 30, result.Day()) // June has 30 days
 		assert.Equal(t, 23, result.Hour())
@@ -232,7 +232,7 @@ func TestEndMethods(t *testing.T) {
 
 	t.Run("end_of_quarter", func(t *testing.T) {
 		result := xt.EndOfQuarter()
-		
+
 		// Q2 ends in June
 		assert.Equal(t, time.June, result.Month())
 		assert.Equal(t, 30, result.Day())
@@ -242,7 +242,7 @@ func TestEndMethods(t *testing.T) {
 
 	t.Run("end_of_half", func(t *testing.T) {
 		result := xt.EndOfHalf()
-		
+
 		// First half ends in June
 		assert.Equal(t, time.June, result.Month())
 		assert.Equal(t, 30, result.Day())
@@ -251,7 +251,7 @@ func TestEndMethods(t *testing.T) {
 
 	t.Run("end_of_year", func(t *testing.T) {
 		result := xt.EndOfYear()
-		
+
 		assert.Equal(t, 2023, result.Year())
 		assert.Equal(t, time.December, result.Month())
 		assert.Equal(t, 31, result.Day())
@@ -283,7 +283,7 @@ func TestQuarter(t *testing.T) {
 		t.Run(tc.month.String(), func(t *testing.T) {
 			testTime := time.Date(2023, tc.month, 15, 12, 0, 0, 0, time.UTC)
 			xt := xtime.With(testTime)
-			
+
 			result := xt.Quarter()
 			assert.Equal(t, tc.expected, result, "Month %s should be in quarter %d", tc.month, tc.expected)
 		})
@@ -310,7 +310,7 @@ func TestPackageLevelFunctions(t *testing.T) {
 		assert.NotNil(t, beginningOfMonth)
 		assert.NotNil(t, beginningOfQuarter)
 		assert.NotNil(t, beginningOfYear)
-		
+
 		// Check that they're actually at the beginning of their respective periods
 		assert.Equal(t, 0, beginningOfMinute.Second())
 		assert.Equal(t, 0, beginningOfHour.Minute())
@@ -355,7 +355,7 @@ func TestEdgeCases(t *testing.T) {
 		// Test February in a leap year
 		leapTime := time.Date(2024, 2, 15, 12, 0, 0, 0, time.UTC)
 		xt := xtime.With(leapTime)
-		
+
 		endOfMonth := xt.EndOfMonth()
 		assert.Equal(t, 29, endOfMonth.Day()) // Feb 29 in leap year
 	})
@@ -364,7 +364,7 @@ func TestEdgeCases(t *testing.T) {
 		// Test December 31st
 		yearEnd := time.Date(2023, 12, 31, 23, 59, 59, 0, time.UTC)
 		xt := xtime.With(yearEnd)
-		
+
 		beginningOfYear := xt.BeginningOfYear()
 		assert.Equal(t, 2023, beginningOfYear.Year())
 		assert.Equal(t, time.January, beginningOfYear.Month())
@@ -376,7 +376,7 @@ func TestEdgeCases(t *testing.T) {
 		est, _ := time.LoadLocation("America/New_York")
 		testTime := time.Date(2023, 6, 15, 14, 30, 0, 0, est)
 		xt := xtime.With(testTime)
-		
+
 		beginningOfDay := xt.BeginningOfDay()
 		assert.Equal(t, est, beginningOfDay.Location())
 		assert.Equal(t, 0, beginningOfDay.Hour())

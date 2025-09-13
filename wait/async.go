@@ -34,7 +34,7 @@ func Async[M any](process int, push func(chan M), logic func(M)) {
 	if process <= 0 {
 		return
 	}
-	
+
 	c := make(chan M, process*2) // 增加缓冲区大小，避免阻塞
 
 	w := Wgp.Get().(*sync.WaitGroup)

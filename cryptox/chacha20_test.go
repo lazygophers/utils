@@ -13,7 +13,7 @@ const (
 )
 
 var (
-	chacha20Key = make([]byte, chacha20.KeySize)   // 32 bytes
+	chacha20Key   = make([]byte, chacha20.KeySize)   // 32 bytes
 	chacha20Nonce = make([]byte, chacha20.NonceSize) // 12 bytes
 )
 

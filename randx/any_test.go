@@ -44,7 +44,7 @@ func TestChoose(t *testing.T) {
 	t.Run("choose_from_multiple_integers", func(t *testing.T) {
 		// 测试多元素整数切片
 		numbers := []int{1, 2, 3, 4, 5}
-		
+
 		// 多次测试确保结果在预期范围内
 		for i := 0; i < 100; i++ {
 			result := Choose(numbers)
@@ -64,7 +64,7 @@ func TestChoose(t *testing.T) {
 	t.Run("choose_from_multiple_strings", func(t *testing.T) {
 		// 测试多元素字符串切片
 		words := []string{"apple", "banana", "cherry", "date"}
-		
+
 		// 多次测试确保结果在预期范围内
 		for i := 0; i < 50; i++ {
 			result := Choose(words)
@@ -85,7 +85,7 @@ func TestChoose(t *testing.T) {
 		// 测试浮点数切片
 		floats := []float64{1.1, 2.2, 3.3, 4.4}
 		result := Choose(floats)
-		
+
 		found := false
 		for _, f := range floats {
 			if result == f {
@@ -104,13 +104,13 @@ func TestChoose(t *testing.T) {
 			Name string
 			Age  int
 		}
-		
+
 		people := []Person{
 			{"Alice", 25},
 			{"Bob", 30},
 			{"Charlie", 35},
 		}
-		
+
 		result := Choose(people)
 		found := false
 		for _, person := range people {
@@ -128,26 +128,26 @@ func TestChoose(t *testing.T) {
 		// 测试随机分布（统计测试）
 		numbers := []int{1, 2, 3}
 		counts := make(map[int]int)
-		
+
 		// 运行大量测试来验证分布
 		iterations := 3000
 		for i := 0; i < iterations; i++ {
 			result := Choose(numbers)
 			counts[result]++
 		}
-		
+
 		// 每个数字应该大概出现1000次（允许一定的偏差）
 		for _, num := range numbers {
 			count := counts[num]
 			expectedMin := iterations/len(numbers) - 200 // 800
 			expectedMax := iterations/len(numbers) + 200 // 1200
-			
+
 			if count < expectedMin || count > expectedMax {
-				t.Logf("Warning: Number %d appeared %d times, expected around %d", 
+				t.Logf("Warning: Number %d appeared %d times, expected around %d",
 					num, count, iterations/len(numbers))
 			}
 		}
-		
+
 		// 验证所有数字都被选中过
 		for _, num := range numbers {
 			if counts[num] == 0 {
@@ -162,7 +162,7 @@ func TestChoose(t *testing.T) {
 		for i := range large {
 			large[i] = i
 		}
-		
+
 		result := Choose(large)
 		if result < 0 || result >= 1000 {
 			t.Errorf("Result %v is out of expected range [0, 999]", result)
@@ -172,7 +172,7 @@ func TestChoose(t *testing.T) {
 	t.Run("choose_with_duplicate_values", func(t *testing.T) {
 		// 测试包含重复值的切片
 		duplicates := []int{1, 1, 2, 2, 2, 3}
-		
+
 		for i := 0; i < 100; i++ {
 			result := Choose(duplicates)
 			if result < 1 || result > 3 {

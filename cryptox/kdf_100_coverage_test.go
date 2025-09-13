@@ -216,7 +216,7 @@ func TestConstantTimeCompareEdgeCases(t *testing.T) {
 // TestKDFVerificationEdgeCases tests verification functions with edge cases
 func TestKDFVerificationEdgeCases(t *testing.T) {
 	config := DefaultPBKDF2Config()
-	
+
 	// Generate a valid key and salt
 	key, salt, err := PBKDF2Generate("test", config)
 	if err != nil {
@@ -232,7 +232,7 @@ func TestKDFVerificationEdgeCases(t *testing.T) {
 	modifiedKey := make([]byte, len(key))
 	copy(modifiedKey, key)
 	modifiedKey[0] ^= 0x01 // Flip one bit
-	
+
 	if PBKDF2Verify("test", modifiedKey, salt, config) {
 		t.Error("Modified key should not verify")
 	}
@@ -241,7 +241,7 @@ func TestKDFVerificationEdgeCases(t *testing.T) {
 	modifiedSalt := make([]byte, len(salt))
 	copy(modifiedSalt, salt)
 	modifiedSalt[0] ^= 0x01 // Flip one bit
-	
+
 	if PBKDF2Verify("test", key, modifiedSalt, config) {
 		t.Error("Modified salt should not verify")
 	}
@@ -278,11 +278,11 @@ func TestKDFVerificationEdgeCases(t *testing.T) {
 func TestKDFConfigurationVariations(t *testing.T) {
 	// Test PBKDF2 with different iteration counts
 	baseConfig := DefaultPBKDF2Config()
-	
+
 	for _, iterations := range []int{1, 10, 100, 1000, 10000} {
 		config := baseConfig
 		config.Iterations = iterations
-		
+
 		key, _, err := PBKDF2Generate("test", config)
 		if err != nil {
 			t.Errorf("PBKDF2 should work with %d iterations: %v", iterations, err)
@@ -294,11 +294,11 @@ func TestKDFConfigurationVariations(t *testing.T) {
 
 	// Test Scrypt with different N values (powers of 2)
 	scryptConfig := DefaultScryptConfig()
-	
+
 	for _, n := range []int{2, 4, 8, 16, 32, 64} {
 		config := scryptConfig
 		config.N = n
-		
+
 		key, _, err := ScryptGenerate("test", config)
 		if err != nil {
 			t.Errorf("Scrypt should work with N=%d: %v", n, err)
@@ -310,11 +310,11 @@ func TestKDFConfigurationVariations(t *testing.T) {
 
 	// Test Argon2 with different memory values
 	argon2Config := DefaultArgon2Config()
-	
+
 	for _, memory := range []uint32{1, 8, 64, 512, 1024} {
 		config := argon2Config
 		config.Memory = memory
-		
+
 		key, _, err := Argon2Generate("test", config)
 		if err != nil {
 			t.Errorf("Argon2 should work with memory=%d: %v", memory, err)
@@ -328,39 +328,39 @@ func TestKDFConfigurationVariations(t *testing.T) {
 // TestKDFWithSpecialPasswords tests KDF functions with special password cases
 func TestKDFWithSpecialPasswords(t *testing.T) {
 	config := DefaultPBKDF2Config()
-	
+
 	specialPasswords := []string{
-		"", // Empty
-		"a", // Single character
-		"123", // Numeric
+		"",     // Empty
+		"a",    // Single character
+		"123",  // Numeric
 		"🔐🗝️🔒", // Emoji only
 		"password with spaces",
-		"パスワード", // Japanese
-		"كلمة المرور", // Arabic
+		"パスワード",                         // Japanese
+		"كلمة المرور",                   // Arabic
 		string([]byte{0, 1, 2, 3, 255}), // Binary data
 	}
 
 	keys := make([][]byte, len(specialPasswords))
-	
+
 	for i, password := range specialPasswords {
 		key, salt, err := PBKDF2Generate(password, config)
 		if err != nil {
 			t.Errorf("PBKDF2 should work with special password %d: %v", i, err)
 			continue
 		}
-		
+
 		if len(key) != config.KeyLength {
 			t.Errorf("Should generate correct key length for special password %d", i)
 		}
-		
+
 		// Verify the password
 		if !PBKDF2Verify(password, key, salt, config) {
 			t.Errorf("Should verify special password %d", i)
 		}
-		
+
 		keys[i] = key
 	}
-	
+
 	// Ensure different passwords produce different keys
 	for i := 0; i < len(keys); i++ {
 		for j := i + 1; j < len(keys); j++ {

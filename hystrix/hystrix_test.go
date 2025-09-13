@@ -151,10 +151,10 @@ func TestCircuitBreakerStateTransition(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		cb.After(false)
 	}
-	
+
 	// 触发状态更新
 	cb.Before()
-	
+
 	if cb.State() != Open {
 		t.Errorf("Expected state Open after failures, got %s", cb.State())
 	}
@@ -191,17 +191,17 @@ func TestBatchCircuitBreaker(t *testing.T) {
 	config := CircuitBreakerConfig{
 		TimeWindow: time.Second,
 	}
-	
+
 	cb := NewBatchCircuitBreaker(config, 10, time.Millisecond*50)
-	
+
 	// 测试批量记录
 	for i := 0; i < 5; i++ {
 		cb.AfterBatch(true)
 	}
-	
+
 	// 强制刷新
 	cb.flush()
-	
+
 	// 检查统计
 	successes, failures := cb.Stat()
 	if successes != 5 || failures != 0 {

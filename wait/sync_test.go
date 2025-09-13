@@ -30,7 +30,7 @@ func TestReady(t *testing.T) {
 
 		// 第一次创建
 		wait.Ready(key, max)
-		
+
 		// 第二次创建同样的key - 应该不会重复创建
 		wait.Ready(key, max)
 
@@ -42,7 +42,7 @@ func TestReady(t *testing.T) {
 	t.Run("different keys create different pools", func(t *testing.T) {
 		key1 := "test_pool_3"
 		key2 := "test_pool_4"
-		
+
 		wait.Ready(key1, 2)
 		wait.Ready(key2, 4)
 
@@ -101,7 +101,7 @@ func TestDepth(t *testing.T) {
 
 	// 测试不同深度
 	depths := []int{0, 1, 2, 3, 4, 5}
-	
+
 	for i, expectedDepth := range depths[:len(depths)-1] {
 		assert.Equal(t, expectedDepth, wait.Depth(key), "深度应该匹配当前状态")
 		if i < len(depths)-2 {
@@ -111,7 +111,7 @@ func TestDepth(t *testing.T) {
 
 	// 解锁测试
 	for i := max - 1; i >= 0; i-- {
-		if i < max - 1 {
+		if i < max-1 {
 			wait.Unlock(key)
 		}
 		assert.Equal(t, i, wait.Depth(key), "解锁后深度应该减少")
@@ -165,7 +165,7 @@ func TestSync(t *testing.T) {
 	})
 
 	t.Run("panic in logic function", func(t *testing.T) {
-		key := "test_sync_3" 
+		key := "test_sync_3"
 		max := 1
 
 		wait.Ready(key, max)
@@ -263,7 +263,7 @@ func TestEdgeCases(t *testing.T) {
 		max := 0
 
 		wait.Ready(key, max)
-		
+
 		// 零容量池的深度应该始终为0
 		assert.Equal(t, 0, wait.Depth(key))
 	})

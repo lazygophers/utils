@@ -214,10 +214,10 @@ func TestRealIpFromHeader(t *testing.T) {
 func TestRealIpFromHeader_HeaderCaseSensitivity(t *testing.T) {
 	// HTTP headers are case-insensitive, test different cases
 	tests := []struct {
-		name       string
-		headerKey  string
-		headerVal  string
-		expected   string
+		name      string
+		headerKey string
+		headerVal string
+		expected  string
 	}{
 		{"Lowercase cf-connecting-ip", "cf-connecting-ip", "203.0.113.1", "203.0.113.1"},
 		{"Uppercase CF-CONNECTING-IP", "CF-CONNECTING-IP", "203.0.113.2", "203.0.113.2"},
@@ -233,7 +233,7 @@ func TestRealIpFromHeader_HeaderCaseSensitivity(t *testing.T) {
 
 			result := RealIpFromHeader(header)
 			if result != tt.expected {
-				t.Errorf("RealIpFromHeader() with header %s = %s, expected %s", 
+				t.Errorf("RealIpFromHeader() with header %s = %s, expected %s",
 					tt.headerKey, result, tt.expected)
 			}
 		})

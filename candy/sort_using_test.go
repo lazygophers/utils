@@ -18,10 +18,10 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b int) bool {
 			return a < b
 		}
-		
+
 		result := SortUsing(data, less)
 		expected := []int{1, 2, 3, 5, 8, 9}
-		
+
 		require.Equal(t, expected, result, "升序排序结果应该正确")
 		require.Equal(t, []int{5, 2, 8, 1, 9, 3}, data, "原始切片应该保持不变")
 	})
@@ -34,10 +34,10 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b int) bool {
 			return a > b
 		}
-		
+
 		result := SortUsing(data, less)
 		expected := []int{9, 8, 5, 3, 2, 1}
-		
+
 		require.Equal(t, expected, result, "降序排序结果应该正确")
 	})
 
@@ -49,10 +49,10 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b string) bool {
 			return a < b
 		}
-		
+
 		result := SortUsing(data, less)
 		expected := []string{"apple", "banana", "cherry", "date"}
-		
+
 		require.Equal(t, expected, result, "字符串排序结果应该正确")
 	})
 
@@ -69,7 +69,7 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b TestPerson) bool {
 			return a.Age < b.Age
 		}
-		
+
 		result := SortUsing(data, less)
 		expected := []TestPerson{
 			{"Charlie", 20},
@@ -77,7 +77,7 @@ func TestSortUsing(t *testing.T) {
 			{"Bob", 30},
 			{"David", 35},
 		}
-		
+
 		require.Equal(t, expected, result, "结构体按年龄排序结果应该正确")
 	})
 
@@ -94,7 +94,7 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b TestPerson) bool {
 			return a.Name < b.Name
 		}
-		
+
 		result := SortUsing(data, less)
 		expected := []TestPerson{
 			{"Alice", 25},
@@ -102,7 +102,7 @@ func TestSortUsing(t *testing.T) {
 			{"Charlie", 20},
 			{"David", 35},
 		}
-		
+
 		require.Equal(t, expected, result, "结构体按姓名排序结果应该正确")
 	})
 
@@ -114,10 +114,10 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b float64) bool {
 			return a < b
 		}
-		
+
 		result := SortUsing(data, less)
 		expected := []float64{1.41, 1.59, 2.65, 3.14}
-		
+
 		require.Equal(t, expected, result, "浮点数排序结果应该正确")
 	})
 
@@ -129,9 +129,9 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b int) bool {
 			return a < b
 		}
-		
+
 		result := SortUsing(data, less)
-		
+
 		require.Empty(t, result, "空切片排序应该返回空切片")
 	})
 
@@ -143,9 +143,9 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b int) bool {
 			return a < b
 		}
-		
+
 		result := SortUsing(data, less)
-		
+
 		require.Nil(t, result, "nil切片排序应该返回nil")
 	})
 
@@ -157,10 +157,10 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b int) bool {
 			return a < b
 		}
-		
+
 		result := SortUsing(data, less)
 		expected := []int{42}
-		
+
 		require.Equal(t, expected, result, "单元素切片排序应该返回相同元素")
 	})
 
@@ -172,10 +172,10 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b int) bool {
 			return a < b
 		}
-		
+
 		result := SortUsing(data, less)
 		expected := []int{1, 2, 3, 4, 5}
-		
+
 		require.Equal(t, expected, result, "已排序切片应该保持排序状态")
 	})
 
@@ -187,10 +187,10 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b int) bool {
 			return a < b
 		}
-		
+
 		result := SortUsing(data, less)
 		expected := []int{1, 1, 2, 3, 3, 4, 5, 5, 6, 9}
-		
+
 		require.Equal(t, expected, result, "重复元素排序结果应该正确")
 	})
 
@@ -202,7 +202,7 @@ func TestSortUsing(t *testing.T) {
 			{"Alice", 25},
 			{"Bob", 30},
 			{"Alice", 20}, // 相同姓名，不同年龄
-			{"Bob", 25},  // 相同姓名，不同年龄
+			{"Bob", 25},   // 相同姓名，不同年龄
 		}
 		// 先按姓名排序，姓名相同则按年龄排序
 		less := func(a, b TestPerson) bool {
@@ -211,7 +211,7 @@ func TestSortUsing(t *testing.T) {
 			}
 			return a.Age < b.Age
 		}
-		
+
 		result := SortUsing(data, less)
 		expected := []TestPerson{
 			{"Alice", 20},
@@ -219,7 +219,7 @@ func TestSortUsing(t *testing.T) {
 			{"Bob", 25},
 			{"Bob", 30},
 		}
-		
+
 		require.Equal(t, expected, result, "复杂比较函数排序结果应该正确")
 	})
 
@@ -231,10 +231,10 @@ func TestSortUsing(t *testing.T) {
 		less := func(a, b int) bool {
 			return a < b
 		}
-		
+
 		var wg sync.WaitGroup
 		results := make([][]int, 10)
-		
+
 		for i := 0; i < 10; i++ {
 			wg.Add(1)
 			go func(index int) {
@@ -242,9 +242,9 @@ func TestSortUsing(t *testing.T) {
 				results[index] = SortUsing(data, less)
 			}(i)
 		}
-		
+
 		wg.Wait()
-		
+
 		expected := []int{1, 2, 3, 5, 8, 9}
 		for i, result := range results {
 			require.Equal(t, expected, result, "并发调用第%d次结果应该正确", i)
@@ -260,7 +260,7 @@ func BenchmarkSortUsing(b *testing.B) {
 		less := func(a, b int) bool {
 			return a < b
 		}
-		
+
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			_ = SortUsing(data, less)
@@ -277,11 +277,11 @@ func BenchmarkSortUsing(b *testing.B) {
 		rand.Shuffle(len(data), func(i, j int) {
 			data[i], data[j] = data[j], data[i]
 		})
-		
+
 		less := func(a, b int) bool {
 			return a < b
 		}
-		
+
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			_ = SortUsing(data, less)
@@ -298,11 +298,11 @@ func BenchmarkSortUsing(b *testing.B) {
 		rand.Shuffle(len(data), func(i, j int) {
 			data[i], data[j] = data[j], data[i]
 		})
-		
+
 		less := func(a, b int) bool {
 			return a < b
 		}
-		
+
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			_ = SortUsing(data, less)
@@ -314,15 +314,15 @@ func BenchmarkSortUsing(b *testing.B) {
 		data := make([]TestPerson, 1000)
 		for i := range data {
 			data[i] = TestPerson{
-				Name:  "User" + string(rune(i%26+'A')),
-				Age:   i % 100,
+				Name: "User" + string(rune(i%26+'A')),
+				Age:  i % 100,
 			}
 		}
-		
+
 		less := func(a, b TestPerson) bool {
 			return a.Age < b.Age
 		}
-		
+
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			_ = SortUsing(data, less)

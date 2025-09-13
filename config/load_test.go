@@ -786,8 +786,8 @@ func TestCoverageImprovements(t *testing.T) {
 
 		// 使用channel来触发marshaling错误，但需要捕获panic
 		type UnmarshalableConfig struct {
-			Name    string    `yaml:"name"`
-			Channel chan int  `yaml:"channel"` // channels cannot be marshaled
+			Name    string   `yaml:"name"`
+			Channel chan int `yaml:"channel"` // channels cannot be marshaled
 		}
 
 		config := UnmarshalableConfig{
@@ -890,7 +890,7 @@ func TestNewConfigFormats(t *testing.T) {
     <password>testpass</password>
   </database>
 </TestConfig>`
-		
+
 		err = os.WriteFile(configFile, []byte(xmlContent), 0644)
 		require.NoError(t, err)
 
@@ -1309,7 +1309,7 @@ func TestHCLWriteAndFormat(t *testing.T) {
 		assert.Equal(t, "42", formatHCLValue(uint64(42)))
 		assert.Equal(t, "3.14", formatHCLValue(float32(3.14)))
 		assert.Equal(t, "3.14", formatHCLValue(float64(3.14)))
-		
+
 		// 测试其他类型的默认处理
 		type CustomType struct{}
 		assert.Equal(t, `"{}"`, formatHCLValue(CustomType{}))
@@ -1326,27 +1326,27 @@ func TestHCLWriteAndFormat(t *testing.T) {
 		}
 
 		rt := reflect.TypeOf(TestStruct{})
-		
+
 		// 测试 hcl 标签优先级
 		field1, _ := rt.FieldByName("Field1")
 		assert.Equal(t, "hcl_field", getHCLFieldTagName(field1))
-		
+
 		// 测试 json 标签
 		field2, _ := rt.FieldByName("Field2")
 		assert.Equal(t, "json_field", getHCLFieldTagName(field2))
-		
+
 		// 测试 yaml 标签
 		field3, _ := rt.FieldByName("Field3")
 		assert.Equal(t, "yaml_field", getHCLFieldTagName(field3))
-		
+
 		// 测试 toml 标签
 		field4, _ := rt.FieldByName("Field4")
 		assert.Equal(t, "toml_field", getHCLFieldTagName(field4))
-		
+
 		// 测试 ini 标签
 		field5, _ := rt.FieldByName("Field5")
 		assert.Equal(t, "ini_field", getHCLFieldTagName(field5))
-		
+
 		// 测试没有标签的字段，应该返回小写字段名
 		field6, _ := rt.FieldByName("Field6")
 		assert.Equal(t, "field6", getHCLFieldTagName(field6))
@@ -1357,20 +1357,20 @@ func TestHCLWriteAndFormat(t *testing.T) {
 func TestSetFieldValueCompleteTypes(t *testing.T) {
 	t.Run("test all supported types", func(t *testing.T) {
 		type AllTypes struct {
-			StringField   string
-			IntField      int
-			Int8Field     int8
-			Int16Field    int16
-			Int32Field    int32
-			Int64Field    int64
-			UintField     uint
-			Uint8Field    uint8
-			Uint16Field   uint16
-			Uint32Field   uint32
-			Uint64Field   uint64
-			Float32Field  float32
-			Float64Field  float64
-			BoolField     bool
+			StringField  string
+			IntField     int
+			Int8Field    int8
+			Int16Field   int16
+			Int32Field   int32
+			Int64Field   int64
+			UintField    uint
+			Uint8Field   uint8
+			Uint16Field  uint16
+			Uint32Field  uint32
+			Uint64Field  uint64
+			Float32Field float32
+			Float64Field float64
+			BoolField    bool
 		}
 
 		var testStruct AllTypes
@@ -1474,10 +1474,10 @@ func TestSetFieldValueCompleteTypes(t *testing.T) {
 
 	t.Run("test parsing errors", func(t *testing.T) {
 		type ErrorTestStruct struct {
-			IntField    int
-			UintField   uint
+			IntField     int
+			UintField    uint
 			Float32Field float32
-			BoolField   bool
+			BoolField    bool
 		}
 
 		var testStruct ErrorTestStruct
@@ -1509,9 +1509,9 @@ func TestSetFieldValueCompleteTypes(t *testing.T) {
 func TestGetFieldTagNameComplete(t *testing.T) {
 	t.Run("test all tag priorities", func(t *testing.T) {
 		type TagTestStruct struct {
-			Field1 string `properties:"prop_name" env:"env_name" json:"json_name" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
-			Field2 string `env:"env_name" json:"json_name" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
-			Field3 string `json:"json_name" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
+			Field1 string `properties:"prop_name" env:"env_name" json:"json_name1" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
+			Field2 string `env:"env_name" json:"json_name2" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
+			Field3 string `json:"json_name3" yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
 			Field4 string `yaml:"yaml_name" toml:"toml_name" ini:"ini_name"`
 			Field5 string `toml:"toml_name" ini:"ini_name"`
 			Field6 string `ini:"ini_name"`
@@ -1521,34 +1521,34 @@ func TestGetFieldTagNameComplete(t *testing.T) {
 		}
 
 		rt := reflect.TypeOf(TagTestStruct{})
-		
+
 		// 测试优先级：properties > env > json > yaml > toml > ini
 		field1, _ := rt.FieldByName("Field1")
 		assert.Equal(t, "prop_name", getFieldTagName(field1))
-		
+
 		field2, _ := rt.FieldByName("Field2")
 		assert.Equal(t, "env_name", getFieldTagName(field2))
-		
+
 		field3, _ := rt.FieldByName("Field3")
 		assert.Equal(t, "json_name", getFieldTagName(field3))
-		
+
 		field4, _ := rt.FieldByName("Field4")
 		assert.Equal(t, "yaml_name", getFieldTagName(field4))
-		
+
 		field5, _ := rt.FieldByName("Field5")
 		assert.Equal(t, "toml_name", getFieldTagName(field5))
-		
+
 		field6, _ := rt.FieldByName("Field6")
 		assert.Equal(t, "ini_name", getFieldTagName(field6))
-		
+
 		// 测试没有标签的字段
 		field7, _ := rt.FieldByName("Field7")
 		assert.Equal(t, "field7", getFieldTagName(field7))
-		
+
 		// 测试带选项的标签（逗号分隔）
 		field8, _ := rt.FieldByName("Field8")
 		assert.Equal(t, "json_with_options", getFieldTagName(field8))
-		
+
 		// 测试忽略的字段
 		field9, _ := rt.FieldByName("Field9")
 		assert.Equal(t, "field9", getFieldTagName(field9)) // 应该回退到字段名
@@ -1562,12 +1562,12 @@ func TestWriteErrorHandling(t *testing.T) {
 		type SimpleStruct struct {
 			Field string `properties:"field"`
 		}
-		
+
 		var buf strings.Builder
 		data := SimpleStruct{
 			Field: "test",
 		}
-		
+
 		err := writeProperties(&buf, data)
 		assert.NoError(t, err)
 		assert.Contains(t, buf.String(), "field=test")
@@ -1578,12 +1578,12 @@ func TestWriteErrorHandling(t *testing.T) {
 		type SimpleStruct struct {
 			Field string `env:"field"`
 		}
-		
+
 		var buf strings.Builder
 		data := SimpleStruct{
 			Field: "test value",
 		}
-		
+
 		err := writeEnvFile(&buf, data)
 		assert.NoError(t, err)
 		assert.Contains(t, buf.String(), `field="test value"`)
@@ -1594,12 +1594,12 @@ func TestWriteErrorHandling(t *testing.T) {
 		type InvalidStruct struct {
 			BadField chan int
 		}
-		
+
 		var buf strings.Builder
 		invalidData := InvalidStruct{
 			BadField: make(chan int),
 		}
-		
+
 		err := writeHCLFile(&buf, invalidData)
 		// 由于 structToHCL 会处理任何类型，所以不应该产生错误
 		assert.NoError(t, err)
@@ -1610,13 +1610,13 @@ func TestWriteErrorHandling(t *testing.T) {
 func TestMapToStructErrorHandling(t *testing.T) {
 	t.Run("invalid target type", func(t *testing.T) {
 		props := map[string]string{"test": "value"}
-		
+
 		// 测试非指针类型
 		var notPointer TestConfig
 		err := mapToStruct(props, notPointer)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "must be a pointer to struct")
-		
+
 		// 测试指向非结构体的指针
 		var notStruct string
 		err = mapToStruct(props, &notStruct)
@@ -1634,7 +1634,7 @@ func TestMapToStructErrorHandling(t *testing.T) {
 		props := map[string]string{
 			"database.port": "invalid-port", // 这将导致设置字段值时出错
 		}
-		
+
 		var config NestedConfig
 		err := mapToStruct(props, &config)
 		// 由于我们这里设置的是字符串字段，所以不会出错
@@ -1650,7 +1650,7 @@ func TestMapToStructErrorHandling(t *testing.T) {
 		props := map[string]string{
 			"port": "not-a-number",
 		}
-		
+
 		var config ErrorConfig
 		err := mapToStruct(props, &config)
 		assert.Error(t, err)
@@ -1680,13 +1680,13 @@ func TestParseErrorHandling(t *testing.T) {
 		// 测试有效的 Properties 内容解析
 		content := "name=testname\nport=8080\ndebug=true"
 		reader := strings.NewReader(content)
-		
+
 		type SimpleConfig struct {
 			Name  string `properties:"name"`
 			Port  int    `properties:"port"`
 			Debug bool   `properties:"debug"`
 		}
-		
+
 		var config SimpleConfig
 		err := parseProperties(reader, &config)
 		assert.NoError(t, err)
@@ -1699,13 +1699,13 @@ func TestParseErrorHandling(t *testing.T) {
 		// 测试有效的 Env 内容解析
 		content := "name=\"testname\"\nport=8080\ndebug=true"
 		reader := strings.NewReader(content)
-		
+
 		type SimpleConfig struct {
 			Name  string `env:"name"`
 			Port  int    `env:"port"`
 			Debug bool   `env:"debug"`
 		}
-		
+
 		var config SimpleConfig
 		err := parseEnvFile(reader, &config)
 		assert.NoError(t, err)
@@ -1729,7 +1729,7 @@ func TestNestedStructEdgeCases(t *testing.T) {
 		props := map[string]string{
 			"level1.level2.value": "deep_value",
 		}
-		
+
 		var config DeepNested
 		err := mapToStruct(props, &config)
 		assert.NoError(t, err)
@@ -1746,7 +1746,7 @@ func TestNestedStructEdgeCases(t *testing.T) {
 		props := map[string]string{
 			"database.port": "8080",
 		}
-		
+
 		var config NestedWithError
 		err := mapToStruct(props, &config)
 		// 由于无法设置私有字段，应该不会报错，只是忽略该字段
@@ -1764,14 +1764,13 @@ func TestComplexTypes(t *testing.T) {
 		var config InterfaceStruct
 		rv := reflect.ValueOf(&config).Elem()
 		valueField := rv.FieldByName("Value")
-		
+
 		// 测试设置 interface{} 字段
 		err := setFieldValue(valueField, "test")
 		assert.Error(t, err) // interface{} 不被支持
 		assert.Contains(t, err.Error(), "unsupported field type")
 	})
 }
-
 
 // TestLoadConfigReturnError 测试 LoadConfig 的返回错误
 func TestLoadConfigReturnError(t *testing.T) {
@@ -1789,7 +1788,7 @@ func TestLoadConfigReturnError(t *testing.T) {
 
 		configFile := filepath.Join(tmpDir, "invalid.json")
 		invalidContent := `{`
-		
+
 		err = os.WriteFile(configFile, []byte(invalidContent), 0644)
 		require.NoError(t, err)
 
@@ -1820,7 +1819,7 @@ func TestAdditionalCoverage(t *testing.T) {
 		// 创建一个会导致类型错误的properties文件
 		propertiesContent := `name=testname
 port=not-a-number`
-		
+
 		err = os.WriteFile(configFile, []byte(propertiesContent), 0644)
 		require.NoError(t, err)
 
@@ -1838,12 +1837,12 @@ port=not-a-number`
 		// 测试没有分隔符的行
 		content := "name=testname\ninvalidline\nport=8080"
 		reader := strings.NewReader(content)
-		
+
 		type SimpleConfig struct {
 			Name string `properties:"name"`
 			Port int    `properties:"port"`
 		}
-		
+
 		var config SimpleConfig
 		err := parseProperties(reader, &config)
 		assert.NoError(t, err)
@@ -1855,12 +1854,12 @@ port=not-a-number`
 		// 测试没有分隔符的行
 		content := "name=testname\ninvalidline\nport=8080"
 		reader := strings.NewReader(content)
-		
+
 		type SimpleConfig struct {
 			Name string `env:"name"`
 			Port int    `env:"port"`
 		}
-		
+
 		var config SimpleConfig
 		err := parseEnvFile(reader, &config)
 		assert.NoError(t, err)
@@ -1872,12 +1871,12 @@ port=not-a-number`
 		// 测试不需要引号的值
 		content := "name=simple\nport=8080"
 		reader := strings.NewReader(content)
-		
+
 		type SimpleConfig struct {
 			Name string `env:"name"`
 			Port int    `env:"port"`
 		}
-		
+
 		var config SimpleConfig
 		err := parseEnvFile(reader, &config)
 		assert.NoError(t, err)
@@ -1890,12 +1889,12 @@ port=not-a-number`
 		type BadWriterStruct struct {
 			Field func() // 函数类型会被格式化为字符串
 		}
-		
+
 		var buf strings.Builder
 		data := BadWriterStruct{
 			Field: func() {},
 		}
-		
+
 		err := writeProperties(&buf, data)
 		// writeProperties 不会失败，它会把任何类型都转换为字符串
 		assert.NoError(t, err)
@@ -1906,12 +1905,12 @@ port=not-a-number`
 		type SpacedStruct struct {
 			Field string `env:"field"`
 		}
-		
+
 		var buf strings.Builder
 		data := SpacedStruct{
 			Field: "value with spaces",
 		}
-		
+
 		err := writeEnvFile(&buf, data)
 		assert.NoError(t, err)
 		assert.Contains(t, buf.String(), `"value with spaces"`)
@@ -1924,10 +1923,10 @@ port=not-a-number`
 				Host string `properties:"host"`
 			} `properties:"database"`
 		}
-		
+
 		data := NestedStruct{}
 		data.Database.Host = "localhost"
-		
+
 		result, err := structToMap(data)
 		assert.NoError(t, err)
 		assert.Equal(t, "localhost", result["database.host"])
@@ -1951,7 +1950,7 @@ port=not-a-number`
 		props := map[string]string{
 			"database.port": "invalid-number",
 		}
-		
+
 		var config NestedWithBadField
 		err := mapToStruct(props, &config)
 		assert.Error(t, err)
@@ -1986,7 +1985,7 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 	t.Run("parseProperties scanner error", func(t *testing.T) {
 		// 创建一个会产生读取错误的reader
 		reader := &scannerErrorReader{data: []byte("key=value\n"), pos: len("key=value\n")}
-		
+
 		var result map[string]interface{}
 		err := parseProperties(reader, &result)
 		// 应该产生扫描错误
@@ -1996,10 +1995,10 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 
 	t.Run("parseProperties with BufferSize limit", func(t *testing.T) {
 		// 创建一个非常长的行来触发bufio.Scanner的限制
-		longValue := strings.Repeat("a", 70000)  // 超过默认bufio.Scanner缓冲区大小
+		longValue := strings.Repeat("a", 70000) // 超过默认bufio.Scanner缓冲区大小
 		content := fmt.Sprintf("key=%s", longValue)
 		reader := strings.NewReader(content)
-		
+
 		var result map[string]interface{}
 		err := parseProperties(reader, &result)
 		if err != nil {
@@ -2023,7 +2022,7 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 		longValue := strings.Repeat("b", 70000)
 		content := fmt.Sprintf("KEY=%s", longValue)
 		reader := strings.NewReader(content)
-		
+
 		var result map[string]interface{}
 		err := parseEnvFile(reader, &result)
 		if err != nil {
@@ -2048,11 +2047,11 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 		type ConfigWithBadNested struct {
 			Database NestedWithBadType `properties:"database"`
 		}
-		
+
 		props := map[string]string{
 			"database.port": "invalid-value",
 		}
-		
+
 		var config ConfigWithBadNested
 		err := mapToStruct(props, &config)
 		assert.Error(t, err)
@@ -2063,11 +2062,11 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 		type UnsupportedConfig struct {
 			Channel chan int `properties:"channel"`
 		}
-		
+
 		config := UnsupportedConfig{
 			Channel: make(chan int),
 		}
-		
+
 		result, err := structToMap(config)
 		// structToMap 应该能处理这种情况，或者返回错误
 		if err != nil {
@@ -2083,11 +2082,11 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 		props := map[string]string{
 			"config.port": "not-a-number",
 		}
-		
+
 		type BadConfig struct {
 			Port int `properties:"port"`
 		}
-		
+
 		var config BadConfig
 		structValue := reflect.ValueOf(&config).Elem()
 		err := parseNestedStruct(props, structValue, "config")
@@ -2108,7 +2107,7 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 		type ComplexConfig struct {
 			Level1 Level1 `properties:"level1"`
 		}
-		
+
 		config := ComplexConfig{
 			Level1: Level1{
 				Level2: Level2{
@@ -2118,7 +2117,7 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 				Simple: "value",
 			},
 		}
-		
+
 		result := make(map[string]interface{})
 		structMapToFlat(result, reflect.ValueOf(config), "test")
 		assert.Equal(t, "deepvalue", result["test.level1.level2.level3"])
@@ -2129,7 +2128,7 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 	t.Run("writeHCLFile with non-struct", func(t *testing.T) {
 		// 测试writeHCLFile处理非结构体类型
 		var buf bytes.Buffer
-		
+
 		// 尝试用基础类型
 		err := writeHCLFile(&buf, "simple string")
 		assert.NoError(t, err)
@@ -2140,17 +2139,17 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 		// 测试LoadConfig中validation错误的返回路径
 		tempDir := t.TempDir()
 		configFile := filepath.Join(tempDir, "test_validation.json")
-		
+
 		// 创建会导致验证失败的配置
 		content := `{"name": "", "port": 0}`
 		err := os.WriteFile(configFile, []byte(content), 0644)
 		require.NoError(t, err)
-		
+
 		type ValidatedConfig struct {
 			Name string `json:"name" validate:"required"`
 			Port int    `json:"port" validate:"min=1"`
 		}
-		
+
 		var config ValidatedConfig
 		err = LoadConfig(&config, configFile)
 		assert.Error(t, err)
@@ -2163,7 +2162,7 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 			Name string `properties:"name"`
 		}
 		config := SimpleConfig{Name: "test"}
-		
+
 		writer := &errorWriter{}
 		err := writeProperties(writer, config)
 		assert.Error(t, err)
@@ -2176,7 +2175,7 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 			Name string `env:"name"`
 		}
 		config := SimpleConfig{Name: "test"}
-		
+
 		writer := &errorWriter{}
 		err := writeEnvFile(writer, config)
 		assert.Error(t, err)
@@ -2189,7 +2188,7 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 			Name string `hcl:"name"`
 		}
 		config := SimpleConfig{Name: "test"}
-		
+
 		writer := &errorWriter{}
 		err := writeHCLFile(writer, config)
 		assert.Error(t, err)
@@ -2202,15 +2201,15 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 			Name   string `properties:"name"`
 			Hidden string // 没有标签，应该被忽略
 		}
-		
+
 		config := ConfigWithEmptyTag{
 			Name:   "test",
 			Hidden: "hidden",
 		}
-		
+
 		result := make(map[string]interface{})
 		structMapToFlat(result, reflect.ValueOf(config), "prefix")
-		
+
 		assert.Equal(t, "test", result["prefix.name"])
 		// Hidden字段可能会被包含，因为它没有标签但可能有默认行为
 		// 我们不做断言，只检查name字段正确
@@ -2255,11 +2254,11 @@ func TestFinalCoverageBoost(t *testing.T) {
 		type UnsupportedConfig struct {
 			Channel chan int `properties:"channel"`
 		}
-		
+
 		props := map[string]string{
 			"channel": "some-value", // 无法转换为chan int
 		}
-		
+
 		var config UnsupportedConfig
 		err := mapToStruct(props, &config)
 		// 这应该会失败，因为无法将字符串设置到channel字段
@@ -2272,12 +2271,12 @@ func TestFinalCoverageBoost(t *testing.T) {
 			Public  string `properties:"public"`
 			Another string `properties:"another"`
 		}
-		
+
 		config := SimpleConfig{
 			Public:  "public-value",
 			Another: "another-value",
 		}
-		
+
 		result, err := structToMap(config)
 		assert.NoError(t, err)
 		assert.Equal(t, "public-value", result["public"])
@@ -2289,11 +2288,11 @@ func TestFinalCoverageBoost(t *testing.T) {
 		type ReadOnlyConfig struct {
 			value string `properties:"value"` // unexported字段无法设置
 		}
-		
+
 		props := map[string]string{
 			"config.value": "test-value",
 		}
-		
+
 		var config ReadOnlyConfig
 		err := parseNestedStruct(props, reflect.ValueOf(&config).Elem(), "config")
 		// unexported字段应该被跳过，不应该产生错误
@@ -2306,16 +2305,17 @@ func TestFinalCoverageBoost(t *testing.T) {
 			Public  string `properties:"public"`
 			Another string `properties:"another"`
 		}
-		
+
 		config := SimpleConfig{
 			Public:  "public-value",
 			Another: "another-value",
 		}
-		
+
 		result := make(map[string]interface{})
 		structMapToFlat(result, reflect.ValueOf(config), "prefix")
-		
+
 		assert.Equal(t, "public-value", result["prefix.public"])
 		assert.Equal(t, "another-value", result["prefix.another"])
 	})
 }
+

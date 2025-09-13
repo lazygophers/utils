@@ -104,14 +104,14 @@ func EncryptWithEntities(message []byte, entities openpgp.EntityList) ([]byte, e
 
 	encryptorWriter, err := openpgp.Encrypt(buf, entities, nil, nil, nil)
 	if err != nil {
-		return []byte{}, fmt.Errorf("error creating entity for encryption: %v", err)
+		return []byte{}, fmt.Errorf("error creating entity for encryption: %w", err)
 	}
 
 	compressorWriter := brotli.NewWriterLevel(encryptorWriter, brotli.BestCompression)
 
 	_, err = io.Copy(compressorWriter, bytes.NewReader(message))
 	if err != nil {
-		return []byte{}, fmt.Errorf("error writing data to compressor: %v", err)
+		return []byte{}, fmt.Errorf("error writing data to compressor: %w", err)
 	}
 
 	_ = compressorWriter.Close()
@@ -136,7 +136,7 @@ func DecryptWithEntities(encrypted []byte, entities openpgp.EntityList) ([]byte,
 
 	messageReader, err := openpgp.ReadMessage(bytes.NewReader(encrypted), entities, nil, nil)
 	if err != nil {
-		return []byte{}, fmt.Errorf("error reading message: %v", err)
+		return []byte{}, fmt.Errorf("error reading message: %w", err)
 	}
 
 	return io.ReadAll(brotli.NewReader(messageReader.UnverifiedBody))
@@ -152,19 +152,19 @@ func EncryptTextWithEntities(tag string, message []byte, entities openpgp.Entity
 
 	encoderWriter, err := armor.Encode(buf, tag, make(map[string]string))
 	if err != nil {
-		return []byte{}, fmt.Errorf("error creating OpenPGP armor: %v", err)
+		return []byte{}, fmt.Errorf("error creating OpenPGP armor: %w", err)
 	}
 
 	encryptorWriter, err := openpgp.Encrypt(encoderWriter, entities, nil, nil, nil)
 	if err != nil {
-		return []byte{}, fmt.Errorf("error creating entity for encryption: %v", err)
+		return []byte{}, fmt.Errorf("error creating entity for encryption: %w", err)
 	}
 
 	compressorWriter := brotli.NewWriterLevel(encryptorWriter, brotli.BestCompression)
 
 	_, err = io.Copy(compressorWriter, bytes.NewReader(message))
 	if err != nil {
-		return []byte{}, fmt.Errorf("error writing data to compressor: %v", err)
+		return []byte{}, fmt.Errorf("error writing data to compressor: %w", err)
 	}
 
 	_ = compressorWriter.Close()
@@ -181,7 +181,7 @@ func DecryptText(tag string, encrypted []byte) ([]byte, error) {
 func DecryptTextWithEntities(tag string, encrypted []byte, entities openpgp.EntityList) ([]byte, error) {
 	block, err := armor.Decode(bytes.NewReader(encrypted))
 	if err != nil {
-		return []byte{}, fmt.Errorf("error decoding: %v", err)
+		return []byte{}, fmt.Errorf("error decoding: %w", err)
 	}
 	if block.Type != tag {
 		return []byte{}, errors.New("invalid message type")
@@ -189,7 +189,7 @@ func DecryptTextWithEntities(tag string, encrypted []byte, entities openpgp.Enti
 
 	messageReader, err := openpgp.ReadMessage(block.Body, entities, nil, nil)
 	if err != nil {
-		return []byte{}, fmt.Errorf("error reading message: %v", err)
+		return []byte{}, fmt.Errorf("error reading message: %w", err)
 	}
 
 	return io.ReadAll(brotli.NewReader(messageReader.UnverifiedBody))

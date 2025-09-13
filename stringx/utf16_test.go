@@ -17,29 +17,29 @@ func TestUtf16Len(t *testing.T) {
 		{"ascii_with_numbers", "hello123", 8},
 		{"unicode_basic", "测试", 2},
 		{"mixed_ascii_unicode", "hello测试", 7},
-		
+
 		// Emoji and surrogate pairs
-		{"simple_emoji", "😀", 2}, // This emoji requires surrogate pair
-		{"multiple_emoji", "😀😁😂", 6}, // 3 emoji, each needs 2 UTF-16 code units
+		{"simple_emoji", "😀", 2},               // This emoji requires surrogate pair
+		{"multiple_emoji", "😀😁😂", 6},           // 3 emoji, each needs 2 UTF-16 code units
 		{"emoji_with_text", "hello😀world", 12}, // 5 + 2 + 5
-		
+
 		// Special Unicode characters
-		{"combining_characters", "é", 1}, // Single precomposed character
+		{"combining_characters", "é", 1},     // Single precomposed character
 		{"combining_separate", "e\u0301", 2}, // 'e' + combining acute accent
-		{"high_unicode", "𝕳𝖊𝖑𝖑𝖔", 10}, // Mathematical alphanumeric symbols (surrogate pairs)
-		
+		{"high_unicode", "𝕳𝖊𝖑𝖑𝖔", 10},        // Mathematical alphanumeric symbols (surrogate pairs)
+
 		// []rune inputs
 		{"rune_slice_empty", []rune{}, 0},
 		{"rune_slice_ascii", []rune("hello"), 5},
 		{"rune_slice_unicode", []rune("测试"), 2},
 		{"rune_slice_emoji", []rune("😀"), 2},
-		
+
 		// []byte inputs
 		{"byte_slice_empty", []byte{}, 0},
 		{"byte_slice_ascii", []byte("hello"), 5},
 		{"byte_slice_unicode", []byte("测试"), 2},
 		{"byte_slice_emoji", []byte("😀"), 2},
-		
+
 		// Edge cases
 		{"null_character", "\x00", 1},
 		{"control_characters", "\t\n\r", 3},
@@ -59,7 +59,7 @@ func TestUtf16Len(t *testing.T) {
 			default:
 				t.Fatalf("Unsupported input type: %T", v)
 			}
-			
+
 			if result != tc.expected {
 				t.Errorf("Utf16Len(%v) = %d, expected %d", tc.input, result, tc.expected)
 			}
@@ -87,15 +87,15 @@ func TestUtf16LenConsistency(t *testing.T) {
 			strResult := Utf16Len(s)
 			runeResult := Utf16Len([]rune(s))
 			byteResult := Utf16Len([]byte(s))
-			
+
 			if strResult != runeResult {
 				t.Errorf("String and rune results differ: string=%d, rune=%d", strResult, runeResult)
 			}
-			
+
 			if strResult != byteResult {
 				t.Errorf("String and byte results differ: string=%d, byte=%d", strResult, byteResult)
 			}
-			
+
 			// Also verify against standard library
 			expected := len(utf16.Encode([]rune(s)))
 			if strResult != expected {
@@ -113,17 +113,17 @@ func TestUtf16LenAgainstStdlib(t *testing.T) {
 		"测试字符串",
 		"🙂😀🎉",
 		"hello🙂world",
-		"𝒽𝑒𝓁𝓁𝑜", // Mathematical script characters
-		"🇺🇸🇨🇳", // Flag emojis (each is 2 surrogate pairs = 4 UTF-16 units)
+		"𝒽𝑒𝓁𝓁𝑜",   // Mathematical script characters
+		"🇺🇸🇨🇳",    // Flag emojis (each is 2 surrogate pairs = 4 UTF-16 units)
 		"👨‍👩‍👧‍👦", // Complex emoji sequence
-		"Åpfel", // With combining characters
+		"Åpfel",   // With combining characters
 	}
 
 	for _, s := range testCases {
 		t.Run("", func(t *testing.T) {
 			ourResult := Utf16Len(s)
 			stdResult := len(utf16.Encode([]rune(s)))
-			
+
 			if ourResult != stdResult {
 				t.Errorf("Utf16Len(%q) = %d, stdlib result = %d", s, ourResult, stdResult)
 			}
@@ -152,12 +152,12 @@ func TestUtf16LenEdgeCases(t *testing.T) {
 			r        rune
 			expected int
 		}{
-			{'a', 1},          // ASCII
-			{'测', 1},          // CJK
-			{'😀', 2},          // Emoji (surrogate pair)
-			{'𝒽', 2},          // Mathematical script (surrogate pair)
-			{'\x00', 1},       // Null
-			{'\u0301', 1},     // Combining acute accent
+			{'a', 1},      // ASCII
+			{'测', 1},      // CJK
+			{'😀', 2},      // Emoji (surrogate pair)
+			{'𝒽', 2},      // Mathematical script (surrogate pair)
+			{'\x00', 1},   // Null
+			{'\u0301', 1}, // Combining acute accent
 		}
 
 		for _, tr := range testRunes {
@@ -175,7 +175,7 @@ func TestUtf16LenEdgeCases(t *testing.T) {
 		for i := 0; i < 10000; i++ {
 			longStr += "a"
 		}
-		
+
 		result := Utf16Len(longStr)
 		expected := 10000
 		if result != expected {
@@ -217,13 +217,13 @@ func TestUtf16LenPerformance(t *testing.T) {
 			for i := 0; i < 10; i++ {
 				Utf16Len(tc.str)
 			}
-			
+
 			// Measure
 			iterations := 1000
 			for i := 0; i < iterations; i++ {
 				Utf16Len(tc.str)
 			}
-			
+
 			t.Logf("Completed %d iterations for %s", iterations, tc.name)
 		})
 	}
@@ -265,13 +265,13 @@ func BenchmarkUtf16Len(b *testing.B) {
 
 func BenchmarkUtf16LenVsStdlib(b *testing.B) {
 	testStr := "hello测试😀world🎉"
-	
+
 	b.Run("our_implementation", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			Utf16Len(testStr)
 		}
 	})
-	
+
 	b.Run("stdlib_direct", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			_ = len(utf16.Encode([]rune(testStr)))
@@ -283,19 +283,19 @@ func BenchmarkUtf16LenTypes(b *testing.B) {
 	testStr := "hello测试😀world🎉"
 	testRunes := []rune(testStr)
 	testBytes := []byte(testStr)
-	
+
 	b.Run("string_input", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			Utf16Len(testStr)
 		}
 	})
-	
+
 	b.Run("rune_slice_input", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			Utf16Len(testRunes)
 		}
 	})
-	
+
 	b.Run("byte_slice_input", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			Utf16Len(testBytes)
@@ -320,28 +320,28 @@ func TestUtf16LenUnicodeCompliance(t *testing.T) {
 		{"cjk", "你好", 2},
 		{"hiragana", "こんにちは", 5},
 		{"katakana", "コンニチハ", 5},
-		
+
 		// Supplementary planes (require surrogate pairs)
-		{"emoji_faces", "😀😃😄", 6},    // 3 emoji × 2 units each
+		{"emoji_faces", "😀😃😄", 6},     // 3 emoji × 2 units each
 		{"emoji_objects", "🏠🚗✈️", 6},  // house(2) + car(2) + plane(2)
 		{"mathematical", "𝒽𝑒𝓁𝓁𝑜", 10}, // 5 characters × 2 units each
-		{"musical", "𝄞𝄢𝄪", 6},          // 3 musical symbols × 2 units each
-		
+		{"musical", "𝄞𝄢𝄪", 6},         // 3 musical symbols × 2 units each
+
 		// Complex emoji sequences
-		{"flag_emoji", "🇺🇸", 4},        // US flag = 2 regional indicator symbols × 2 units each
-		{"skin_tone", "👋🏽", 4},        // Wave + skin tone modifier = 2 + 2 units
-		{"zwj_sequence", "👨‍💻", 5},     // Man + ZWJ + Computer = 2 + 1 + 2 units
-		
+		{"flag_emoji", "🇺🇸", 4},    // US flag = 2 regional indicator symbols × 2 units each
+		{"skin_tone", "👋🏽", 4},     // Wave + skin tone modifier = 2 + 2 units
+		{"zwj_sequence", "👨‍💻", 5}, // Man + ZWJ + Computer = 2 + 1 + 2 units
+
 		// Combining characters
-		{"combining_acute", "é", 1},     // Single precomposed
+		{"combining_acute", "é", 1},          // Single precomposed
 		{"combining_separate", "e\u0301", 2}, // e + combining acute
-		{"multiple_combining", "ê̂", 2}, // e + circumflex (combined)
-		
+		{"multiple_combining", "ê̂", 2},      // e + circumflex (combined)
+
 		// Control and special characters
 		{"control_chars", "\t\n\r", 3},
-		{"bom", "\uFEFF", 1},           // Byte Order Mark
-		{"replacement", "\uFFFD", 1},    // Replacement character
-		
+		{"bom", "\uFEFF", 1},         // Byte Order Mark
+		{"replacement", "\uFFFD", 1}, // Replacement character
+
 		// Mixed content
 		{"mixed_simple", "Hello世界", 7},
 		{"mixed_complex", "Hi👋测试😀", 8}, // Hi(2) + wave(2) + test(2) + smile(2)
@@ -353,7 +353,7 @@ func TestUtf16LenUnicodeCompliance(t *testing.T) {
 			if result != tc.expected {
 				// Also show the standard library result for comparison
 				stdResult := len(utf16.Encode([]rune(tc.input)))
-				t.Errorf("Utf16Len(%q) = %d, expected %d (stdlib: %d)", 
+				t.Errorf("Utf16Len(%q) = %d, expected %d (stdlib: %d)",
 					tc.input, result, tc.expected, stdResult)
 			}
 		})

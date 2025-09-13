@@ -304,7 +304,7 @@ func TestCopy(t *testing.T) {
 			verify: func(t *testing.T, src, dst string) {
 				srcInfo, _ := os.Stat(src)
 				dstInfo, _ := os.Stat(dst)
-				
+
 				if srcInfo.Mode() != dstInfo.Mode() {
 					t.Errorf("Permission not preserved: src=%v, dst=%v", srcInfo.Mode(), dstInfo.Mode())
 				}
