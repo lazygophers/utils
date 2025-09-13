@@ -10,16 +10,6 @@ run:
   build-tags:
     - integration
     - e2e
-  skip-dirs:
-    - vendor
-    - node_modules
-    - .git
-    - tmp
-    - temp
-  skip-files:
-    - ".*\\.pb\\.go$"
-    - ".*\\.gen\\.go$"
-    - ".*_generated\\.go$"
   allow-parallel-runners: true
 
 output:
@@ -31,7 +21,6 @@ output:
 
 linters-settings:
   govet:
-    check-shadowing: true
     enable-all: true
     disable:
       - fieldalignment
@@ -166,6 +155,16 @@ linters:
     - usestdlibvars
 
 issues:
+  exclude-dirs:
+    - vendor
+    - node_modules
+    - .git
+    - tmp
+    - temp
+  exclude-files:
+    - ".*\\.pb\\.go$"
+    - ".*\\.gen\\.go$"
+    - ".*_generated\\.go$"
   exclude:
     - "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*print(f|ln)?|os\\.(Un)?Setenv). is not checked"
     - "Error return value of .* is not checked"
