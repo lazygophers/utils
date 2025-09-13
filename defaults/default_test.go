@@ -1241,12 +1241,12 @@ func TestArrayParseBoundaryCheck(t *testing.T) {
 		ArrayField [2]string `default:","`  // 只有逗号
 	}
 	
-	var ect EdgeCaseTest
-	defaults.SetDefaults(&ect)
+	var etc EdgeCaseTest
+	defaults.SetDefaults(&etc)
 	
 	// 这应该产生两个空字符串元素
 	expectedEdge := [2]string{"", ""}
-	if ect.ArrayField != expectedEdge {
-		t.Errorf("Expected ArrayField to be %v, got %v", expectedEdge, ect.ArrayField)
+	if etc.ArrayField != expectedEdge {
+		t.Errorf("Expected ArrayField to be %v, got %v", expectedEdge, etc.ArrayField)
 	}
 }

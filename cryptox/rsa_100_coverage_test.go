@@ -236,7 +236,6 @@ invalidbase64data
 
 // TestPEMErrorPaths tests error handling in PEM functions
 func TestPEMErrorPaths(t *testing.T) {
-	
 	// Test nil key scenarios for PEM conversion
 	nilKeyPair := &RSAKeyPair{PrivateKey: nil, PublicKey: nil}
 	

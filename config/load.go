@@ -262,7 +262,6 @@ func SetConfig(c any) error {
 			log.Errorf("err:%v", err)
 			return nil
 		}
-
 	} else {
 		log.Errorf("unsupported config file format:%v", ext)
 		return fmt.Errorf("unsupported config file format:%v", ext)

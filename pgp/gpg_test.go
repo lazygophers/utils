@@ -2,7 +2,7 @@ package pgp_test
 
 import (
 	"bytes"
-	"github.com/ProtonMail/gopenpgp/v3/crypto"
+	"crypto"
 	"github.com/lazygophers/utils/pgp"
 	"golang.org/x/crypto/openpgp/packet"
 	"testing"
