@@ -146,7 +146,6 @@ linters:
     - nolintlint
     - rowserrcheck
     - sqlclosecheck
-    - shadow
     
     # Style linters - critical only
     - asciicheck
