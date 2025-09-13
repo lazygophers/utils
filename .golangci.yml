@@ -121,25 +121,37 @@ linters-settings:
       - G304
 
 linters:
-  disable-all: true
+  disable-all: false
   disable:
-    - errcheck       # Too noisy for utility library
-    - staticcheck    # Too many deprecated warnings for legacy support
-    - gocritic      # Too opinionated for utility code
-    - unused        # Utility libraries may have unused exports
-    - govet         # Too strict for test files with copylocks
-    - ineffassign   # Acceptable in test and utility code
-    - makezero      # Acceptable performance trade-off
-    - unconvert     # Type conversions may be for clarity
-    - wastedassign  # Assignments may be for debugging/clarity
-    - whitespace    # Cosmetic issue
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - cyclop
+    - dupl
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocyclo
+    - godot
+    - gosec
+    - ireturn
+    - lll
+    - nakedret
+    - nestif
+    - nonamedreturns
+    - testpackage
+    - tparallel
+    - unparam
   enable:
     # Quality linters - essential only
     - bodyclose
     - contextcheck
     - durationcheck
     - errname
-    - errorlint
     - nilerr
     - nilnil
     - nolintlint
@@ -152,26 +164,6 @@ linters:
     - grouper
     - importas
     - usestdlibvars
-    
-    # Disable these overly strict linters:
-    # - cyclop (too many complex functions in type conversion)
-    # - dupl (acceptable duplication in utility library)  
-    # - funlen (some functions legitimately need to be long)
-    # - gochecknoglobals (globals are sometimes necessary)
-    # - gochecknoinits (init functions are used appropriately)
-    # - gocognit (cognitive complexity overlaps with cyclop)
-    # - goconst (string/number constants can be over-detected)
-    # - gocyclo (cyclomatic complexity overlaps with cyclop)
-    # - godot (comment formatting is not critical)
-    # - gosec (security checks can be too strict for utility code)
-    # - ireturn (returning interfaces is appropriate in some cases)
-    # - lll (line length can be flexible for readability)
-    # - nakedret (naked returns are sometimes cleaner)
-    # - nestif (nesting can be appropriate for clarity)
-    # - nonamedreturns (named returns improve readability)
-    # - testpackage (internal testing is sometimes necessary)
-    # - tparallel (parallel testing not always needed)
-    # - unparam (unused params might be for interface compliance)
 
 issues:
   exclude:
