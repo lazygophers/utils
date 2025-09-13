@@ -12,7 +12,7 @@ import (
 func TestNewWorker(t *testing.T) {
 	t.Run("basic functionality", func(t *testing.T) {
 		worker := wait.NewWorker(3)
-		
+
 		var (
 			results []int
 			mu      sync.Mutex
@@ -32,7 +32,7 @@ func TestNewWorker(t *testing.T) {
 
 		// 验证所有任务都执行了
 		assert.Len(t, results, 10, "应该执行10个任务")
-		
+
 		// 验证包含所有预期值
 		for i := 0; i < 10; i++ {
 			assert.Contains(t, results, i, "结果应该包含%d", i)
@@ -41,7 +41,7 @@ func TestNewWorker(t *testing.T) {
 
 	t.Run("single worker", func(t *testing.T) {
 		worker := wait.NewWorker(1)
-		
+
 		var (
 			counter int
 			mu      sync.Mutex
@@ -58,17 +58,17 @@ func TestNewWorker(t *testing.T) {
 		}
 
 		worker.Wait()
-		
+
 		mu.Lock()
 		finalCounter := counter
 		mu.Unlock()
-		
+
 		assert.Equal(t, 5, finalCounter, "应该执行5个任务")
 	})
 
 	t.Run("many workers", func(t *testing.T) {
 		worker := wait.NewWorker(100)
-		
+
 		var (
 			counter int
 			mu      sync.Mutex
@@ -84,17 +84,17 @@ func TestNewWorker(t *testing.T) {
 		}
 
 		worker.Wait()
-		
+
 		mu.Lock()
 		finalCounter := counter
 		mu.Unlock()
-		
+
 		assert.Equal(t, 1000, finalCounter, "应该执行1000个任务")
 	})
 
 	t.Run("zero workers", func(t *testing.T) {
 		worker := wait.NewWorker(0)
-		
+
 		executed := false
 		worker.Add(func() {
 			executed = true
@@ -102,7 +102,7 @@ func TestNewWorker(t *testing.T) {
 
 		// 立即等待，因为没有worker
 		worker.Wait()
-		
+
 		// 零worker情况下任务不会被执行
 		assert.False(t, executed, "零worker时任务不应该被执行")
 	})
@@ -110,7 +110,7 @@ func TestNewWorker(t *testing.T) {
 
 func TestWorkerPanicRecovery(t *testing.T) {
 	worker := wait.NewWorker(2)
-	
+
 	var (
 		results []string
 		mu      sync.Mutex
@@ -153,7 +153,7 @@ func TestWorkerPanicRecovery(t *testing.T) {
 
 func TestWorkerConcurrentAdd(t *testing.T) {
 	worker := wait.NewWorker(5)
-	
+
 	var (
 		counter int
 		mu      sync.Mutex
@@ -177,7 +177,7 @@ func TestWorkerConcurrentAdd(t *testing.T) {
 
 	// 等待所有添加操作完成
 	wg.Wait()
-	
+
 	// 等待所有任务执行完成
 	worker.Wait()
 
@@ -192,7 +192,7 @@ func TestWorkerTaskExecution(t *testing.T) {
 	t.Run("task execution order with buffered channel", func(t *testing.T) {
 		// 测试缓冲通道的任务执行
 		worker := wait.NewWorker(2)
-		
+
 		var (
 			execution []int
 			mu        sync.Mutex
@@ -216,7 +216,7 @@ func TestWorkerTaskExecution(t *testing.T) {
 		mu.Unlock()
 
 		assert.Len(t, finalExecution, 6, "应该执行6个任务")
-		
+
 		// 验证所有任务都执行了（不关心顺序）
 		for i := 0; i < 6; i++ {
 			assert.Contains(t, finalExecution, i, "应该包含任务%d", i)
@@ -225,7 +225,7 @@ func TestWorkerTaskExecution(t *testing.T) {
 
 	t.Run("long running tasks", func(t *testing.T) {
 		worker := wait.NewWorker(3)
-		
+
 		var (
 			results []time.Time
 			mu      sync.Mutex
@@ -244,7 +244,7 @@ func TestWorkerTaskExecution(t *testing.T) {
 		}
 
 		worker.Wait()
-		
+
 		duration := time.Since(start)
 
 		mu.Lock()
@@ -252,7 +252,7 @@ func TestWorkerTaskExecution(t *testing.T) {
 		mu.Unlock()
 
 		assert.Len(t, finalResults, 5, "应该执行5个任务")
-		
+
 		// 由于有3个worker，5个任务应该在大约200ms内完成（两批）
 		assert.Less(t, duration, 300*time.Millisecond, "任务应该并发执行")
 		assert.Greater(t, duration, 150*time.Millisecond, "任务应该确实执行了")
@@ -270,7 +270,7 @@ func BenchmarkWorker(b *testing.B) {
 
 	b.Run("task_execution", func(b *testing.B) {
 		worker := wait.NewWorker(10)
-		
+
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			worker.Add(func() {
@@ -278,13 +278,13 @@ func BenchmarkWorker(b *testing.B) {
 				time.Sleep(time.Microsecond)
 			})
 		}
-		
+
 		worker.Wait()
 	})
 
 	b.Run("concurrent_task_addition", func(b *testing.B) {
 		worker := wait.NewWorker(10)
-		
+
 		b.ResetTimer()
 		b.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
@@ -293,7 +293,7 @@ func BenchmarkWorker(b *testing.B) {
 				})
 			}
 		})
-		
+
 		worker.Wait()
 	})
 }

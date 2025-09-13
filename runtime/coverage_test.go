@@ -52,7 +52,7 @@ func TestPrintStackCoverage(t *testing.T) {
 func TestPanicHandlingEdgeCases(t *testing.T) {
 	t.Run("cache_panic_with_handle_edge_cases", func(t *testing.T) {
 		// 测试handle函数被正确调用的边界情况
-		
+
 		handleCallCount := 0
 		handle := func(err interface{}) {
 			handleCallCount++
@@ -61,7 +61,7 @@ func TestPanicHandlingEdgeCases(t *testing.T) {
 				t.Error("Handle should receive non-nil error")
 			}
 		}
-		
+
 		defer func() {
 			if r := recover(); r != nil {
 				t.Logf("Test recovered: %v", r)
@@ -70,7 +70,7 @@ func TestPanicHandlingEdgeCases(t *testing.T) {
 				t.Errorf("Handle should be called exactly once, was called %d times", handleCallCount)
 			}
 		}()
-		
+
 		// 触发panic并验证handle被调用
 		func() {
 			defer CachePanicWithHandle(handle)
@@ -84,12 +84,12 @@ func TestPanicHandlingEdgeCases(t *testing.T) {
 		handle := func(err interface{}) {
 			handleCalled = true
 		}
-		
+
 		func() {
 			defer CachePanicWithHandle(handle)
 			// 不产生panic
 		}()
-		
+
 		if handleCalled {
 			t.Error("Handle should not be called when no panic occurs")
 		}
@@ -104,15 +104,21 @@ func TestSystemFunctionsCoverage(t *testing.T) {
 		windows := IsWindows()
 		darwin := IsDarwin()
 		linux := IsLinux()
-		
+
 		t.Logf("System detection: Windows=%v, Darwin=%v, Linux=%v", windows, darwin, linux)
-		
+
 		// 验证只有一个为true
 		trueCount := 0
-		if windows { trueCount++ }
-		if darwin { trueCount++ }  
-		if linux { trueCount++ }
-		
+		if windows {
+			trueCount++
+		}
+		if darwin {
+			trueCount++
+		}
+		if linux {
+			trueCount++
+		}
+
 		if trueCount != 1 {
 			t.Errorf("Expected exactly one OS to be detected, got %d", trueCount)
 		}
@@ -128,13 +134,13 @@ func TestDirectoryFunctionsCoverage(t *testing.T) {
 		cache := UserCacheDir()
 		lazyConfig := LazyConfigDir()
 		lazyCache := LazyCacheDir()
-		
+
 		t.Logf("UserHomeDir: %s", home)
 		t.Logf("UserConfigDir: %s", config)
 		t.Logf("UserCacheDir: %s", cache)
 		t.Logf("LazyConfigDir: %s", lazyConfig)
 		t.Logf("LazyCacheDir: %s", lazyCache)
-		
+
 		// 基本有效性检查
 		directories := []string{home, config, cache, lazyConfig, lazyCache}
 		for i, dir := range directories {
@@ -151,11 +157,11 @@ func TestPathFunctionsCoverage(t *testing.T) {
 		execDir := ExecDir()
 		execFile := ExecFile()
 		pwd := Pwd()
-		
+
 		t.Logf("ExecDir: %s", execDir)
 		t.Logf("ExecFile: %s", execFile)
 		t.Logf("Pwd: %s", pwd)
-		
+
 		// 验证基本属性
 		if execDir != "" && execFile != "" {
 			// execFile应该在execDir中
@@ -163,7 +169,7 @@ func TestPathFunctionsCoverage(t *testing.T) {
 				t.Log("ExecFile path may not contain ExecDir")
 			}
 		}
-		
+
 		if pwd == "" {
 			t.Error("Pwd should not return empty string under normal conditions")
 		}
@@ -175,17 +181,17 @@ func TestExtremeCases(t *testing.T) {
 	t.Run("test_functions_under_restricted_environment", func(t *testing.T) {
 		// 在受限环境下测试函数行为
 		// 这些测试主要是为了触发错误处理分支
-		
+
 		// 备份当前环境变量
 		originalHome := os.Getenv("HOME")
-		
+
 		// 临时清空HOME环境变量
 		os.Setenv("HOME", "")
-		
+
 		// 测试在受限环境下的行为
 		home := UserHomeDir()
 		t.Logf("UserHomeDir with empty HOME: %s", home)
-		
+
 		// 恢复环境变量
 		os.Setenv("HOME", originalHome)
 	})
@@ -196,7 +202,7 @@ func TestFixedLogic(t *testing.T) {
 	t.Run("test_user_cache_dir_variable_name_fix", func(t *testing.T) {
 		// 验证UserCacheDir函数使用正确的变量名
 		result := UserCacheDir()
-		
+
 		// 这个函数之前有bug：变量名错误（execPath而不是path）
 		// 现在应该工作正常
 		if result == "" {
@@ -205,19 +211,19 @@ func TestFixedLogic(t *testing.T) {
 			t.Logf("UserCacheDir correctly returned: %s", result)
 		}
 	})
-	
+
 	t.Run("test_exit_function_components", func(t *testing.T) {
 		// 验证Exit函数使用的组件（不发送信号）
-		
+
 		process, err := os.FindProcess(os.Getpid())
 		if err != nil {
 			t.Errorf("Should be able to find current process: %v", err)
 		}
-		
+
 		if process.Pid != os.Getpid() {
 			t.Errorf("Process PID mismatch: expected %d, got %d", os.Getpid(), process.Pid)
 		}
-		
+
 		t.Log("Exit function components (process finding) work correctly")
 	})
 }

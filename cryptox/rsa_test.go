@@ -170,7 +170,7 @@ func TestPublicKeyFromPEM(t *testing.T) {
 func TestPEMInvalidFormat(t *testing.T) {
 	// Test invalid PEM data
 	invalidPEM := []byte("invalid PEM data")
-	
+
 	_, err := PrivateKeyFromPEM(invalidPEM)
 	if err == nil {
 		t.Error("Expected error for invalid private key PEM")
@@ -251,7 +251,7 @@ func TestRSAEncryptDecryptPKCS1v15(t *testing.T) {
 
 func TestRSAEncryptDecryptNilKeys(t *testing.T) {
 	message := []byte(testMessage)
-	
+
 	// Test nil public key
 	_, err := RSAEncryptOAEP(nil, message)
 	if err == nil {
@@ -387,7 +387,7 @@ func TestRSAMaxMessageLength(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get max message length for OAEP: %v", err)
 	}
-	
+
 	expectedOAEP := keyPair.PublicKey.Size() - 2*32 - 2 // SHA256 hash length is 32
 	if maxLenOAEP != expectedOAEP {
 		t.Errorf("Expected OAEP max length %d, got %d", expectedOAEP, maxLenOAEP)
@@ -398,7 +398,7 @@ func TestRSAMaxMessageLength(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to get max message length for PKCS1v15: %v", err)
 	}
-	
+
 	expectedPKCS1v15 := keyPair.PublicKey.Size() - 11
 	if maxLenPKCS1v15 != expectedPKCS1v15 {
 		t.Errorf("Expected PKCS1v15 max length %d, got %d", expectedPKCS1v15, maxLenPKCS1v15)
@@ -442,7 +442,7 @@ func TestRSAEdgeCases(t *testing.T) {
 
 	// Test empty message
 	emptyMessage := []byte("")
-	
+
 	ciphertext, err := RSAEncryptOAEP(keyPair.PublicKey, emptyMessage)
 	if err != nil {
 		t.Errorf("Failed to encrypt empty message: %v", err)
@@ -459,7 +459,7 @@ func TestRSAEdgeCases(t *testing.T) {
 
 	// Test single byte message
 	singleByte := []byte("A")
-	
+
 	ciphertext, err = RSAEncryptPKCS1v15(keyPair.PublicKey, singleByte)
 	if err != nil {
 		t.Errorf("Failed to encrypt single byte: %v", err)
@@ -477,7 +477,7 @@ func TestRSAEdgeCases(t *testing.T) {
 
 func TestRSADifferentKeySizes(t *testing.T) {
 	keySizes := []int{1024, 2048, 3072, 4096}
-	
+
 	for _, keySize := range keySizes {
 		t.Run(fmt.Sprintf("KeySize_%d", keySize), func(t *testing.T) {
 			keyPair, err := GenerateRSAKeyPair(keySize)
@@ -492,7 +492,7 @@ func TestRSADifferentKeySizes(t *testing.T) {
 
 			// Test encryption/decryption with this key size
 			message := []byte(fmt.Sprintf("Test message for %d-bit key", keySize))
-			
+
 			ciphertext, err := RSAEncryptOAEP(keyPair.PublicKey, message)
 			if err != nil {
 				t.Errorf("Failed to encrypt with %d-bit key: %v", keySize, err)

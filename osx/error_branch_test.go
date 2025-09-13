@@ -8,12 +8,12 @@ import (
 
 func TestRenameForce_RemoveAllError(t *testing.T) {
 	// 尝试触发os.RemoveAll错误分支（第53-55行）
-	
+
 	t.Run("remove_readonly_directory", func(t *testing.T) {
 		if os.Geteuid() == 0 {
 			t.Skip("Skipping test when running as root")
 		}
-		
+
 		tmpDir, err := os.MkdirTemp("", "rename_remove_test_*")
 		if err != nil {
 			t.Fatal(err)
@@ -49,10 +49,10 @@ func TestRenameForce_RemoveAllError(t *testing.T) {
 
 		// 尝试重命名到这个目录
 		err = RenameForce(oldFile, newDir)
-		
+
 		// 恢复权限以便清理
 		os.Chmod(newDir, 0755)
-		
+
 		// 在大多数Unix系统上，这个操作实际上会成功
 		// 但我们至少执行了这个代码路径
 		t.Logf("RenameForce result: %v", err)
@@ -96,11 +96,11 @@ func TestRenameForce_RemoveAllError(t *testing.T) {
 
 func TestCopy_StatError(t *testing.T) {
 	// 尝试触发srcFile.Stat()错误分支（第73-75行）
-	
+
 	t.Run("stat_error_after_open", func(t *testing.T) {
 		// 这个错误很难触发，因为如果文件能被打开，通常也能被stat
 		// 但我们可以测试一些边界情况
-		
+
 		tmpDir, err := os.MkdirTemp("", "copy_stat_test_*")
 		if err != nil {
 			t.Fatal(err)
@@ -135,7 +135,7 @@ func TestCopy_StatError(t *testing.T) {
 
 func TestCopy_IOCopyError(t *testing.T) {
 	// 尝试触发io.Copy错误分支（第84-86行）
-	
+
 	t.Run("disk_space_exhaustion_simulation", func(t *testing.T) {
 		// io.Copy错误很难模拟，但我们可以测试一些情况
 		tmpDir, err := os.MkdirTemp("", "copy_io_test_*")
@@ -163,12 +163,12 @@ func TestCopy_IOCopyError(t *testing.T) {
 			if !Exist(dst) {
 				t.Error("Destination file should exist after successful copy")
 			}
-			
+
 			content, err := os.ReadFile(dst)
 			if err != nil {
 				t.Fatal(err)
 			}
-			
+
 			if string(content) != testContent {
 				t.Errorf("Content mismatch: expected '%s', got '%s'", testContent, string(content))
 			}
@@ -210,7 +210,7 @@ func TestCopy_IOCopyError(t *testing.T) {
 
 func TestCopy_OpenFileError(t *testing.T) {
 	// 测试目标文件创建失败的情况
-	
+
 	t.Run("create_in_readonly_dir", func(t *testing.T) {
 		if os.Geteuid() == 0 {
 			t.Skip("Skipping test when running as root")
@@ -245,10 +245,10 @@ func TestCopy_OpenFileError(t *testing.T) {
 
 		// 这应该失败，因为无法在只读目录中创建文件
 		err = Copy(src, dst)
-		
+
 		// 恢复权限以便清理
 		os.Chmod(readonlyDir, 0755)
-		
+
 		if err == nil {
 			t.Error("Copy should fail when destination directory is readonly")
 		} else {
@@ -259,7 +259,7 @@ func TestCopy_OpenFileError(t *testing.T) {
 
 func TestExists_AllBranches(t *testing.T) {
 	// 确保Exists函数的所有分支都被测试
-	
+
 	t.Run("exists_with_permission_error", func(t *testing.T) {
 		// 测试权限错误情况
 		if os.Geteuid() == 0 {
@@ -287,15 +287,15 @@ func TestExists_AllBranches(t *testing.T) {
 
 		// 现在尝试检查文件是否存在
 		result := Exists(testFile)
-		
+
 		// 恢复权限
 		os.Chmod(tmpDir, 0755)
-		
+
 		// 由于权限问题，os.Stat会返回错误
 		// 由于Exists函数的bug，它会调用os.IsExist(err)
 		// 对于权限错误，这通常返回false
 		t.Logf("Exists result for permission-denied file: %v", result)
-		
+
 		// 对比正确的Exist函数
 		correctResult := Exist(testFile)
 		t.Logf("Exist result for same file: %v", correctResult)

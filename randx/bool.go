@@ -39,14 +39,14 @@ func BatchBool(count int) []bool {
 	if count <= 0 {
 		return nil
 	}
-	
+
 	results := make([]bool, count)
 	r := getFastRand()
-	
+
 	for i := 0; i < count; i++ {
 		results[i] = r.Intn(2) == 0
 	}
-	
+
 	putFastRand(r)
 	return results
 }
@@ -56,7 +56,7 @@ func BatchBooln(n float64, count int) []bool {
 	if count <= 0 {
 		return nil
 	}
-	
+
 	if n >= 100 {
 		results := make([]bool, count)
 		for i := range results {
@@ -66,14 +66,14 @@ func BatchBooln(n float64, count int) []bool {
 	} else if n <= 0 {
 		return make([]bool, count) // 默认为false
 	}
-	
+
 	results := make([]bool, count)
 	r := getFastRand()
-	
+
 	for i := 0; i < count; i++ {
 		results[i] = r.Float64()*100 < n
 	}
-	
+
 	putFastRand(r)
 	return results
 }

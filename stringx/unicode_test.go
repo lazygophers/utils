@@ -15,7 +15,7 @@ func TestAllDigit(t *testing.T) {
 		{"123abc", false},
 		{"1a2", false},
 		{"0", true},
-		{"９８７", true}, // Full-width digits
+		{"９８７", true},   // Full-width digits
 		{"123 ", false}, // With space
 		{"12.3", false}, // With decimal point
 		{"-123", false}, // With minus sign
@@ -71,10 +71,10 @@ func TestAllLetter(t *testing.T) {
 		{"123", false},
 		{"abc123", false},
 		{"a1b", false},
-		{"测试", true}, // Chinese characters are letters
+		{"测试", true},           // Chinese characters are letters
 		{"hello world", false}, // Space is not a letter
-		{"Ñoël", true}, // Accented characters are letters
-		{"hello!", false}, // Punctuation
+		{"Ñoël", true},         // Accented characters are letters
+		{"hello!", false},      // Punctuation
 	}
 
 	for _, tc := range testCases {
@@ -183,7 +183,7 @@ func TestAllSymbol(t *testing.T) {
 		{"123", false},
 		{"$100", false}, // Mixed
 		{"@#$", false},  // These are punctuation, not symbols
-		{"😀", true},   // Emoji is classified as a symbol in Unicode
+		{"😀", true},     // Emoji is classified as a symbol in Unicode
 		{"∑∏∫", true},   // Mathematical symbols
 	}
 
@@ -227,9 +227,9 @@ func TestAllMark(t *testing.T) {
 		input    string
 		expected bool
 	}{
-		{"̀́̂̃", true},   // Combining marks
-		{"", true},      // Empty string case
-		{"é", false},    // This is a letter, not just a mark
+		{"̀́̂̃", true}, // Combining marks
+		{"", true},     // Empty string case
+		{"é", false},   // This is a letter, not just a mark
 		{"abc", false},
 		{"123", false},
 		{"◌́◌̀◌̂", false}, // These contain base characters with marks
@@ -250,10 +250,10 @@ func TestHasMark(t *testing.T) {
 		input    string
 		expected bool
 	}{
-		{"é", false},     // Precomposed character, not a combining mark
-		{"", false},     // Empty string case
-		{"cafe", false}, // No combining marks
-		{"café", false},  // Precomposed characters, no combining marks
+		{"é", false},      // Precomposed character, not a combining mark
+		{"", false},       // Empty string case
+		{"cafe", false},   // No combining marks
+		{"café", false},   // Precomposed characters, no combining marks
 		{"résumé", false}, // Precomposed characters, no combining marks
 		{"hello", false},
 		{"naïve", false}, // Precomposed characters, no combining marks
@@ -275,7 +275,7 @@ func TestAllPunct(t *testing.T) {
 		expected bool
 	}{
 		{"!@#$%", false}, // $ is classified as symbol, not punctuation
-		{"", true}, // Empty string case
+		{"", true},       // Empty string case
 		{".,;:", true},
 		{"()[]{}", true},
 		{"abc", false},
@@ -329,11 +329,11 @@ func TestAllGraphic(t *testing.T) {
 		{"", true}, // Empty string case
 		{"hello!", true},
 		{"测试", true},
-		{"\t", false}, // Tab is not graphic
-		{"\n", false}, // Newline is not graphic
+		{"\t", false},           // Tab is not graphic
+		{"\n", false},           // Newline is not graphic
 		{"hello\tworld", false}, // Contains tab
 		{"visible", true},
-		{"😀", true}, // Emoji is graphic
+		{"😀", true},     // Emoji is graphic
 		{"\x00", false}, // Null character is not graphic
 	}
 
@@ -353,7 +353,7 @@ func TestHasGraphic(t *testing.T) {
 		expected bool
 	}{
 		{"abc123", true},
-		{"", false}, // Empty string case
+		{"", false},     // Empty string case
 		{"\t\n", false}, // Only control characters
 		{"\tabc", true}, // Has graphic characters
 		{"hello world", true},
@@ -381,10 +381,10 @@ func TestAllPrint(t *testing.T) {
 		{"", true}, // Empty string case
 		{"hello!", true},
 		{"hello world", true}, // Space is printable
-		{"\t", false}, // Tab is not printable
-		{"\n", false}, // Newline is not printable
+		{"\t", false},         // Tab is not printable
+		{"\n", false},         // Newline is not printable
 		{"测试", true},
-		{"😀", true}, // Emoji is printable
+		{"😀", true},     // Emoji is printable
 		{"\x00", false}, // Null character is not printable
 	}
 
@@ -404,7 +404,7 @@ func TestHasPrint(t *testing.T) {
 		expected bool
 	}{
 		{"abc123", true},
-		{"", false}, // Empty string case
+		{"", false},     // Empty string case
 		{"\t\n", false}, // Only control characters
 		{"\tabc", true}, // Has printable characters
 		{"hello world", true},
@@ -431,7 +431,7 @@ func TestAllControl(t *testing.T) {
 		{"\t\n\r", true},
 		{"", true}, // Empty string case
 		{"abc", false},
-		{"\tabc", false}, // Mixed
+		{"\tabc", false},   // Mixed
 		{"\x00\x01", true}, // Null and control characters
 		{"hello", false},
 		{" ", false}, // Space is not a control character
@@ -455,7 +455,7 @@ func TestHasControl(t *testing.T) {
 		{"\t\n\r", true},
 		{"", false}, // Empty string case
 		{"abc", false},
-		{"\tabc", true}, // Has control character
+		{"\tabc", true},   // Has control character
 		{"hello\n", true}, // Has newline
 		{"normal text", false},
 		{"\x00test", true}, // Has null character
@@ -481,10 +481,10 @@ func TestAllUpper(t *testing.T) {
 		{"abc", false},
 		{"ABC123", false}, // Numbers don't have case
 		{"HELLO", true},
-		{"Hello", false}, // Mixed case
-		{"ÑOËL", true}, // Accented uppercase
-		{"测试", false}, // Chinese characters don't have case
-		{"123", false}, // Numbers only
+		{"Hello", false},  // Mixed case
+		{"ÑOËL", true},    // Accented uppercase
+		{"测试", false},     // Chinese characters don't have case
+		{"123", false},    // Numbers only
 		{"HELLO!", false}, // Contains punctuation
 	}
 
@@ -506,12 +506,12 @@ func TestHasUpper(t *testing.T) {
 		{"ABC", true},
 		{"", false}, // Empty string case
 		{"abc", false},
-		{"Abc", true}, // Has uppercase
+		{"Abc", true},         // Has uppercase
 		{"hello World", true}, // Has uppercase
 		{"hello", false},
 		{"123ABC", true}, // Has uppercase
-		{"测试", false}, // Chinese characters don't have case
-		{"Ñoël", true}, // Has accented uppercase
+		{"测试", false},    // Chinese characters don't have case
+		{"Ñoël", true},   // Has accented uppercase
 	}
 
 	for _, tc := range testCases {
@@ -534,10 +534,10 @@ func TestAllLower(t *testing.T) {
 		{"ABC", false},
 		{"abc123", false}, // Numbers don't have case
 		{"hello", true},
-		{"Hello", false}, // Mixed case
-		{"ñoël", true}, // Accented lowercase
-		{"测试", false}, // Chinese characters don't have case
-		{"123", false}, // Numbers only
+		{"Hello", false},  // Mixed case
+		{"ñoël", true},    // Accented lowercase
+		{"测试", false},     // Chinese characters don't have case
+		{"123", false},    // Numbers only
 		{"hello!", false}, // Contains punctuation
 	}
 
@@ -559,12 +559,12 @@ func TestHasLower(t *testing.T) {
 		{"abc", true},
 		{"", false}, // Empty string case
 		{"ABC", false},
-		{"Abc", true}, // Has lowercase
+		{"Abc", true},         // Has lowercase
 		{"HELLO world", true}, // Has lowercase
 		{"HELLO", false},
 		{"123abc", true}, // Has lowercase
-		{"测试", false}, // Chinese characters don't have case
-		{"Ñoël", true}, // Has accented lowercase
+		{"测试", false},    // Chinese characters don't have case
+		{"Ñoël", true},   // Has accented lowercase
 	}
 
 	for _, tc := range testCases {
@@ -582,8 +582,8 @@ func TestAllTitle(t *testing.T) {
 		input    string
 		expected bool
 	}{
-		{"ǅǈǋ", true}, // Title case characters (rare)
-		{"", true},    // Empty string case
+		{"ǅǈǋ", true},  // Title case characters (rare)
+		{"", true},     // Empty string case
 		{"ABC", false}, // Uppercase, not title case
 		{"abc", false}, // Lowercase
 		{"Abc", false}, // Not title case
@@ -632,12 +632,12 @@ func TestAllLetterOrDigit(t *testing.T) {
 		{"", true}, // Empty string case
 		{"abc", true},
 		{"123", true},
-		{"abc!", false}, // Contains punctuation
+		{"abc!", false},        // Contains punctuation
 		{"hello world", false}, // Contains space
-		{"测试123", true}, // Chinese + numbers
+		{"测试123", true},        // Chinese + numbers
 		{"a1b2c3", true},
 		{"hello@world", false}, // Contains punctuation
-		{"Ñoël123", true}, // Accented letters + numbers
+		{"Ñoël123", true},      // Accented letters + numbers
 	}
 
 	for _, tc := range testCases {
@@ -656,14 +656,14 @@ func TestHasLetterOrDigit(t *testing.T) {
 		expected bool
 	}{
 		{"abc123", true},
-		{"", false}, // Empty string case
-		{"!!!", false}, // Only punctuation
-		{"!@#a", true}, // Has letter
-		{"!@#1", true}, // Has digit
+		{"", false},      // Empty string case
+		{"!!!", false},   // Only punctuation
+		{"!@#a", true},   // Has letter
+		{"!@#1", true},   // Has digit
 		{" \t\n", false}, // Only whitespace
-		{"测试", true}, // Chinese characters are letters
-		{"😀", false}, // Emoji is not letter or digit
-		{" a ", true}, // Has letter
+		{"测试", true},     // Chinese characters are letters
+		{"😀", false},     // Emoji is not letter or digit
+		{" a ", true},    // Has letter
 	}
 
 	for _, tc := range testCases {
@@ -714,25 +714,25 @@ func TestUnicodeEdgeCases(t *testing.T) {
 	t.Run("empty_string_behavior", func(t *testing.T) {
 		// All "All*" functions should return true for empty strings
 		// All "Has*" functions should return false for empty strings
-		
+
 		allFunctions := []func(string) bool{
 			AllDigit, AllLetter, AllSpace, AllSymbol, AllMark,
 			AllPunct, AllGraphic, AllPrint, AllControl,
 			AllUpper, AllLower, AllTitle, AllLetterOrDigit,
 		}
-		
+
 		for i, fn := range allFunctions {
 			if !fn("") {
 				t.Errorf("All* function %d should return true for empty string", i)
 			}
 		}
-		
+
 		hasFunctions := []func(string) bool{
 			HasDigit, HasLetter, HasSpace, HasSymbol, HasMark,
 			HasPunct, HasGraphic, HasPrint, HasControl,
 			HasUpper, HasLower, HasTitle, HasLetterOrDigit,
 		}
-		
+
 		for i, fn := range hasFunctions {
 			if fn("") {
 				t.Errorf("Has* function %d should return false for empty string", i)
@@ -742,20 +742,20 @@ func TestUnicodeEdgeCases(t *testing.T) {
 
 	t.Run("unicode_normalization", func(t *testing.T) {
 		// Test with different Unicode normalization forms
-		s1 := "é" // Single character with accent (precomposed)
+		s1 := "é"       // Single character with accent (precomposed)
 		s2 := "e\u0301" // 'e' + combining acute accent (decomposed)
-		
+
 		// Both should be treated as having letters
 		if !HasLetter(s1) || !HasLetter(s2) {
 			t.Error("Both normalized forms should have letters")
 		}
-		
+
 		// Only the decomposed form (s2) has actual combining marks
 		// The precomposed form (s1) is treated as a single letter
 		if !HasMark(s2) {
 			t.Error("Decomposed form should have marks")
 		}
-		
+
 		// The precomposed form may or may not have marks depending on Unicode implementation
 		// This is acceptable behavior - test passes if either has marks
 		if !HasMark(s1) && !HasMark(s2) {
@@ -766,21 +766,21 @@ func TestUnicodeEdgeCases(t *testing.T) {
 	t.Run("surrogate_pairs", func(t *testing.T) {
 		// Test with emoji that use surrogate pairs
 		emoji := "😀🎉🔥"
-		
+
 		// These should be treated as graphic and printable
 		if !AllGraphic(emoji) {
 			t.Error("Emoji should be graphic")
 		}
-		
+
 		if !AllPrint(emoji) {
 			t.Error("Emoji should be printable")
 		}
-		
+
 		// But not letters or digits
 		if AllLetter(emoji) {
 			t.Error("Emoji should not be letters")
 		}
-		
+
 		if AllDigit(emoji) {
 			t.Error("Emoji should not be digits")
 		}

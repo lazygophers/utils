@@ -30,16 +30,16 @@ func Camel2Snake(s string) string {
 	if s == "" {
 		return ""
 	}
-	
+
 	// 只处理ASCII字符以获得最大性能
 	if isASCII(s) {
 		return optimizedASCIICamel2Snake(s)
 	}
-	
+
 	// Unicode版本保持原有逻辑但优化内存分配
 	capacity := len(s) + len(s)/3
 	result := make([]byte, 0, capacity)
-	
+
 	for i, r := range s {
 		if unicode.IsUpper(r) {
 			if i > 0 {
@@ -56,7 +56,7 @@ func Camel2Snake(s string) string {
 			}
 		}
 	}
-	
+
 	return *(*string)(unsafe.Pointer(&result))
 }
 
@@ -115,17 +115,17 @@ func ToSnake(s string) string {
 	if s == "" {
 		return ""
 	}
-	
+
 	// 预估需要的容量，避免多次扩容
-	capacity := len(s) + len(s)/4  // 估算增加25%的容量用于下划线
+	capacity := len(s) + len(s)/4 // 估算增加25%的容量用于下划线
 	if capacity > 256 {
 		capacity = 256 // 限制最大预分配容量
 	}
-	
+
 	// 使用单次分配的 []byte 替代 bytes.Buffer
 	result := make([]byte, 0, capacity)
 	runes := []rune(s)
-	
+
 	for i, r := range runes {
 		if unicode.IsLetter(r) || unicode.IsNumber(r) {
 			// 检查是否需要下划线
@@ -137,7 +137,7 @@ func ToSnake(s string) string {
 					result = append(result, '_')
 				}
 			}
-			
+
 			// 转换为小写并添加
 			if unicode.IsUpper(r) {
 				result = append(result, byte(unicode.ToLower(r)))
@@ -158,7 +158,7 @@ func ToSnake(s string) string {
 			}
 		}
 	}
-	
+
 	// 零拷贝转换为字符串
 	return *(*string)(unsafe.Pointer(&result))
 }
@@ -168,15 +168,15 @@ func ToKebab(s string) string {
 	if s == "" {
 		return ""
 	}
-	
+
 	// 重用 ToSnake 的逻辑，然后替换下划线
 	snakeResult := ToSnake(s)
-	
+
 	// 如果没有下划线，直接返回
 	if !strings.Contains(snakeResult, "_") {
 		return snakeResult
 	}
-	
+
 	// 零拷贝替换下划线为连字符
 	resultBytes := []byte(snakeResult)
 	for i, b := range resultBytes {
@@ -184,7 +184,7 @@ func ToKebab(s string) string {
 			resultBytes[i] = '-'
 		}
 	}
-	
+
 	return *(*string)(unsafe.Pointer(&resultBytes))
 }
 
@@ -224,7 +224,7 @@ func ToSlash(s string) string {
 	for i, v := range runes {
 		if unicode.IsLetter(v) || unicode.IsNumber(v) {
 			needsSlash := false
-			
+
 			// Check if we need a slash before this character
 			if i > 0 {
 				prev := runes[i-1]
@@ -236,16 +236,16 @@ func ToSlash(s string) string {
 				if unicode.IsNumber(v) && unicode.IsLetter(prev) {
 					needsSlash = true
 				}
-				// Add slash when transitioning from number to letter  
+				// Add slash when transitioning from number to letter
 				if unicode.IsLetter(v) && unicode.IsNumber(prev) {
 					needsSlash = true
 				}
 			}
-			
+
 			if needsSlash {
 				b.WriteRune('/')
 			}
-			
+
 			if unicode.IsUpper(v) {
 				b.WriteRune(unicode.ToLower(v))
 			} else {
@@ -270,7 +270,7 @@ func ToDot(s string) string {
 	for i, v := range runes {
 		if unicode.IsLetter(v) || unicode.IsNumber(v) {
 			needsDot := false
-			
+
 			// Check if we need a dot before this character
 			if i > 0 {
 				prev := runes[i-1]
@@ -282,16 +282,16 @@ func ToDot(s string) string {
 				if unicode.IsNumber(v) && unicode.IsLetter(prev) {
 					needsDot = true
 				}
-				// Add dot when transitioning from number to letter  
+				// Add dot when transitioning from number to letter
 				if unicode.IsLetter(v) && unicode.IsNumber(prev) {
 					needsDot = true
 				}
 			}
-			
+
 			if needsDot {
 				b.WriteRune('.')
 			}
-			
+
 			if unicode.IsUpper(v) {
 				b.WriteRune(unicode.ToLower(v))
 			} else {
@@ -357,28 +357,28 @@ func SplitLen(s string, max int) []string {
 	if s == "" {
 		return []string{}
 	}
-	
+
 	runes := []rune(s)
 	totalRunes := len(runes)
 	if totalRunes <= max {
 		return []string{s}
 	}
-	
+
 	// 预计算结果切片容量
 	estimatedParts := (totalRunes + max - 1) / max
 	result := make([]string, 0, estimatedParts)
-	
+
 	for start := 0; start < totalRunes; start += max {
 		end := start + max
 		if end > totalRunes {
 			end = totalRunes
 		}
-		
+
 		// 使用零拷贝字符串转换
 		part := string(runes[start:end])
 		result = append(result, part)
 	}
-	
+
 	return result
 }
 
@@ -424,12 +424,12 @@ func Reverse(s string) string {
 	if s == "" {
 		return ""
 	}
-	
+
 	// ASCII优化路径
 	if isASCII(s) {
 		return reverseASCII(s)
 	}
-	
+
 	// Unicode路径 - 使用原地反转避免额外分配
 	runes := []rune(s)
 	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
@@ -460,7 +460,7 @@ func isASCII(s string) bool {
 func optimizedASCIICamel2Snake(s string) string {
 	capacity := len(s) + len(s)/3
 	result := make([]byte, 0, capacity)
-	
+
 	for i := 0; i < len(s); i++ {
 		c := s[i]
 		if c >= 'A' && c <= 'Z' {
@@ -472,7 +472,7 @@ func optimizedASCIICamel2Snake(s string) string {
 			result = append(result, c)
 		}
 	}
-	
+
 	return *(*string)(unsafe.Pointer(&result))
 }
 
@@ -481,12 +481,11 @@ func reverseASCII(s string) string {
 	if len(s) <= 1 {
 		return s
 	}
-	
+
 	bytes := make([]byte, len(s))
 	for i := 0; i < len(s); i++ {
 		bytes[i] = s[len(s)-1-i]
 	}
-	
+
 	return *(*string)(unsafe.Pointer(&bytes))
 }
-

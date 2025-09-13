@@ -95,7 +95,7 @@ func TestRSA100PercentCoverage(t *testing.T) {
 	}
 
 	message := []byte("test message")
-	
+
 	// Test 2: Test encryption failures
 	rsaEncryptOAEP = FailingRSAEncryptOAEP
 	_, err = RSAEncryptOAEP(keyPair.PublicKey, message)
@@ -169,65 +169,65 @@ func TestRSA100PercentCoverage(t *testing.T) {
 func TestInvalidPEMData(t *testing.T) {
 	// Test with invalid PEM data (not actually PEM format)
 	invalidPEMData := []byte("not a valid PEM block")
-	
+
 	_, err := PrivateKeyFromPEM(invalidPEMData)
 	if err == nil || err.Error() != "failed to decode PEM block" {
 		t.Error("Expected 'failed to decode PEM block' error")
 	}
-	
+
 	_, err = PublicKeyFromPEM(invalidPEMData)
 	if err == nil || err.Error() != "failed to decode PEM block" {
 		t.Error("Expected 'failed to decode PEM block' error")
 	}
-	
+
 	// Test with valid PEM block but wrong type
 	wrongTypePEM := []byte(`-----BEGIN CERTIFICATE-----
 MIICljCCAX4CCQCKxWPjvkCk0jANBgkqhkiG9w0BAQsFADA
 -----END CERTIFICATE-----`)
-	
+
 	_, err = PrivateKeyFromPEM(wrongTypePEM)
 	if err == nil {
 		t.Error("Expected error for wrong PEM block type")
 	}
-	
+
 	_, err = PublicKeyFromPEM(wrongTypePEM)
 	if err == nil {
 		t.Error("Expected error for wrong PEM block type")
 	}
-	
+
 	// Test with valid PEM block but corrupted data
 	corruptedPrivateKeyPEM := []byte(`-----BEGIN PRIVATE KEY-----
 invalidbase64data
 -----END PRIVATE KEY-----`)
-	
+
 	_, err = PrivateKeyFromPEM(corruptedPrivateKeyPEM)
 	if err == nil {
 		t.Error("Expected error for corrupted private key PEM")
 	}
-	
+
 	corruptedPublicKeyPEM := []byte(`-----BEGIN PUBLIC KEY-----
 invalidbase64data
 -----END PUBLIC KEY-----`)
-	
+
 	_, err = PublicKeyFromPEM(corruptedPublicKeyPEM)
 	if err == nil {
 		t.Error("Expected error for corrupted public key PEM")
 	}
-	
+
 	// Test PKCS#1 format
 	rsaPrivateKeyPEM := []byte(`-----BEGIN RSA PRIVATE KEY-----
 invalidbase64data
 -----END RSA PRIVATE KEY-----`)
-	
+
 	_, err = PrivateKeyFromPEM(rsaPrivateKeyPEM)
 	if err == nil {
 		t.Error("Expected error for corrupted RSA private key PEM")
 	}
-	
+
 	rsaPublicKeyPEM := []byte(`-----BEGIN RSA PUBLIC KEY-----
 invalidbase64data
 -----END RSA PUBLIC KEY-----`)
-	
+
 	_, err = PublicKeyFromPEM(rsaPublicKeyPEM)
 	if err == nil {
 		t.Error("Expected error for corrupted RSA public key PEM")
@@ -238,31 +238,31 @@ invalidbase64data
 func TestPEMErrorPaths(t *testing.T) {
 	// Test nil key scenarios for PEM conversion
 	nilKeyPair := &RSAKeyPair{PrivateKey: nil, PublicKey: nil}
-	
+
 	_, err := nilKeyPair.PrivateKeyToPEM()
 	if err == nil || err.Error() != "private key is nil" {
 		t.Error("Expected 'private key is nil' error")
 	}
-	
+
 	_, err = nilKeyPair.PublicKeyToPEM()
 	if err == nil || err.Error() != "public key is nil" {
 		t.Error("Expected 'public key is nil' error")
 	}
-	
+
 	// Test with a non-RSA key embedded in PKCS#8 format (simulated by creating invalid PEM)
 	nonRSAKeyPEM := []byte(`-----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg
 -----END PRIVATE KEY-----`)
-	
+
 	_, err = PrivateKeyFromPEM(nonRSAKeyPEM)
 	if err == nil {
 		t.Error("Expected error for non-RSA key in PKCS#8 format")
 	}
-	
+
 	nonRSAPublicKeyPEM := []byte(`-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE
 -----END PUBLIC KEY-----`)
-	
+
 	_, err = PublicKeyFromPEM(nonRSAPublicKeyPEM)
 	if err == nil {
 		t.Error("Expected error for non-RSA key in PKIX format")
@@ -357,7 +357,7 @@ invalid base64 content here
 	pkcs1PrivateKeyPEM := []byte(`-----BEGIN RSA PRIVATE KEY-----
 invalid base64 content
 -----END RSA PRIVATE KEY-----`)
-	
+
 	_, err = PrivateKeyFromPEM(pkcs1PrivateKeyPEM)
 	if err == nil {
 		t.Error("Expected error for invalid PKCS#1 RSA private key content")
@@ -367,7 +367,7 @@ invalid base64 content
 	pkcs1PublicKeyPEM := []byte(`-----BEGIN RSA PUBLIC KEY-----
 invalid base64 content
 -----END RSA PUBLIC KEY-----`)
-	
+
 	_, err = PublicKeyFromPEM(pkcs1PublicKeyPEM)
 	if err == nil {
 		t.Error("Expected error for invalid PKCS#1 RSA public key content")
@@ -377,7 +377,7 @@ invalid base64 content
 	ecPrivateKeyPEM := []byte(`-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIFooopiu/6TyM7hQNPXjp6Q0XGNlJe29IQVyMl0rNLhzCXqoAoGCCqGSM49AwEHoUQDQgAE
 -----END EC PRIVATE KEY-----`)
-	
+
 	_, err = PrivateKeyFromPEM(ecPrivateKeyPEM)
 	if err == nil {
 		t.Error("Expected error for EC private key in RSA parser")
@@ -390,7 +390,7 @@ MHcCAQEEIFooopiu/6TyM7hQNPXjp6Q0XGNlJe29IQVyMl0rNLhzCXqoAoGCCqGSM49AwEHoUQDQgAE
 	nonRSAPrivatePEM := []byte(`-----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg
 -----END PRIVATE KEY-----`)
-	
+
 	_, err = PrivateKeyFromPEM(nonRSAPrivatePEM)
 	if err == nil {
 		t.Error("Expected error for non-RSA private key in PKCS#8 format")
@@ -400,7 +400,7 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg
 	nonRSAPublicPEM := []byte(`-----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE
 -----END PUBLIC KEY-----`)
-	
+
 	_, err = PublicKeyFromPEM(nonRSAPublicPEM)
 	if err == nil {
 		t.Error("Expected error for non-RSA public key in PKIX format")
@@ -453,7 +453,7 @@ func TestRSAFinalCoverage(t *testing.T) {
 	invalidBase64PEM := []byte(`-----BEGIN PRIVATE KEY-----
 This is not base64 at all!!!
 -----END PRIVATE KEY-----`)
-	
+
 	_, err = PrivateKeyFromPEM(invalidBase64PEM)
 	if err == nil {
 		t.Error("Expected error for completely invalid base64 in private key PEM")
@@ -462,7 +462,7 @@ This is not base64 at all!!!
 	invalidPublicBase64PEM := []byte(`-----BEGIN PUBLIC KEY-----
 This is not base64 at all!!!
 -----END PUBLIC KEY-----`)
-	
+
 	_, err = PublicKeyFromPEM(invalidPublicBase64PEM)
 	if err == nil {
 		t.Error("Expected error for completely invalid base64 in public key PEM")
@@ -472,7 +472,7 @@ This is not base64 at all!!!
 	wrongStructurePEM := []byte(`-----BEGIN PRIVATE KEY-----
 aGVsbG8gd29ybGQ=
 -----END PRIVATE KEY-----`)
-	
+
 	_, err = PrivateKeyFromPEM(wrongStructurePEM)
 	if err == nil {
 		t.Error("Expected error for wrong ASN.1 structure")
@@ -481,7 +481,7 @@ aGVsbG8gd29ybGQ=
 	wrongPublicStructurePEM := []byte(`-----BEGIN PUBLIC KEY-----
 aGVsbG8gd29ybGQ=
 -----END PUBLIC KEY-----`)
-	
+
 	_, err = PublicKeyFromPEM(wrongPublicStructurePEM)
 	if err == nil {
 		t.Error("Expected error for wrong public key ASN.1 structure")

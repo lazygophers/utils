@@ -12,8 +12,8 @@ func TestGetInterfaceIpByName(t *testing.T) {
 		prev6         bool
 		shouldContain string // 部分匹配，因为实际IP可能变化
 	}{
-		{"eth0 IPv4", "eth0", false, ""},        // 可能不存在，返回空字符串
-		{"eth0 IPv6", "eth0", true, ""},         // 可能不存在，返回空字符串
+		{"eth0 IPv4", "eth0", false, ""},                // 可能不存在，返回空字符串
+		{"eth0 IPv6", "eth0", true, ""},                 // 可能不存在，返回空字符串
 		{"invalid interface", "nonexistent", false, ""}, // 不存在的接口
 	}
 
@@ -25,7 +25,7 @@ func TestGetInterfaceIpByName(t *testing.T) {
 			if result != "" {
 				// 如果返回非空，应该是有效IP
 				if net.ParseIP(result) == nil {
-					t.Errorf("GetInterfaceIpByName(%s, %v) returned invalid IP: %s", 
+					t.Errorf("GetInterfaceIpByName(%s, %v) returned invalid IP: %s",
 						tt.interfaceName, tt.prev6, result)
 				}
 			}
@@ -106,8 +106,8 @@ func TestGetInterfaceIpByAddrs(t *testing.T) {
 		{
 			name: "Mixed with loopback",
 			addresses: []net.Addr{
-				createIPNet("127.0.0.1/8"),        // loopback, should be ignored
-				createIPNet("192.168.1.100/24"),   // valid IPv4
+				createIPNet("127.0.0.1/8"),      // loopback, should be ignored
+				createIPNet("192.168.1.100/24"), // valid IPv4
 			},
 			prev6:    false,
 			expected: "192.168.1.100",
@@ -171,7 +171,7 @@ func TestGetInterfaceIpByName_ErrorHandling(t *testing.T) {
 		prev6         bool
 	}{
 		{"Valid interface eth0 IPv4", "eth0", false},
-		{"Valid interface eth0 IPv6", "eth0", true}, 
+		{"Valid interface eth0 IPv6", "eth0", true},
 		{"Valid interface en0 IPv4", "en0", false},
 		{"Valid interface en0 IPv6", "en0", true},
 		{"Invalid interface", "definitely_nonexistent_interface_12345", false},
@@ -185,7 +185,7 @@ func TestGetInterfaceIpByName_ErrorHandling(t *testing.T) {
 			// 对于有效接口，可能返回IP或空字符串（如果没有配置该类型的IP）
 			if result != "" {
 				if net.ParseIP(result) == nil {
-					t.Errorf("GetInterfaceIpByName(%s, %v) returned invalid IP: %s", 
+					t.Errorf("GetInterfaceIpByName(%s, %v) returned invalid IP: %s",
 						tt.interfaceName, tt.prev6, result)
 				}
 			}

@@ -109,23 +109,23 @@ func deepValueEqual(v1, v2 reflect.Value) bool {
 		// 对于不可比较的类型（如函数、映射、切片），需要捕获panic
 		var result bool
 		var panicked bool
-		
+
 		func() {
 			defer func() {
 				if recover() != nil {
 					panicked = true
 				}
 			}()
-			
+
 			// 尝试直接比较，如果类型不可比较会触发panic被上面捕获
 			result = v1.Interface() == v2.Interface()
 		}()
-		
+
 		// 如果发生了panic，说明类型不可比较，返回false
 		if panicked {
 			return false
 		}
-		
+
 		return result
 	}
 }

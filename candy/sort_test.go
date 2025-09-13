@@ -78,12 +78,12 @@ func TestSort(t *testing.T) {
 
 		require.Equal(t, expected, result, "Sort应该正确处理已排序的切片")
 		// 注意：对于长度 >= 2 的切片，Sort 函数会返回新切片
-	// 注意：对于长度 >= 2 的切片，Sort 函数会返回新切片
-	if len(data) >= 2 {
-		require.NotSame(t, &data, &result, "长度 >= 2 时应该返回新的切片")
-	} else {
-		require.Same(t, &data, &result, "长度 < 2 时应该返回原切片（优化）")
-	}
+		// 注意：对于长度 >= 2 的切片，Sort 函数会返回新切片
+		if len(data) >= 2 {
+			require.NotSame(t, &data, &result, "长度 >= 2 时应该返回新的切片")
+		} else {
+			require.Same(t, &data, &result, "长度 < 2 时应该返回原切片（优化）")
+		}
 	})
 
 	// 测试逆序切片
@@ -236,9 +236,9 @@ func TestSortEdgeCases(t *testing.T) {
 	t.Run("最大uint值", func(t *testing.T) {
 		t.Parallel()
 
-		data := []uint{1<<64 - 1, 0, 1<<63}
+		data := []uint{1<<64 - 1, 0, 1 << 63}
 		result := Sort(data)
-		expected := []uint{0, 1<<63, 1<<64 - 1}
+		expected := []uint{0, 1 << 63, 1<<64 - 1}
 
 		require.Equal(t, expected, result, "Sort应该正确处理uint边界值")
 	})
@@ -270,7 +270,7 @@ func TestSortLargeDataset(t *testing.T) {
 
 		// 验证排序结果
 		for i := 1; i < len(result); i++ {
-			require.True(t, result[i] >= result[i-1], 
+			require.True(t, result[i] >= result[i-1],
 				fmt.Sprintf("切片应该在位置 %d 和 %d 保持有序", i-1, i))
 		}
 

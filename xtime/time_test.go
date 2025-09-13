@@ -40,7 +40,7 @@ func TestParse(t *testing.T) {
 	t.Run("invalid_time_strings", func(t *testing.T) {
 		invalidInputs := []string{
 			"invalid",
-			"not-a-date", 
+			"not-a-date",
 			"2023/13/45", // Invalid month/day
 			"25:00:00",   // Invalid hour
 		}
@@ -98,11 +98,11 @@ func TestWith(t *testing.T) {
 	t.Run("wrap_time_instance", func(t *testing.T) {
 		now := time.Now()
 		wrapped := xtime.With(now)
-		
+
 		assert.NotNil(t, wrapped)
 		assert.Equal(t, now, wrapped.Time)
 		assert.NotNil(t, wrapped.Config)
-		
+
 		// Check default config values
 		assert.Equal(t, time.Monday, wrapped.Config.WeekStartDay)
 		assert.Equal(t, time.Local, wrapped.Config.TimeLocation)
@@ -127,7 +127,7 @@ func TestWith(t *testing.T) {
 	t.Run("zero_time", func(t *testing.T) {
 		zeroTime := time.Time{}
 		wrapped := xtime.With(zeroTime)
-		
+
 		assert.Equal(t, zeroTime, wrapped.Time)
 		assert.NotNil(t, wrapped.Config)
 		assert.Equal(t, time.Monday, wrapped.Config.WeekStartDay)
@@ -139,7 +139,7 @@ func TestRandSleep(t *testing.T) {
 		start := time.Now()
 		xtime.RandSleep() // Should sleep for 1-3 seconds by default
 		elapsed := time.Since(start)
-		
+
 		// Should sleep for at least 1 second and at most 3 seconds (with some tolerance)
 		assert.True(t, elapsed >= time.Second, "Should sleep at least 1 second")
 		assert.True(t, elapsed <= 4*time.Second, "Should sleep at most ~3 seconds (with tolerance)")
@@ -150,7 +150,7 @@ func TestRandSleep(t *testing.T) {
 		maxSleep := 50 * time.Millisecond
 		xtime.RandSleep(maxSleep) // Should sleep for 0 to maxSleep
 		elapsed := time.Since(start)
-		
+
 		// Should sleep for at most maxSleep duration (with some tolerance for timing)
 		assert.True(t, elapsed <= maxSleep+10*time.Millisecond, "Should sleep at most %v", maxSleep)
 		assert.True(t, elapsed >= 0, "Should not have negative sleep time")
@@ -162,7 +162,7 @@ func TestRandSleep(t *testing.T) {
 		maxSleep := 100 * time.Millisecond
 		xtime.RandSleep(minSleep, maxSleep)
 		elapsed := time.Since(start)
-		
+
 		// Should sleep within the specified range (with tolerance)
 		assert.True(t, elapsed >= minSleep, "Should sleep at least %v", minSleep)
 		assert.True(t, elapsed <= maxSleep+20*time.Millisecond, "Should sleep at most %v (with tolerance)", maxSleep)
@@ -181,7 +181,7 @@ func TestRandSleep(t *testing.T) {
 			elapsed := time.Since(start)
 			assert.True(t, elapsed < 10*time.Millisecond, "Should complete quickly for zero duration")
 		}()
-		
+
 		xtime.RandSleep(0)
 	})
 
@@ -190,7 +190,7 @@ func TestRandSleep(t *testing.T) {
 		start := time.Now()
 		xtime.RandSleep(10*time.Millisecond, 50*time.Millisecond, time.Second, time.Minute)
 		elapsed := time.Since(start)
-		
+
 		// Should use only first two parameters
 		assert.True(t, elapsed >= 10*time.Millisecond, "Should respect minimum")
 		assert.True(t, elapsed <= 100*time.Millisecond, "Should ignore extra parameters")
@@ -204,7 +204,7 @@ func TestConfig(t *testing.T) {
 			TimeLocation: time.Local,
 			TimeFormats:  []string{},
 		}
-		
+
 		assert.Equal(t, time.Monday, config.WeekStartDay)
 		assert.Equal(t, time.Local, config.TimeLocation)
 		assert.Empty(t, config.TimeFormats)
@@ -212,11 +212,11 @@ func TestConfig(t *testing.T) {
 
 	t.Run("config_modification", func(t *testing.T) {
 		wrapped := xtime.With(time.Now())
-		
+
 		// Modify config
 		wrapped.Config.WeekStartDay = time.Sunday
 		wrapped.Config.TimeFormats = []string{"2006-01-02", "15:04:05"}
-		
+
 		assert.Equal(t, time.Sunday, wrapped.Config.WeekStartDay)
 		assert.Len(t, wrapped.Config.TimeFormats, 2)
 		assert.Contains(t, wrapped.Config.TimeFormats, "2006-01-02")
@@ -229,7 +229,7 @@ func TestTimeEmbedding(t *testing.T) {
 	t.Run("time_methods_available", func(t *testing.T) {
 		baseTime := time.Date(2023, 6, 15, 14, 30, 45, 0, time.UTC)
 		wrapped := xtime.With(baseTime)
-		
+
 		// Test that standard time.Time methods are available
 		assert.Equal(t, 2023, wrapped.Year())
 		assert.Equal(t, time.June, wrapped.Month())
@@ -237,7 +237,7 @@ func TestTimeEmbedding(t *testing.T) {
 		assert.Equal(t, 14, wrapped.Hour())
 		assert.Equal(t, 30, wrapped.Minute())
 		assert.Equal(t, 45, wrapped.Second())
-		
+
 		// Test Unix timestamp
 		assert.Equal(t, baseTime.Unix(), wrapped.Unix())
 		assert.Equal(t, baseTime.UnixMilli(), wrapped.UnixMilli())
@@ -246,11 +246,11 @@ func TestTimeEmbedding(t *testing.T) {
 	t.Run("time_formatting", func(t *testing.T) {
 		baseTime := time.Date(2023, 1, 15, 9, 30, 0, 0, time.UTC)
 		wrapped := xtime.With(baseTime)
-		
+
 		// Test formatting
 		formatted := wrapped.Format("2006-01-02 15:04:05")
 		assert.Equal(t, "2023-01-15 09:30:00", formatted)
-		
+
 		// Test string representation
 		assert.Contains(t, wrapped.String(), "2023")
 	})

@@ -31,7 +31,7 @@ func TestWorkTimeConstants(t *testing.T) {
 		// In xtime007, WorkDay equals full Day (24/7 model)
 		assert.Equal(t, xtime007.Day, xtime007.WorkDay)
 		assert.Equal(t, time.Hour*24, xtime007.WorkDay)
-		
+
 		// RestDay should be Day - WorkDay = 0 (24/7 model)
 		assert.Equal(t, xtime007.Day-xtime007.WorkDay, xtime007.RestDay)
 		assert.Equal(t, time.Duration(0), xtime007.RestDay)
@@ -42,7 +42,7 @@ func TestWorkTimeConstants(t *testing.T) {
 		assert.Equal(t, xtime007.Day*7, xtime007.Week)
 		assert.Equal(t, xtime007.WorkDay*7, xtime007.WorkWeek)
 		assert.Equal(t, xtime007.Week-xtime007.WorkWeek, xtime007.RestWeek)
-		
+
 		// In 24/7 model, WorkWeek equals Week
 		assert.Equal(t, xtime007.Week, xtime007.WorkWeek)
 		assert.Equal(t, time.Duration(0), xtime007.RestWeek)
@@ -160,16 +160,16 @@ func TestConstantMagnitudes(t *testing.T) {
 func TestConstantUsageScenarios(t *testing.T) {
 	t.Run("time_calculations", func(t *testing.T) {
 		// Test using constants in typical calculations
-		
+
 		// Calculate work hours in a month (24/7 model)
 		workHoursInMonth := xtime007.WorkMonth / xtime007.Hour
 		expectedHours := 30 * 24 // 30 days * 24 hours
 		assert.Equal(t, time.Duration(expectedHours), workHoursInMonth)
-		
+
 		// Calculate work days in a year
 		workDaysInYear := xtime007.WorkYear / xtime007.WorkDay
 		assert.Equal(t, time.Duration(365), workDaysInYear)
-		
+
 		// Calculate rest time (should be zero)
 		totalRestInYear := xtime007.RestYear
 		assert.Equal(t, time.Duration(0), totalRestInYear)
@@ -179,12 +179,12 @@ func TestConstantUsageScenarios(t *testing.T) {
 		// Test arithmetic operations with constants
 		twoWeeks := xtime007.Week * 2
 		assert.Equal(t, xtime007.Day*14, twoWeeks)
-		
+
 		quarterYear := xtime007.Year / 4
 		// Should be close to Quarter, but not exactly equal due to rounding
 		assert.True(t, quarterYear > xtime007.Quarter-xtime007.Day)
 		assert.True(t, quarterYear < xtime007.Quarter+xtime007.Day*3)
-		
+
 		// Half day calculations
 		halfDay := xtime007.Day / 2
 		assert.Equal(t, xtime007.Hour*12, halfDay)
@@ -196,7 +196,7 @@ func TestConstantUsageScenarios(t *testing.T) {
 		assert.True(t, xtime007.WorkWeek >= xtime007.RestWeek)
 		assert.True(t, xtime007.WorkMonth >= xtime007.RestMonth)
 		assert.True(t, xtime007.WorkYear >= xtime007.RestYear)
-		
+
 		// All work periods should be greater than zero
 		assert.True(t, xtime007.WorkDay > 0)
 		assert.True(t, xtime007.WorkWeek > 0)

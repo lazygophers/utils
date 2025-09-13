@@ -15,12 +15,12 @@ func NewLunarHelper() *LunarHelper {
 
 // LunarFestival 农历节日信息
 type LunarFestival struct {
-	Name        string `json:"name"`        // 节日名称
-	Month       int    `json:"month"`       // 农历月份
-	Day         int    `json:"day"`         // 农历日期
-	Description string `json:"description"` // 节日描述
-	Traditions  []string `json:"traditions"` // 传统习俗
-	Foods       []string `json:"foods"`      // 传统食物
+	Name        string   `json:"name"`        // 节日名称
+	Month       int      `json:"month"`       // 农历月份
+	Day         int      `json:"day"`         // 农历日期
+	Description string   `json:"description"` // 节日描述
+	Traditions  []string `json:"traditions"`  // 传统习俗
+	Foods       []string `json:"foods"`       // 传统食物
 }
 
 // 传统农历节日定义
@@ -115,13 +115,13 @@ func (h *LunarHelper) GetFestival(t time.Time) *LunarFestival {
 	lunar := WithLunar(t)
 	month := int(lunar.Month())
 	day := int(lunar.Day())
-	
+
 	for _, festival := range lunarFestivals {
 		if festival.Month == month && festival.Day == day {
 			return &festival
 		}
 	}
-	
+
 	// 检查除夕的特殊情况（腊月最后一天）
 	if month == 12 {
 		// 获取这个月的天数
@@ -135,25 +135,25 @@ func (h *LunarHelper) GetFestival(t time.Time) *LunarFestival {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
 // GetYearFestivals 获取指定年份的所有农历节日
 func (h *LunarHelper) GetYearFestivals(year int) []FestivalDate {
 	var festivals []FestivalDate
-	
+
 	for _, festival := range lunarFestivals {
 		// 转换农历日期为公历日期
 		lunarDate := time.Date(year, time.Month(festival.Month), festival.Day, 0, 0, 0, 0, time.Local)
-		
+
 		// 这里需要农历转公历的功能，暂时简化处理
 		festivals = append(festivals, FestivalDate{
 			Festival:  festival,
 			SolarDate: lunarDate, // 实际应该转换为公历日期
 		})
 	}
-	
+
 	return festivals
 }
 
@@ -167,7 +167,7 @@ type FestivalDate struct {
 func (h *LunarHelper) GetUpcomingFestivals(count int) []FestivalDate {
 	now := time.Now()
 	var upcoming []FestivalDate
-	
+
 	// 检查今年剩余的节日
 	year := now.Year()
 	for i := 0; i < 2; i++ { // 检查今年和明年
@@ -178,12 +178,12 @@ func (h *LunarHelper) GetUpcomingFestivals(count int) []FestivalDate {
 			}
 		}
 	}
-	
+
 	// 按日期排序并返回指定数量
 	if len(upcoming) > count {
 		upcoming = upcoming[:count]
 	}
-	
+
 	return upcoming
 }
 
@@ -192,7 +192,7 @@ func (h *LunarHelper) FormatFestivalInfo(festival *LunarFestival) string {
 	if festival == nil {
 		return ""
 	}
-	
+
 	return fmt.Sprintf(`【%s】农历%d月%d日
 描述：%s
 习俗：%v
@@ -208,17 +208,17 @@ func (h *LunarHelper) IsSpecialDay(t time.Time) (bool, string) {
 	lunar := WithLunar(t)
 	month := lunar.Month()
 	day := lunar.Day()
-	
+
 	// 检查是否是节日
 	if festival := h.GetFestival(t); festival != nil {
 		return true, fmt.Sprintf("今天是%s", festival.Name)
 	}
-	
+
 	// 检查特殊数字日子
 	if month == day {
 		return true, fmt.Sprintf("农历%s月%s，日月同数", lunar.MonthAlias(), lunar.DayAlias())
 	}
-	
+
 	// 检查初一、十五
 	if day == 1 {
 		return true, fmt.Sprintf("农历%s朔日（初一）", lunar.MonthAlias())
@@ -226,7 +226,7 @@ func (h *LunarHelper) IsSpecialDay(t time.Time) (bool, string) {
 	if day == 15 {
 		return true, fmt.Sprintf("农历%s望日（十五）", lunar.MonthAlias())
 	}
-	
+
 	return false, ""
 }
 
@@ -235,36 +235,36 @@ func (h *LunarHelper) GetLunarInfo(t time.Time) map[string]interface{} {
 	lunar := WithLunar(t)
 	festival := h.GetFestival(t)
 	isSpecial, specialDesc := h.IsSpecialDay(t)
-	
+
 	info := map[string]interface{}{
 		"date": map[string]interface{}{
-			"year":      lunar.Year(),
-			"month":     lunar.Month(),
-			"day":       lunar.Day(),
-			"yearStr":   lunar.YearAlias(),
-			"monthStr":  lunar.MonthAlias(),
-			"dayStr":    lunar.DayAlias(),
-			"fullStr":   fmt.Sprintf("农历%s年%s%s", lunar.YearAlias(), lunar.MonthAlias(), lunar.DayAlias()),
+			"year":     lunar.Year(),
+			"month":    lunar.Month(),
+			"day":      lunar.Day(),
+			"yearStr":  lunar.YearAlias(),
+			"monthStr": lunar.MonthAlias(),
+			"dayStr":   lunar.DayAlias(),
+			"fullStr":  fmt.Sprintf("农历%s年%s%s", lunar.YearAlias(), lunar.MonthAlias(), lunar.DayAlias()),
 		},
 		"zodiac": map[string]interface{}{
 			"animal":     lunar.Animal(),
 			"animalYear": lunar.Animal() + "年",
 		},
 		"leapInfo": map[string]interface{}{
-			"isLeapYear":   lunar.IsLeap(),
-			"isLeapMonth":  lunar.IsLeapMonth(),
-			"leapMonth":    lunar.LeapMonth(),
+			"isLeapYear":  lunar.IsLeap(),
+			"isLeapMonth": lunar.IsLeapMonth(),
+			"leapMonth":   lunar.LeapMonth(),
 		},
 		"special": map[string]interface{}{
 			"isSpecial":   isSpecial,
 			"description": specialDesc,
 		},
 	}
-	
+
 	if festival != nil {
 		info["festival"] = festival
 	}
-	
+
 	return info
 }
 
@@ -272,15 +272,15 @@ func (h *LunarHelper) GetLunarInfo(t time.Time) map[string]interface{} {
 func (h *LunarHelper) CompareLunarDates(t1, t2 time.Time) string {
 	lunar1 := WithLunar(t1)
 	lunar2 := WithLunar(t2)
-	
+
 	if lunar1.Year() == lunar2.Year() && lunar1.Month() == lunar2.Month() && lunar1.Day() == lunar2.Day() {
 		return "同一个农历日期"
 	}
-	
+
 	if lunar1.Month() == lunar2.Month() && lunar1.Day() == lunar2.Day() {
 		return fmt.Sprintf("同一个农历日子：%s%s", lunar1.MonthAlias(), lunar1.DayAlias())
 	}
-	
+
 	return "不同的农历日期"
 }
 
@@ -288,15 +288,15 @@ func (h *LunarHelper) CompareLunarDates(t1, t2 time.Time) string {
 func (h *LunarHelper) GetLunarAge(birthTime, currentTime time.Time) int {
 	birth := WithLunar(birthTime)
 	current := WithLunar(currentTime)
-	
+
 	age := int(current.Year() - birth.Year())
-	
+
 	// 如果还没过农历生日，年龄减1
-	if current.Month() < birth.Month() || 
-	   (current.Month() == birth.Month() && current.Day() < birth.Day()) {
+	if current.Month() < birth.Month() ||
+		(current.Month() == birth.Month() && current.Day() < birth.Day()) {
 		age--
 	}
-	
+
 	return age + 1 // 虚岁比周岁多1
 }
 
@@ -304,17 +304,17 @@ func (h *LunarHelper) GetLunarAge(birthTime, currentTime time.Time) int {
 func (h *LunarHelper) GetNextLunarBirthday(birthTime, currentTime time.Time) time.Time {
 	birth := WithLunar(birthTime)
 	current := WithLunar(currentTime)
-	
+
 	// 先尝试今年的农历生日
 	thisYear := current.Year()
 	nextYear := thisYear
-	
+
 	// 如果今年的生日已过，使用明年的
-	if current.Month() > birth.Month() || 
-	   (current.Month() == birth.Month() && current.Day() >= birth.Day()) {
+	if current.Month() > birth.Month() ||
+		(current.Month() == birth.Month() && current.Day() >= birth.Day()) {
 		nextYear = thisYear + 1
 	}
-	
+
 	// 这里需要农历转公历的功能来计算确切的公历日期
 	// 暂时返回一个估算的时间
 	return time.Date(int(nextYear), time.Month(birth.Month()), int(birth.Day()), 0, 0, 0, 0, time.Local)

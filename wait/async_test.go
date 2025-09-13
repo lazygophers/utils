@@ -194,7 +194,7 @@ func TestAsyncUnique(t *testing.T) {
 		// 验证结果 - 重复的任务应该被过滤
 		assert.True(t, len(results) >= 3 && len(results) <= 5, "应该处理3-5个任务")
 		assert.Contains(t, results, 1)
-		assert.Contains(t, results, 2) 
+		assert.Contains(t, results, 2)
 		assert.Contains(t, results, 4)
 	})
 

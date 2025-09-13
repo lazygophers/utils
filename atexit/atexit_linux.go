@@ -25,7 +25,7 @@ func hookExit(code int) {
 		exitPatches = nil
 	}
 	mu.Unlock()
-	
+
 	// 执行所有注册的回调函数
 	for _, cb := range cbList {
 		if cb != nil {

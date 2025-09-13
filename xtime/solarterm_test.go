@@ -28,9 +28,9 @@ func TestSolartermBasicOperations(t *testing.T) {
 		// Test that solarterm wraps around after 24
 		solarterm24 := xtime.Solarterm(24)
 		solarterm0 := xtime.Solarterm(0)
-		
+
 		assert.Equal(t, solarterm0.String(), solarterm24.String(), "Solarterm should wrap around after 24")
-		
+
 		solarterm25 := xtime.Solarterm(25)
 		solarterm1 := xtime.Solarterm(1)
 		assert.Equal(t, solarterm1.String(), solarterm25.String(), "Solarterm 25 should equal solarterm 1")
@@ -50,13 +50,13 @@ func TestSolartermBasicOperations(t *testing.T) {
 func TestSolartermNavigation(t *testing.T) {
 	t.Run("next_and_prev", func(t *testing.T) {
 		solarterm := xtime.Solarterm(10)
-		
+
 		next := solarterm.Next()
 		prev := solarterm.Prev()
-		
+
 		assert.Equal(t, xtime.Solarterm(11), next, "Next should increment by 1")
 		assert.Equal(t, xtime.Solarterm(9), prev, "Prev should decrement by 1")
-		
+
 		// Test round-trip
 		assert.Equal(t, solarterm, next.Prev(), "next.Prev() should equal original")
 		assert.Equal(t, solarterm, prev.Next(), "prev.Next() should equal original")
@@ -66,21 +66,21 @@ func TestSolartermNavigation(t *testing.T) {
 		// Test navigation with edge values
 		solarterm0 := xtime.Solarterm(0)
 		prevOfFirst := solarterm0.Prev()
-		
+
 		// Should wrap to -1
 		assert.Equal(t, xtime.Solarterm(-1), prevOfFirst)
-		
+
 		// Test that string representation works with modulo
 		defer func() {
 			if r := recover(); r != nil {
 				t.Logf("String() with negative solarterm panicked: %v", r)
 			}
 		}()
-		
+
 		// The string representation may use modulo, so test carefully
 		str := prevOfFirst.String()
 		t.Logf("Solarterm(-1).String() = %s", str)
-		
+
 		// Test large numbers
 		largeSolarterm := xtime.Solarterm(1000)
 		nextLarge := largeSolarterm.Next()
@@ -92,11 +92,11 @@ func TestSolartermTime(t *testing.T) {
 	t.Run("solarterm_to_time", func(t *testing.T) {
 		// Test that solarterm can be converted to time
 		solarterm := xtime.Solarterm(0) // 小寒
-		
+
 		timeObj := solarterm.Time()
 		assert.IsType(t, time.Time{}, timeObj, "Time() should return time.Time")
 		assert.False(t, timeObj.IsZero(), "Time should not be zero")
-		
+
 		// Should be a reasonable date (between 1900 and 2100)
 		year := timeObj.Year()
 		assert.True(t, year >= 1900 && year <= 2100, "Year should be reasonable: %d", year)
@@ -106,31 +106,31 @@ func TestSolartermTime(t *testing.T) {
 		// Use a solarterm index that corresponds to a date after 1970 (Unix epoch)
 		// Since data starts from 1904, we need an index for more recent years
 		solarterm := xtime.Solarterm(1600) // A later solarterm that should have positive timestamp
-		
+
 		timestamp := solarterm.Timestamp()
 		// Note: Early years (1904-1970) will have negative timestamps, which is expected
 		// Only test that the function doesn't panic
 		assert.NotPanics(t, func() {
 			_ = solarterm.Timestamp()
 		}, "Timestamp() should not panic")
-		
+
 		// Convert back to time and verify consistency
 		timeFromTimestamp := time.Unix(timestamp, 0)
 		timeFromMethod := solarterm.Time()
-		
+
 		assert.Equal(t, timeFromTimestamp.Unix(), timeFromMethod.Unix(), "Timestamp and Time() should be consistent")
 	})
 
 	t.Run("multiple_solarterms_progression", func(t *testing.T) {
 		// Test that consecutive solarterms have increasing timestamps
 		var prevTimestamp int64 = 0
-		
+
 		for i := 0; i < 48; i++ { // Test 2 years worth
 			solarterm := xtime.Solarterm(i)
 			timestamp := solarterm.Timestamp()
-			
+
 			if i > 0 {
-				assert.True(t, timestamp > prevTimestamp, 
+				assert.True(t, timestamp > prevTimestamp,
 					"Solarterm %d timestamp should be greater than previous", i)
 			}
 			prevTimestamp = timestamp
@@ -142,21 +142,21 @@ func TestSolartermIsInDay(t *testing.T) {
 	t.Run("is_in_day", func(t *testing.T) {
 		solarterm := xtime.Solarterm(0)
 		solartermTime := solarterm.Time()
-		
+
 		// Same day should return true
-		sameDay := time.Date(solartermTime.Year(), solartermTime.Month(), solartermTime.Day(), 
+		sameDay := time.Date(solartermTime.Year(), solartermTime.Month(), solartermTime.Day(),
 			12, 0, 0, 0, time.Local)
 		assert.True(t, solarterm.IsInDay(sameDay), "Same day should return true")
-		
+
 		// Different day should return false
 		differentDay := solartermTime.AddDate(0, 0, 1)
 		assert.False(t, solarterm.IsInDay(differentDay), "Different day should return false")
-		
+
 		// Beginning of the day should return true
 		beginningOfDay := time.Date(solartermTime.Year(), solartermTime.Month(), solartermTime.Day(),
 			0, 0, 0, 0, time.Local)
 		assert.True(t, solarterm.IsInDay(beginningOfDay), "Beginning of day should return true")
-		
+
 		// End of the day should return true
 		endOfDay := time.Date(solartermTime.Year(), solartermTime.Month(), solartermTime.Day(),
 			23, 59, 59, 0, time.Local)
@@ -166,14 +166,14 @@ func TestSolartermIsInDay(t *testing.T) {
 	t.Run("is_today", func(t *testing.T) {
 		// This test is time-dependent, so we need to be careful
 		now := time.Now()
-		
+
 		// Find the current solarterm
 		currentSolarterm := xtime.NextSolarterm(now.AddDate(0, 0, -1)) // Get recent solarterm
-		
+
 		// Test IsToDay method
 		isToday := currentSolarterm.IsToDay()
 		assert.IsType(t, true, isToday, "IsToDay should return bool")
-		
+
 		// The result depends on current date, but it should not panic
 		assert.NotPanics(t, func() {
 			_ = currentSolarterm.IsToDay()
@@ -186,32 +186,32 @@ func TestNextSolarterm(t *testing.T) {
 		// Test with a specific date
 		testTime := time.Date(2023, 6, 15, 12, 0, 0, 0, time.UTC)
 		nextSolarterm := xtime.NextSolarterm(testTime)
-		
+
 		assert.IsType(t, xtime.Solarterm(0), nextSolarterm, "Should return Solarterm type")
-		
+
 		// Next solarterm should be after the test time
 		nextTime := nextSolarterm.Time()
-		assert.True(t, nextTime.After(testTime) || nextTime.Equal(testTime), 
+		assert.True(t, nextTime.After(testTime) || nextTime.Equal(testTime),
 			"Next solarterm should be after or equal to test time")
 	})
 
 	t.Run("next_solarterm_progression", func(t *testing.T) {
 		// Test that NextSolarterm works correctly across different dates
 		startTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
-		
+
 		var prevTime time.Time
-		
+
 		for i := 0; i < 12; i++ { // Test across a year
 			testTime := startTime.AddDate(0, i, 0)
 			nextSolarterm := xtime.NextSolarterm(testTime)
 			nextTime := nextSolarterm.Time()
-			
+
 			if i > 0 {
 				// Should generally progress (though might repeat if we hit exact dates)
 				assert.True(t, nextTime.After(prevTime) || nextTime.Equal(prevTime),
 					"Solarterm times should progress or stay the same")
 			}
-			
+
 			prevTime = nextTime
 		}
 	})
@@ -219,16 +219,16 @@ func TestNextSolarterm(t *testing.T) {
 	t.Run("next_solarterm_edge_cases", func(t *testing.T) {
 		// Test with various edge case dates
 		edgeDates := []time.Time{
-			time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC),  // Early date
+			time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC),      // Early date
 			time.Date(2100, 12, 31, 23, 59, 59, 0, time.UTC), // Late date
-			time.Date(2023, 2, 29, 0, 0, 0, 0, time.UTC), // Invalid date (non-leap year)
+			time.Date(2023, 2, 29, 0, 0, 0, 0, time.UTC),     // Invalid date (non-leap year)
 		}
 
 		for i, date := range edgeDates {
 			if i == 2 { // Skip invalid date
 				continue
 			}
-			
+
 			assert.NotPanics(t, func() {
 				nextSolarterm := xtime.NextSolarterm(date)
 				_ = nextSolarterm.String() // Should not panic
@@ -242,14 +242,14 @@ func TestSolartermHelperFunctions(t *testing.T) {
 		// Test the DD (Julian Day to Gregorian) function
 		// This is an internal function but we can test it exists
 		// by testing solarterm functionality that depends on it
-		
+
 		solarterm := xtime.Solarterm(0)
-		
+
 		// Should not panic when getting time
 		assert.NotPanics(t, func() {
 			_ = solarterm.Time()
 		}, "DD function should work correctly")
-		
+
 		// Should produce reasonable dates
 		timeObj := solarterm.Time()
 		assert.True(t, timeObj.Year() >= 1900 && timeObj.Year() <= 2100,
@@ -266,16 +266,16 @@ func TestSolartermConstantsAndData(t *testing.T) {
 		// Test that all 24 solar terms have valid Chinese names
 		expectedLength := 24
 		terms := make([]string, expectedLength)
-		
+
 		for i := 0; i < expectedLength; i++ {
 			solarterm := xtime.Solarterm(i)
 			name := solarterm.String()
 			terms[i] = name
-			
+
 			assert.NotEmpty(t, name, "Solarterm %d should have a name", i)
 			assert.Len(t, []rune(name), 2, "Solarterm names should be 2 Chinese characters")
 		}
-		
+
 		// Check for uniqueness
 		uniqueTerms := make(map[string]bool)
 		for _, term := range terms {
@@ -290,7 +290,7 @@ func TestSolartermConstantsAndData(t *testing.T) {
 		// Note: Early solarterms (1904-1970) will have negative Unix timestamps, which is normal
 		for i := 0; i < 100; i++ { // Test first 100 entries
 			solarterm := xtime.Solarterm(i)
-			
+
 			assert.NotPanics(t, func() {
 				timestamp := solarterm.Timestamp()
 				// Don't assert positive - early years have negative Unix timestamps

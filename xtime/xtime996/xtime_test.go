@@ -39,7 +39,7 @@ func TestWorkTimeConstants(t *testing.T) {
 		assert.Equal(t, xtime996.Day*7, xtime996.Week)
 		assert.Equal(t, xtime996.WorkDay*6, xtime996.WorkWeek) // 6 work days
 		assert.Equal(t, xtime996.Week-xtime996.WorkWeek, xtime996.RestWeek)
-		
+
 		// 6 * 12 hours work + 1 * 24 hours weekend + 6 * 12 hours daily rest
 		expectedRestWeek := xtime996.Day*1 + xtime996.RestDay*6 // Weekend + daily rest
 		assert.Equal(t, expectedRestWeek, xtime996.RestWeek)
@@ -48,11 +48,11 @@ func TestWorkTimeConstants(t *testing.T) {
 	t.Run("work_month_constants", func(t *testing.T) {
 		// Month constants
 		assert.Equal(t, xtime996.Day*30, xtime996.Month)
-		
+
 		// RestMonth is 4 rest days * 12 hours each
 		assert.Equal(t, xtime996.RestDay*4, xtime996.RestMonth)
 		assert.Equal(t, time.Hour*12*4, xtime996.RestMonth) // 4 * 12 = 48 hours
-		
+
 		// WorkMonth = 30 days - 4 rest days = 26 full days
 		expectedWorkMonth := xtime996.Day*30 - xtime996.RestMonth
 		assert.Equal(t, expectedWorkMonth, xtime996.WorkMonth)
@@ -61,11 +61,11 @@ func TestWorkTimeConstants(t *testing.T) {
 	t.Run("work_quarter_constants", func(t *testing.T) {
 		// Quarter constants
 		assert.Equal(t, xtime996.Day*91, xtime996.Quarter)
-		
+
 		// RestQuarter is 14 rest days * 12 hours each
 		assert.Equal(t, xtime996.RestDay*14, xtime996.RestQuarter)
 		assert.Equal(t, time.Hour*12*14, xtime996.RestQuarter) // 14 * 12 = 168 hours
-		
+
 		// WorkQuarter = 91 days - 14 rest days = 77 full days
 		expectedWorkQuarter := xtime996.Day*91 - xtime996.RestQuarter
 		assert.Equal(t, expectedWorkQuarter, xtime996.WorkQuarter)
@@ -74,11 +74,11 @@ func TestWorkTimeConstants(t *testing.T) {
 	t.Run("work_year_constants", func(t *testing.T) {
 		// Year constants
 		assert.Equal(t, xtime996.Day*365, xtime996.Year)
-		
+
 		// RestYear is 58 rest days * 12 hours each
 		assert.Equal(t, xtime996.RestDay*58, xtime996.RestYear)
 		assert.Equal(t, time.Hour*12*58, xtime996.RestYear) // 58 * 12 = 696 hours
-		
+
 		// WorkYear = 365 days - 58 rest days = 307 full days
 		expectedWorkYear := xtime996.Year - xtime996.RestYear
 		assert.Equal(t, expectedWorkYear, xtime996.WorkYear)
@@ -140,11 +140,11 @@ func TestConstantValues(t *testing.T) {
 	t.Run("work_vs_rest_durations", func(t *testing.T) {
 		// In 996 model, work and rest day should be equal
 		assert.Equal(t, xtime996.WorkDay, xtime996.RestDay, "Work day should equal rest day")
-		
+
 		// In 996 model: WorkWeek = 6*12 = 72 hours, RestWeek = 168-72 = 96 hours
-		// So actually RestWeek > WorkWeek 
+		// So actually RestWeek > WorkWeek
 		assert.True(t, xtime996.RestWeek > xtime996.WorkWeek, "Rest week should be longer than work week")
-		
+
 		// Work month/quarter/year should be much longer than rest
 		assert.True(t, xtime996.WorkMonth > xtime996.RestMonth, "Work month should be longer than rest month")
 		assert.True(t, xtime996.WorkQuarter > xtime996.RestQuarter, "Work quarter should be longer than rest quarter")
@@ -153,14 +153,14 @@ func TestConstantValues(t *testing.T) {
 
 	t.Run("specific_work_durations", func(t *testing.T) {
 		// Test specific work duration values
-		assert.Equal(t, time.Hour*12, xtime996.WorkDay) // 12-hour work day
+		assert.Equal(t, time.Hour*12, xtime996.WorkDay)  // 12-hour work day
 		assert.Equal(t, time.Hour*72, xtime996.WorkWeek) // 72-hour work week (6*12)
-		
+
 		// Month: 30 days - 4 rest days = 26 days
 		expectedWorkMonth := xtime996.Day*30 - xtime996.RestDay*4
 		assert.Equal(t, expectedWorkMonth, xtime996.WorkMonth)
-		
-		// Year: 365 days - 58 rest days = 307 days  
+
+		// Year: 365 days - 58 rest days = 307 days
 		expectedWorkYear := xtime996.Year - xtime996.RestDay*58
 		assert.Equal(t, expectedWorkYear, xtime996.WorkYear)
 	})
@@ -168,14 +168,14 @@ func TestConstantValues(t *testing.T) {
 	t.Run("specific_rest_durations", func(t *testing.T) {
 		// Test specific rest duration values
 		assert.Equal(t, time.Hour*12, xtime996.RestDay) // 12 hours rest per day
-		
+
 		// Weekly rest: 1 full day + 6 half days = 7 * 12 hours
 		expectedRestWeek := xtime996.Day*1 + xtime996.RestDay*6
 		assert.Equal(t, expectedRestWeek, xtime996.RestWeek)
-		
-		assert.Equal(t, xtime996.RestDay*4, xtime996.RestMonth) // 4 rest days per month
+
+		assert.Equal(t, xtime996.RestDay*4, xtime996.RestMonth)    // 4 rest days per month
 		assert.Equal(t, xtime996.RestDay*14, xtime996.RestQuarter) // 14 rest days per quarter
-		assert.Equal(t, xtime996.RestDay*58, xtime996.RestYear) // 58 rest days per year
+		assert.Equal(t, xtime996.RestDay*58, xtime996.RestYear)    // 58 rest days per year
 	})
 }
 
@@ -194,10 +194,10 @@ func TestConstantMagnitudes(t *testing.T) {
 	t.Run("work_vs_rest_comparisons", func(t *testing.T) {
 		// Work day equals rest day in 996
 		assert.Equal(t, xtime996.WorkDay, xtime996.RestDay)
-		
+
 		// Actually, rest week is longer than work week (96 vs 72 hours)
 		assert.True(t, xtime996.RestWeek > xtime996.WorkWeek)
-		
+
 		// Work periods are longer than rest periods for larger time frames
 		assert.True(t, xtime996.WorkMonth > xtime996.RestMonth)
 		assert.True(t, xtime996.WorkQuarter > xtime996.RestQuarter)
@@ -218,15 +218,15 @@ func TestConstantUsageScenarios(t *testing.T) {
 		// Calculate work hours in different periods
 		workHoursInDay := xtime996.WorkDay / xtime996.Hour
 		assert.Equal(t, time.Duration(12), workHoursInDay) // 12-hour work day
-		
+
 		workHoursInWeek := xtime996.WorkWeek / xtime996.Hour
 		assert.Equal(t, time.Duration(72), workHoursInWeek) // 72-hour work week
-		
+
 		// Work days in month = (30 days - 4 rest days) = 26 days
 		expectedWorkDaysInMonth := (xtime996.Month - xtime996.RestMonth) / xtime996.Day
 		actualWorkDaysInMonth := xtime996.WorkMonth / xtime996.Day
 		assert.Equal(t, expectedWorkDaysInMonth, actualWorkDaysInMonth)
-		
+
 		// Work days in year = (365 days - 58 rest days) = 307 days
 		expectedWorkDaysInYear := (xtime996.Year - xtime996.RestYear) / xtime996.Day
 		actualWorkDaysInYear := xtime996.WorkYear / xtime996.Day
@@ -237,13 +237,13 @@ func TestConstantUsageScenarios(t *testing.T) {
 		// Calculate rest hours in different periods
 		restHoursInDay := xtime996.RestDay / xtime996.Hour
 		assert.Equal(t, time.Duration(12), restHoursInDay) // 12 hours rest per day
-		
+
 		restDaysInMonth := xtime996.RestMonth / xtime996.RestDay
 		assert.Equal(t, time.Duration(4), restDaysInMonth) // 4 rest days per month
-		
+
 		restDaysInQuarter := xtime996.RestQuarter / xtime996.RestDay
 		assert.Equal(t, time.Duration(14), restDaysInQuarter) // 14 rest days per quarter
-		
+
 		restDaysInYear := xtime996.RestYear / xtime996.RestDay
 		assert.Equal(t, time.Duration(58), restDaysInYear) // 58 rest days per year
 	})
@@ -252,14 +252,14 @@ func TestConstantUsageScenarios(t *testing.T) {
 		// Calculate work efficiency ratios
 		dailyWorkRatio := float64(xtime996.WorkDay) / float64(xtime996.Day)
 		assert.InDelta(t, 0.5, dailyWorkRatio, 0.01) // 50% work time per day
-		
+
 		weeklyWorkRatio := float64(xtime996.WorkWeek) / float64(xtime996.Week)
 		expectedWeeklyRatio := 72.0 / 168.0 // 72 hours / 168 hours per week
 		assert.InDelta(t, expectedWeeklyRatio, weeklyWorkRatio, 0.01)
-		
+
 		// Monthly work ratio
 		monthlyWorkRatio := float64(xtime996.WorkMonth) / float64(xtime996.Month)
-		expectedMonthlyRatio := (30.0*24.0 - 4.0*12.0) / (30.0*24.0) // (Total - Rest) / Total
+		expectedMonthlyRatio := (30.0*24.0 - 4.0*12.0) / (30.0 * 24.0) // (Total - Rest) / Total
 		assert.InDelta(t, expectedMonthlyRatio, monthlyWorkRatio, 0.01)
 	})
 
@@ -268,10 +268,10 @@ func TestConstantUsageScenarios(t *testing.T) {
 		overtimeHours := time.Hour * 2
 		extendedWorkDay := xtime996.WorkDay + overtimeHours
 		assert.Equal(t, time.Hour*14, extendedWorkDay) // 12 + 2 = 14 hours
-		
-		weekendRest := xtime996.Day * 1 // One day rest per week
+
+		weekendRest := xtime996.Day * 1                 // One day rest per week
 		assert.True(t, weekendRest < xtime996.RestWeek) // Weekend is part of rest week
-		
+
 		// Double work week calculation
 		doubleWorkWeek := xtime996.WorkWeek * 2
 		assert.Equal(t, time.Hour*144, doubleWorkWeek) // 72 * 2 = 144 hours
@@ -280,17 +280,17 @@ func TestConstantUsageScenarios(t *testing.T) {
 	t.Run("burnout_risk_calculations", func(t *testing.T) {
 		// 996 is known for high work intensity
 		workToRestRatio := float64(xtime996.WorkWeek) / float64(xtime996.RestWeek)
-		
+
 		// Work week (72h) vs Rest week (1*24h + 6*12h = 96h)
 		expectedRatio := 72.0 / 96.0 // 0.75
 		assert.InDelta(t, expectedRatio, workToRestRatio, 0.01)
-		
+
 		// Monthly work intensity
 		monthlyWorkHours := xtime996.WorkMonth / xtime996.Hour
 		monthlyTotalHours := xtime996.Month / xtime996.Hour
 		monthlyWorkIntensity := float64(monthlyWorkHours) / float64(monthlyTotalHours)
-		
-		expectedMonthlyIntensity := (30.0*24.0 - 4.0*12.0) / (30.0*24.0)
+
+		expectedMonthlyIntensity := (30.0*24.0 - 4.0*12.0) / (30.0 * 24.0)
 		assert.InDelta(t, expectedMonthlyIntensity, monthlyWorkIntensity, 0.01)
 	})
 }
@@ -318,7 +318,7 @@ func TestWorkLifeBalance996(t *testing.T) {
 		// 12 hours work, 12 hours personal time (including sleep)
 		totalDailyTime := xtime996.WorkDay + xtime996.RestDay
 		assert.Equal(t, xtime996.Day, totalDailyTime)
-		
+
 		workPercentage := float64(xtime996.WorkDay) * 100 / float64(xtime996.Day)
 		assert.InDelta(t, 50.0, workPercentage, 0.1) // 50% work time
 	})
@@ -327,7 +327,7 @@ func TestWorkLifeBalance996(t *testing.T) {
 		// 72 hours work, 96 hours personal time
 		totalWeeklyTime := xtime996.WorkWeek + xtime996.RestWeek
 		assert.Equal(t, xtime996.Week, totalWeeklyTime)
-		
+
 		workPercentage := float64(xtime996.WorkWeek) * 100 / float64(xtime996.Week)
 		expectedPercentage := 72.0 * 100 / 168.0 // 72 hours out of 168
 		assert.InDelta(t, expectedPercentage, workPercentage, 0.1)
@@ -336,12 +336,12 @@ func TestWorkLifeBalance996(t *testing.T) {
 	t.Run("annual_work_load", func(t *testing.T) {
 		// Calculate annual work hours
 		annualWorkHours := xtime996.WorkYear / xtime996.Hour
-		
-		// 307 work days * 24 hours per day = 7368 hours per year  
+
+		// 307 work days * 24 hours per day = 7368 hours per year
 		// But WorkYear = Year - RestYear = 8760 - 696 = 8064 hours
 		expectedAnnualHours := 365*24 - 58*12 // Full year hours - rest day hours
 		assert.Equal(t, time.Duration(expectedAnnualHours), annualWorkHours)
-		
+
 		// Compare to standard work year (40 hours * 50 weeks = 2000 hours)
 		standardWorkYear := time.Hour * 2000
 		intensityRatio := float64(xtime996.WorkYear) / float64(standardWorkYear)
@@ -352,13 +352,13 @@ func TestWorkLifeBalance996(t *testing.T) {
 		// Check if rest periods are adequate
 		dailyRestHours := xtime996.RestDay / xtime996.Hour
 		assert.Equal(t, time.Duration(12), dailyRestHours)
-		
+
 		// Assuming 8 hours sleep, only 4 hours for personal activities
 		sleepTime := time.Hour * 8
 		personalTime := xtime996.RestDay - sleepTime
 		personalHours := personalTime / xtime996.Hour
 		assert.Equal(t, time.Duration(4), personalHours)
-		
+
 		// Weekly rest includes one full day off
 		weeklyRestDays := xtime996.RestWeek / xtime996.Day
 		// 1 full day + 6 half days = 4 equivalent full rest days

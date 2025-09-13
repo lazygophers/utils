@@ -138,7 +138,7 @@ func TestMapKeysUint64(t *testing.T) {
 	})
 
 	t.Run("nil map does not have explicit check", func(t *testing.T) {
-		// MapKeysUint64 doesn't have explicit nil check like others, 
+		// MapKeysUint64 doesn't have explicit nil check like others,
 		// it will just return empty slice for nil map
 		var m map[uint64]string
 		result := MapKeysUint64(m)
@@ -796,7 +796,7 @@ func TestKeyBy(t *testing.T) {
 			KeyBy(list, "ID")
 		})
 	})
-	
+
 	t.Run("skip invalid elements in KeyBy", func(t *testing.T) {
 		// Create a slice with valid struct elements including nil pointers
 		// The nil pointer should be skipped by the continue statement at line 508
@@ -848,14 +848,14 @@ func TestKeyBy(t *testing.T) {
 			ID   int
 			Name string
 		}
-		
+
 		item1 := &PointerStruct{ID: 1, Name: "Alice"}
 		item2 := &PointerStruct{ID: 2, Name: "Bob"}
-		
+
 		// Create pointers to pointers
 		ptrToPtr1 := &item1
 		ptrToPtr2 := &item2
-		
+
 		list := []*PointerStruct{*ptrToPtr1, *ptrToPtr2}
 		result := KeyBy(list, "ID")
 		m, ok := result.(map[int]*PointerStruct)
@@ -923,18 +923,18 @@ func TestKeyByUint64(t *testing.T) {
 		// at line 552 is designed to handle edge cases where reflection shows an element
 		// is not a struct at runtime, which could happen in unsafe scenarios or
 		// when dealing with interface{} types that don't match expectations.
-		
+
 		// For now, we'll create a valid struct type test to ensure the function works correctly
 		type ValidStruct struct {
 			ID uint64 `json:"id"`
 		}
-		
+
 		validItem := &ValidStruct{ID: 123}
 		list := []*ValidStruct{validItem}
 		result := KeyByUint64(list, "ID")
 		assert.Len(t, result, 1)
 		assert.Equal(t, uint64(123), result[123].ID)
-		
+
 		// Note: The panic branch is preserved for defensive programming but is extremely
 		// difficult to trigger in type-safe Go code. The test above ensures the function
 		// works correctly in the common case.

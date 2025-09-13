@@ -8,11 +8,11 @@ import (
 
 func TestRenameForce_EdgeCases(t *testing.T) {
 	// 测试RenameForce的边界情况，提高覆盖率
-	
+
 	t.Run("rename_when_destination_remove_fails", func(t *testing.T) {
 		// 这个测试很难模拟，因为RemoveAll通常不会失败
 		// 但我们可以测试一些边界情况
-		
+
 		tmpDir, err := os.MkdirTemp("", "rename_edge_test_*")
 		if err != nil {
 			t.Fatal(err)
@@ -94,11 +94,11 @@ func TestRenameForce_EdgeCases(t *testing.T) {
 
 func TestCopy_EdgeCases(t *testing.T) {
 	// 测试Copy函数的边界情况
-	
+
 	t.Run("copy_when_src_stat_fails", func(t *testing.T) {
 		// 这种情况下，源文件存在但stat失败是很难模拟的
 		// 我们测试源文件在复制过程中被删除的情况
-		
+
 		tmpDir, err := os.MkdirTemp("", "copy_edge_test_*")
 		if err != nil {
 			t.Fatal(err)
@@ -225,16 +225,16 @@ func TestExists_Bug(t *testing.T) {
 	t.Run("exists_function_bug_behavior", func(t *testing.T) {
 		// 测试不存在的文件
 		nonExistentPath := "/definitely/does/not/exist/12345"
-		
+
 		// 由于bug，这个函数的行为是不正确的
 		result := Exists(nonExistentPath)
-		
+
 		// os.IsExist(err)对于"文件不存在"的错误会返回false
 		// 所以函数返回false，这在这种情况下恰好是正确的结果
 		if result != false {
 			t.Errorf("Exists(%s) should return false due to bug, got %v", nonExistentPath, result)
 		}
-		
+
 		// 但是我们知道这是因为bug而不是正确的逻辑
 		// 正确的实现应该是Exist函数
 		correctResult := Exist(nonExistentPath)
@@ -246,7 +246,7 @@ func TestExists_Bug(t *testing.T) {
 
 func TestRenameForce_FullCoverage(t *testing.T) {
 	// 确保RenameForce达到100%覆盖率
-	
+
 	t.Run("success_path_with_existing_destination", func(t *testing.T) {
 		tmpDir, err := os.MkdirTemp("", "rename_full_test_*")
 		if err != nil {
@@ -297,7 +297,7 @@ func TestRenameForce_FullCoverage(t *testing.T) {
 
 func TestCopy_FullCoverage(t *testing.T) {
 	// 确保Copy函数达到100%覆盖率
-	
+
 	t.Run("all_success_paths", func(t *testing.T) {
 		tmpDir, err := os.MkdirTemp("", "copy_full_test_*")
 		if err != nil {

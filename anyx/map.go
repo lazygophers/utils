@@ -687,4 +687,3 @@ func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
 
 	return m
 }
-

@@ -36,7 +36,7 @@ func ChaCha20Encrypt(key, plaintext []byte) ([]byte, error) {
 
 	ciphertext := make([]byte, chacha20.NonceSize+len(plaintext))
 	copy(ciphertext[:chacha20.NonceSize], nonce)
-	
+
 	cipher.XORKeyStream(ciphertext[chacha20.NonceSize:], plaintext)
 	return ciphertext, nil
 }

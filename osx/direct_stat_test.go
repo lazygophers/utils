@@ -129,11 +129,11 @@ func TestCopy_DirectStatErrorAttempt(t *testing.T) {
 
 		// 尝试复制到只读目录
 		err = Copy(src, dst)
-		
+
 		// 恢复权限以便清理
 		os.Chmod(readonlyDir, 0755)
 		os.Chmod(src, 0644)
-		
+
 		if err != nil {
 			t.Logf("Copy to readonly directory failed as expected: %v", err)
 		} else {
@@ -172,11 +172,11 @@ func TestCopy_DirectStatErrorAttempt(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			
+
 			if len(dstContent) != len(largeContent) {
 				t.Errorf("Size mismatch: expected %d, got %d", len(largeContent), len(dstContent))
 			}
-			
+
 			// 验证前100字节的内容
 			for i := 0; i < 100 && i < len(dstContent); i++ {
 				if dstContent[i] != largeContent[i] {
@@ -218,10 +218,10 @@ func TestCopy_PermissionErrors(t *testing.T) {
 
 		// 尝试复制
 		err = Copy(src, dst)
-		
+
 		// 恢复权限以便清理
 		os.Chmod(src, 0644)
-		
+
 		if err != nil {
 			t.Logf("Copy unreadable file failed as expected: %v", err)
 		} else {

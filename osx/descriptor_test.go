@@ -82,10 +82,10 @@ func TestCopy_DescriptorStatError(t *testing.T) {
 
 			// 尝试复制
 			err = Copy(src, dst)
-			
+
 			// 恢复权限以便清理
 			os.Chmod(src, 0644)
-			
+
 			if err != nil {
 				t.Logf("Copy %s failed: %v", tf.name, err)
 			} else {
@@ -153,7 +153,7 @@ func TestCopy_SystemCallStatError(t *testing.T) {
 		for i := range largeContent {
 			largeContent[i] = byte(i % 256)
 		}
-		
+
 		err = os.WriteFile(src, largeContent, 0644)
 		if err != nil {
 			t.Fatal(err)
@@ -177,7 +177,7 @@ func TestCopy_SystemCallStatError(t *testing.T) {
 			t.Logf("Copy with truncation failed: %v", err)
 		} else {
 			t.Logf("Copy with truncation succeeded")
-			
+
 			// 检查复制结果的大小
 			if info, err := os.Stat(dst); err == nil {
 				t.Logf("Copied file size: %d bytes", info.Size())
@@ -221,7 +221,7 @@ func TestCopy_CustomStatError(t *testing.T) {
 			t.Logf("Copy with file replacement failed: %v", err)
 		} else {
 			t.Logf("Copy with file replacement succeeded")
-			
+
 			// 检查最终复制的内容
 			if content, err := os.ReadFile(dst); err == nil {
 				maxLen := 50

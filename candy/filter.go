@@ -26,7 +26,7 @@ func Filter[T any](ss []T, f func(T) bool) []T {
 	if len(ss) == 0 {
 		return []T{}
 	}
-	
+
 	// 使用原始长度的1/4作为初始容量预估，减少重新分配
 	ret := make([]T, 0, len(ss)/4+1)
 	for _, s := range ss {

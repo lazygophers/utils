@@ -11,7 +11,7 @@ import (
 func TestCopy_StatErrorBranch(t *testing.T) {
 	// 尝试触发srcFile.Stat()错误分支（第73-75行）
 	// 这是最后剩余的6.7%未覆盖代码
-	
+
 	t.Run("stat_error_with_special_file", func(t *testing.T) {
 		tmpDir, err := os.MkdirTemp("", "copy_stat_error_test_*")
 		if err != nil {
@@ -30,7 +30,7 @@ func TestCopy_StatErrorBranch(t *testing.T) {
 
 		// 在某些极端情况下，文件可能在打开后但在stat前被删除或变为无效
 		// 虽然这种情况很少见，但我们可以模拟这种情况
-		
+
 		// 方法1：尝试竞态条件 - 在文件操作过程中修改文件
 		go func() {
 			// 短暂延迟后尝试删除文件
@@ -54,14 +54,14 @@ func TestCopy_StatErrorBranch(t *testing.T) {
 			defer os.RemoveAll(tmpDir)
 
 			dst := filepath.Join(tmpDir, "null_copy.txt")
-			
+
 			// 尝试复制/dev/null
 			err = Copy("/dev/null", dst)
 			if err != nil {
 				t.Logf("Copy from /dev/null failed: %v", err)
 			} else {
 				t.Logf("Copy from /dev/null succeeded")
-				
+
 				// 验证复制的文件
 				if Exist(dst) {
 					info, err := os.Stat(dst)
@@ -143,15 +143,15 @@ func TestCopy_StatErrorBranch(t *testing.T) {
 
 		// 执行复制操作
 		err = Copy(src, dst)
-		
+
 		// 恢复权限确保清理能够进行
 		os.Chmod(src, 0644)
-		
+
 		if err != nil {
 			t.Logf("Copy with permission change failed: %v", err)
 		} else {
 			t.Logf("Copy with permission change succeeded")
-			
+
 			// 验证复制结果
 			if Exist(dst) {
 				content, readErr := os.ReadFile(dst)

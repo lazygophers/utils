@@ -158,11 +158,11 @@ type Argon2Config struct {
 // DefaultArgon2Config 返回推荐的 Argon2 配置
 func DefaultArgon2Config() Argon2Config {
 	return Argon2Config{
-		SaltLength: 16,      // 128位盐
-		Time:       1,       // 1次迭代（推荐值）
+		SaltLength: 16,        // 128位盐
+		Time:       1,         // 1次迭代（推荐值）
 		Memory:     64 * 1024, // 64MB 内存
-		Threads:    4,       // 4线程
-		KeyLength:  32,      // 256位密钥
+		Threads:    4,         // 4线程
+		KeyLength:  32,        // 256位密钥
 	}
 }
 
@@ -215,7 +215,7 @@ func constantTimeCompare(a, b []byte) bool {
 	if len(a) != len(b) {
 		return false
 	}
-	
+
 	var result byte
 	for i := 0; i < len(a); i++ {
 		result |= a[i] ^ b[i]
@@ -228,12 +228,12 @@ func GenerateSalt(length int) ([]byte, error) {
 	if length <= 0 {
 		return nil, errors.New("salt length must be greater than 0")
 	}
-	
+
 	salt := make([]byte, length)
 	_, err := io.ReadFull(kdfRandReader, salt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate salt: %w", err)
 	}
-	
+
 	return salt, nil
 }

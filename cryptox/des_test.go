@@ -8,13 +8,13 @@ import (
 
 // Test data
 const (
-	testDESMessage    = "Hello, DES encryption!"
+	testDESMessage       = "Hello, DES encryption!"
 	testTripleDESMessage = "Hello, 3DES encryption test message!"
 )
 
 var (
-	desKey8   = []byte("12345678")        // 8 bytes for DES
-	desKey24  = []byte("123456789012345678901234") // 24 bytes for 3DES
+	desKey8  = []byte("12345678")                 // 8 bytes for DES
+	desKey24 = []byte("123456789012345678901234") // 24 bytes for 3DES
 )
 
 // TestDESEncryptDecryptECB tests DES ECB mode encryption and decryption
@@ -162,7 +162,7 @@ func TestTripleDESInvalidKeyLength(t *testing.T) {
 // TestDESCBCShortCiphertext tests DES CBC with short ciphertext
 func TestDESCBCShortCiphertext(t *testing.T) {
 	shortCiphertext := make([]byte, des.BlockSize-1) // Less than block size
-	
+
 	_, err := DESDecryptCBC(desKey8, shortCiphertext)
 	if err == nil || err.Error() != "ciphertext too short" {
 		t.Error("Expected 'ciphertext too short' error for DES CBC")
@@ -172,7 +172,7 @@ func TestDESCBCShortCiphertext(t *testing.T) {
 // TestTripleDESCBCShortCiphertext tests 3DES CBC with short ciphertext
 func TestTripleDESCBCShortCiphertext(t *testing.T) {
 	shortCiphertext := make([]byte, des.BlockSize-1) // Less than block size
-	
+
 	_, err := TripleDESDecryptCBC(desKey24, shortCiphertext)
 	if err == nil || err.Error() != "ciphertext too short" {
 		t.Error("Expected 'ciphertext too short' error for 3DES CBC")
@@ -183,7 +183,7 @@ func TestTripleDESCBCShortCiphertext(t *testing.T) {
 func TestDESInvalidCiphertext(t *testing.T) {
 	// Create ciphertext that's not a multiple of block size
 	invalidCiphertext := make([]byte, des.BlockSize+1) // 9 bytes (not multiple of 8)
-	
+
 	// Test DES ECB
 	_, err := DESDecryptECB(desKey8, invalidCiphertext)
 	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {
@@ -201,7 +201,7 @@ func TestDESInvalidCiphertext(t *testing.T) {
 func TestDESCBCInvalidCiphertext(t *testing.T) {
 	// Create ciphertext with valid IV but invalid data length
 	invalidCiphertext := make([]byte, des.BlockSize+des.BlockSize+1) // IV + 9 bytes data
-	
+
 	// Test DES CBC
 	_, err := DESDecryptCBC(desKey8, invalidCiphertext)
 	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {

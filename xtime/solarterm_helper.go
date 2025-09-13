@@ -59,7 +59,7 @@ var solarTermDescriptions = map[string]struct {
 // GetCurrentTerm 获取当前节气信息
 func (h *SolarTermHelper) GetCurrentTerm(t time.Time) *SolarTermInfo {
 	terms := h.GetYearTerms(t.Year())
-	
+
 	var current *SolarTermInfo
 	for i, term := range terms {
 		if t.After(term.Time) {
@@ -68,7 +68,7 @@ func (h *SolarTermHelper) GetCurrentTerm(t time.Time) *SolarTermInfo {
 			break
 		}
 	}
-	
+
 	if current == nil && len(terms) > 0 {
 		// 如果在年初，可能当前节气是去年的最后一个
 		prevYearTerms := h.GetYearTerms(t.Year() - 1)
@@ -76,63 +76,63 @@ func (h *SolarTermHelper) GetCurrentTerm(t time.Time) *SolarTermInfo {
 			current = &prevYearTerms[len(prevYearTerms)-1]
 		}
 	}
-	
+
 	return current
 }
 
 // GetNextTerm 获取下个节气信息
 func (h *SolarTermHelper) GetNextTerm(t time.Time) *SolarTermInfo {
 	terms := h.GetYearTerms(t.Year())
-	
+
 	for _, term := range terms {
 		if t.Before(term.Time) {
 			return &term
 		}
 	}
-	
+
 	// 如果当年没有下个节气，返回明年第一个
 	nextYearTerms := h.GetYearTerms(t.Year() + 1)
 	if len(nextYearTerms) > 0 {
 		return &nextYearTerms[0]
 	}
-	
+
 	return nil
 }
 
 // GetTermsInRange 获取指定时间范围内的所有节气
 func (h *SolarTermHelper) GetTermsInRange(start, end time.Time) []SolarTermInfo {
 	var result []SolarTermInfo
-	
+
 	for year := start.Year(); year <= end.Year(); year++ {
 		terms := h.GetYearTerms(year)
 		for _, term := range terms {
-			if (term.Time.After(start) || term.Time.Equal(start)) && 
-			   (term.Time.Before(end) || term.Time.Equal(end)) {
+			if (term.Time.After(start) || term.Time.Equal(start)) &&
+				(term.Time.Before(end) || term.Time.Equal(end)) {
 				result = append(result, term)
 			}
 		}
 	}
-	
+
 	return result
 }
 
 // GetYearTerms 获取指定年份的所有节气
 func (h *SolarTermHelper) GetYearTerms(year int) []SolarTermInfo {
 	var terms []SolarTermInfo
-	
+
 	// 从该年1月1日开始查找节气
 	start := time.Date(year, 1, 1, 0, 0, 0, 0, time.Local)
 	end := time.Date(year+1, 1, 1, 0, 0, 0, 0, time.Local)
-	
+
 	current := start
 	for current.Before(end) {
 		solarterm := NextSolarterm(current)
 		termTime := solarterm.Time()
-		
+
 		if termTime.Year() == year {
 			name := solarterm.String()
 			info := solarTermDescriptions[name]
-			
+
 			terms = append(terms, SolarTermInfo{
 				Name:        name,
 				Time:        termTime,
@@ -142,15 +142,15 @@ func (h *SolarTermHelper) GetYearTerms(year int) []SolarTermInfo {
 				Tips:        info.tips,
 			})
 		}
-		
+
 		current = termTime.Add(time.Hour) // 移动到节气时间后，继续查找下一个
 	}
-	
+
 	// 按时间排序
 	sort.Slice(terms, func(i, j int) bool {
 		return terms[i].Time.Before(terms[j].Time)
 	})
-	
+
 	return terms
 }
 
@@ -158,26 +158,26 @@ func (h *SolarTermHelper) GetYearTerms(year int) []SolarTermInfo {
 func (h *SolarTermHelper) GetSeasonTerms(year int, season string) []SolarTermInfo {
 	allTerms := h.GetYearTerms(year)
 	var seasonTerms []SolarTermInfo
-	
+
 	for _, term := range allTerms {
 		if term.Season == season {
 			seasonTerms = append(seasonTerms, term)
 		}
 	}
-	
+
 	return seasonTerms
 }
 
 // FindTermByName 根据名称查找指定年份的节气
 func (h *SolarTermHelper) FindTermByName(year int, name string) *SolarTermInfo {
 	terms := h.GetYearTerms(year)
-	
+
 	for _, term := range terms {
 		if term.Name == name {
 			return &term
 		}
 	}
-	
+
 	return nil
 }
 
@@ -185,12 +185,12 @@ func (h *SolarTermHelper) FindTermByName(year int, name string) *SolarTermInfo {
 func (h *SolarTermHelper) GetTermCalendar(year int) map[int][]SolarTermInfo {
 	terms := h.GetYearTerms(year)
 	calendar := make(map[int][]SolarTermInfo)
-	
+
 	for _, term := range terms {
 		month := int(term.Time.Month())
 		calendar[month] = append(calendar[month], term)
 	}
-	
+
 	return calendar
 }
 
@@ -199,7 +199,7 @@ func (h *SolarTermHelper) FormatTermInfo(info *SolarTermInfo) string {
 	if info == nil {
 		return ""
 	}
-	
+
 	return fmt.Sprintf(`【%s】%s
 时间：%s
 季节：%s
@@ -216,16 +216,16 @@ func (h *SolarTermHelper) FormatTermInfo(info *SolarTermInfo) string {
 func (h *SolarTermHelper) DaysUntilTerm(from time.Time, termName string) int {
 	year := from.Year()
 	term := h.FindTermByName(year, termName)
-	
+
 	if term == nil {
 		// 如果当年没找到，查找明年
 		term = h.FindTermByName(year+1, termName)
 	}
-	
+
 	if term == nil {
 		return -1 // 未找到
 	}
-	
+
 	if term.Time.Before(from) {
 		// 如果节气已过，查找明年的
 		term = h.FindTermByName(year+1, termName)
@@ -233,7 +233,7 @@ func (h *SolarTermHelper) DaysUntilTerm(from time.Time, termName string) int {
 			return -1
 		}
 	}
-	
+
 	duration := term.Time.Sub(from)
 	return int(duration.Hours() / 24)
 }
@@ -241,13 +241,13 @@ func (h *SolarTermHelper) DaysUntilTerm(from time.Time, termName string) int {
 // GetRecentTerms 获取最近的节气（包括过去和未来）
 func (h *SolarTermHelper) GetRecentTerms(t time.Time, count int) []SolarTermInfo {
 	var terms []SolarTermInfo
-	
+
 	// 获取当前年份及前后年份的节气
-	for year := t.Year() - 1; year <= t.Year() + 1; year++ {
+	for year := t.Year() - 1; year <= t.Year()+1; year++ {
 		yearTerms := h.GetYearTerms(year)
 		terms = append(terms, yearTerms...)
 	}
-	
+
 	// 按与当前时间的距离排序
 	sort.Slice(terms, func(i, j int) bool {
 		distI := int64(terms[i].Time.Sub(t))
@@ -260,11 +260,11 @@ func (h *SolarTermHelper) GetRecentTerms(t time.Time, count int) []SolarTermInfo
 		}
 		return distI < distJ
 	})
-	
+
 	// 返回最近的几个
 	if len(terms) > count {
 		terms = terms[:count]
 	}
-	
+
 	return terms
 }

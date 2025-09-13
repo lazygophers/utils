@@ -22,7 +22,7 @@ func TestPBKDF2WithSHA256(t *testing.T) {
 	keyLength := 32
 
 	key := PBKDF2WithSHA256(password, salt, iterations, keyLength)
-	
+
 	if len(key) != keyLength {
 		t.Errorf("Expected key length %d, got %d", keyLength, len(key))
 	}
@@ -48,7 +48,7 @@ func TestPBKDF2WithSHA1(t *testing.T) {
 	keyLength := 20
 
 	key := PBKDF2WithSHA1(password, salt, iterations, keyLength)
-	
+
 	if len(key) != keyLength {
 		t.Errorf("Expected key length %d, got %d", keyLength, len(key))
 	}
@@ -68,7 +68,7 @@ func TestPBKDF2WithSHA512(t *testing.T) {
 	keyLength := 64
 
 	key := PBKDF2WithSHA512(password, salt, iterations, keyLength)
-	
+
 	if len(key) != keyLength {
 		t.Errorf("Expected key length %d, got %d", keyLength, len(key))
 	}
@@ -83,7 +83,7 @@ func TestPBKDF2WithSHA512(t *testing.T) {
 // TestDefaultPBKDF2Config tests default PBKDF2 configuration
 func TestDefaultPBKDF2Config(t *testing.T) {
 	config := DefaultPBKDF2Config()
-	
+
 	if config.SaltLength <= 0 {
 		t.Error("Default salt length should be positive")
 	}
@@ -98,12 +98,12 @@ func TestDefaultPBKDF2Config(t *testing.T) {
 // TestPBKDF2Generate tests PBKDF2 key generation with random salt
 func TestPBKDF2Generate(t *testing.T) {
 	config := DefaultPBKDF2Config()
-	
+
 	key, salt, err := PBKDF2Generate(testPassword, config)
 	if err != nil {
 		t.Fatalf("PBKDF2Generate failed: %v", err)
 	}
-	
+
 	if len(key) != config.KeyLength {
 		t.Errorf("Expected key length %d, got %d", config.KeyLength, len(key))
 	}
@@ -124,7 +124,7 @@ func TestPBKDF2Generate(t *testing.T) {
 // TestPBKDF2Verify tests PBKDF2 password verification
 func TestPBKDF2Verify(t *testing.T) {
 	config := DefaultPBKDF2Config()
-	
+
 	key, salt, err := PBKDF2Generate(testPassword, config)
 	if err != nil {
 		t.Fatalf("PBKDF2Generate failed: %v", err)
@@ -151,7 +151,7 @@ func TestScryptDerive(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ScryptDerive failed: %v", err)
 	}
-	
+
 	if len(key) != config.KeyLength {
 		t.Errorf("Expected key length %d, got %d", config.KeyLength, len(key))
 	}
@@ -169,7 +169,7 @@ func TestScryptDerive(t *testing.T) {
 // TestDefaultScryptConfig tests default Scrypt configuration
 func TestDefaultScryptConfig(t *testing.T) {
 	config := DefaultScryptConfig()
-	
+
 	if config.SaltLength <= 0 {
 		t.Error("Default salt length should be positive")
 	}
@@ -190,12 +190,12 @@ func TestDefaultScryptConfig(t *testing.T) {
 // TestScryptGenerate tests Scrypt key generation with random salt
 func TestScryptGenerate(t *testing.T) {
 	config := DefaultScryptConfig()
-	
+
 	key, salt, err := ScryptGenerate(testPassword, config)
 	if err != nil {
 		t.Fatalf("ScryptGenerate failed: %v", err)
 	}
-	
+
 	if len(key) != config.KeyLength {
 		t.Errorf("Expected key length %d, got %d", config.KeyLength, len(key))
 	}
@@ -216,7 +216,7 @@ func TestScryptGenerate(t *testing.T) {
 // TestScryptVerify tests Scrypt password verification
 func TestScryptVerify(t *testing.T) {
 	config := DefaultScryptConfig()
-	
+
 	key, salt, err := ScryptGenerate(testPassword, config)
 	if err != nil {
 		t.Fatalf("ScryptGenerate failed: %v", err)
@@ -240,7 +240,7 @@ func TestArgon2IDDerive(t *testing.T) {
 	config := DefaultArgon2Config()
 
 	key := Argon2IDDerive(password, salt, config)
-	
+
 	if len(key) != config.KeyLength {
 		t.Errorf("Expected key length %d, got %d", config.KeyLength, len(key))
 	}
@@ -259,7 +259,7 @@ func TestArgon2IDerive(t *testing.T) {
 	config := DefaultArgon2Config()
 
 	key := Argon2IDerive(password, salt, config)
-	
+
 	if len(key) != config.KeyLength {
 		t.Errorf("Expected key length %d, got %d", config.KeyLength, len(key))
 	}
@@ -280,7 +280,7 @@ func TestArgon2IDerive(t *testing.T) {
 // TestDefaultArgon2Config tests default Argon2 configuration
 func TestDefaultArgon2Config(t *testing.T) {
 	config := DefaultArgon2Config()
-	
+
 	if config.SaltLength <= 0 {
 		t.Error("Default salt length should be positive")
 	}
@@ -301,12 +301,12 @@ func TestDefaultArgon2Config(t *testing.T) {
 // TestArgon2Generate tests Argon2 key generation with random salt
 func TestArgon2Generate(t *testing.T) {
 	config := DefaultArgon2Config()
-	
+
 	key, salt, err := Argon2Generate(testPassword, config)
 	if err != nil {
 		t.Fatalf("Argon2Generate failed: %v", err)
 	}
-	
+
 	if len(key) != config.KeyLength {
 		t.Errorf("Expected key length %d, got %d", config.KeyLength, len(key))
 	}
@@ -327,7 +327,7 @@ func TestArgon2Generate(t *testing.T) {
 // TestArgon2Verify tests Argon2 password verification
 func TestArgon2Verify(t *testing.T) {
 	config := DefaultArgon2Config()
-	
+
 	key, salt, err := Argon2Generate(testPassword, config)
 	if err != nil {
 		t.Fatalf("Argon2Generate failed: %v", err)
@@ -371,7 +371,7 @@ func TestGenerateSalt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GenerateSalt failed: %v", err)
 	}
-	
+
 	if len(salt) != length {
 		t.Errorf("Expected salt length %d, got %d", length, len(salt))
 	}
@@ -484,7 +484,7 @@ func TestKDFWithDifferentInputs(t *testing.T) {
 	// Test with empty password
 	emptyPassword := ""
 	config := DefaultPBKDF2Config()
-	
+
 	key, _, err := PBKDF2Generate(emptyPassword, config)
 	if err != nil {
 		t.Errorf("PBKDF2Generate should work with empty password: %v", err)

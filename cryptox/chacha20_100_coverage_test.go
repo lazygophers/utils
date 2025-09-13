@@ -148,7 +148,7 @@ func TestChaCha20Poly1305DecryptAuthFailure(t *testing.T) {
 	validKey := make([]byte, chacha20poly1305.KeySize)
 	plaintext := []byte("test message")
 
-	// Create valid ciphertext first  
+	// Create valid ciphertext first
 	validCiphertext, err := ChaCha20Poly1305Encrypt(validKey, plaintext)
 	if err != nil {
 		t.Fatalf("Failed to create valid ciphertext: %v", err)
@@ -157,7 +157,7 @@ func TestChaCha20Poly1305DecryptAuthFailure(t *testing.T) {
 	// Corrupt the ciphertext portion (not the nonce) to cause authentication failure
 	corruptedCiphertext := make([]byte, len(validCiphertext))
 	copy(corruptedCiphertext, validCiphertext)
-	
+
 	// Corrupt a byte in the ciphertext portion (after the nonce)
 	if len(corruptedCiphertext) > 13 { // 12 bytes nonce + at least 1 byte ciphertext + tag
 		corruptedCiphertext[13] ^= 0xFF // Flip bits in the ciphertext

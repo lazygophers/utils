@@ -67,7 +67,7 @@ func TestTop(t *testing.T) {
 		input := []int{1, 2, 3, 4, 5}
 		result := Top(input, 3)
 		result[0] = 999
-		assert.Equal(t, 1, input[0]) // 原切片不受影响
+		assert.Equal(t, 1, input[0])    // 原切片不受影响
 		assert.Equal(t, 999, result[0]) // 结果切片被修改
 	})
 }

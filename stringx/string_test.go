@@ -43,7 +43,7 @@ func TestToString(t *testing.T) {
 	t.Run("zero_copy_verification", func(t *testing.T) {
 		input := []byte("test string")
 		result := ToString(input)
-		
+
 		// Verify zero-copy by comparing underlying pointers
 		if len(input) > 0 && len(result) > 0 {
 			inputPtr := (*reflect.StringHeader)(unsafe.Pointer(&result)).Data
@@ -84,7 +84,7 @@ func TestToBytes(t *testing.T) {
 	t.Run("zero_copy_verification", func(t *testing.T) {
 		input := "test string"
 		result := ToBytes(input)
-		
+
 		// Verify zero-copy by comparing underlying pointers
 		if len(input) > 0 && len(result) > 0 {
 			stringPtr := (*reflect.StringHeader)(unsafe.Pointer(&input)).Data
@@ -680,12 +680,12 @@ func TestStringEdgeCases(t *testing.T) {
 	t.Run("unicode_edge_cases", func(t *testing.T) {
 		// Test with various Unicode categories
 		testStrings := []string{
-			"🙂😀🎉", // Emojis
-			"Ñoël",    // Accented characters  
+			"🙂😀🎉",           // Emojis
+			"Ñoël",          // Accented characters
 			"ٱلْعَرَبِيَّة", // Arabic
-			"русский", // Cyrillic
-			"中文",     // Chinese
-			"🇺🇸🇨🇳",   // Flag emojis
+			"русский",       // Cyrillic
+			"中文",            // Chinese
+			"🇺🇸🇨🇳",          // Flag emojis
 		}
 
 		for _, s := range testStrings {

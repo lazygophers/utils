@@ -13,9 +13,9 @@ const (
 )
 
 var (
-	blowfishKey8  = []byte("12345678")                    // 8 bytes
-	blowfishKey16 = []byte("1234567890123456")           // 16 bytes
-	blowfishKey32 = []byte("12345678901234567890123456789012") // 32 bytes
+	blowfishKey8  = []byte("12345678")                                                 // 8 bytes
+	blowfishKey16 = []byte("1234567890123456")                                         // 16 bytes
+	blowfishKey32 = []byte("12345678901234567890123456789012")                         // 32 bytes
 	blowfishKey56 = []byte("12345678901234567890123456789012345678901234567890123456") // 56 bytes
 )
 
@@ -162,15 +162,15 @@ func TestBlowfishEncryptDecryptOFB(t *testing.T) {
 // TestBlowfishInvalidKeyLength tests Blowfish functions with invalid key lengths
 func TestBlowfishInvalidKeyLength(t *testing.T) {
 	plaintext := []byte("test")
-	
+
 	// Test with empty key
 	emptyKey := []byte("")
 	longKey := make([]byte, 57) // 57 bytes, too long
 
 	testFunctions := []struct {
-		name     string
-		encFunc  func([]byte, []byte) ([]byte, error)
-		decFunc  func([]byte, []byte) ([]byte, error)
+		name    string
+		encFunc func([]byte, []byte) ([]byte, error)
+		decFunc func([]byte, []byte) ([]byte, error)
 	}{
 		{"ECB", BlowfishEncryptECB, BlowfishDecryptECB},
 		{"CBC", BlowfishEncryptCBC, BlowfishDecryptCBC},
@@ -234,7 +234,7 @@ func TestBlowfishInvalidCiphertext(t *testing.T) {
 	// Create ciphertext that's not a multiple of block size
 	invalidCiphertext := make([]byte, blowfish.BlockSize+1) // 9 bytes (not multiple of 8)
 	key := blowfishKey8
-	
+
 	// Test ECB decryption
 	_, err := BlowfishDecryptECB(key, invalidCiphertext)
 	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {
@@ -247,7 +247,7 @@ func TestBlowfishCBCInvalidCiphertext(t *testing.T) {
 	// Create ciphertext with valid IV but invalid data length
 	invalidCiphertext := make([]byte, blowfish.BlockSize+blowfish.BlockSize+1) // IV + 9 bytes data
 	key := blowfishKey8
-	
+
 	// Test CBC decryption
 	_, err := BlowfishDecryptCBC(key, invalidCiphertext)
 	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {

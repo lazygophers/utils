@@ -39,7 +39,7 @@ func TestWorkTimeConstants(t *testing.T) {
 		assert.Equal(t, xtime955.Day*7, xtime955.Week)
 		assert.Equal(t, xtime955.WorkDay*5, xtime955.WorkWeek) // 5 work days
 		assert.Equal(t, xtime955.Week-xtime955.WorkWeek, xtime955.RestWeek)
-		
+
 		// 5 * 8 hours work + 2 * 24 hours weekend + 5 * 16 hours daily rest
 		expectedRestWeek := xtime955.Day*2 + xtime955.RestDay*5 // Weekend + daily rest
 		assert.Equal(t, expectedRestWeek, xtime955.RestWeek)
@@ -58,8 +58,8 @@ func TestWorkTimeConstants(t *testing.T) {
 		assert.Equal(t, xtime955.Day*91, xtime955.Quarter)
 		assert.Equal(t, xtime955.WorkMonth*3, xtime955.WorkQuarter) // 3 months of work
 		assert.Equal(t, xtime955.Quarter-xtime955.WorkQuarter, xtime955.RestQuarter)
-		
-		expectedWorkQuarter := xtime955.Day*22*3 // 22 work days * 3 months
+
+		expectedWorkQuarter := xtime955.Day * 22 * 3 // 22 work days * 3 months
 		assert.Equal(t, expectedWorkQuarter, xtime955.WorkQuarter)
 	})
 
@@ -68,8 +68,8 @@ func TestWorkTimeConstants(t *testing.T) {
 		assert.Equal(t, xtime955.Day*365, xtime955.Year)
 		assert.Equal(t, xtime955.WorkDay*250, xtime955.WorkYear) // 250 work days
 		assert.Equal(t, xtime955.Year-xtime955.WorkYear, xtime955.RestYear)
-		
-		expectedWorkYear := time.Hour*8*250 // 8 hours * 250 days
+
+		expectedWorkYear := time.Hour * 8 * 250 // 8 hours * 250 days
 		assert.Equal(t, expectedWorkYear, xtime955.WorkYear)
 	})
 }
@@ -129,15 +129,15 @@ func TestConstantValues(t *testing.T) {
 
 	t.Run("specific_work_durations", func(t *testing.T) {
 		// Test specific work duration values
-		assert.Equal(t, time.Hour*8, xtime955.WorkDay) // 8-hour work day
-		assert.Equal(t, time.Hour*40, xtime955.WorkWeek) // 40-hour work week
+		assert.Equal(t, time.Hour*8, xtime955.WorkDay)       // 8-hour work day
+		assert.Equal(t, time.Hour*40, xtime955.WorkWeek)     // 40-hour work week
 		assert.Equal(t, time.Hour*24*22, xtime955.WorkMonth) // 22 work days (full days, not just work hours)
-		assert.Equal(t, time.Hour*8*250, xtime955.WorkYear) // 250 work days
+		assert.Equal(t, time.Hour*8*250, xtime955.WorkYear)  // 250 work days
 	})
 
 	t.Run("specific_rest_durations", func(t *testing.T) {
 		// Test specific rest duration values
-		assert.Equal(t, time.Hour*16, xtime955.RestDay) // 16 hours rest per day
+		assert.Equal(t, time.Hour*16, xtime955.RestDay)         // 16 hours rest per day
 		expectedRestWeek := xtime955.Day*2 + xtime955.RestDay*5 // Weekend + daily rest
 		assert.Equal(t, expectedRestWeek, xtime955.RestWeek)
 		assert.Equal(t, xtime955.Day*8, xtime955.RestMonth) // 8 rest days per month
@@ -177,10 +177,10 @@ func TestConstantUsageScenarios(t *testing.T) {
 		// Calculate work hours in different periods
 		workHoursInWeek := xtime955.WorkWeek / xtime955.Hour
 		assert.Equal(t, time.Duration(40), workHoursInWeek) // 40-hour work week
-		
+
 		workHoursInMonth := xtime955.WorkMonth / xtime955.Hour
 		assert.Equal(t, time.Duration(22*24), workHoursInMonth) // 22 work days * 24 hours per day
-		
+
 		workDaysInYear := xtime955.WorkYear / xtime955.WorkDay
 		assert.Equal(t, time.Duration(250), workDaysInYear) // 250 work days
 	})
@@ -189,10 +189,10 @@ func TestConstantUsageScenarios(t *testing.T) {
 		// Calculate rest hours in different periods
 		restHoursInDay := xtime955.RestDay / xtime955.Hour
 		assert.Equal(t, time.Duration(16), restHoursInDay) // 16 hours rest per day
-		
+
 		restDaysInMonth := xtime955.RestMonth / xtime955.Day
 		assert.Equal(t, time.Duration(8), restDaysInMonth) // 8 rest days per month
-		
+
 		// Rest time in year calculation
 		// Year = 365 days * 24 hours/day = 8760 hours
 		// WorkYear = 250 work days * 8 hours/day = 2000 hours
@@ -206,11 +206,11 @@ func TestConstantUsageScenarios(t *testing.T) {
 		// Calculate work efficiency ratios
 		dailyWorkRatio := float64(xtime955.WorkDay) / float64(xtime955.Day)
 		assert.InDelta(t, 1.0/3.0, dailyWorkRatio, 0.01) // ~33% work time per day
-		
+
 		weeklyWorkRatio := float64(xtime955.WorkWeek) / float64(xtime955.Week)
 		expectedWeeklyRatio := 40.0 / 168.0 // 40 hours / 168 hours per week
 		assert.InDelta(t, expectedWeeklyRatio, weeklyWorkRatio, 0.01)
-		
+
 		yearlyWorkRatio := float64(xtime955.WorkYear) / float64(xtime955.Year)
 		expectedYearlyRatio := 250.0 * 8.0 / (365.0 * 24.0) // Work hours / total hours
 		assert.InDelta(t, expectedYearlyRatio, yearlyWorkRatio, 0.01)
@@ -221,10 +221,10 @@ func TestConstantUsageScenarios(t *testing.T) {
 		overtimeHours := time.Hour * 2
 		extendedWorkDay := xtime955.WorkDay + overtimeHours
 		assert.Equal(t, time.Hour*10, extendedWorkDay)
-		
+
 		weekendRest := xtime955.Day * 2
 		assert.True(t, weekendRest < xtime955.RestWeek) // Weekend is part of rest week
-		
+
 		monthlyOvertime := xtime955.WorkMonth + xtime955.WorkWeek
 		expectedOvertimeHours := 22*24 + 40 // Regular month + extra week
 		assert.Equal(t, time.Hour*time.Duration(expectedOvertimeHours), monthlyOvertime)
@@ -254,7 +254,7 @@ func TestWorkLifeBalance(t *testing.T) {
 		// 8 hours work, 16 hours personal time (including sleep)
 		totalDailyTime := xtime955.WorkDay + xtime955.RestDay
 		assert.Equal(t, xtime955.Day, totalDailyTime)
-		
+
 		workPercentage := float64(xtime955.WorkDay) * 100 / float64(xtime955.Day)
 		assert.InDelta(t, 33.33, workPercentage, 0.1) // ~33% work time
 	})
@@ -263,7 +263,7 @@ func TestWorkLifeBalance(t *testing.T) {
 		// 40 hours work, 128 hours personal time
 		totalWeeklyTime := xtime955.WorkWeek + xtime955.RestWeek
 		assert.Equal(t, xtime955.Week, totalWeeklyTime)
-		
+
 		workPercentage := float64(xtime955.WorkWeek) * 100 / float64(xtime955.Week)
 		expectedPercentage := 40.0 * 100 / 168.0 // 40 hours out of 168
 		assert.InDelta(t, expectedPercentage, workPercentage, 0.1)
@@ -273,10 +273,10 @@ func TestWorkLifeBalance(t *testing.T) {
 		// 250 work days, 115 rest days
 		totalYearlyTime := xtime955.WorkYear + xtime955.RestYear
 		assert.Equal(t, xtime955.Year, totalYearlyTime)
-		
+
 		workDays := xtime955.WorkYear / xtime955.WorkDay
 		assert.Equal(t, time.Duration(250), workDays)
-		
+
 		// Rest includes weekends, holidays, and daily rest time
 		// This is more complex but should be consistent
 	})

@@ -18,23 +18,23 @@ func TestRegister(t *testing.T) {
 		exitCallbackList = originalList
 		exitPatches = originalPatches
 	}()
-	
+
 	// 重置状态
 	exitCallbackListMu.Lock()
 	exitCallbackList = nil
 	exitCallbackListMu.Unlock()
-	
+
 	// 测试注册回调函数
 	called := false
 	Register(func() {
 		called = true
 	})
-	
+
 	// 检查是否添加到列表中
 	exitCallbackListMu.Lock()
 	count := len(exitCallbackList)
 	exitCallbackListMu.Unlock()
-	
+
 	if count != 1 {
 		t.Errorf("期望回调列表长度为1，实际为%d", count)
 	}
@@ -48,20 +48,20 @@ func TestRegisterNil(t *testing.T) {
 		exitCallbackList = originalList
 		exitCallbackListMu.Unlock()
 	}()
-	
+
 	// 重置状态
 	exitCallbackListMu.Lock()
 	originalCount := len(exitCallbackList)
 	exitCallbackListMu.Unlock()
-	
+
 	// 测试注册nil回调
 	Register(nil)
-	
+
 	// 检查列表长度没有变化
 	exitCallbackListMu.Lock()
 	newCount := len(exitCallbackList)
 	exitCallbackListMu.Unlock()
-	
+
 	if newCount != originalCount {
 		t.Errorf("注册nil回调后列表长度应该不变，原来%d，现在%d", originalCount, newCount)
 	}
@@ -75,18 +75,18 @@ func TestRegisterConcurrent(t *testing.T) {
 		exitCallbackList = originalList
 		exitCallbackListMu.Unlock()
 	}()
-	
+
 	// 重置状态
 	exitCallbackListMu.Lock()
 	exitCallbackList = nil
 	exitCallbackListMu.Unlock()
-	
+
 	const numGoroutines = 100
 	const numCallbacks = 10
-	
+
 	var wg sync.WaitGroup
 	wg.Add(numGoroutines)
-	
+
 	// 并发注册回调函数
 	for i := 0; i < numGoroutines; i++ {
 		go func(id int) {
@@ -98,14 +98,14 @@ func TestRegisterConcurrent(t *testing.T) {
 			}
 		}(i)
 	}
-	
+
 	wg.Wait()
-	
+
 	// 检查所有回调都被注册
 	exitCallbackListMu.Lock()
 	count := len(exitCallbackList)
 	exitCallbackListMu.Unlock()
-	
+
 	expected := numGoroutines * numCallbacks
 	if count != expected {
 		t.Errorf("期望注册%d个回调，实际注册%d个", expected, count)
@@ -124,16 +124,16 @@ func TestHookExit(t *testing.T) {
 		exitPatches = originalPatches
 		mu.Unlock()
 	}()
-	
+
 	// 模拟有patch的情况
 	mu.Lock()
 	exitPatches = originalPatches // 确保不是nil
 	mu.Unlock()
-	
+
 	// 准备回调函数
 	var called []int
 	var callMu sync.Mutex
-	
+
 	exitCallbackListMu.Lock()
 	exitCallbackList = []func(){
 		func() {
@@ -154,18 +154,18 @@ func TestHookExit(t *testing.T) {
 		},
 	}
 	exitCallbackListMu.Unlock()
-	
+
 	// 由于hookExit会调用os.Exit，我们需要在子进程中测试
 	if os.Getenv("TEST_HOOK_EXIT") == "1" {
 		hookExit(42)
 		return
 	}
-	
+
 	// 使用子进程测试
 	cmd := exec.Command(os.Args[0], "-test.run=TestHookExit")
 	cmd.Env = append(os.Environ(), "TEST_HOOK_EXIT=1")
 	err := cmd.Run()
-	
+
 	// 检查退出码
 	if exitError, ok := err.(*exec.ExitError); ok {
 		if exitError.ExitCode() != 42 {
@@ -188,14 +188,14 @@ func TestExitBehavior(t *testing.T) {
 		os.Exit(0)
 		return
 	}
-	
+
 	cmd := exec.Command(os.Args[0], "-test.run=TestExitBehavior")
 	cmd.Env = append(os.Environ(), "BE_CRASHER=1")
 	out, err := cmd.Output()
 	if err != nil {
 		t.Fatal("子进程执行失败:", err)
 	}
-	
+
 	output := string(out)
 	if !strings.Contains(output, "callback1") {
 		t.Errorf("期望输出包含callback1，实际输出: %s", output)
@@ -214,7 +214,7 @@ func BenchmarkRegister(b *testing.B) {
 		exitCallbackList = originalList
 		exitCallbackListMu.Unlock()
 	}()
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Register(func() {
@@ -231,7 +231,7 @@ func BenchmarkRegisterConcurrent(b *testing.B) {
 		exitCallbackList = originalList
 		exitCallbackListMu.Unlock()
 	}()
-	
+
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {

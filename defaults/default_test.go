@@ -29,25 +29,25 @@ type BasicTypes struct {
 
 // 指针类型测试结构体
 type PointerTypes struct {
-	StringPtr  *string  `default:"ptr_string"`
-	IntPtr     *int     `default:"999"`
-	FloatPtr   *float64 `default:"9.99"`
-	BoolPtr    *bool    `default:"false"`
-	StructPtr  *BasicTypes
-	DoublePtr  **int `default:"123"`
-	TriplePtr  ***string `default:"triple"`
+	StringPtr *string  `default:"ptr_string"`
+	IntPtr    *int     `default:"999"`
+	FloatPtr  *float64 `default:"9.99"`
+	BoolPtr   *bool    `default:"false"`
+	StructPtr *BasicTypes
+	DoublePtr **int     `default:"123"`
+	TriplePtr ***string `default:"triple"`
 }
 
 // 复杂类型测试结构体
 type ComplexTypes struct {
-	SliceInt     []int                 `default:"[1,2,3,4,5]"`
-	SliceString  []string              `default:"[\"a\",\"b\",\"c\"]"`
-	ArrayInt     [3]int                `default:"[10,20,30]"`
-	ArrayString  [2]string             `default:"[\"x\",\"y\"]"`
-	MapIntString map[int]string        `default:"{\"1\":\"one\",\"2\":\"two\"}"`
+	SliceInt     []int                  `default:"[1,2,3,4,5]"`
+	SliceString  []string               `default:"[\"a\",\"b\",\"c\"]"`
+	ArrayInt     [3]int                 `default:"[10,20,30]"`
+	ArrayString  [2]string              `default:"[\"x\",\"y\"]"`
+	MapIntString map[int]string         `default:"{\"1\":\"one\",\"2\":\"two\"}"`
 	MapString    map[string]interface{} `default:"{\"key1\":\"value1\",\"key2\":42}"`
-	Channel      chan int              `default:"5"`
-	Interface    interface{}           `default:"test_interface"`
+	Channel      chan int               `default:"5"`
+	Interface    interface{}            `default:"test_interface"`
 }
 
 // 时间类型测试结构体
@@ -60,14 +60,14 @@ type TimeTypes struct {
 
 // 嵌套结构体
 type NestedStruct struct {
-	Name   string `default:"nested"`
-	Value  int    `default:"888"`
-	Inner  BasicTypes
+	Name     string `default:"nested"`
+	Value    int    `default:"888"`
+	Inner    BasicTypes
 	PtrInner *BasicTypes
 }
 
 type ParentStruct struct {
-	ID     int          `default:"1"`
+	ID     int `default:"1"`
 	Nested NestedStruct
 }
 
@@ -478,7 +478,7 @@ func TestInvalidChannelBufferSize(t *testing.T) {
 // 测试无效的 JSON 格式
 func TestInvalidJSONFormat(t *testing.T) {
 	type InvalidJSONTest struct {
-		SliceField []int           `default:"[invalid,json]"`
+		SliceField []int          `default:"[invalid,json]"`
 		MapField   map[string]int `default:"{invalid:json}"`
 	}
 
@@ -543,11 +543,11 @@ func TestZeroValues(t *testing.T) {
 // 基准测试
 func BenchmarkSetDefaults(b *testing.B) {
 	type BenchmarkStruct struct {
-		StringField string  `default:"benchmark"`
-		IntField    int     `default:"123"`
-		FloatField  float64 `default:"1.23"`
-		BoolField   bool    `default:"true"`
-		SliceField  []int   `default:"[1,2,3]"`
+		StringField string            `default:"benchmark"`
+		IntField    int               `default:"123"`
+		FloatField  float64           `default:"1.23"`
+		BoolField   bool              `default:"true"`
+		SliceField  []int             `default:"[1,2,3]"`
 		MapField    map[string]string `default:"{\"key\":\"value\"}"`
 	}
 
@@ -564,11 +564,11 @@ func TestComplexNested(t *testing.T) {
 		Value string `default:"level3"`
 	}
 	type Level2 struct {
-		Value string `default:"level2"`
+		Value  string `default:"level2"`
 		Level3 Level3
 	}
 	type Level1 struct {
-		Value string `default:"level1"`
+		Value  string `default:"level1"`
 		Level2 Level2
 	}
 
@@ -627,7 +627,7 @@ func TestCustomDefaultReturnsNil(t *testing.T) {
 
 	var nct NilCustomTest
 	defaults.SetDefaultsWithOptions(&nct, opts)
-	
+
 	// 当自定义函数返回nil时，字段保持空值（因为if-else if逻辑）
 	if nct.StringField != "" {
 		t.Errorf("Expected StringField to remain empty, got '%s'", nct.StringField)
@@ -650,7 +650,7 @@ func TestCustomDefaultWrongType(t *testing.T) {
 
 	var wtt WrongTypeTest
 	defaults.SetDefaultsWithOptions(&wtt, opts)
-	
+
 	// 类型不匹配时，字段保持空值（因为if-else if逻辑）
 	if wtt.StringField != "" {
 		t.Errorf("Expected StringField to remain empty, got '%s'", wtt.StringField)
@@ -698,7 +698,7 @@ func TestNonZeroNotOverwritten(t *testing.T) {
 		FloatField: 1.23,
 		BoolField:  true,
 	}
-	
+
 	defaults.SetDefaults(&nzt)
 
 	// 验证非零值未被覆盖
@@ -761,7 +761,7 @@ func TestArrayOverflow(t *testing.T) {
 func TestRegisterCustomDefaultInit(t *testing.T) {
 	// 先清空以确保测试环境
 	defaults.ClearCustomDefaults()
-	
+
 	// 通过将CustomDefaults设置为nil来测试初始化逻辑
 	defaults.RegisterCustomDefault("test", func() interface{} {
 		return "test_value"
@@ -994,7 +994,7 @@ func TestRegisterCustomDefaultNilMap(t *testing.T) {
 	// 手动将默认选项的CustomDefaults设置为nil以测试初始化逻辑
 	// 注意：这个测试可能会影响其他测试，所以我们在最后清理
 	defaults.ClearCustomDefaults()
-	
+
 	// 现在注册一个自定义默认值，这应该触发map的初始化
 	defaults.RegisterCustomDefault("string", func() interface{} {
 		return "initialized"
@@ -1119,7 +1119,7 @@ func TestSetDefaultsNoError(t *testing.T) {
 	var net NoErrorTest
 	// 这应该成功执行，不会触发panic
 	defaults.SetDefaults(&net)
-	
+
 	if net.StringField != "test_value" {
 		t.Errorf("Expected StringField to be 'test_value', got '%s'", net.StringField)
 	}
@@ -1176,28 +1176,28 @@ func TestArrayParseElementError(t *testing.T) {
 func TestRegisterCustomDefaultInitMap(t *testing.T) {
 	// 这个测试很难直接触发私有变量的nil检查
 	// 但我们可以通过多次调用来确保覆盖率
-	
+
 	// 先确保有一些自定义默认值
 	defaults.RegisterCustomDefault("test1", func() interface{} { return "value1" })
-	
+
 	// 然后清空 - 这会重新初始化map
 	defaults.ClearCustomDefaults()
-	
+
 	// 直接调用多次来增加覆盖率
 	for i := 0; i < 3; i++ {
 		defaults.RegisterCustomDefault(fmt.Sprintf("test%d", i), func() interface{} {
 			return fmt.Sprintf("value%d", i)
 		})
 	}
-	
+
 	// 清理
 	defaults.ClearCustomDefaults()
-	
+
 	// 备用测试：确保函数可以正常工作
 	defaults.RegisterCustomDefault("final_test", func() interface{} {
 		return "final_value"
 	})
-	
+
 	// 清理
 	defaults.ClearCustomDefaults()
 }
@@ -1206,7 +1206,7 @@ func TestRegisterCustomDefaultInitMap(t *testing.T) {
 func TestArrayParseBoundaryCheck(t *testing.T) {
 	// 创建一个数组解析场景，其中parts的长度超过数组长度
 	// 但同时确保i >= vv.Len()的分支被触发
-	
+
 	type BoundaryTest struct {
 		// 使用一个长度为1的数组，但提供更多元素
 		ArrayField [1]string `default:"elem1,elem2,elem3"`
@@ -1214,36 +1214,36 @@ func TestArrayParseBoundaryCheck(t *testing.T) {
 
 	var bt BoundaryTest
 	defaults.SetDefaults(&bt)
-	
+
 	// 应该只设置第一个元素
 	expected := [1]string{"elem1"}
 	if bt.ArrayField != expected {
 		t.Errorf("Expected ArrayField to be %v, got %v", expected, bt.ArrayField)
 	}
-	
+
 	// 再测试一个边界情况：长度为0的数组
 	type ZeroLengthArrayTest struct {
 		ArrayField [0]string `default:"elem1,elem2"`
 	}
-	
+
 	var zat ZeroLengthArrayTest
 	defaults.SetDefaults(&zat)
-	
+
 	// 长度为0的数组应该保持不变
 	expected0 := [0]string{}
 	if zat.ArrayField != expected0 {
 		t.Errorf("Expected ArrayField to be empty, got %v", zat.ArrayField)
 	}
-	
+
 	// 测试特殊情况：尝试触发i >= vv.Len()分支
 	// 虽然这个分支理论上不可达，但我们可以尝试各种边界情况
 	type EdgeCaseTest struct {
-		ArrayField [2]string `default:","`  // 只有逗号
+		ArrayField [2]string `default:","` // 只有逗号
 	}
-	
+
 	var etc EdgeCaseTest
 	defaults.SetDefaults(&etc)
-	
+
 	// 这应该产生两个空字符串元素
 	expectedEdge := [2]string{"", ""}
 	if etc.ArrayField != expectedEdge {

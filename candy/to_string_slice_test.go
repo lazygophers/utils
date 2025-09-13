@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-
 // TestToStringSliceComprehensive 测试 ToStringSlice 函数的所有分支
 func TestToStringSliceComprehensive(t *testing.T) {
 	t.Parallel()
@@ -121,13 +120,13 @@ func TestToStringSliceComprehensive(t *testing.T) {
 		{"int", 42, ",", nil},
 		{"nil", nil, ",", nil},
 		{"map", map[string]int{"key": 42}, ",", nil},
-		{"struct", struct{ID int}{ID: 1}, ",", nil},
-		
+		{"struct", struct{ ID int }{ID: 1}, ",", nil},
+
 		// 边界情况测试
 		{"[]byte invalid json", []byte("[invalid}"), ",", []string{"[invalid}"}},
 		{"string invalid json", "[invalid}", ",", []string{"[invalid}"}},
 		{"[]byte partial json", []byte("[1,2"), ",", []string{"[1", "2"}},
-		
+
 		// 测试空分隔符的更多情况
 		{"[]byte empty sep json valid", []byte("[1,2,3]"), "", []string{"1", "2", "3"}},
 		{"[]byte empty sep not json", []byte("hello"), "", []string{"hello"}},

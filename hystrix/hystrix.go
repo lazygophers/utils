@@ -62,9 +62,9 @@ type CircuitBreaker struct {
 		failures        atomic.Uint64
 		_               [56]byte // 缓存行填充
 		lastCleanupTime atomic.Int64
-		_               [56]byte // 缓存行填充
+		_               [56]byte      // 缓存行填充
 		changed         atomic.Uint32 // 0=false, 1=true
-		_               [60]byte // 缓存行填充
+		_               [60]byte      // 缓存行填充
 	}
 
 	// 环形缓冲区优化
@@ -162,21 +162,21 @@ func (p *CircuitBreaker) Before() bool {
 // After 记录请求执行结果 (无锁优化)
 func (p *CircuitBreaker) After(success bool) {
 	now := time.Now().UnixNano()
-	
+
 	// 紧凑存储：时间戳(相对) + 成功标志
 	baseTime := p.stats.lastCleanupTime.Load()
 	relativeTime := now - baseTime
 	if relativeTime < 0 {
 		relativeTime = 0
 	}
-	
+
 	var packed int64
 	if relativeTime > 0x7FFFFFFF { // 超过32位，使用绝对时间
 		packed = now << timeShift
 	} else {
 		packed = relativeTime << timeShift
 	}
-	
+
 	if success {
 		packed |= successFlag
 		p.stats.successes.Add(1)
@@ -253,7 +253,7 @@ func (p *CircuitBreaker) updateStateOptimized() {
 func (p *CircuitBreaker) cleanUpOptimized() bool {
 	now := time.Now().UnixNano()
 	lastCleanup := p.stats.lastCleanupTime.Load()
-	
+
 	if now-lastCleanup < p.timeWindow {
 		return false
 	}
@@ -282,7 +282,7 @@ func (rb *optimizedRingBuffer) cleanupOptimized(threshold, baseTime int64) (remo
 	for head < tail {
 		idx := head & rb.mask
 		packed := rb.buffer[idx]
-		
+
 		if packed == 0 {
 			break
 		}
@@ -327,7 +327,7 @@ func (rb *optimizedRingBuffer) lastRequestSuccess() bool {
 	if head >= tail {
 		return false
 	}
-	
+
 	lastIdx := (tail - 1) & rb.mask
 	packed := rb.buffer[lastIdx]
 	return packed&successFlag != 0
@@ -443,12 +443,12 @@ func (cb *FastCircuitBreaker) CallFast(fn func() error) error {
 
 	err := fn()
 	cb.RecordResult(err == nil)
-	
+
 	// 半开状态的快速恢复逻辑
 	if err == nil && cb.state.Load() == stateHalfOpenOpt {
 		cb.state.Store(stateClosedOpt)
 	}
-	
+
 	return err
 }
 
@@ -487,40 +487,40 @@ func NewBatchCircuitBreaker(config CircuitBreakerConfig, batchSize int, batchTim
 	if batchSize <= 0 {
 		batchSize = 100
 	}
-	
+
 	cb := &BatchCircuitBreaker{
-		CircuitBreaker:  NewCircuitBreaker(config),
-		batchSize:       batchSize,
-		batchBuffer:     make([]bool, batchSize),
-		batchTimeout:    batchTimeout,
+		CircuitBreaker: NewCircuitBreaker(config),
+		batchSize:      batchSize,
+		batchBuffer:    make([]bool, batchSize),
+		batchTimeout:   batchTimeout,
 	}
 	cb.lastFlush.Store(time.Now().UnixNano())
-	
+
 	// 启动定时刷新
 	go cb.flushLoop()
-	
+
 	return cb
 }
 
 // AfterBatch 批量记录结果
 func (cb *BatchCircuitBreaker) AfterBatch(success bool) {
 	now := time.Now().UnixNano()
-	
+
 	// 检查是否需要强制刷新
 	if now-cb.lastFlush.Load() > cb.batchTimeout.Nanoseconds() {
 		cb.flush()
 		return
 	}
-	
+
 	index := cb.batchIndex.Add(1) - 1
 	if int(index) >= cb.batchSize {
 		cb.flush()
 		cb.AfterBatch(success) // 重试
 		return
 	}
-	
+
 	cb.batchBuffer[index] = success
-	
+
 	if int(index) >= cb.batchSize-1 {
 		cb.flush()
 	}
@@ -530,12 +530,12 @@ func (cb *BatchCircuitBreaker) AfterBatch(success bool) {
 func (cb *BatchCircuitBreaker) flush() {
 	cb.batchMutex.Lock()
 	defer cb.batchMutex.Unlock()
-	
+
 	index := cb.batchIndex.Swap(0)
 	if index == 0 {
 		return
 	}
-	
+
 	var successes, failures uint64
 	for i := int32(0); i < index; i++ {
 		if cb.batchBuffer[i] {
@@ -544,7 +544,7 @@ func (cb *BatchCircuitBreaker) flush() {
 			failures++
 		}
 	}
-	
+
 	// 批量更新统计
 	if successes > 0 {
 		cb.stats.successes.Add(successes)
@@ -552,7 +552,7 @@ func (cb *BatchCircuitBreaker) flush() {
 	if failures > 0 {
 		cb.stats.failures.Add(failures)
 	}
-	
+
 	cb.stats.changed.Store(1)
 	cb.lastFlush.Store(time.Now().UnixNano())
 }
@@ -561,7 +561,7 @@ func (cb *BatchCircuitBreaker) flush() {
 func (cb *BatchCircuitBreaker) flushLoop() {
 	ticker := time.NewTicker(cb.batchTimeout)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		if cb.batchIndex.Load() > 0 {
 			cb.flush()
@@ -619,7 +619,7 @@ func (rb *ringBuffer) last() *requestResult {
 	if !rb.hasRecentRequest() {
 		return nil
 	}
-	
+
 	// 返回兼容的 requestResult 对象
 	result := &requestResult{
 		success: rb.lastRequestSuccess(),

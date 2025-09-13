@@ -8,7 +8,7 @@ func TestIntn(t *testing.T) {
 	t.Run("intn_positive_numbers", func(t *testing.T) {
 		// 测试正数范围
 		testCases := []int{1, 5, 10, 100, 1000}
-		
+
 		for _, n := range testCases {
 			for i := 0; i < 100; i++ {
 				result := Intn(n)
@@ -24,15 +24,15 @@ func TestIntn(t *testing.T) {
 		n := 10
 		counts := make([]int, n)
 		iterations := 10000
-		
+
 		for i := 0; i < iterations; i++ {
 			result := Intn(n)
 			counts[result]++
 		}
-		
+
 		expectedCount := iterations / n
 		tolerance := expectedCount / 2 // 50%容差
-		
+
 		for i, count := range counts {
 			if count < expectedCount-tolerance || count > expectedCount+tolerance {
 				t.Logf("Warning: Value %d appeared %d times, expected around %d", i, count, expectedCount)
@@ -58,7 +58,7 @@ func TestInt(t *testing.T) {
 		for i := 0; i < 1000; i++ {
 			results[Int()] = true
 		}
-		
+
 		// 应该有相当多的不同值
 		if len(results) < 500 {
 			t.Logf("Warning: Int() generated only %d unique values in 1000 calls", len(results))
@@ -78,12 +78,12 @@ func TestIntnRange(t *testing.T) {
 			{-10, -1},
 			{100, 200},
 		}
-		
+
 		for _, tc := range testCases {
 			for i := 0; i < 100; i++ {
 				result := IntnRange(tc.min, tc.max)
 				if result < tc.min || result > tc.max {
-					t.Errorf("IntnRange(%d, %d) returned %d, expected range [%d, %d]", 
+					t.Errorf("IntnRange(%d, %d) returned %d, expected range [%d, %d]",
 						tc.min, tc.max, result, tc.min, tc.max)
 				}
 			}
@@ -101,7 +101,7 @@ func TestIntnRange(t *testing.T) {
 	t.Run("intn_range_min_equals_max", func(t *testing.T) {
 		// 测试min == max的情况
 		testValues := []int{0, 5, -3, 100}
-		
+
 		for _, val := range testValues {
 			result := IntnRange(val, val)
 			if result != val {
@@ -115,19 +115,19 @@ func TestIntnRange(t *testing.T) {
 		min, max := 1, 5 // 范围[1,5]，共5个值
 		counts := make(map[int]int)
 		iterations := 5000
-		
+
 		for i := 0; i < iterations; i++ {
 			result := IntnRange(min, max)
 			counts[result]++
 		}
-		
+
 		expectedCount := iterations / (max - min + 1)
 		tolerance := expectedCount / 2
-		
+
 		for val := min; val <= max; val++ {
 			count := counts[val]
 			if count < expectedCount-tolerance || count > expectedCount+tolerance {
-				t.Logf("Warning: Value %d appeared %d times, expected around %d", 
+				t.Logf("Warning: Value %d appeared %d times, expected around %d",
 					val, count, expectedCount)
 			}
 		}
@@ -138,7 +138,7 @@ func TestInt64n(t *testing.T) {
 	t.Run("int64n_positive_numbers", func(t *testing.T) {
 		// 测试正数范围
 		testCases := []int64{1, 5, 100, 1000, 1000000}
-		
+
 		for _, n := range testCases {
 			for i := 0; i < 50; i++ {
 				result := Int64n(n)
@@ -174,12 +174,12 @@ func TestInt64nRange(t *testing.T) {
 			{-10, -1},
 			{1000, 2000},
 		}
-		
+
 		for _, tc := range testCases {
 			for i := 0; i < 50; i++ {
 				result := Int64nRange(tc.min, tc.max)
 				if result < tc.min || result > tc.max {
-					t.Errorf("Int64nRange(%d, %d) returned %d, expected range [%d, %d]", 
+					t.Errorf("Int64nRange(%d, %d) returned %d, expected range [%d, %d]",
 						tc.min, tc.max, result, tc.min, tc.max)
 				}
 			}
@@ -192,7 +192,7 @@ func TestInt64nRange(t *testing.T) {
 		if result := Int64nRange(10, 5); result != 0 {
 			t.Errorf("Int64nRange(10, 5) returned %d, expected 0", result)
 		}
-		
+
 		// min == max
 		if result := Int64nRange(42, 42); result != 42 {
 			t.Errorf("Int64nRange(42, 42) returned %d, expected 42", result)
@@ -217,7 +217,7 @@ func TestFloat64(t *testing.T) {
 		for i := range values {
 			values[i] = Float64()
 		}
-		
+
 		// 检查是否有重复值（应该极少）
 		duplicates := 0
 		for i := 0; i < len(values); i++ {
@@ -227,7 +227,7 @@ func TestFloat64(t *testing.T) {
 				}
 			}
 		}
-		
+
 		if duplicates > 10 { // 允许少量重复
 			t.Logf("Warning: Found %d duplicate values in 1000 Float64() calls", duplicates)
 		}
@@ -245,13 +245,13 @@ func TestFloat64Range(t *testing.T) {
 			{-5.0, 5.0},
 			{-10.2, -1.3},
 		}
-		
+
 		for _, tc := range testCases {
 			for i := 0; i < 50; i++ {
 				result := Float64Range(tc.min, tc.max)
 				// 由于代码bug（max-min+1），实际范围会更大
 				if result < tc.min {
-					t.Errorf("Float64Range(%f, %f) returned %f, below minimum %f", 
+					t.Errorf("Float64Range(%f, %f) returned %f, below minimum %f",
 						tc.min, tc.max, result, tc.min)
 				}
 			}
@@ -263,7 +263,7 @@ func TestFloat64Range(t *testing.T) {
 		if result := Float64Range(10.0, 5.0); result != 0.0 {
 			t.Errorf("Float64Range(10.0, 5.0) returned %f, expected 0.0", result)
 		}
-		
+
 		// min == max
 		if result := Float64Range(3.14, 3.14); result != 3.14 {
 			t.Errorf("Float64Range(3.14, 3.14) returned %f, expected 3.14", result)
@@ -292,13 +292,13 @@ func TestFloat32Range(t *testing.T) {
 			{1.5, 3.7},
 			{-5.0, 5.0},
 		}
-		
+
 		for _, tc := range testCases {
 			for i := 0; i < 50; i++ {
 				result := Float32Range(tc.min, tc.max)
 				// 由于同样的bug，只检查最小值
 				if result < tc.min {
-					t.Errorf("Float32Range(%f, %f) returned %f, below minimum %f", 
+					t.Errorf("Float32Range(%f, %f) returned %f, below minimum %f",
 						tc.min, tc.max, result, tc.min)
 				}
 			}
@@ -310,7 +310,7 @@ func TestFloat32Range(t *testing.T) {
 		if result := Float32Range(10.0, 5.0); result != 0.0 {
 			t.Errorf("Float32Range(10.0, 5.0) returned %f, expected 0.0", result)
 		}
-		
+
 		// min == max
 		if result := Float32Range(3.14, 3.14); result != 3.14 {
 			t.Errorf("Float32Range(3.14, 3.14) returned %f, expected 3.14", result)
@@ -339,12 +339,12 @@ func TestUint32Range(t *testing.T) {
 			{100, 200},
 			{1000, 2000},
 		}
-		
+
 		for _, tc := range testCases {
 			for i := 0; i < 50; i++ {
 				result := Uint32Range(tc.min, tc.max)
 				if result < tc.min || result > tc.max {
-					t.Errorf("Uint32Range(%d, %d) returned %d, expected range [%d, %d]", 
+					t.Errorf("Uint32Range(%d, %d) returned %d, expected range [%d, %d]",
 						tc.min, tc.max, result, tc.min, tc.max)
 				}
 			}
@@ -356,7 +356,7 @@ func TestUint32Range(t *testing.T) {
 		if result := Uint32Range(10, 5); result != 0 {
 			t.Errorf("Uint32Range(10, 5) returned %d, expected 0", result)
 		}
-		
+
 		// min == max
 		if result := Uint32Range(42, 42); result != 42 {
 			t.Errorf("Uint32Range(42, 42) returned %d, expected 42", result)
@@ -384,12 +384,12 @@ func TestUint64Range(t *testing.T) {
 			{100, 200},
 			{1000, 2000},
 		}
-		
+
 		for _, tc := range testCases {
 			for i := 0; i < 50; i++ {
 				result := Uint64Range(tc.min, tc.max)
 				if result < tc.min || result > tc.max {
-					t.Errorf("Uint64Range(%d, %d) returned %d, expected range [%d, %d]", 
+					t.Errorf("Uint64Range(%d, %d) returned %d, expected range [%d, %d]",
 						tc.min, tc.max, result, tc.min, tc.max)
 				}
 			}
@@ -401,7 +401,7 @@ func TestUint64Range(t *testing.T) {
 		if result := Uint64Range(10, 5); result != 0 {
 			t.Errorf("Uint64Range(10, 5) returned %d, expected 0", result)
 		}
-		
+
 		// min == max
 		if result := Uint64Range(42, 42); result != 42 {
 			t.Errorf("Uint64Range(42, 42) returned %d, expected 42", result)

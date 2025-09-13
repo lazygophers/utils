@@ -54,7 +54,7 @@ func TestReverse(t *testing.T) {
 		original := make([]int, len(input))
 		copy(original, input)
 		result := Reverse(input)
-		assert.Equal(t, original, input) // 原切片不变
+		assert.Equal(t, original, input)        // 原切片不变
 		assert.Equal(t, []int{3, 2, 1}, result) // 结果是反转的
 	})
 

@@ -36,7 +36,7 @@ func Shuffle[T any](ss []T) []T {
 	if len(ss) <= 1 {
 		return ss
 	}
-	
+
 	for i := len(ss) - 1; i > 0; i-- {
 		j := randx.FastIntn(i + 1)
 		ss[i], ss[j] = ss[j], ss[i]

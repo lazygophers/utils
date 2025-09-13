@@ -51,7 +51,7 @@ func SetDefaultsWithOptions(value interface{}, opts *Options) error {
 	if opts == nil {
 		opts = defaultOptions
 	}
-	
+
 	return setDefaultWithOptions(reflect.ValueOf(value), "", opts)
 }
 
@@ -215,7 +215,7 @@ func setPtrDefault(vv reflect.Value, defaultStr string, opts *Options) error {
 	if vv.IsNil() {
 		vv.Set(reflect.New(vv.Type().Elem()))
 	}
-	
+
 	// 处理多层指针
 	for vv.Kind() == reflect.Ptr {
 		vv = vv.Elem()
@@ -223,7 +223,7 @@ func setPtrDefault(vv reflect.Value, defaultStr string, opts *Options) error {
 			vv.Set(reflect.New(vv.Type().Elem()))
 		}
 	}
-	
+
 	return setDefaultWithOptions(vv, defaultStr, opts)
 }
 
@@ -266,7 +266,7 @@ func setTimeDefault(vv reflect.Value, defaultStr string, opts *Options) error {
 				"2006-01-02",
 				"15:04:05",
 			}
-			
+
 			var t time.Time
 			var err error
 			for _, layout := range layouts {
@@ -275,7 +275,7 @@ func setTimeDefault(vv reflect.Value, defaultStr string, opts *Options) error {
 					break
 				}
 			}
-			
+
 			if err != nil {
 				return handleError(fmt.Sprintf("invalid time format: %s", defaultStr), opts.ErrorMode)
 			}
@@ -317,7 +317,7 @@ func setSliceDefault(vv reflect.Value, defaultStr string, opts *Options) error {
 			}
 		}
 	}
-	
+
 	// 为已存在的切片元素设置默认值
 	for i := 0; i < vv.Len(); i++ {
 		elem := vv.Index(i)
@@ -327,7 +327,7 @@ func setSliceDefault(vv reflect.Value, defaultStr string, opts *Options) error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -338,7 +338,7 @@ func setArrayDefault(vv reflect.Value, defaultStr string, opts *Options) error {
 			return err
 		}
 	}
-	
+
 	// 为数组元素设置默认值
 	for i := 0; i < vv.Len(); i++ {
 		elem := vv.Index(i)
@@ -348,7 +348,7 @@ func setArrayDefault(vv reflect.Value, defaultStr string, opts *Options) error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -412,12 +412,12 @@ func parseSliceDefault(vv reflect.Value, defaultStr string, opts *Options) error
 			return nil
 		}
 	}
-	
+
 	// 简单值解析，用逗号分隔
 	if strings.Contains(defaultStr, ",") {
 		parts := strings.Split(defaultStr, ",")
 		slice := reflect.MakeSlice(vv.Type(), len(parts), len(parts))
-		
+
 		for i, part := range parts {
 			elem := slice.Index(i)
 			if err := setDefaultWithOptions(elem, strings.TrimSpace(part), opts); err != nil {
@@ -427,7 +427,7 @@ func parseSliceDefault(vv reflect.Value, defaultStr string, opts *Options) error
 		vv.Set(slice)
 		return nil
 	}
-	
+
 	return handleError(fmt.Sprintf("unable to parse slice default: %s", defaultStr), opts.ErrorMode)
 }
 
@@ -441,7 +441,7 @@ func parseArrayDefault(vv reflect.Value, defaultStr string, opts *Options) error
 			return nil
 		}
 	}
-	
+
 	// 简单值解析
 	if strings.Contains(defaultStr, ",") {
 		parts := strings.Split(defaultStr, ",")
@@ -451,7 +451,7 @@ func parseArrayDefault(vv reflect.Value, defaultStr string, opts *Options) error
 		if len(parts) > maxParts && maxParts > 0 {
 			parts = parts[:maxParts]
 		}
-		
+
 		for i, part := range parts {
 			if i >= vv.Len() {
 				break // 对于零长度数组，这个分支现在可以被触发
@@ -463,7 +463,7 @@ func parseArrayDefault(vv reflect.Value, defaultStr string, opts *Options) error
 		}
 		return nil
 	}
-	
+
 	return handleError(fmt.Sprintf("unable to parse array default: %s", defaultStr), opts.ErrorMode)
 }
 
@@ -477,7 +477,7 @@ func parseMapDefault(vv reflect.Value, defaultStr string, opts *Options) error {
 			return nil
 		}
 	}
-	
+
 	return handleError(fmt.Sprintf("unable to parse map default: %s", defaultStr), opts.ErrorMode)
 }
 

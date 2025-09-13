@@ -63,68 +63,68 @@ func TestScanBy(t *testing.T) {
 	splitFunc := ScanBy([]byte(","))
 
 	tests := []struct {
-		name     string
-		data     []byte
-		atEOF    bool
-		advance  int
-		token    []byte
-		err      error
+		name    string
+		data    []byte
+		atEOF   bool
+		advance int
+		token   []byte
+		err     error
 	}{
 		{
-			name:     "空数据且EOF",
-			data:     []byte{},
-			atEOF:    true,
-			advance:  0,
-			token:    nil,
-			err:      nil,
+			name:    "空数据且EOF",
+			data:    []byte{},
+			atEOF:   true,
+			advance: 0,
+			token:   nil,
+			err:     nil,
 		},
 		{
-			name:     "找到分隔符",
-			data:     []byte("hello,world"),
-			atEOF:    false,
-			advance:  6, // "hello," 的长度
-			token:    []byte("hello"),
-			err:      nil,
+			name:    "找到分隔符",
+			data:    []byte("hello,world"),
+			atEOF:   false,
+			advance: 6, // "hello," 的长度
+			token:   []byte("hello"),
+			err:     nil,
 		},
 		{
-			name:     "未找到分隔符且未EOF",
-			data:     []byte("hello"),
-			atEOF:    false,
-			advance:  0,
-			token:    nil,
-			err:      nil,
+			name:    "未找到分隔符且未EOF",
+			data:    []byte("hello"),
+			atEOF:   false,
+			advance: 0,
+			token:   nil,
+			err:     nil,
 		},
 		{
-			name:     "未找到分隔符但已EOF",
-			data:     []byte("hello"),
-			atEOF:    true,
-			advance:  5, // "hello" 的长度
-			token:    []byte("hello"),
-			err:      nil,
+			name:    "未找到分隔符但已EOF",
+			data:    []byte("hello"),
+			atEOF:   true,
+			advance: 5, // "hello" 的长度
+			token:   []byte("hello"),
+			err:     nil,
 		},
 		{
-			name:     "多个分隔符，取第一个",
-			data:     []byte("a,b,c"),
-			atEOF:    false,
-			advance:  2, // "a," 的长度
-			token:    []byte("a"),
-			err:      nil,
+			name:    "多个分隔符，取第一个",
+			data:    []byte("a,b,c"),
+			atEOF:   false,
+			advance: 2, // "a," 的长度
+			token:   []byte("a"),
+			err:     nil,
 		},
 		{
-			name:     "分隔符在开头",
-			data:     []byte(",start"),
-			atEOF:    false,
-			advance:  1, // "," 的长度
-			token:    []byte{},
-			err:      nil,
+			name:    "分隔符在开头",
+			data:    []byte(",start"),
+			atEOF:   false,
+			advance: 1, // "," 的长度
+			token:   []byte{},
+			err:     nil,
 		},
 		{
-			name:     "分隔符在结尾且EOF",
-			data:     []byte("end,"),
-			atEOF:    true,
-			advance:  4, // "end," 的长度
-			token:    []byte("end"),
-			err:      nil,
+			name:    "分隔符在结尾且EOF",
+			data:    []byte("end,"),
+			atEOF:   true,
+			advance: 4, // "end," 的长度
+			token:   []byte("end"),
+			err:     nil,
 		},
 	}
 
@@ -145,7 +145,7 @@ func TestScanByWithEmptySeparator(t *testing.T) {
 
 	data := []byte("hello world")
 	advance, token, err := splitFunc(data, false)
-	
+
 	// 空分隔符返回0 advance和空token
 	assert.Equal(t, 0, advance, "使用空分隔符时应返回0 advance")
 	assert.Equal(t, []byte{}, token, "使用空分隔符时应返回空token")
@@ -155,84 +155,84 @@ func TestScanByWithEmptySeparator(t *testing.T) {
 // TestScanLines 测试 ScanLines 函数
 func TestScanLines(t *testing.T) {
 	tests := []struct {
-		name     string
-		data     []byte
-		atEOF    bool
-		advance  int
-		token    []byte
-		err      error
+		name    string
+		data    []byte
+		atEOF   bool
+		advance int
+		token   []byte
+		err     error
 	}{
 		{
-			name:     "空数据且EOF",
-			data:     []byte{},
-			atEOF:    true,
-			advance:  0,
-			token:    nil,
-			err:      nil,
+			name:    "空数据且EOF",
+			data:    []byte{},
+			atEOF:   true,
+			advance: 0,
+			token:   nil,
+			err:     nil,
 		},
 		{
-			name:     "Unix换行符",
-			data:     []byte("hello\nworld"),
-			atEOF:    false,
-			advance:  6, // "hello\n" 的长度
-			token:    []byte("hello"),
-			err:      nil,
+			name:    "Unix换行符",
+			data:    []byte("hello\nworld"),
+			atEOF:   false,
+			advance: 6, // "hello\n" 的长度
+			token:   []byte("hello"),
+			err:     nil,
 		},
 		{
-			name:     "Windows换行符",
-			data:     []byte("hello\r\nworld"),
-			atEOF:    false,
-			advance:  7, // "hello\r\n" 的长度是7
-			token:    []byte("hello"),
-			err:      nil,
+			name:    "Windows换行符",
+			data:    []byte("hello\r\nworld"),
+			atEOF:   false,
+			advance: 7, // "hello\r\n" 的长度是7
+			token:   []byte("hello"),
+			err:     nil,
 		},
 		{
-			name:     "只有CR",
-			data:     []byte("hello\rworld"),
-			atEOF:    false,
-			advance:  0, // ScanLines 不处理单独的CR作为换行符，只处理LF
-			token:    nil,
-			err:      nil,
+			name:    "只有CR",
+			data:    []byte("hello\rworld"),
+			atEOF:   false,
+			advance: 0, // ScanLines 不处理单独的CR作为换行符，只处理LF
+			token:   nil,
+			err:     nil,
 		},
 		{
-			name:     "未找到换行符且未EOF",
-			data:     []byte("hello"),
-			atEOF:    false,
-			advance:  0,
-			token:    nil,
-			err:      nil,
+			name:    "未找到换行符且未EOF",
+			data:    []byte("hello"),
+			atEOF:   false,
+			advance: 0,
+			token:   nil,
+			err:     nil,
 		},
 		{
-			name:     "未找到换行符但已EOF",
-			data:     []byte("hello"),
-			atEOF:    true,
-			advance:  5, // "hello" 的长度
-			token:    []byte("hello"),
-			err:      nil,
+			name:    "未找到换行符但已EOF",
+			data:    []byte("hello"),
+			atEOF:   true,
+			advance: 5, // "hello" 的长度
+			token:   []byte("hello"),
+			err:     nil,
 		},
 		{
-			name:     "只有换行符",
-			data:     []byte("\n"),
-			atEOF:    false,
-			advance:  1,
-			token:    []byte{},
-			err:      nil,
+			name:    "只有换行符",
+			data:    []byte("\n"),
+			atEOF:   false,
+			advance: 1,
+			token:   []byte{},
+			err:     nil,
 		},
 		{
-			name:     "只有Windows换行符",
-			data:     []byte("\r\n"),
-			atEOF:    false,
-			advance:  2,
-			token:    []byte{},
-			err:      nil,
+			name:    "只有Windows换行符",
+			data:    []byte("\r\n"),
+			atEOF:   false,
+			advance: 2,
+			token:   []byte{},
+			err:     nil,
 		},
 		{
-			name:     "多行数据",
-			data:     []byte("line1\nline2\nline3"),
-			atEOF:    false,
-			advance:  6,
-			token:    []byte("line1"),
-			err:      nil,
+			name:    "多行数据",
+			data:    []byte("line1\nline2\nline3"),
+			atEOF:   false,
+			advance: 6,
+			token:   []byte("line1"),
+			err:     nil,
 		},
 	}
 

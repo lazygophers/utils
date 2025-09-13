@@ -19,7 +19,7 @@ func TestBool(t *testing.T) {
 		trueCount := 0
 		falseCount := 0
 		iterations := 10000
-		
+
 		for i := 0; i < iterations; i++ {
 			if Bool() {
 				trueCount++
@@ -27,23 +27,23 @@ func TestBool(t *testing.T) {
 				falseCount++
 			}
 		}
-		
+
 		// 理论上应该大约各占50%，但允许一定偏差
-		expectedMin := iterations/2 - 1000  // 4000
-		expectedMax := iterations/2 + 1000  // 6000
-		
+		expectedMin := iterations/2 - 1000 // 4000
+		expectedMax := iterations/2 + 1000 // 6000
+
 		if trueCount < expectedMin || trueCount > expectedMax {
-			t.Logf("Warning: true appeared %d times out of %d, expected around %d", 
+			t.Logf("Warning: true appeared %d times out of %d, expected around %d",
 				trueCount, iterations, iterations/2)
 		}
-		
+
 		if falseCount < expectedMin || falseCount > expectedMax {
-			t.Logf("Warning: false appeared %d times out of %d, expected around %d", 
+			t.Logf("Warning: false appeared %d times out of %d, expected around %d",
 				falseCount, iterations, iterations/2)
 		}
-		
+
 		// 验证总数正确
-		if trueCount + falseCount != iterations {
+		if trueCount+falseCount != iterations {
 			t.Errorf("Total count mismatch: %d + %d != %d", trueCount, falseCount, iterations)
 		}
 	})
@@ -53,7 +53,7 @@ func TestBooln(t *testing.T) {
 	t.Run("booln_probability_100_or_more", func(t *testing.T) {
 		// 测试概率>=100时总是返回true
 		testCases := []float64{100, 101, 150, 200, 1000}
-		
+
 		for _, prob := range testCases {
 			for i := 0; i < 50; i++ { // 多次测试确保稳定
 				result := Booln(prob)
@@ -67,7 +67,7 @@ func TestBooln(t *testing.T) {
 	t.Run("booln_probability_0_or_less", func(t *testing.T) {
 		// 测试概率<=0时总是返回false
 		testCases := []float64{0, -1, -10, -100}
-		
+
 		for _, prob := range testCases {
 			for i := 0; i < 50; i++ { // 多次测试确保稳定
 				result := Booln(prob)
@@ -84,7 +84,7 @@ func TestBooln(t *testing.T) {
 		falseCount := 0
 		iterations := 10000
 		probability := 50.0
-		
+
 		for i := 0; i < iterations; i++ {
 			if Booln(probability) {
 				trueCount++
@@ -92,13 +92,13 @@ func TestBooln(t *testing.T) {
 				falseCount++
 			}
 		}
-		
+
 		// 50%概率应该大约各占一半
 		expectedTrue := iterations / 2
 		tolerance := iterations / 10 // 10%的容差
-		
+
 		if trueCount < expectedTrue-tolerance || trueCount > expectedTrue+tolerance {
-			t.Logf("Warning: With 50%% probability, got %d true out of %d (expected around %d)", 
+			t.Logf("Warning: With 50%% probability, got %d true out of %d (expected around %d)",
 				trueCount, iterations, expectedTrue)
 		}
 	})
@@ -108,19 +108,19 @@ func TestBooln(t *testing.T) {
 		trueCount := 0
 		iterations := 10000
 		probability := 25.0
-		
+
 		for i := 0; i < iterations; i++ {
 			if Booln(probability) {
 				trueCount++
 			}
 		}
-		
+
 		// 25%概率应该大约25%为true
 		expectedTrue := iterations / 4
 		tolerance := iterations / 10 // 10%的容差
-		
+
 		if trueCount < expectedTrue-tolerance || trueCount > expectedTrue+tolerance {
-			t.Logf("Warning: With 25%% probability, got %d true out of %d (expected around %d)", 
+			t.Logf("Warning: With 25%% probability, got %d true out of %d (expected around %d)",
 				trueCount, iterations, expectedTrue)
 		}
 	})
@@ -130,19 +130,19 @@ func TestBooln(t *testing.T) {
 		trueCount := 0
 		iterations := 10000
 		probability := 75.0
-		
+
 		for i := 0; i < iterations; i++ {
 			if Booln(probability) {
 				trueCount++
 			}
 		}
-		
+
 		// 75%概率应该大约75%为true
 		expectedTrue := iterations * 3 / 4
 		tolerance := iterations / 10 // 10%的容差
-		
+
 		if trueCount < expectedTrue-tolerance || trueCount > expectedTrue+tolerance {
-			t.Logf("Warning: With 75%% probability, got %d true out of %d (expected around %d)", 
+			t.Logf("Warning: With 75%% probability, got %d true out of %d (expected around %d)",
 				trueCount, iterations, expectedTrue)
 		}
 	})
@@ -158,7 +158,7 @@ func TestBooln(t *testing.T) {
 			{99.9, "mostly_true"},
 			{99.0, "mostly_true"},
 		}
-		
+
 		for _, tc := range edgeCases {
 			// 对于非确定性情况，只做基本验证
 			for i := 0; i < 10; i++ {
@@ -173,13 +173,13 @@ func TestBooln(t *testing.T) {
 		falseCount := 0
 		iterations := 1000
 		probability := 0.01 // 0.01%的概率
-		
+
 		for i := 0; i < iterations; i++ {
 			if !Booln(probability) {
 				falseCount++
 			}
 		}
-		
+
 		// 0.01%概率，在1000次测试中应该几乎都是false
 		if falseCount < iterations*95/100 { // 至少95%应该是false
 			t.Logf("With very low probability (0.01%%), expected mostly false results")
@@ -191,13 +191,13 @@ func TestBooln(t *testing.T) {
 		trueCount := 0
 		iterations := 1000
 		probability := 99.99 // 99.99%的概率
-		
+
 		for i := 0; i < iterations; i++ {
 			if Booln(probability) {
 				trueCount++
 			}
 		}
-		
+
 		// 99.99%概率，在1000次测试中应该几乎都是true
 		if trueCount < iterations*95/100 { // 至少95%应该是true
 			t.Logf("With very high probability (99.99%%), expected mostly true results")

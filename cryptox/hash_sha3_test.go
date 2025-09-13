@@ -76,24 +76,24 @@ func TestKeccak256(t *testing.T) {
 // Test error conditions for SHA3/SHAKE functions
 func TestSHA3ErrorConditions(t *testing.T) {
 	data := "test"
-	
+
 	// Test SHAKE128 with invalid size
 	_, err := SHAKE128(data, 0)
 	if err == nil {
 		t.Error("Expected error for SHAKE128 with size 0")
 	}
-	
+
 	_, err = SHAKE128(data, -1)
 	if err == nil {
 		t.Error("Expected error for SHAKE128 with negative size")
 	}
-	
+
 	// Test SHAKE256 with invalid size
 	_, err = SHAKE256(data, 0)
 	if err == nil {
 		t.Error("Expected error for SHAKE256 with size 0")
 	}
-	
+
 	_, err = SHAKE256(data, -1)
 	if err == nil {
 		t.Error("Expected error for SHAKE256 with negative size")
