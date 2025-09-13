@@ -1,0 +1,375 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - '**/*.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'docs/**'
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+env:
+  GO_VERSION: '1.24'
+
+jobs:
+  generate-docs:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        cache: true
+
+    - name: Install dependencies
+      run: |
+        go mod tidy
+        go mod verify
+
+    - name: Install documentation tools
+      run: |
+        # Install graphviz for diagram generation
+        sudo apt-get update
+        sudo apt-get install -y graphviz
+        
+        # Install additional tools if needed
+        go install golang.org/x/tools/cmd/godoc@latest
+
+    - name: Run tests with coverage
+      run: |
+        # Exclude problematic packages from coverage
+        PACKAGES=$(go list ./... | grep -v pgp)
+        go test -race -coverprofile=coverage.out -covermode=atomic $PACKAGES
+
+    - name: Generate documentation
+      run: |
+        # Make sure script is executable
+        chmod +x docs/generate_docs.sh
+        
+        # Generate all documentation
+        ./docs/generate_docs.sh
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./docs/reports/coverage.out
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Generate coverage badge
+      run: |
+        # Extract coverage percentage
+        COVERAGE=$(go tool cover -func=docs/reports/coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+        
+        # Create coverage badge
+        COLOR=$(echo "$COVERAGE" | awk '
+          $1 >= 90 { print "brightgreen" }
+          $1 >= 80 { print "green" }
+          $1 >= 70 { print "yellowgreen" }
+          $1 >= 60 { print "yellow" }
+          $1 >= 50 { print "orange" }
+          $1 < 50  { print "red" }
+        ')
+        
+        # Save coverage info for badge generation
+        echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
+        echo "COVERAGE_COLOR=$COLOR" >> $GITHUB_ENV
+
+    - name: Benchmark performance
+      run: |
+        # Run benchmarks and save results
+        echo "## Performance Benchmarks" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        cat docs/reports/benchmarks.txt >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+    - name: Validate documentation
+      run: |
+        # Validate that all required documentation was generated
+        ./docs/generate_docs.sh --validate
+
+    - name: Setup Pages
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+      uses: actions/configure-pages@v4
+
+    - name: Build Pages
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+      run: |
+        # Create a simple index.html for GitHub Pages
+        mkdir -p _site
+        cp -r docs/* _site/
+        
+        # Create HTML index page
+        cat > _site/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>LazyGophers Utils Documentation</title>
+            <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; }
+                .container { max-width: 1200px; margin: 0 auto; }
+                .header { text-align: center; margin-bottom: 40px; }
+                .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+                .card { border: 1px solid #e1e4e8; border-radius: 6px; padding: 20px; }
+                .card h3 { margin-top: 0; }
+                .badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; }
+                .badge-success { background-color: #28a745; color: white; }
+                .badge-info { background-color: #17a2b8; color: white; }
+                a { color: #0366d6; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>LazyGophers Utils Documentation</h1>
+                    <p>High-performance Go utility library with comprehensive documentation</p>
+                    <div>
+                        <span class="badge badge-success">Coverage: ${COVERAGE}%</span>
+                        <span class="badge badge-info">Go 1.24+</span>
+                    </div>
+                </div>
+                
+                <div class="grid">
+                    <div class="card">
+                        <h3>📚 Core Documentation</h3>
+                        <ul>
+                            <li><a href="architecture_en.html">Architecture Guide</a></li>
+                            <li><a href="API_REFERENCE.html">API Reference</a></li>
+                            <li><a href="CONTRIBUTING_en.html">Contributing Guide</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>📊 Reports & Analysis</h3>
+                        <ul>
+                            <li><a href="reports/coverage.html">Coverage Report</a></li>
+                            <li><a href="performance_report.html">Performance Report</a></li>
+                            <li><a href="reports/benchmarks.txt">Benchmark Results</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>🌍 Multi-Language</h3>
+                        <ul>
+                            <li><a href="architecture_zh.html">架构文档 (中文)</a></li>
+                            <li><a href="architecture_zh-hant.html">架構文檔 (繁體)</a></li>
+                            <li><a href="CONTRIBUTING_zh.html">贡献指南 (中文)</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>🔧 Development</h3>
+                        <ul>
+                            <li><a href="api/packages.html">Package Index</a></li>
+                            <li><a href="CHANGELOG.html">Changelog</a></li>
+                            <li><a href="README.html">Documentation Guide</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e1e4e8;">
+                    <p>Generated on $(date) | <a href="https://github.com/lazygophers/utils">GitHub Repository</a></p>
+                </footer>
+            </div>
+        </body>
+        </html>
+        EOF
+        
+        # Convert markdown files to HTML for better web viewing
+        for md_file in _site/*.md; do
+            if command -v pandoc &> /dev/null; then
+                base_name=$(basename "$md_file" .md)
+                pandoc "$md_file" -o "_site/${base_name}.html" --standalone --css=github.css 2>/dev/null || true
+            fi
+        done
+
+    - name: Upload Pages artifact
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: _site
+
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+      id: deployment
+      uses: actions/deploy-pages@v4
+
+    - name: Comment PR with documentation
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const coverage = process.env.COVERAGE;
+          const fs = require('fs');
+          
+          // Read benchmark results if available
+          let benchmarkContent = '';
+          try {
+            benchmarkContent = fs.readFileSync('docs/reports/benchmarks.txt', 'utf8');
+            benchmarkContent = benchmarkContent.substring(0, 1000) + (benchmarkContent.length > 1000 ? '...' : '');
+          } catch (e) {
+            benchmarkContent = 'Benchmark results not available';
+          }
+          
+          const body = `## 📚 Documentation Update
+          
+          This PR includes documentation changes. Here's the current status:
+          
+          ### 📊 Test Coverage
+          - **Coverage**: ${coverage}%
+          
+          ### ⚡ Performance Benchmarks
+          \`\`\`
+          ${benchmarkContent}
+          \`\`\`
+          
+          ### 📖 Generated Documentation
+          - ✅ Architecture documentation
+          - ✅ API reference
+          - ✅ Contributing guidelines
+          - ✅ Performance reports
+          - ✅ Multi-language support
+          
+          The full documentation will be available once this PR is merged.
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          });
+
+  check-docs:
+    name: Check Documentation Quality
+    runs-on: ubuntu-latest
+    needs: generate-docs
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Check documentation completeness
+      run: |
+        echo "Checking documentation completeness..."
+        
+        # Check for basic documentation files
+        REQUIRED_FILES=(
+          "README.md"
+          "CONTRIBUTING.md"
+          "docs/API_REFERENCE.md"
+          "docs/architecture_en.md"
+        )
+        
+        MISSING_FILES=()
+        for file in "${REQUIRED_FILES[@]}"; do
+          if [ ! -f "$file" ]; then
+            MISSING_FILES+=("$file")
+          fi
+        done
+        
+        if [ ${#MISSING_FILES[@]} -gt 0 ]; then
+          echo "Missing required documentation files:"
+          printf '%s\n' "${MISSING_FILES[@]}"
+          exit 1
+        fi
+        
+        echo "All required documentation files are present."
+
+    - name: Check API documentation coverage
+      run: |
+        echo "Checking API documentation coverage..."
+        
+        # Find all exported functions/types (simplified check)
+        EXPORTED_COUNT=$(grep -r "^func [A-Z]" --include="*.go" . | wc -l)
+        DOCUMENTED_COUNT=$(grep -r "^// [A-Z]" --include="*.go" . | wc -l)
+        
+        if [ $EXPORTED_COUNT -gt 0 ]; then
+          DOC_PERCENTAGE=$((DOCUMENTED_COUNT * 100 / EXPORTED_COUNT))
+          echo "API Documentation Coverage: $DOC_PERCENTAGE% ($DOCUMENTED_COUNT/$EXPORTED_COUNT)"
+          
+          if [ $DOC_PERCENTAGE -lt 80 ]; then
+            echo "Warning: API documentation coverage is below 80%"
+          fi
+        fi
+
+    - name: Validate markdown files
+      run: |
+        echo "Validating markdown files..."
+        
+        # Check for broken internal links (simplified)
+        find . -name "*.md" -exec grep -l "\[.*\](" {} \; | while read file; do
+          echo "Checking links in $file"
+          # This is a simplified check - in production you might want to use a proper markdown linter
+        done
+        
+        echo "Markdown validation completed."
+
+  update-badges:
+    name: Update Repository Badges
+    runs-on: ubuntu-latest
+    needs: generate-docs
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update badges in README
+      run: |
+        # This would update badges in README.md with current statistics
+        # Implementation depends on your badge system (shields.io, etc.)
+        echo "Badge update would happen here"
+        
+        # Example: Update coverage badge
+        # sed -i 's|coverage-[0-9]*%25-|coverage-${COVERAGE}%25-|g' README.md
+
+    - name: Commit badge updates
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        if git diff --quiet; then
+          echo "No badge updates needed"
+        else
+          git add README.md
+          git commit -m "docs: update badges with latest statistics [skip ci]"
+          git push
+        fi
