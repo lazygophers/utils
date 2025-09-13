@@ -16,7 +16,7 @@ variables:
   CGO_ENABLED: "0"
   GOPATH: $CI_PROJECT_DIR/.go
   GOCACHE: $CI_PROJECT_DIR/.cache/go-build
-  GOLANGCI_LINT_VERSION: "v1.55.2"
+  GOLANGCI_LINT_VERSION: "v1.61.0"
 
 # Cache configuration
 .go-cache: &go-cache
@@ -90,7 +90,7 @@ test:
         gocover-cobertura < coverage.out > coverage.xml
       fi
 
-# Lint stage with golangci-lint
+# Lint stage with golangci-lint using official best practices
 lint:
   stage: lint
   image: golangci/golangci-lint:${GOLANGCI_LINT_VERSION}-alpine
@@ -101,20 +101,21 @@ lint:
   script:
     - echo "Running golangci-lint..."
     - golangci-lint --version
-    - golangci-lint run --timeout=10m --out-format=gitlab-junit-report:gl-code-quality-report.json,line-number
+    - golangci-lint run --timeout=10m --issues-exit-code=1
     - echo "✅ Lint checks passed"
-  artifacts:
-    reports:
-      codequality: gl-code-quality-report.json
-    paths:
-      - gl-code-quality-report.json
-    expire_in: 1 week
   allow_failure: false
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == "master"'
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_COMMIT_BRANCH == "luoxin"'
+
+# Alternative approach using GitLab's Code Quality integration
+# Uncomment to use GitLab's native integration (requires GitLab 15.x+)
+# code_quality:
+#   stage: lint
+#   include:
+#     - component: $CI_SERVER_FQDN/components/code-quality-oss/codequality-os-scanners-integration/golangci@1.0.1
 
 # Security scanning
 security:
