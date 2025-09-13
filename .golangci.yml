@@ -1,17 +1,13 @@
 # golangci-lint configuration for LazyGophers Utils
-# Compatible with golangci-lint v2.4.0+
+# Minimal configuration compatible with golangci-lint v2.4.0+
 
 version: "2"
 
 run:
   timeout: 5m
   tests: true
-  build-tags:
-    - integration
-    - e2e
 
 linters:
-  disable-all: false
   disable:
     - errcheck
     - govet
