@@ -6,3 +6,30 @@
 .DS_Store
 coverage.html
 *.coverage
+
+# Claude Code related files
+.claude/
+CLAUDE.md
+*.claude
+
+# Additional temporary and build files
+*.prof
+*.test
+*.tmp
+*.temp
+*_temp
+debug
+dist/
+build/
+vendor/
+node_modules/
+
+# IDE and editor files
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS specific files
+Thumbs.db
+ehthumbs.db
