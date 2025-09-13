@@ -1,8 +1,3 @@
-// utils 包提供数据库操作的实用工具
-// 主要功能包括：
-// 1. 扫描数据库字段到结构体(Scan)
-// 2. 将结构体转换为数据库值(Value)
-// 3. 自动填充默认值和错误处理
 package utils
 
 import (
@@ -16,18 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Scan 实现数据库字段到目标结构体的扫描逻辑
-// 支持[]byte和string类型的源数据，自动调用defaults.SetDefaults填充默认值
-// 参数:
-//   - src: 数据源（[]byte或string）
-//   - dst: 目标结构体指针
-//
-// 返回:
-//   - error: 反序列化失败时返回错误
-//
-// 特殊处理:
-// 1. 当src为JSON数组或对象时调用json.Unmarshal
-// 2. 空字符串时调用defaults.SetDefaults
+// Scan 扫描数据库字段到结构体
 func Scan(src interface{}, dst interface{}) (err error) {
 	x := func(buf []byte) error {
 		bufLen := len(buf)
@@ -64,6 +48,7 @@ func Scan(src interface{}, dst interface{}) (err error) {
 	}
 }
 
+// Value 将结构体转换为数据库值
 func Value(m interface{}) (value driver.Value, err error) {
 	if m == nil {
 		defaults.SetDefaults(m)

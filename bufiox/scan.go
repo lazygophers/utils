@@ -3,21 +3,6 @@ package bufiox
 import "bytes"
 
 // ScanBy 创建并返回一个自定义的扫描函数，用于按指定字节序列分割数据
-// 参数 seq: 需要搜索的字节分隔符（如 []byte("\n") 表示换行符分割）
-// 返回值: 返回的扫描函数接收字节数据和EOF标志，返回三个参数：
-//
-//	advance: 指示应前进的字节数
-//	token: 当前分割出的有效数据标记
-//	err: 错误信息（若返回nil表示继续处理）
-//
-// 函数特性：
-//  1. 当atEOF为true且无数据时立即返回nil
-//  2. 支持非EOF状态下的分块处理
-//  3. 返回的分割函数遵循bufio.Scanner接口规范
-//
-// ScanBy 返回一个扫描函数，该函数根据指定的字节序列分割输入
-// 参数 seq 是分隔符字节序列
-// 返回的函数符合 bufio.SplitFunc 接口规范
 func ScanBy(seq []byte) func(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	return func(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		if atEOF && len(data) == 0 {

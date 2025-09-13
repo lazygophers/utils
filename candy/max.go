@@ -1,4 +1,3 @@
-// Package candy 提供 Go 语法糖工具函数，简化常见的编程操作
 package candy
 
 import "golang.org/x/exp/constraints"
