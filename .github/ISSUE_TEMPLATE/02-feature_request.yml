@@ -1,0 +1,103 @@
+name: 🚀 Feature Request
+description: Suggest an idea for this project
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a new feature! Please provide as much detail as possible.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear and concise description of what the problem is
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen
+      placeholder: I would like to see...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions or features you've considered
+      placeholder: I have considered...
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Which module would this feature belong to?
+      description: Select the most relevant module for your feature request
+      options:
+        - candy (Type conversion utilities)
+        - config (Configuration management)
+        - cryptox (Cryptographic operations)
+        - event (Event-driven programming)
+        - hystrix (Circuit breaker)
+        - routine (Goroutine management)
+        - wait (Synchronization utilities)
+        - xtime (Time operations)
+        - New module
+        - Core utilities
+        - Not sure
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: Describe your specific use case for this feature
+      placeholder: |
+        In my application, I need to...
+        This would help me to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: api-design
+    attributes:
+      label: Proposed API design
+      description: If you have ideas about how the API should look, please share them
+      render: go
+      placeholder: |
+        // Example API design
+        func NewFeature(param string) *Feature {
+            // implementation
+        }
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would be helpful
+        - High - Need it for my project
+        - Critical - Blocking my work
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context, screenshots, or examples about the feature request
+      placeholder: Additional details...
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/lazygophers/utils/blob/master/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
