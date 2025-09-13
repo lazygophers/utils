@@ -1,6 +1,6 @@
 module github.com/lazygophers/utils
 
-go 1.21
+go 1.18
 
 require (
 	github.com/agiledragon/gomonkey/v2 v2.13.0
@@ -11,7 +11,7 @@ require (
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/jchavannes/go-pgp v0.0.0-20200131171414-e5978e6d02b4
 	github.com/jinzhu/now v1.1.5
-	github.com/lazygophers/log v0.0.0-20250913134650-48b80840fd6d
+	github.com/lazygophers/log v0.0.0-20250913143351-cedd7b275cf8
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/petermattis/goid v0.0.0-20250904145737-900bdf8bb490
 	github.com/pkg/errors v0.9.1
@@ -68,7 +68,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.20.0 // indirect
-	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/term v0.35.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
