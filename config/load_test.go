@@ -2318,3 +2318,4 @@ func TestFinalCoverageBoost(t *testing.T) {
 		assert.Equal(t, "another-value", result["prefix.another"])
 	})
 }
+
