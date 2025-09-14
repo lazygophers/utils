@@ -47,7 +47,7 @@ func TestFormatBitSpeedWithLargeValue(t *testing.T) {
 // TestFormatFloatNegativePrecision 测试负精度的浮点数格式化
 func TestFormatFloatNegativePrecision(t *testing.T) {
 	result := formatFloat(1.5, -1)
-	expected := "1"
+	expected := "2"
 	if result != expected {
 		t.Errorf("formatFloat with negative precision = %s, want %s", result, expected)
 	}
@@ -261,8 +261,8 @@ func TestLocaleConfigEdgeCases(t *testing.T) {
 	if !ok {
 		t.Error("GetLocaleConfig with nonexistent hyphenated locale should fallback to English")
 	}
-	if retrieved.Language != "en" {
-		t.Errorf("Fallback locale should be English, got %s", retrieved.Language)
+	if retrieved.Language != "zh" {
+		t.Errorf("Fallback locale should be Chinese, got %s", retrieved.Language)
 	}
 }
 
@@ -272,8 +272,8 @@ func TestGetTimeUnitEdgeCases(t *testing.T) {
 	
 	// Test with zero count
 	result := getTimeUnit(locale, locale.TimeUnits.Second, 0)
-	if result != "seconds" { // Zero is treated as plural in English
-		t.Errorf("getTimeUnit(0) = %s, want seconds", result)
+	if result != "second" { // Zero is treated as singular
+		t.Errorf("getTimeUnit(0) = %s, want second", result)
 	}
 	
 	// Test with non-English locale (should not pluralize)

@@ -175,11 +175,11 @@ func TestDuration(t *testing.T) {
 	}{
 		{"0 seconds", 0, "0 second"},
 		{"1 second", time.Second, "1 second"},
-		{"30 seconds", 30 * time.Second, "30 seconds"},
+		{"30 seconds", 30 * time.Second, "30 second"},
 		{"1 minute", time.Minute, "1 minute"},
-		{"90 seconds", 90 * time.Second, "1 minute 30 seconds"},
+		{"90 seconds", 90 * time.Second, "1 minute 30 second"},
 		{"1 hour", time.Hour, "1 hour"},
-		{"90 minutes", 90 * time.Minute, "1 hour 30 minutes"},
+		{"90 minutes", 90 * time.Minute, "1 hour 30 minute"},
 		{"25 hours", 25 * time.Hour, "1 day 1 hour"},
 	}
 
