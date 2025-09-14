@@ -1,0 +1,28 @@
+{
+  "language": "en",
+  "country": "US",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {"value": "New York", "weight": 2.0, "tags": ["major", "east"], "meta": {"state": "NY", "zip_prefix": "10"}},
+    {"value": "Los Angeles", "weight": 1.8, "tags": ["major", "west"], "meta": {"state": "CA", "zip_prefix": "90"}},
+    {"value": "Chicago", "weight": 1.6, "tags": ["major", "midwest"], "meta": {"state": "IL", "zip_prefix": "60"}},
+    {"value": "Houston", "weight": 1.4, "tags": ["major", "south"], "meta": {"state": "TX", "zip_prefix": "77"}},
+    {"value": "Phoenix", "weight": 1.2, "tags": ["major", "west"], "meta": {"state": "AZ", "zip_prefix": "85"}},
+    {"value": "Philadelphia", "weight": 1.0, "tags": ["major", "east"], "meta": {"state": "PA", "zip_prefix": "19"}},
+    {"value": "San Antonio", "weight": 0.9, "tags": ["major", "south"], "meta": {"state": "TX", "zip_prefix": "78"}},
+    {"value": "San Diego", "weight": 0.8, "tags": ["major", "west"], "meta": {"state": "CA", "zip_prefix": "92"}},
+    {"value": "Dallas", "weight": 0.8, "tags": ["major", "south"], "meta": {"state": "TX", "zip_prefix": "75"}},
+    {"value": "San Jose", "weight": 0.7, "tags": ["major", "west"], "meta": {"state": "CA", "zip_prefix": "95"}},
+    {"value": "Austin", "weight": 0.7, "tags": ["medium", "south"], "meta": {"state": "TX", "zip_prefix": "73"}},
+    {"value": "Jacksonville", "weight": 0.6, "tags": ["medium", "south"], "meta": {"state": "FL", "zip_prefix": "32"}},
+    {"value": "San Francisco", "weight": 0.6, "tags": ["major", "west"], "meta": {"state": "CA", "zip_prefix": "94"}},
+    {"value": "Columbus", "weight": 0.5, "tags": ["medium", "midwest"], "meta": {"state": "OH", "zip_prefix": "43"}},
+    {"value": "Fort Worth", "weight": 0.5, "tags": ["medium", "south"], "meta": {"state": "TX", "zip_prefix": "76"}},
+    {"value": "Indianapolis", "weight": 0.5, "tags": ["medium", "midwest"], "meta": {"state": "IN", "zip_prefix": "46"}},
+    {"value": "Charlotte", "weight": 0.4, "tags": ["medium", "south"], "meta": {"state": "NC", "zip_prefix": "28"}},
+    {"value": "Seattle", "weight": 0.4, "tags": ["major", "west"], "meta": {"state": "WA", "zip_prefix": "98"}},
+    {"value": "Denver", "weight": 0.4, "tags": ["medium", "west"], "meta": {"state": "CO", "zip_prefix": "80"}},
+    {"value": "Boston", "weight": 0.4, "tags": ["major", "east"], "meta": {"state": "MA", "zip_prefix": "02"}}
+  ]
+}

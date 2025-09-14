@@ -1,0 +1,30 @@
+{
+  "language": "zh-TW",
+  "country": "TW",
+  "type": "addresses",
+  "version": "2.0.0",
+  "items": [
+    {"value": "臺北市", "weight": 3.0, "tags": ["major", "capital", "north"], "meta": {"county": "臺北", "zip_prefix": "10", "population": 2602418, "tier": 1, "region": "north"}},
+    {"value": "新北市", "weight": 2.8, "tags": ["major", "metropolitan", "north"], "meta": {"county": "新北", "zip_prefix": "20", "population": 4030954, "tier": 1, "region": "north"}},
+    {"value": "高雄市", "weight": 2.6, "tags": ["major", "port", "south"], "meta": {"county": "高雄", "zip_prefix": "80", "population": 2773533, "tier": 1, "region": "south"}},
+    {"value": "臺中市", "weight": 2.4, "tags": ["major", "central", "manufacturing"], "meta": {"county": "臺中", "zip_prefix": "40", "population": 2820787, "tier": 1, "region": "central"}},
+    {"value": "臺南市", "weight": 2.0, "tags": ["major", "historical", "south"], "meta": {"county": "臺南", "zip_prefix": "70", "population": 1873794, "tier": 2, "region": "south"}},
+    {"value": "桃園市", "weight": 1.8, "tags": ["major", "airport", "north"], "meta": {"county": "桃園", "zip_prefix": "32", "population": 2268807, "tier": 2, "region": "north"}},
+    {"value": "新竹市", "weight": 1.6, "tags": ["technology", "tech", "north"], "meta": {"county": "新竹", "zip_prefix": "30", "population": 453046, "tier": 2, "region": "north"}},
+    {"value": "基隆市", "weight": 1.4, "tags": ["port", "coastal", "north"], "meta": {"county": "基隆", "zip_prefix": "20", "population": 367577, "tier": 3, "region": "north"}},
+    {"value": "新竹縣", "weight": 1.2, "tags": ["technology", "rural", "north"], "meta": {"county": "新竹", "zip_prefix": "30", "population": 572656, "tier": 3, "region": "north"}},
+    {"value": "苗栗縣", "weight": 1.0, "tags": ["rural", "agriculture", "central"], "meta": {"county": "苗栗", "zip_prefix": "35", "population": 543076, "tier": 3, "region": "central"}},
+    {"value": "彰化縣", "weight": 1.0, "tags": ["agriculture", "traditional", "central"], "meta": {"county": "彰化", "zip_prefix": "50", "population": 1270140, "tier": 3, "region": "central"}},
+    {"value": "南投縣", "weight": 0.9, "tags": ["mountainous", "tourism", "central"], "meta": {"county": "南投", "zip_prefix": "54", "population": 495981, "tier": 4, "region": "central"}},
+    {"value": "雲林縣", "weight": 0.9, "tags": ["agriculture", "rural", "south"], "meta": {"county": "雲林", "zip_prefix": "63", "population": 687540, "tier": 4, "region": "south"}},
+    {"value": "嘉義市", "weight": 0.8, "tags": ["small", "central", "south"], "meta": {"county": "嘉義", "zip_prefix": "60", "population": 266757, "tier": 4, "region": "south"}},
+    {"value": "嘉義縣", "weight": 0.8, "tags": ["agriculture", "rural", "south"], "meta": {"county": "嘉義", "zip_prefix": "61", "population": 508842, "tier": 4, "region": "south"}},
+    {"value": "屏東縣", "weight": 0.7, "tags": ["rural", "tropical", "south"], "meta": {"county": "屏東", "zip_prefix": "90", "population": 818748, "tier": 4, "region": "south"}},
+    {"value": "宜蘭縣", "weight": 0.6, "tags": ["coastal", "tourism", "east"], "meta": {"county": "宜蘭", "zip_prefix": "26", "population": 458734, "tier": 4, "region": "east"}},
+    {"value": "花蓮縣", "weight": 0.6, "tags": ["mountainous", "indigenous", "east"], "meta": {"county": "花蓮", "zip_prefix": "97", "population": 327754, "tier": 4, "region": "east"}},
+    {"value": "臺東縣", "weight": 0.5, "tags": ["rural", "indigenous", "east"], "meta": {"county": "臺東", "zip_prefix": "95", "population": 217547, "tier": 4, "region": "east"}},
+    {"value": "澎湖縣", "weight": 0.4, "tags": ["island", "tourism", "west"], "meta": {"county": "澎湖", "zip_prefix": "88", "population": 106327, "tier": 5, "region": "west"}},
+    {"value": "金門縣", "weight": 0.3, "tags": ["island", "military", "west"], "meta": {"county": "金門", "zip_prefix": "89", "population": 140716, "tier": 5, "region": "west"}},
+    {"value": "連江縣", "weight": 0.2, "tags": ["island", "remote", "west"], "meta": {"county": "連江", "zip_prefix": "21", "population": 13076, "tier": 5, "region": "west"}}
+  ]
+}
