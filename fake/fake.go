@@ -144,6 +144,66 @@ func SetDefaultCountry(country Country) {
 	getDefaultFaker().country = country
 }
 
+// SetDefaultGender 设置默认性别
+func SetDefaultGender(gender Gender) {
+	getDefaultFaker().gender = gender
+}
+
+// SetDefaultSeed 设置默认随机种子
+func SetDefaultSeed(seed int64) {
+	getDefaultFaker().seed = seed
+}
+
+// GetDefaultLanguage 获取默认语言
+func GetDefaultLanguage() Language {
+	return getDefaultFaker().language
+}
+
+// GetDefaultCountry 获取默认国家
+func GetDefaultCountry() Country {
+	return getDefaultFaker().country
+}
+
+// GetDefaultGender 获取默认性别
+func GetDefaultGender() Gender {
+	return getDefaultFaker().gender
+}
+
+// GetDefaultSeed 获取默认随机种子
+func GetDefaultSeed() int64 {
+	return getDefaultFaker().seed
+}
+
+// ResetDefaultFaker 重置默认Faker实例
+func ResetDefaultFaker() {
+	defaultOnce = sync.Once{}
+	defaultFaker = nil
+}
+
+// SetDefaultFaker 设置自定义的默认Faker实例
+func SetDefaultFaker(faker *Faker) {
+	defaultFaker = faker
+}
+
+// SetDefaults 批量设置默认选项
+func SetDefaults(opts ...FakerOption) {
+	f := getDefaultFaker()
+	for _, opt := range opts {
+		opt(f)
+	}
+}
+
+// GetDefaultStats 获取默认实例的性能统计信息
+func GetDefaultStats() map[string]int64 {
+	return getDefaultFaker().Stats()
+}
+
+// ClearDefaultCache 清空默认实例的数据缓存
+func ClearDefaultCache() {
+	getDefaultFaker().ClearCache()
+}
+
+
 // 性能统计方法
 func (f *Faker) incrementCallCount() {
 	f.stats.Lock()
