@@ -1,16 +1,15 @@
 package fake
 
 import (
-	"embed"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"path"
 	"strings"
 	"sync"
 )
 
-//go:embed data
-var dataFS embed.FS
+// dataFS 现在通过 data_fs.go 中的 DataFS 变量提供
 
 // DataItem 数据项结构
 type DataItem struct {
@@ -61,7 +60,7 @@ func (dm *DataManager) LoadDataSet(language Language, dataType, subType string) 
 	filePath := path.Join("data", string(language), dataType, subType+".json")
 	
 	// 读取嵌入的文件
-	data, err := dataFS.ReadFile(filePath)
+	data, err := fs.ReadFile(DataFS, filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read data file %s: %w", filePath, err)
 	}
@@ -161,7 +160,7 @@ func (dm *DataManager) ListAvailableDataSets() ([]string, error) {
 	for _, lang := range GetSupportedLanguages() {
 		langDir := path.Join("data", string(lang))
 		
-		entries, err := dataFS.ReadDir(langDir)
+		entries, err := fs.ReadDir(DataFS, langDir)
 		if err != nil {
 			continue // 跳过不存在的语言目录
 		}
@@ -172,7 +171,7 @@ func (dm *DataManager) ListAvailableDataSets() ([]string, error) {
 				
 				// 读取数据类型目录
 				typeDir := path.Join(langDir, dataType)
-				subEntries, err := dataFS.ReadDir(typeDir)
+				subEntries, err := fs.ReadDir(DataFS, typeDir)
 				if err != nil {
 					continue
 				}
@@ -205,7 +204,7 @@ func (dm *DataManager) PreloadData(language Language) error {
 			dataType := entry.Name()
 			
 			typeDir := path.Join(langDir, dataType)
-			subEntries, err := dataFS.ReadDir(typeDir)
+			subEntries, err := fs.ReadDir(DataFS, typeDir)
 			if err != nil {
 				continue
 			}

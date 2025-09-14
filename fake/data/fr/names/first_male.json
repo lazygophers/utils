@@ -1,0 +1,11 @@
+{
+  "language": "fr",
+  "type": "names",
+  "items": [
+    {"value": "Pierre"},
+    {"value": "Jean"},
+    {"value": "Michel"},
+    {"value": "Philippe"},
+    {"value": "Alain"}
+  ]
+}
