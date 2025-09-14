@@ -1,0 +1,248 @@
+# anyx - Generic Type Utilities and Map Operations
+
+## Overview
+The anyx package provides powerful generic utilities for working with dynamic maps and type operations. It features a thread-safe MapAny implementation for handling heterogeneous data structures and comprehensive map utility functions.
+
+## Key Components
+
+### MapAny - Dynamic Thread-Safe Map
+A concurrent-safe map wrapper for handling `map[string]interface{}` with type conversion utilities:
+
+```go
+type MapAny struct {
+    data *sync.Map
+    cut  *atomic.Bool  // Enable nested key support
+    seq  *atomic.String // Separator for nested keys
+}
+```
+
+### Value Type Detection
+```go
+type ValueType int
+
+const (
+    ValueUnknown ValueType = iota
+    ValueNumber
+    ValueString
+    ValueBool
+)
+
+func CheckValueType(val interface{}) ValueType
+```
+
+## Core Functions
+
+### MapAny Creation
+```go
+// Create from existing map
+func NewMap(m map[string]interface{}) *MapAny
+
+// Create from JSON bytes
+func NewMapWithJson(s []byte) (*MapAny, error)
+
+// Create from YAML bytes
+func NewMapWithYaml(s []byte) (*MapAny, error)
+
+// Create from any interface
+func NewMapWithAny(s interface{}) (*MapAny, error)
+```
+
+### MapAny Operations
+```go
+// Enable nested key access with separator
+func (p *MapAny) EnableCut(seq string) *MapAny
+
+// Basic get/set operations
+func (p *MapAny) Get(key string) (interface{}, error)
+func (p *MapAny) Set(key string, value interface{})
+func (p *MapAny) Exists(key string) bool
+```
+
+### Typed Getters with Automatic Conversion
+```go
+func (p *MapAny) GetBool(key string) bool
+func (p *MapAny) GetInt(key string) int
+func (p *MapAny) GetInt32(key string) int32
+func (p *MapAny) GetInt64(key string) int64
+func (p *MapAny) GetUint16(key string) uint16
+func (p *MapAny) GetUint32(key string) uint32
+func (p *MapAny) GetUint64(key string) uint64
+func (p *MapAny) GetFloat64(key string) float64
+func (p *MapAny) GetString(key string) string
+func (p *MapAny) GetBytes(key string) []byte
+```
+
+### Collection Operations
+```go
+func (p *MapAny) GetSlice(key string) []interface{}
+func (p *MapAny) GetStringSlice(key string) []string
+func (p *MapAny) GetUint64Slice(key string) []uint64
+func (p *MapAny) GetInt64Slice(key string) []int64
+func (p *MapAny) GetUint32Slice(key string) []uint32
+func (p *MapAny) GetMap(key string) *MapAny
+```
+
+### Conversion and Utility
+```go
+func (p *MapAny) ToMap() map[string]interface{}
+func (p *MapAny) ToSyncMap() *sync.Map
+func (p *MapAny) Clone() *MapAny
+func (p *MapAny) Range(f func(key, value interface{}) bool)
+```
+
+## Map Key/Value Extraction Functions
+Type-safe key and value extraction from maps using reflection:
+
+### Key Extraction by Type
+```go
+func MapKeysString(m interface{}) []string
+func MapKeysInt32(m interface{}) []int32
+func MapKeysInt64(m interface{}) []int64
+func MapKeysUint32(m interface{}) []uint32
+func MapKeysUint64(m interface{}) []uint64
+func MapKeysFloat32(m interface{}) []float32
+func MapKeysFloat64(m interface{}) []float64
+func MapKeysInterface(m interface{}) []interface{}
+```
+
+### Value Extraction
+```go
+func MapValues[K constraints.Ordered, V any](m map[K]V) []V
+func MapValuesAny(m interface{}) []interface{}
+func MapValuesString(m interface{}) []string
+func MapValuesInt(m interface{}) []int
+func MapValuesFloat64(m interface{}) []float64
+```
+
+### Map Manipulation
+```go
+// Merge two maps
+func MergeMap[K constraints.Ordered, V any](source, target map[K]V) map[K]V
+
+// Convert slice to boolean map
+func Slice2Map[M constraints.Ordered](list []M) map[M]bool
+```
+
+## Struct to Map Conversion Functions
+Convert slice of structs to maps keyed by specified field:
+
+```go
+func KeyBy(list interface{}, fieldName string) interface{}
+func KeyByUint64[M any](list []*M, fieldName string) map[uint64]*M
+func KeyByInt64[M any](list []*M, fieldName string) map[int64]*M
+func KeyByString[M any](list []*M, fieldName string) map[string]*M
+func KeyByInt32[M any](list []*M, fieldName string) map[int32]*M
+```
+
+## Usage Examples
+
+### Basic MapAny Operations
+```go
+import "github.com/lazygophers/utils/anyx"
+
+// Create from map
+data := map[string]interface{}{
+    "name": "John",
+    "age": 30,
+    "active": true,
+}
+m := anyx.NewMap(data)
+
+// Basic access
+name := m.GetString("name")  // "John"
+age := m.GetInt("age")       // 30
+active := m.GetBool("active") // true
+```
+
+### Nested Key Access
+```go
+// Enable nested key support
+m.EnableCut(".")
+
+// Set nested value
+m.Set("user.profile.name", "John Doe")
+
+// Get nested value
+name := m.GetString("user.profile.name") // "John Doe"
+```
+
+### JSON/YAML Integration
+```go
+// From JSON
+jsonData := []byte(`{"user":{"name":"John","age":30}}`)
+m, err := anyx.NewMapWithJson(jsonData)
+
+// From YAML
+yamlData := []byte(`
+user:
+  name: John
+  age: 30
+`)
+m, err := anyx.NewMapWithYaml(yamlData)
+```
+
+### Map Operations
+```go
+// Extract string keys from map
+stringMap := map[string]int{"a": 1, "b": 2, "c": 3}
+keys := anyx.MapKeysString(stringMap) // []string{"a", "b", "c"}
+
+// Extract values with generics
+values := anyx.MapValues(stringMap) // []int{1, 2, 3}
+
+// Merge maps
+map1 := map[string]int{"a": 1, "b": 2}
+map2 := map[string]int{"c": 3, "d": 4}
+merged := anyx.MergeMap(map1, map2) // map[string]int{"a":1, "b":2, "c":3, "d":4}
+```
+
+### Struct to Map Conversion
+```go
+type User struct {
+    ID   uint64 `json:"id"`
+    Name string `json:"name"`
+}
+
+users := []*User{
+    {ID: 1, Name: "John"},
+    {ID: 2, Name: "Jane"},
+}
+
+// Convert to map keyed by ID
+userMap := anyx.KeyByUint64(users, "ID")
+// map[uint64]*User{1: &User{ID:1, Name:"John"}, 2: &User{ID:2, Name:"Jane"}}
+```
+
+### Slice to Map Conversion
+```go
+tags := []string{"go", "rust", "python"}
+tagMap := anyx.Slice2Map(tags)
+// map[string]bool{"go": true, "rust": true, "python": true}
+```
+
+## Error Handling
+```go
+var ErrNotFound = errors.New("not found")
+
+// Get with error handling
+value, err := m.Get("nonexistent")
+if err == anyx.ErrNotFound {
+    // Handle missing key
+}
+```
+
+## Dependencies
+- github.com/lazygophers/utils/candy: Type conversion utilities
+- github.com/lazygophers/utils/json: JSON operations
+- go.uber.org/atomic: Atomic operations for thread safety
+- gopkg.in/yaml.v3: YAML processing
+- golang.org/x/exp/constraints: Generic constraints
+
+## Design Features
+1. **Thread Safety**: Uses sync.Map for concurrent access
+2. **Type Conversion**: Automatic type conversion using candy package
+3. **Nested Access**: Support for nested key access with configurable separators  
+4. **Generic Support**: Leverages Go generics for type-safe operations
+5. **Format Support**: JSON and YAML parsing capabilities
+6. **Reflection-based**: Dynamic map operations using reflection
+7. **Zero Values**: Returns appropriate zero values for missing keys

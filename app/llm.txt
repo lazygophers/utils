@@ -1,0 +1,255 @@
+# app - Application Lifecycle and Environment Management
+
+## Overview
+The app package provides build-time application metadata management and release type configuration through Go build tags. It enables applications to determine their build environment and access build-time information.
+
+## Key Components
+
+### Release Types
+Enum for different build environments:
+
+```go
+type ReleaseType uint8
+
+const (
+    Debug ReleaseType = iota
+    Test
+    Alpha
+    Beta
+    Release
+)
+```
+
+### Build Information Variables
+Variables populated at build time through ldflags:
+
+```go
+// Git information
+var Commit      string  // Full git commit hash
+var ShortCommit string  // Short git commit hash
+var Branch      string  // Git branch name
+var Tag         string  // Git tag
+
+// Build metadata
+var BuildDate   string  // Build timestamp
+var GoVersion   string  // Go version used for build
+
+// Target platform information
+var GoOS    string  // Target OS
+var Goarch  string  // Target architecture  
+var Goarm   string  // ARM version (if applicable)
+var Goamd64 string  // AMD64 version (if applicable)
+var Gomips  string  // MIPS version (if applicable)
+
+// Application metadata
+var Description string  // Application description
+var Organization string = "lazygophers"  // Default organization
+var Name    string  // Application name
+var Version string  // Application version
+
+// Current package type (set by build tags)
+var PackageType ReleaseType
+```
+
+## Build Tag Integration
+The package uses Go build tags to automatically set the release type:
+
+### Build Tag Files
+- **debug.go**: Sets `PackageType = Debug` with `//go:build debug`
+- **test.go**: Sets `PackageType = Test` with `//go:build test`
+- **alpha.go**: Sets `PackageType = Alpha` with `//go:build alpha`
+- **beta.go**: Sets `PackageType = Beta` with `//go:build beta`
+- **release.go**: Sets `PackageType = Release` with `//go:build release`
+
+## Methods
+
+### ReleaseType Methods
+```go
+func (p ReleaseType) String() string    // Returns string representation
+func (p ReleaseType) Debug() string     // Alias for String()
+```
+
+## Usage Examples
+
+### Basic Application Information
+```go
+import "github.com/lazygophers/utils/app"
+
+func main() {
+    fmt.Printf("Application: %s/%s\n", app.Organization, app.Name)
+    fmt.Printf("Version: %s\n", app.Version)
+    fmt.Printf("Release Type: %s\n", app.PackageType.String())
+    fmt.Printf("Build Date: %s\n", app.BuildDate)
+}
+```
+
+### Build Environment Detection
+```go
+import "github.com/lazygophers/utils/app"
+
+func main() {
+    switch app.PackageType {
+    case app.Debug:
+        fmt.Println("Running in debug mode")
+        // Enable debug logging
+    case app.Test:
+        fmt.Println("Running in test mode")
+        // Enable test configurations
+    case app.Alpha:
+        fmt.Println("Running alpha version")
+        // Enable alpha features
+    case app.Beta:
+        fmt.Println("Running beta version")
+        // Enable beta features with limited exposure
+    case app.Release:
+        fmt.Println("Running production version")
+        // Production configuration
+    }
+}
+```
+
+### Git Information Access
+```go
+import "github.com/lazygophers/utils/app"
+
+func printBuildInfo() {
+    fmt.Printf("Git Commit: %s\n", app.Commit)
+    fmt.Printf("Short Commit: %s\n", app.ShortCommit)
+    fmt.Printf("Branch: %s\n", app.Branch)
+    if app.Tag != "" {
+        fmt.Printf("Tag: %s\n", app.Tag)
+    }
+}
+```
+
+### Platform Information
+```go
+import "github.com/lazygophers/utils/app"
+
+func printPlatformInfo() {
+    fmt.Printf("Target OS: %s\n", app.GoOS)
+    fmt.Printf("Target Arch: %s\n", app.Goarch)
+    fmt.Printf("Go Version: %s\n", app.GoVersion)
+    
+    if app.Goarm != "" {
+        fmt.Printf("ARM Version: %s\n", app.Goarm)
+    }
+    if app.Goamd64 != "" {
+        fmt.Printf("AMD64 Version: %s\n", app.Goamd64)
+    }
+}
+```
+
+## Build Integration
+
+### Makefile Integration
+```makefile
+COMMIT := $(shell git rev-parse HEAD)
+SHORT_COMMIT := $(shell git rev-parse --short HEAD)
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+TAG := $(shell git describe --tags --exact-match 2>/dev/null || echo "")
+BUILD_DATE := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
+GO_VERSION := $(shell go version | awk '{print $$3}')
+
+LDFLAGS := -ldflags "\
+    -X github.com/lazygophers/utils/app.Commit=$(COMMIT) \
+    -X github.com/lazygophers/utils/app.ShortCommit=$(SHORT_COMMIT) \
+    -X github.com/lazygophers/utils/app.Branch=$(BRANCH) \
+    -X github.com/lazygophers/utils/app.Tag=$(TAG) \
+    -X github.com/lazygophers/utils/app.BuildDate=$(BUILD_DATE) \
+    -X github.com/lazygophers/utils/app.GoVersion=$(GO_VERSION) \
+    -X github.com/lazygophers/utils/app.Name=myapp \
+    -X github.com/lazygophers/utils/app.Version=1.0.0 \
+    -X github.com/lazygophers/utils/app.Description='My Application'"
+
+# Build for different environments
+.PHONY: build-debug build-release build-alpha build-beta
+
+build-debug:
+	go build -tags=debug $(LDFLAGS) -o bin/myapp-debug ./cmd/myapp
+
+build-release:
+	go build -tags=release $(LDFLAGS) -o bin/myapp ./cmd/myapp
+
+build-alpha:
+	go build -tags=alpha $(LDFLAGS) -o bin/myapp-alpha ./cmd/myapp
+
+build-beta:
+	go build -tags=beta $(LDFLAGS) -o bin/myapp-beta ./cmd/myapp
+```
+
+### Docker Integration
+```dockerfile
+ARG BUILD_TAG=release
+ARG APP_NAME=myapp
+ARG APP_VERSION=1.0.0
+
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /app
+COPY . .
+
+RUN apk add --no-cache git && \
+    COMMIT=$(git rev-parse HEAD) && \
+    SHORT_COMMIT=$(git rev-parse --short HEAD) && \
+    BRANCH=$(git rev-parse --abbrev-ref HEAD) && \
+    BUILD_DATE=$(date -u '+%Y-%m-%d_%H:%M:%S') && \
+    GO_VERSION=$(go version | awk '{print $3}') && \
+    go build -tags=${BUILD_TAG} \
+        -ldflags "-X github.com/lazygophers/utils/app.Commit=$COMMIT \
+                  -X github.com/lazygophers/utils/app.ShortCommit=$SHORT_COMMIT \
+                  -X github.com/lazygophers/utils/app.Branch=$BRANCH \
+                  -X github.com/lazygophers/utils/app.BuildDate=$BUILD_DATE \
+                  -X github.com/lazygophers/utils/app.GoVersion=$GO_VERSION \
+                  -X github.com/lazygophers/utils/app.Name=${APP_NAME} \
+                  -X github.com/lazygophers/utils/app.Version=${APP_VERSION}" \
+        -o /app/binary ./cmd/app
+```
+
+## Environment-Specific Features
+
+### Feature Flags Based on Release Type
+```go
+import "github.com/lazygophers/utils/app"
+
+func isFeatureEnabled(feature string) bool {
+    switch app.PackageType {
+    case app.Debug, app.Test:
+        return true  // All features enabled in development
+    case app.Alpha:
+        return isAlphaFeature(feature)
+    case app.Beta:
+        return isBetaFeature(feature)
+    case app.Release:
+        return isReleaseFeature(feature)
+    }
+    return false
+}
+```
+
+### Logging Configuration
+```go
+import "github.com/lazygophers/utils/app"
+
+func setupLogging() {
+    switch app.PackageType {
+    case app.Debug, app.Test:
+        log.SetLevel(log.DebugLevel)
+    case app.Alpha, app.Beta:
+        log.SetLevel(log.InfoLevel)
+    case app.Release:
+        log.SetLevel(log.WarnLevel)
+    }
+}
+```
+
+## Dependencies
+None - this is a standalone package with minimal external dependencies.
+
+## Design Features
+1. **Build Tag Integration**: Automatic environment detection through Go build tags
+2. **Build-time Metadata**: Comprehensive build information through ldflags
+3. **Type Safety**: Enum-based release type system
+4. **Zero Runtime Cost**: All configuration resolved at build time
+5. **CI/CD Friendly**: Easy integration with build systems and Docker
+6. **Version Management**: Comprehensive version and git information tracking

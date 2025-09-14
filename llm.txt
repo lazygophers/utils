@@ -1,0 +1,149 @@
+# lazygophers/utils - Root Package
+
+## Overview
+The root utils package provides fundamental utility functions for error handling, database operations, and validation. It serves as the main entry point for the comprehensive Go utility library.
+
+## Key Functions
+
+### Must Functions (must.go)
+Generic functions for panic-on-error scenarios:
+
+```go
+// Panic if condition is false
+func MustOk[T any](value T, ok bool) T
+
+// Panic if error is not nil
+func MustSuccess(err error)
+
+// Combine error checking and return value
+func Must[T any](value T, err error) T
+
+// Force ignore any parameter
+func Ignore[T any](value T, _ any) T
+```
+
+### Database Operations (orm.go)
+Database field scanning and value conversion:
+
+```go
+// Scan database field to struct with JSON deserialization
+func Scan(src interface{}, dst interface{}) error
+
+// Convert struct to database value with JSON serialization
+func Value(m interface{}) (driver.Value, error)
+```
+
+### Validation (validate.go)
+Struct validation using go-playground/validator:
+
+```go
+// Validate struct fields using tags
+func Validate(m interface{}) error
+```
+
+## Usage Examples
+
+### Error Handling
+```go
+import "github.com/lazygophers/utils"
+
+// Panic on error
+result := utils.Must(someFunction())
+
+// Panic on false condition
+value := utils.MustOk(getValue())
+
+// Just check error
+utils.MustSuccess(someOperation())
+```
+
+### Database Integration
+```go
+import "github.com/lazygophers/utils"
+
+type User struct {
+    Name string `json:"name"`
+    Age  int    `json:"age"`
+}
+
+// Scanning from database
+var user User
+err := utils.Scan(dbValue, &user)
+
+// Converting to database value
+value, err := utils.Value(user)
+```
+
+### Validation
+```go
+import "github.com/lazygophers/utils"
+
+type User struct {
+    Name  string `validate:"required"`
+    Email string `validate:"required,email"`
+    Age   int    `validate:"gte=0,lte=130"`
+}
+
+user := User{Name: "John", Email: "john@example.com", Age: 25}
+err := utils.Validate(user)
+```
+
+## Dependencies
+- github.com/lazygophers/log: Consistent logging
+- github.com/go-playground/validator/v10: Struct validation
+- github.com/lazygophers/utils/defaults: Default value population
+- github.com/lazygophers/utils/json: JSON operations
+- github.com/pkg/errors: Enhanced error handling
+
+## Design Patterns
+1. **Generic Programming**: Extensive use of Go generics for type safety
+2. **Error Logging**: All errors are logged before returning
+3. **JSON Integration**: Automatic JSON marshaling/unmarshaling for database operations
+4. **Default Values**: Automatic population of default values using struct tags
+
+## Module Index
+This utility library contains the following specialized modules:
+
+### Core Utilities
+- anyx: Generic type utilities and assertions
+- candy: Type conversion and casting utilities
+- defaults: Default value population for structs
+- json: Enhanced JSON operations wrapper
+- stringx: Extended string manipulation functions
+- unit: Unit conversion and measurement utilities
+
+### System Integration
+- app: Application lifecycle and environment management
+- atexit: Exit handlers and cleanup utilities
+- config: Configuration management with multiple formats
+- network: Network utilities and helpers
+- osx: Operating system specific utilities
+- runtime: Go runtime utilities and helpers
+
+### Concurrency & Control Flow
+- event: Event-driven programming support
+- hystrix: Circuit breaker pattern implementation
+- routine: Goroutine management and utilities
+- singledo: Single execution pattern implementation
+- wait: Synchronization and timeout control
+
+### Security & Encoding
+- cryptox: Cryptographic operations and utilities
+- fake: Fake data generation for testing
+- pgp: PGP encryption and decryption utilities
+- randx: Enhanced random number generation
+
+### I/O & Data Processing
+- bufiox: Buffered I/O extensions
+- pyroscope: Performance profiling integration
+- urlx: URL manipulation and utilities
+
+### Time Operations
+- xtime: Enhanced time operations with specialized subpackages
+  - xtime007: James Bond themed time utilities
+  - xtime955: Work-life balance time utilities (9am-5pm + 5 days)
+  - xtime996: Work schedule time utilities (9am-9pm + 6 days)
+
+## Requirements
+- Go 1.18+ (for generics support)
+- All modules emphasize type safety, performance, and comprehensive error handling

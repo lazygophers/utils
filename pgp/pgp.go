@@ -1,5 +1,3 @@
-// Package pgp 提供PGP加密解密功能
-// 使用更现代的实现，提供简洁的API接口
 package pgp
 
 import (

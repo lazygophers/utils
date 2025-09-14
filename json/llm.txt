@@ -1,0 +1,74 @@
+# JSON Package - High-Performance JSON Processing
+
+## Overview
+The json package provides high-performance JSON processing utilities with enhanced error handling and optimized serialization/deserialization operations.
+
+## Key Features
+- **High Performance**: Uses `github.com/bytedance/sonic` for fast JSON operations
+- **Enhanced Error Handling**: Detailed error reporting with context
+- **Type Safety**: Generic functions for type-safe operations
+- **Streaming Support**: Large JSON processing with minimal memory footprint
+
+## Core Functions
+- **Marshal[T](T) ([]byte, error)**: Fast JSON marshaling with type safety
+- **Unmarshal[T]([]byte, *T) error**: Fast JSON unmarshaling with error context
+- **MustMarshal[T](T) []byte**: Marshal with panic on error (for known-good data)
+- **MustUnmarshal[T]([]byte) T**: Unmarshal with panic on error
+- **IsValidJSON([]byte) bool**: Validate JSON without parsing
+
+## Code Examples
+
+```go
+import "github.com/lazygophers/utils/json"
+
+type User struct {
+    ID   int    `json:"id"`
+    Name string `json:"name"`
+    Email string `json:"email"`
+}
+
+// Type-safe marshaling
+user := User{ID: 1, Name: "Alice", Email: "alice@example.com"}
+data, err := json.Marshal(user)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Type-safe unmarshaling  
+var decoded User
+err = json.Unmarshal(data, &decoded)
+if err != nil {
+    log.Fatal(err)
+}
+
+// Must functions for known-good data
+data2 := json.MustMarshal(user)
+user2 := json.MustUnmarshal[User](data2)
+
+// JSON validation
+if json.IsValidJSON(data) {
+    fmt.Println("Valid JSON")
+}
+```
+
+## Performance Benefits
+- **Sonic Integration**: Up to 2-10x faster than standard library
+- **Zero Allocation**: Optimized paths for common operations
+- **SIMD Optimization**: Vectorized JSON parsing where supported
+- **Memory Efficient**: Reduced garbage collection pressure
+
+## Dependencies
+- `github.com/bytedance/sonic` - High-performance JSON library
+- `github.com/lazygophers/log` - Structured logging for errors
+
+## Usage Patterns
+1. **API Responses**: Fast serialization of API response objects
+2. **Configuration**: JSON config file parsing with validation
+3. **Data Processing**: Bulk JSON processing with streaming
+4. **Caching**: Efficient JSON serialization for cache storage
+
+## Error Handling
+- Detailed error messages with line and column information
+- Context-aware error reporting for debugging
+- Fallback to standard library on sonic failures
+- Structured error logging for production systems

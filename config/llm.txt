@@ -1,0 +1,129 @@
+# Config Package - Configuration Management
+
+## Overview
+The config package provides comprehensive configuration management with support for multiple file formats, environment variables, and validation.
+
+## Supported Formats
+- **JSON**: `.json` files with nested object support
+- **YAML**: `.yaml/.yml` files with complex data structures  
+- **TOML**: `.toml` files with section-based organization
+- **INI**: `.ini` files with key-value pairs
+- **Environment Variables**: System environment variable integration
+
+## Core Functions
+- **LoadConfig[T](path, config)**: Load and validate configuration from file
+- **LoadConfigSkipValidate[T](path, config)**: Load configuration without validation
+- **SaveConfig[T](path, config)**: Save configuration to file
+- **MergeConfig[T](base, override)**: Merge multiple configurations
+
+## Code Examples
+
+```go
+import "github.com/lazygophers/utils/config"
+
+// Define configuration structure
+type AppConfig struct {
+    Server struct {
+        Port int    `json:"port" yaml:"port" validate:"min=1,max=65535"`
+        Host string `json:"host" yaml:"host" validate:"required"`
+    } `json:"server" yaml:"server"`
+    
+    Database struct {
+        URL      string `json:"url" yaml:"url" validate:"required,url"`
+        MaxConns int    `json:"max_conns" yaml:"max_conns" validate:"min=1"`
+    } `json:"database" yaml:"database"`
+}
+
+// Load configuration with validation
+var cfg AppConfig
+err := config.LoadConfig("config.json", &cfg)
+if err != nil {
+    log.Fatal("Failed to load config:", err)
+}
+
+// Load without validation for flexible configurations
+err = config.LoadConfigSkipValidate("config.yaml", &cfg)
+
+// Save configuration
+err = config.SaveConfig("output.json", &cfg)
+```
+
+## Configuration Loading Strategy
+
+### Search Order
+1. Specified file path (if provided)
+2. Environment variable `LAZYGOPHERS_CONFIG`
+3. Current working directory (`./config/`)
+4. Executable directory
+5. Default configuration (if no file found)
+
+### Format Detection
+- Automatic format detection based on file extension
+- Support for custom parsers and validators
+- Graceful fallback for unsupported formats
+
+## Environment Variable Integration
+
+```go
+// Environment variable override
+type Config struct {
+    Port     int    `json:"port" env:"APP_PORT"`
+    LogLevel string `json:"log_level" env:"LOG_LEVEL"`
+}
+
+// Load with environment variable support
+cfg := Config{}
+config.LoadConfig("config.json", &cfg) // File values + env overrides
+```
+
+## Validation Features
+- **Struct Tag Validation**: Using `github.com/go-playground/validator/v10`
+- **Custom Validators**: Extensible validation system
+- **Nested Validation**: Deep validation of nested structures
+- **Conditional Rules**: Context-aware validation rules
+
+## Advanced Usage
+
+```go
+// Configuration merging
+baseConfig := loadBaseConfig()
+envConfig := loadEnvironmentOverrides()
+finalConfig := config.MergeConfig(baseConfig, envConfig)
+
+// Configuration watching (file system events)
+watcher := config.NewWatcher("config.json", func(cfg *AppConfig) {
+    log.Println("Configuration reloaded")
+    // Handle configuration changes
+})
+defer watcher.Close()
+
+// Default value population
+type ConfigWithDefaults struct {
+    Timeout time.Duration `json:"timeout" default:"30s"`
+    Retries int          `json:"retries" default:"3"`
+}
+```
+
+## Error Handling
+- **Detailed Parse Errors**: Line and column information for syntax errors
+- **Validation Error Aggregation**: All validation failures reported together
+- **Missing File Handling**: Graceful fallback to default configurations
+- **Type Conversion Errors**: Clear error messages for type mismatches
+
+## Dependencies
+- `github.com/go-playground/validator/v10` - Struct validation
+- `github.com/mcuadros/go-defaults` - Default value assignment
+- `github.com/lazygophers/log` - Structured logging
+- Format-specific parsers (encoding/json, gopkg.in/yaml.v3, etc.)
+
+## Use Cases
+1. **Application Settings**: Runtime configuration management
+2. **Feature Flags**: Dynamic feature enablement
+3. **Environment-Specific Config**: Dev/staging/production configurations
+4. **Service Discovery**: Dynamic service endpoint configuration
+5. **Security Settings**: API keys and authentication configuration
+
+## Performance Notes
+- Lazy loading with caching for frequently accessed configs
+- Minimal memory footprint for unused configuration sections
+- Efficient file watching with debounced reload events

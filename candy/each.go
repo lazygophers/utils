@@ -1,4 +1,3 @@
-// Package candy 包含实用的语法糖工具函数
 package candy
 
 import (

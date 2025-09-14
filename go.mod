@@ -1,11 +1,10 @@
 module github.com/lazygophers/utils
 
-go 1.18
+go 1.24.0
 
 require (
-	github.com/ProtonMail/go-crypto v1.1.3
+	github.com/ProtonMail/go-crypto v1.3.0
 	github.com/agiledragon/gomonkey/v2 v2.13.0
-	github.com/andybalholm/brotli v1.2.0
 	github.com/bytedance/sonic v1.14.1
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/google/uuid v1.6.0
@@ -24,7 +23,6 @@ require (
 
 require (
 	github.com/hashicorp/hcl/v2 v2.24.0
-	github.com/jchavannes/go-pgp v0.0.0-20200131171414-e5978e6d02b4
 	github.com/yosuke-furukawa/json5 v0.1.1
 	gopkg.in/ini.v1 v1.67.0
 )
@@ -33,7 +31,7 @@ require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
-	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/cloudflare/circl v1.6.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/zclconf/go-cty v1.16.3 // indirect

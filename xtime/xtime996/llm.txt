@@ -1,0 +1,115 @@
+# XTime996 - Extended Work Schedule Module (9-9, 6 Days)
+
+## Overview
+The xtime996 subpackage provides utilities for extended work schedule operations following a 9 AM to 9 PM, Monday through Saturday intensive work model.
+
+## Key Features
+- **Extended Hours**: 9:00 AM - 9:00 PM (12-hour workdays)
+- **Six Work Days**: Monday through Saturday
+- **Single Rest Day**: Sunday only as rest day
+- **High-Intensity Support**: Designed for demanding work environments
+- **Minimal Downtime**: Maximum operational coverage
+
+## Functions
+- **IsWorkingHours(time.Time) bool**: Check if time falls within 9-9, 6-day schedule
+- **NextWorkingDay(time.Time) time.Time**: Calculate next working day (Sunday -> Monday)
+- **WorkingHoursToday() (start, end time.Time)**: Get today's extended business hours
+- **IsRestDay(time.Time) bool**: Check if it's Sunday (rest day)
+- **GetScheduleInfo() ScheduleInfo**: Returns 9-9-6 schedule information
+- **WorkingDaysInWeek() int**: Returns 6 working days
+- **RestDaysInWeek() int**: Returns 1 rest day
+
+## Usage Examples
+
+```go
+import "github.com/lazygophers/utils/xtime/xtime996"
+
+// Check if currently in extended working hours
+now := time.Now()
+if xtime996.IsWorkingHours(now) {
+    fmt.Println("Currently in working hours (9 AM - 9 PM, Mon-Sat)")
+}
+
+// Check for rest day
+if xtime996.IsRestDay(now) {
+    fmt.Println("Today is rest day (Sunday)")
+} else {
+    fmt.Println("Today is a working day")
+}
+
+// Get working hours
+start, end := xtime996.WorkingHoursToday()
+if !start.IsZero() && !end.IsZero() {
+    fmt.Printf("Working hours: %s - %s (12-hour shift)\n",
+        start.Format("15:04"), end.Format("15:04")) // 09:00 - 21:00
+}
+
+// Calculate next working day
+nextWorkDay := xtime996.NextWorkingDay(now)
+fmt.Println("Next working day:", nextWorkDay.Format("Monday, Jan 2"))
+```
+
+## Schedule Characteristics
+- **Working Days**: Monday - Saturday (6 days)
+- **Working Hours**: 9:00 AM - 9:00 PM (12 hours)
+- **Rest Day**: Sunday only
+- **Weekly Hours**: 72 working hours per week
+- **Break Considerations**: Implementation-dependent meal and rest breaks
+
+## Operational Patterns
+- **Peak Productivity**: Extended hours for maximum output
+- **Reduced Turnaround**: Faster project completion cycles
+- **Intensive Sprints**: High-demand periods and deadlines
+- **Minimal Weekend**: Single day weekend for rest
+
+## Use Cases
+1. **Startup Environments**: High-growth companies with intensive development cycles
+2. **Consulting Firms**: Client-focused service delivery with tight deadlines  
+3. **Manufacturing**: Production environments requiring extended coverage
+4. **Tech Companies**: Fast-paced development and deployment cycles
+5. **Project-Based Work**: Time-critical project delivery
+6. **Seasonal Industries**: Peak season operations requiring intensive schedules
+
+## Health and Wellbeing Considerations
+- **Burnout Prevention**: Monitor for signs of employee fatigue
+- **Mandatory Breaks**: Ensure proper meal and rest periods
+- **Sunday Rest**: Strict enforcement of rest day
+- **Rotation Schedules**: Consider rotating intensive periods
+- **Health Monitoring**: Regular wellness checks for extended hour workers
+
+## Integration Examples
+
+```go
+// Workload management
+func shouldScheduleIntensiveTask(t time.Time) bool {
+    return xtime996.IsWorkingHours(t) && !xtime996.IsRestDay(t)
+}
+
+// Sprint planning
+func calculateSprintCapacity(startDate time.Time, duration int) int {
+    totalDays := 0
+    current := startDate
+    for i := 0; i < duration; i++ {
+        if !xtime996.IsRestDay(current) {
+            totalDays++
+        }
+        current = current.AddDate(0, 0, 1)
+    }
+    return totalDays * 12 // 12 hours per working day
+}
+
+// Deadline calculation with extended schedule
+func calculateDeadline(startTime time.Time, requiredHours int) time.Time {
+    hoursPerDay := 12
+    daysNeeded := (requiredHours + hoursPerDay - 1) / hoursPerDay
+    return xtime996.AddWorkingDays(startTime, daysNeeded)
+}
+```
+
+## Performance Notes
+- Optimized for rapid schedule calculations
+- Considers the intensive nature of extended work periods
+- Minimal overhead for frequent working hour checks
+
+## Warning
+The 996 work schedule (9am-9pm, 6 days a week) is controversial and potentially harmful to worker health. Use this module only where legally compliant and ethically appropriate, with proper worker protections and consent.

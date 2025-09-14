@@ -1,0 +1,81 @@
+# XTime Package - Enhanced Time Operations
+
+## Overview
+The xtime package provides enhanced time operations including specialized work schedule utilities and extended time formatting capabilities.
+
+## Core Functions
+- **ParseDuration**: Enhanced duration parsing with additional formats
+- **FormatDuration**: Human-readable duration formatting
+- **Now**: Get current time with timezone awareness
+- **Sleep**: Enhanced sleep with context support
+- **TimeRange**: Generate time ranges with intervals
+
+## Subpackages
+This package includes specialized subpackages for different work schedule contexts:
+
+### xtime007 - 24/7 Operations
+- Always-on service scheduling
+- 24-hour operation utilities
+- Continuous time management
+- See: [xtime007/llm.txt](xtime007/llm.txt)
+
+### xtime955 - Standard Work Schedule (9-5, 5 days)
+- Business hours time management
+- Weekday-only operations
+- Standard office hour utilities
+- See: [xtime955/llm.txt](xtime955/llm.txt)
+
+### xtime996 - Extended Work Schedule (9-9, 6 days)
+- Extended work hour management
+- Six-day work week utilities
+- High-intensity schedule support
+- See: [xtime996/llm.txt](xtime996/llm.txt)
+
+## Code Examples
+
+```go
+import (
+    "github.com/lazygophers/utils/xtime"
+    "github.com/lazygophers/utils/xtime/xtime955"
+)
+
+// Enhanced duration parsing
+duration, err := xtime.ParseDuration("1h30m45s")
+if err != nil {
+    log.Fatal(err)
+}
+
+// Human-readable formatting
+formatted := xtime.FormatDuration(duration) // "1 hour 30 minutes 45 seconds"
+
+// Business hours checking (using 955 subpackage)
+now := time.Now()
+if xtime955.IsWorkingHours(now) {
+    fmt.Println("Currently in business hours")
+}
+
+// Next business day calculation
+nextWorkDay := xtime955.NextWorkingDay(now)
+```
+
+## Time Zone Support
+- Automatic timezone detection and handling
+- UTC conversion utilities
+- Locale-aware time formatting
+- Regional work schedule support
+
+## Dependencies
+- Standard `time` package
+- Locale-specific formatting libraries
+- Timezone database integration
+
+## Usage Patterns
+1. **Business Logic**: Use appropriate subpackage based on work schedule
+2. **Duration Handling**: Enhanced parsing and formatting for user interfaces
+3. **Schedule Management**: Work hour validation and next working day calculation
+4. **International Support**: Timezone-aware operations for global applications
+
+## Performance Notes
+- Efficient time calculations with minimal allocations
+- Cached timezone information for repeated operations
+- Optimized work schedule lookups

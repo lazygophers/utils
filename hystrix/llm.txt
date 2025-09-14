@@ -1,0 +1,120 @@
+# Hystrix Package - Circuit Breaker Pattern
+
+## Overview
+The hystrix package provides circuit breaker pattern implementation for fault tolerance and resilience in distributed systems.
+
+## Key Features
+- **Circuit Breaker States**: Closed, Open, Half-Open state management
+- **Failure Threshold**: Configurable failure rate thresholds
+- **Automatic Recovery**: Self-healing with gradual traffic restoration
+- **Metrics Collection**: Request success/failure statistics
+- **Timeout Protection**: Request timeout with fallback execution
+
+## Core Types and Functions
+
+### CircuitBreaker
+- **NewCircuitBreaker(name, options)**: Create new circuit breaker instance
+- **Call(func)**: Execute function with circuit breaker protection
+- **State()**: Get current circuit breaker state
+- **IsOpen()**: Check if circuit is open (blocking requests)
+
+### Configuration Options
+- **MaxRequests**: Maximum requests allowed in half-open state
+- **Interval**: Time window for failure rate calculation
+- **Timeout**: Request timeout duration
+- **OnStateChange**: Callback for state transitions
+
+## Code Examples
+
+```go
+import "github.com/lazygophers/utils/hystrix"
+
+// Create circuit breaker
+cb := hystrix.NewCircuitBreaker("api-service", &hystrix.Settings{
+    MaxRequests:        3,
+    Interval:          time.Minute,
+    Timeout:           time.Second * 3,
+    ReadyToTrip: func(counts hystrix.Counts) bool {
+        return counts.Requests > 3 && counts.FailureRatio() > 0.5
+    },
+})
+
+// Execute with circuit breaker protection
+result, err := cb.Call(func() (interface{}, error) {
+    // Your potentially failing operation
+    resp, err := http.Get("https://api.example.com/data")
+    if err != nil {
+        return nil, err
+    }
+    return resp, nil
+})
+
+// Check circuit state
+if cb.IsOpen() {
+    fmt.Println("Circuit is open - requests are blocked")
+}
+
+// State monitoring
+cb.OnStateChange(func(name string, from, to hystrix.State) {
+    log.Printf("Circuit %s changed from %s to %s", name, from, to)
+})
+```
+
+## Circuit States
+
+### Closed (Normal Operation)
+- All requests pass through
+- Success/failure statistics are collected
+- Transitions to Open when failure threshold is exceeded
+
+### Open (Failing Fast)
+- All requests are immediately rejected
+- No actual service calls are made
+- Transitions to Half-Open after timeout period
+
+### Half-Open (Testing Recovery)
+- Limited number of requests are allowed
+- If requests succeed, transitions to Closed
+- If requests fail, transitions back to Open
+
+## Advanced Features
+
+```go
+// Batch circuit breaker for high-throughput scenarios
+batchCB := hystrix.NewBatchCircuitBreaker("batch-service", settings)
+
+// Fast circuit breaker with minimal overhead
+fastCB := hystrix.NewFastCircuitBreaker("fast-service", settings)
+
+// Execute with fallback
+result := cb.CallFast(func() error {
+    return riskyOperation()
+}, func() {
+    return fallbackOperation() // Executed if circuit is open
+})
+```
+
+## Metrics and Monitoring
+- **Request Count**: Total number of requests processed
+- **Success Rate**: Percentage of successful requests  
+- **Failure Rate**: Percentage of failed requests
+- **Response Time**: Average response time statistics
+- **Circuit State Duration**: Time spent in each state
+
+## Use Cases
+1. **Microservice Communication**: Protect against cascading failures
+2. **Database Access**: Handle database connection failures gracefully
+3. **External API Calls**: Prevent timeout accumulation from slow services
+4. **Resource Protection**: Limit resource consumption during failures
+5. **Graceful Degradation**: Provide fallback responses when services are down
+
+## Dependencies
+- `sync/atomic` - Atomic operations for thread-safe statistics
+- `time` - Timing and interval management
+- Standard library for core functionality
+
+## Performance Notes
+- Lock-free implementation using atomic operations
+- Minimal overhead in closed state
+- Efficient state transition management
+- Optimized for high-throughput scenarios
