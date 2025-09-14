@@ -1,10 +1,129 @@
 package fake
 
 import (
+	"context"
 	"strings"
 	"testing"
 )
 
+// TestFaker 测试基本的 Faker 功能
+func TestFaker(t *testing.T) {
+	faker := New()
+	if faker == nil {
+		t.Fatal("New() returned nil")
+	}
+	
+	// 测试默认值
+	if faker.language != LanguageEnglish {
+		t.Errorf("Expected default language %s, got %s", LanguageEnglish, faker.language)
+	}
+	
+	if faker.country != CountryUS {
+		t.Errorf("Expected default country %s, got %s", CountryUS, faker.country)
+	}
+}
+
+// TestFakerWithOptions 测试带选项的 Faker
+func TestFakerWithOptions(t *testing.T) {
+	faker := New(
+		WithLanguage(LanguageChineseSimplified),
+		WithCountry(CountryChina),
+		WithGender(GenderMale),
+		WithSeed(12345),
+	)
+	
+	if faker.language != LanguageChineseSimplified {
+		t.Errorf("Expected language %s, got %s", LanguageChineseSimplified, faker.language)
+	}
+	
+	if faker.country != CountryChina {
+		t.Errorf("Expected country %s, got %s", CountryChina, faker.country)
+	}
+	
+	if faker.gender != GenderMale {
+		t.Errorf("Expected gender %s, got %s", GenderMale, faker.gender)
+	}
+}
+
+// TestWithContext 测试上下文支持
+func TestWithContext(t *testing.T) {
+	ctx := context.Background()
+	ctx = ContextWithLanguage(ctx, LanguageFrench)
+	ctx = ContextWithCountry(ctx, CountryFrance)
+	ctx = ContextWithGender(ctx, GenderFemale)
+	
+	faker := WithContext(ctx)
+	
+	if faker.language != LanguageFrench {
+		t.Errorf("Expected language from context %s, got %s", LanguageFrench, faker.language)
+	}
+	
+	if faker.country != CountryFrance {
+		t.Errorf("Expected country from context %s, got %s", CountryFrance, faker.country)
+	}
+	
+	if faker.gender != GenderFemale {
+		t.Errorf("Expected gender from context %s, got %s", GenderFemale, faker.gender)
+	}
+}
+
+// TestStats 测试统计功能
+func TestStats(t *testing.T) {
+	faker := New()
+	
+	// 初始统计应该为0
+	stats := faker.Stats()
+	if stats["call_count"] != 0 {
+		t.Errorf("Expected initial call_count 0, got %d", stats["call_count"])
+	}
+	
+	// 调用一些方法
+	_ = faker.Name()
+	_ = faker.Email()
+	
+	stats = faker.Stats()
+	// 由于 Name() 和 Email() 内部可能调用其他方法，所以计数可能大于2
+	if stats["call_count"] < 2 {
+		t.Errorf("Expected call_count >= 2, got %d", stats["call_count"])
+	}
+}
+
+// TestClone 测试克隆功能
+func TestClone(t *testing.T) {
+	original := New(WithLanguage(LanguageChineseSimplified))
+	clone := original.Clone()
+	
+	if clone.language != original.language {
+		t.Error("Clone should preserve language")
+	}
+	
+	// 克隆应该有独立的统计
+	_ = original.Name()
+	originalStats := original.Stats()
+	cloneStats := clone.Stats()
+	
+	if originalStats["call_count"] == cloneStats["call_count"] {
+		t.Error("Clone should have independent stats")
+	}
+}
+
+// TestClearCache 测试缓存清理
+func TestClearCache(t *testing.T) {
+	faker := New()
+	
+	// 生成一些数据以填充缓存
+	_ = faker.Name()
+	_ = faker.Email()
+	
+	// 清理缓存
+	faker.ClearCache()
+	
+	// 缓存应该被清空
+	// 这里我们主要测试不会崩溃
+	_ = faker.Name()
+}
+
+// TestRandomUserAgent 测试用户代理生成
 func TestRandomUserAgent(t *testing.T) {
 	// Test basic functionality
 	ua := RandomUserAgent()

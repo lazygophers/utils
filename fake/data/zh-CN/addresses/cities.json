@@ -1,0 +1,28 @@
+{
+  "language": "zh-CN",
+  "country": "CN",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {"value": "北京市", "weight": 3.0, "tags": ["major", "north"], "meta": {"province": "北京", "zip_prefix": "10"}},
+    {"value": "上海市", "weight": 2.8, "tags": ["major", "east"], "meta": {"province": "上海", "zip_prefix": "20"}},
+    {"value": "广州市", "weight": 2.6, "tags": ["major", "south"], "meta": {"province": "广东", "zip_prefix": "51"}},
+    {"value": "深圳市", "weight": 2.4, "tags": ["major", "south"], "meta": {"province": "广东", "zip_prefix": "51"}},
+    {"value": "天津市", "weight": 2.0, "tags": ["major", "north"], "meta": {"province": "天津", "zip_prefix": "30"}},
+    {"value": "重庆市", "weight": 1.8, "tags": ["major", "west"], "meta": {"province": "重庆", "zip_prefix": "40"}},
+    {"value": "成都市", "weight": 1.6, "tags": ["major", "west"], "meta": {"province": "四川", "zip_prefix": "61"}},
+    {"value": "武汉市", "weight": 1.4, "tags": ["major", "central"], "meta": {"province": "湖北", "zip_prefix": "43"}},
+    {"value": "西安市", "weight": 1.2, "tags": ["major", "west"], "meta": {"province": "陕西", "zip_prefix": "71"}},
+    {"value": "南京市", "weight": 1.0, "tags": ["major", "east"], "meta": {"province": "江苏", "zip_prefix": "21"}},
+    {"value": "杭州市", "weight": 1.0, "tags": ["major", "east"], "meta": {"province": "浙江", "zip_prefix": "31"}},
+    {"value": "济南市", "weight": 0.9, "tags": ["medium", "north"], "meta": {"province": "山东", "zip_prefix": "25"}},
+    {"value": "青岛市", "weight": 0.9, "tags": ["medium", "north"], "meta": {"province": "山东", "zip_prefix": "26"}},
+    {"value": "长沙市", "weight": 0.8, "tags": ["medium", "central"], "meta": {"province": "湖南", "zip_prefix": "41"}},
+    {"value": "郑州市", "weight": 0.8, "tags": ["medium", "central"], "meta": {"province": "河南", "zip_prefix": "45"}},
+    {"value": "沈阳市", "weight": 0.7, "tags": ["medium", "northeast"], "meta": {"province": "辽宁", "zip_prefix": "11"}},
+    {"value": "大连市", "weight": 0.7, "tags": ["medium", "northeast"], "meta": {"province": "辽宁", "zip_prefix": "11"}},
+    {"value": "哈尔滨市", "weight": 0.6, "tags": ["medium", "northeast"], "meta": {"province": "黑龙江", "zip_prefix": "15"}},
+    {"value": "昆明市", "weight": 0.6, "tags": ["medium", "west"], "meta": {"province": "云南", "zip_prefix": "65"}},
+    {"value": "合肥市", "weight": 0.5, "tags": ["medium", "central"], "meta": {"province": "安徽", "zip_prefix": "23"}}
+  ]
+}
