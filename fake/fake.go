@@ -340,16 +340,15 @@ func (f *Faker) Clone() *Faker {
 	}
 }
 
-// 导出常用的全局函数，使用默认实例
+
+// UserAgent 生成用户代理字符串
+func (f *Faker) UserAgent() string {
+	return randx.Choose(userAgents)
+}
 
 // RandomUserAgent 返回随机的用户代理字符串
 func RandomUserAgent() string {
 	f := getDefaultFaker()
 	f.incrementCallCount()
 	return f.UserAgent()
-}
-
-// UserAgent 生成用户代理字符串
-func (f *Faker) UserAgent() string {
-	return randx.Choose(userAgents)
 }
