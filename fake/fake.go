@@ -6,8 +6,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/lazygophers/utils/randx"
 )
 
 // Language 语言类型
@@ -403,7 +401,9 @@ func (f *Faker) Clone() *Faker {
 
 // UserAgent 生成用户代理字符串
 func (f *Faker) UserAgent() string {
-	return randx.Choose(userAgents)
+	f.incrementCallCount()
+	// 使用新的智能生成器替代静态列表
+	return f.GenerateRandomUserAgent()
 }
 
 // RandomUserAgent 返回随机的用户代理字符串

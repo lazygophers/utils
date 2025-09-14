@@ -2,7 +2,6 @@ package fake
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/lazygophers/utils/randx"
 )
@@ -123,7 +122,7 @@ func (f *Faker) generateDesktopDevice(deviceType DeviceType) *Device {
 	screenWidth, screenHeight = resolution[0], resolution[1]
 	
 	// 生成用户代理字符串
-	userAgent := f.generateUserAgent(platform, os, osVersion, browser, version)
+	userAgent := f.generateUserAgentForDevice(platform, os, osVersion, browser, version, deviceType)
 	
 	return &Device{
 		Type:         string(deviceType),
@@ -189,7 +188,7 @@ func (f *Faker) generateMobileDevice() *Device {
 	resolution := randx.Choose(resolutions)
 	screenWidth, screenHeight = resolution[0], resolution[1]
 	
-	userAgent := f.generateUserAgent(platform, os, osVersion, browser, version)
+	userAgent := f.generateUserAgentForDevice(platform, os, osVersion, browser, version, DeviceTypeMobile)
 	
 	return &Device{
 		Type:         string(DeviceTypeMobile),
@@ -249,7 +248,7 @@ func (f *Faker) generateTabletDevice() *Device {
 	resolution := randx.Choose(resolutions)
 	screenWidth, screenHeight := resolution[0], resolution[1]
 	
-	userAgent := f.generateUserAgent(platform, os, osVersion, browser, version)
+	userAgent := f.generateUserAgentForDevice(platform, os, osVersion, browser, version, DeviceTypeTablet)
 	
 	return &Device{
 		Type:         string(DeviceTypeTablet),
@@ -366,35 +365,38 @@ func (f *Faker) generateTVDevice() *Device {
 	}
 }
 
-func (f *Faker) generateUserAgent(platform Platform, os, osVersion, browser, version string) string {
-	switch platform {
-	case PlatformWindows:
-		return fmt.Sprintf("Mozilla/5.0 (Windows NT %s; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) %s/%s Safari/537.36", osVersion, browser, version)
-	case PlatformMacOS:
-		return fmt.Sprintf("Mozilla/5.0 (Macintosh; Intel Mac OS X %s) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/%s Safari/605.1.15", strings.ReplaceAll(osVersion, ".", "_"), version)
-	case PlatformLinux:
-		return fmt.Sprintf("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) %s/%s Safari/537.36", browser, version)
-	case PlatformAndroid:
-		return fmt.Sprintf("Mozilla/5.0 (Linux; Android %s; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) %s/%s Mobile Safari/537.36", osVersion, browser, version)
-	case PlatformIOS:
-		return fmt.Sprintf("Mozilla/5.0 (iPhone; CPU iPhone OS %s like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/%s Mobile/15E148 Safari/604.1", strings.ReplaceAll(osVersion, ".", "_"), version)
-	default:
-		return randx.Choose(userAgents) // 回退到现有的用户代理列表
+func (f *Faker) generateUserAgentForDevice(platform Platform, os, osVersion, browser, version string, deviceType DeviceType) string {
+	// 使用新的用户代理生成器
+	opts := UserAgentOptions{
+		Platform:    platform,
+		Browser:     browser,
+		OS:          os,
+		OSVersion:   osVersion,
+		DeviceType:  deviceType,
+		Mobile:      deviceType == DeviceTypeMobile || deviceType == DeviceTypeTablet,
 	}
+	
+	return defaultUserAgentGen.GenerateUserAgent(opts)
 }
 
 // MobileUserAgent 生成移动端用户代理
 func (f *Faker) MobileUserAgent() string {
 	f.incrementCallCount()
-	device := f.generateMobileDevice()
-	return device.UserAgent
+	opts := UserAgentOptions{
+		DeviceType: DeviceTypeMobile,
+		Mobile:     true,
+	}
+	return defaultUserAgentGen.GenerateUserAgent(opts)
 }
 
 // DesktopUserAgent 生成桌面端用户代理
 func (f *Faker) DesktopUserAgent() string {
 	f.incrementCallCount()
-	device := f.generateDesktopDevice(DeviceTypeDesktop)
-	return device.UserAgent
+	opts := UserAgentOptions{
+		DeviceType: DeviceTypeDesktop,
+		Mobile:     false,
+	}
+	return defaultUserAgentGen.GenerateUserAgent(opts)
 }
 
 // Browser 生成浏览器名称
