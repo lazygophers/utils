@@ -1,0 +1,94 @@
+# XTime955 - Standard Work Schedule Module (9-5, 5 Days)
+
+## Overview
+The xtime955 subpackage provides utilities for standard business hour operations following a 9 AM to 5 PM, Monday through Friday work schedule.
+
+## Key Features
+- **Business Hours**: 9:00 AM - 5:00 PM
+- **Work Days**: Monday through Friday only
+- **Weekend Recognition**: Saturday and Sunday are non-working days
+- **Holiday Support**: Recognizes standard holidays
+- **Timezone Awareness**: Local business hour calculation
+
+## Functions
+- **IsWorkingHours(time.Time) bool**: Check if time falls within 9-5 weekday hours
+- **NextWorkingDay(time.Time) time.Time**: Calculate next business day
+- **WorkingHoursToday() (start, end time.Time)**: Get today's business hours
+- **IsHoliday(time.Time) bool**: Check if date is a recognized holiday
+- **GetScheduleInfo() ScheduleInfo**: Returns 9-5-5 schedule information
+- **BusinessDaysUntil(time.Time) int**: Count business days until target date
+- **AddBusinessDays(time.Time, int) time.Time**: Add business days to date
+
+## Usage Examples
+
+```go
+import "github.com/lazygophers/utils/xtime/xtime955"
+
+// Check if currently in business hours
+now := time.Now()
+if xtime955.IsWorkingHours(now) {
+    fmt.Println("Currently in business hours (9 AM - 5 PM, weekdays)")
+}
+
+// Find next business day
+nextWorkDay := xtime955.NextWorkingDay(now)
+fmt.Println("Next working day:", nextWorkDay.Format("2006-01-02"))
+
+// Get today's business hours
+start, end := xtime955.WorkingHoursToday()
+if !start.IsZero() && !end.IsZero() {
+    fmt.Printf("Today's business hours: %s - %s\n",
+        start.Format("15:04"), end.Format("15:04"))
+} else {
+    fmt.Println("Today is not a business day")
+}
+
+// Calculate business days
+days := xtime955.BusinessDaysUntil(futureDate)
+fmt.Printf("Business days until target: %d\n", days)
+
+// Add business days
+deliveryDate := xtime955.AddBusinessDays(now, 3) // 3 business days from now
+```
+
+## Schedule Characteristics
+- **Working Days**: Monday - Friday (5 days)
+- **Working Hours**: 9:00 AM - 5:00 PM (8 hours)
+- **Weekends**: Saturday and Sunday off
+- **Lunch Break**: Typically 12:00 PM - 1:00 PM (implementation dependent)
+- **Holidays**: Standard national holidays recognized
+
+## Holiday Recognition
+Supports common holidays (implementation may vary by locale):
+- New Year's Day
+- Independence Day
+- Thanksgiving
+- Christmas Day
+- And other regional holidays
+
+## Use Cases
+1. **Office Applications**: Standard corporate business applications
+2. **Customer Service**: Business hour customer support systems
+3. **B2B Systems**: Business-to-business service scheduling
+4. **Appointment Systems**: Professional service scheduling
+5. **Order Processing**: Business day order fulfillment
+6. **SLA Calculations**: Service level agreement timing
+
+## Integration Examples
+
+```go
+// SLA calculation example
+func calculateSLADueDate(requestTime time.Time, businessDays int) time.Time {
+    return xtime955.AddBusinessDays(requestTime, businessDays)
+}
+
+// Business hour notification system
+func shouldSendNotification(t time.Time) bool {
+    return xtime955.IsWorkingHours(t) && !xtime955.IsHoliday(t)
+}
+```
+
+## Performance Notes
+- Holiday checking uses optimized lookup tables
+- Business day calculations are cached for common operations
+- Timezone conversions are performed efficiently

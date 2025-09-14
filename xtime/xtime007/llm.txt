@@ -1,0 +1,58 @@
+# XTime007 - 24/7 Operations Module
+
+## Overview
+The xtime007 subpackage provides utilities for 24/7 continuous operation scheduling and always-on service management.
+
+## Key Features
+- **24/7 Availability**: All times are considered valid working hours
+- **Continuous Operations**: No breaks or downtime in scheduling
+- **Always-On Services**: Support for services that never stop
+- **Round-the-Clock Monitoring**: Utilities for continuous monitoring systems
+
+## Functions
+- **IsWorkingHours(time.Time) bool**: Always returns true (24/7 operation)
+- **NextWorkingDay(time.Time) time.Time**: Returns the same day (always working)
+- **WorkingHoursToday() (start, end time.Time)**: Returns full day (00:00-23:59)
+- **IsHoliday(time.Time) bool**: Always returns false (no holidays in 24/7 ops)
+- **GetScheduleInfo() ScheduleInfo**: Returns 24/7 schedule information
+
+## Usage Examples
+
+```go
+import "github.com/lazygophers/utils/xtime/xtime007"
+
+// Always returns true - services never stop
+if xtime007.IsWorkingHours(time.Now()) {
+    fmt.Println("Service is operational") // Always printed
+}
+
+// Next working day is always today for continuous operations
+nextDay := xtime007.NextWorkingDay(time.Now())
+fmt.Println("Next operational day:", nextDay.Format("2006-01-02"))
+
+// Get full day working hours
+start, end := xtime007.WorkingHoursToday()
+fmt.Printf("Working hours: %s - %s\n", 
+    start.Format("15:04"), end.Format("15:04")) // 00:00 - 23:59
+```
+
+## Use Cases
+1. **Web Services**: APIs and web servers that need 24/7 availability
+2. **Monitoring Systems**: Continuous system health monitoring
+3. **Emergency Services**: Critical services that cannot have downtime
+4. **Global Applications**: Services serving multiple time zones
+5. **IoT Systems**: Always-on device monitoring and data collection
+6. **Financial Systems**: Trading systems and payment processing
+
+## Schedule Characteristics
+- **Working Days**: All 7 days of the week
+- **Working Hours**: 24 hours per day (00:00-23:59)
+- **Holidays**: None recognized (continuous operation)
+- **Breaks**: No scheduled breaks or maintenance windows
+- **Downtime**: Only for emergency maintenance
+
+## Integration Notes
+- Compatible with all xtime base functions
+- Overrides standard business hour logic
+- Suitable for microservices and cloud-native applications
+- Works with container orchestration systems requiring high availability

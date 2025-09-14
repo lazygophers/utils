@@ -1,0 +1,95 @@
+# Routine Package - Enhanced Goroutine Management
+
+## Overview
+The routine package provides enhanced goroutine management utilities with error handling, recovery mechanisms, and structured concurrent programming support.
+
+## Key Functions
+
+### Basic Goroutine Operations
+- **Go**: Launch goroutine with error logging
+- **GoWithRecover**: Launch goroutine with panic recovery and logging
+- **GoWithMustSuccess**: Launch goroutine that expects no errors (exits on error)
+
+### Group Operations
+- **NewGroup**: Create new goroutine group for coordinated execution
+- **Group.Go**: Add goroutine to group
+- **Group.Wait**: Wait for all goroutines to complete
+
+### Context-Aware Operations
+- **GoWithContext**: Launch goroutine with context cancellation support
+- **GroupWithContext**: Create group with context for cancellation
+
+## Code Examples
+
+```go
+import (
+    "context"
+    "fmt"
+    "github.com/lazygophers/utils/routine"
+)
+
+// Basic goroutine with error handling
+routine.Go(func() error {
+    // Your work here
+    fmt.Println("Working...")
+    return nil
+})
+
+// Goroutine with panic recovery
+routine.GoWithRecover(func() {
+    // This will recover from panics
+    panic("something went wrong")
+})
+
+// Goroutine group for coordinated execution
+group := routine.NewGroup()
+for i := 0; i < 5; i++ {
+    i := i // Capture loop variable
+    group.Go(func() error {
+        fmt.Printf("Worker %d\n", i)
+        return nil
+    })
+}
+group.Wait() // Wait for all workers to complete
+
+// Context-aware execution
+ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+defer cancel()
+
+routine.GoWithContext(ctx, func() error {
+    select {
+    case <-ctx.Done():
+        return ctx.Err()
+    case <-time.After(time.Second):
+        fmt.Println("Work completed")
+        return nil
+    }
+})
+```
+
+## Error Handling
+- Errors are automatically logged using the configured logger
+- Panics are recovered and logged with stack traces
+- `GoWithMustSuccess` will call `os.Exit(1)` on errors for critical operations
+
+## Logging Integration
+- Uses `github.com/lazygophers/log` for structured logging
+- Logs include goroutine IDs for traceability
+- Stack traces are captured for panic recovery
+
+## Dependencies
+- `github.com/lazygophers/log` - Structured logging
+- `golang.org/x/sync/errgroup` - Error group functionality
+- `context` - Context cancellation support
+
+## Usage Patterns
+1. **Fire-and-Forget**: Use `Go` for background tasks with error logging
+2. **Safe Execution**: Use `GoWithRecover` for potentially panicking code
+3. **Critical Tasks**: Use `GoWithMustSuccess` for operations that must succeed
+4. **Coordinated Work**: Use `Group` to wait for multiple goroutines
+5. **Timeout Control**: Use context-aware functions for cancellation
+
+## Performance Notes
+- Minimal overhead over standard goroutines
+- Error logging is performed asynchronously when possible
+- Stack trace collection only occurs during panic recovery
