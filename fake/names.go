@@ -7,20 +7,12 @@ import (
 	"github.com/lazygophers/utils/randx"
 )
 
-// Name 生成完整姓名
+// Name 生成完整姓名 - 高性能优化版本
 func (f *Faker) Name() string {
 	f.incrementCallCount()
 	
-	firstName := f.FirstName()
-	lastName := f.LastName()
-	
-	// 根据语言决定姓名顺序
-	switch f.language {
-	case LanguageChineseSimplified, LanguageChineseTraditional:
-		return lastName + firstName
-	default:
-		return firstName + " " + lastName
-	}
+	// 使用高性能内联实现
+	return f.fastName()
 }
 
 // FirstName 生成名字
@@ -180,12 +172,7 @@ func (f *Faker) FormattedName() string {
 	return strings.Join(parts, " ")
 }
 
-// BatchNames 批量生成姓名
-func (f *Faker) BatchNames(count int) []string {
-	f.incrementCallCount()
-	
-	return f.batchGenerate(count, f.Name)
-}
+// BatchNames moved to fast_methods.go for performance optimization
 
 // BatchFirstNames 批量生成名字
 func (f *Faker) BatchFirstNames(count int) []string {

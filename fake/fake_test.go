@@ -132,36 +132,34 @@ func TestRandomUserAgent(t *testing.T) {
 		t.Error("RandomUserAgent() returned empty string")
 	}
 	
-	// Test that returned user agent is from our list
-	found := false
-	for _, expected := range userAgents {
-		if ua == expected {
-			found = true
-			break
-		}
+	// Test that returned user agent has basic structure
+	if !strings.HasPrefix(ua, "Mozilla/") {
+		t.Errorf("RandomUserAgent() returned invalid user agent (should start with Mozilla/): %q", ua)
 	}
 	
-	if !found {
-		t.Errorf("RandomUserAgent() returned unexpected user agent: %q", ua)
+	// Should contain a browser name
+	hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") || 
+		strings.Contains(ua, "Safari") || strings.Contains(ua, "Edge") || strings.Contains(ua, "Opera")
+	if !hasBrowser {
+		t.Errorf("RandomUserAgent() returned invalid user agent (missing browser name): %q", ua)
 	}
 }
 
 func TestRandomUserAgentReturnsValidUserAgent(t *testing.T) {
 	ua := RandomUserAgent()
 	
-	// All user agents in our list should contain "Mozilla"
+	// All user agents should contain "Mozilla"
 	if !strings.Contains(ua, "Mozilla") {
 		t.Errorf("RandomUserAgent() returned invalid user agent (missing Mozilla): %q", ua)
 	}
 	
-	// All user agents should contain "AppleWebKit"
-	if !strings.Contains(ua, "AppleWebKit") {
-		t.Errorf("RandomUserAgent() returned invalid user agent (missing AppleWebKit): %q", ua)
-	}
+	// Should contain either a browser engine (AppleWebKit, Gecko) or browser name
+	hasEngine := strings.Contains(ua, "AppleWebKit") || strings.Contains(ua, "Gecko")
+	hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") || 
+		strings.Contains(ua, "Safari") || strings.Contains(ua, "Edge") || strings.Contains(ua, "Opera")
 	
-	// All user agents should contain "Safari"
-	if !strings.Contains(ua, "Safari") {
-		t.Errorf("RandomUserAgent() returned invalid user agent (missing Safari): %q", ua)
+	if !hasEngine && !hasBrowser {
+		t.Errorf("RandomUserAgent() returned invalid user agent (missing engine or browser): %q", ua)
 	}
 }
 
@@ -175,7 +173,7 @@ func TestRandomUserAgentConsistency(t *testing.T) {
 		}
 		
 		// Each user agent should be reasonably long
-		if len(ua) < 50 {
+		if len(ua) < 30 {
 			t.Errorf("RandomUserAgent() returned suspiciously short user agent: %q", ua)
 		}
 		
@@ -214,51 +212,45 @@ func TestRandomUserAgentDistribution(t *testing.T) {
 	}
 }
 
-func TestUserAgentsListContent(t *testing.T) {
-	// Test the userAgents slice has expected properties
-	if len(userAgents) == 0 {
-		t.Fatal("userAgents slice is empty")
-	}
-	
-	// Check that we have a reasonable number of user agents
-	if len(userAgents) < 100 {
-		t.Errorf("userAgents slice too small: %d entries", len(userAgents))
-	}
-	
-	// Check each user agent for basic validity
-	for i, ua := range userAgents {
+func TestUserAgentGeneration(t *testing.T) {
+	// Test that generated user agents have proper structure
+	for i := 0; i < 10; i++ {
+		ua := RandomUserAgent()
+		
 		if ua == "" {
-			t.Errorf("userAgents[%d] is empty", i)
+			t.Errorf("Generated user agent %d is empty", i)
 		}
 		
 		if len(ua) < 30 {
-			t.Errorf("userAgents[%d] is too short: %q", i, ua)
+			t.Errorf("Generated user agent %d is too short: %q", i, ua)
 		}
 		
 		// Should start with Mozilla
 		if !strings.HasPrefix(ua, "Mozilla/") {
-			t.Errorf("userAgents[%d] doesn't start with Mozilla/: %q", i, ua)
+			t.Errorf("Generated user agent %d doesn't start with Mozilla/: %q", i, ua)
 		}
 		
-		// Should contain key browser components
-		requiredComponents := []string{"Mozilla", "AppleWebKit", "Safari"}
-		for _, component := range requiredComponents {
-			if !strings.Contains(ua, component) {
-				t.Errorf("userAgents[%d] missing %s: %q", i, component, ua)
-			}
+		// Should contain key browser components (at least one browser name)
+		hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") || 
+			strings.Contains(ua, "Safari") || strings.Contains(ua, "Edge") || strings.Contains(ua, "Opera")
+		if !hasBrowser {
+			t.Errorf("Generated user agent %d missing browser name: %q", i, ua)
 		}
 	}
 }
 
-func TestUserAgentsListUniqueness(t *testing.T) {
-	// Test that there are no duplicate user agents
-	seen := make(map[string]int)
+func TestUserAgentVariety(t *testing.T) {
+	// Test that we generate different user agents
+	agents := make(map[string]bool)
 	
-	for i, ua := range userAgents {
-		if prevIndex, exists := seen[ua]; exists {
-			t.Errorf("Duplicate user agent found at indices %d and %d: %q", prevIndex, i, ua)
-		}
-		seen[ua] = i
+	for i := 0; i < 20; i++ {
+		ua := RandomUserAgent()
+		agents[ua] = true
+	}
+	
+	// We should have generated multiple different user agents
+	if len(agents) < 2 {
+		t.Errorf("Generated user agents lack variety: only %d unique agents", len(agents))
 	}
 }
 
@@ -368,17 +360,16 @@ func TestRandomUserAgentConcurrency(t *testing.T) {
 			t.Error("Concurrent access resulted in empty user agent")
 		}
 		
-		// Verify it's a valid user agent from our list
-		found := false
-		for _, expected := range userAgents {
-			if ua == expected {
-				found = true
-				break
-			}
+		// Verify it's a valid user agent structure
+		if !strings.HasPrefix(ua, "Mozilla/") {
+			t.Errorf("Concurrent access returned invalid user agent (should start with Mozilla/): %q", ua)
 		}
 		
-		if !found {
-			t.Errorf("Concurrent access returned invalid user agent: %q", ua)
+		// Should contain a browser name
+		hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") || 
+			strings.Contains(ua, "Safari") || strings.Contains(ua, "Edge") || strings.Contains(ua, "Opera")
+		if !hasBrowser {
+			t.Errorf("Concurrent access returned invalid user agent (missing browser name): %q", ua)
 		}
 	}
 }

@@ -68,6 +68,9 @@ type Faker struct {
 		cacheHits     int64
 		generatedData int64
 	}
+	
+	// 高性能优化数据
+	fastData *FastData
 }
 
 // FakerOption 配置选项
