@@ -350,6 +350,180 @@ func TestDeepCopyAdditionalCoverage(t *testing.T) {
 	})
 }
 
+// TestDeepCopyCannotSetScenarios tests edge cases where CanSet might return false
+func TestDeepCopyCannotSetScenarios(t *testing.T) {
+	t.Run("cannot_set_basic_types", func(t *testing.T) {
+		// Test with non-settable destination values to cover CanSet() == false paths
+		var srcInt int = 42
+		var dstInt int
+
+		// Create reflection values where destination might not be settable
+		srcVal := reflect.ValueOf(srcInt)
+		// Use ValueOf directly instead of through pointer to make it non-settable
+		dstVal := reflect.ValueOf(dstInt)
+		
+		// This should handle the case where CanSet returns false
+		deepCopyValue(srcVal, dstVal)
+		
+		// Test with other types
+		var srcFloat float32 = 3.14
+		var dstFloat float32
+		srcVal = reflect.ValueOf(srcFloat)
+		dstVal = reflect.ValueOf(dstFloat)
+		deepCopyValue(srcVal, dstVal)
+
+		var srcComplex complex64 = 1 + 2i
+		var dstComplex complex64
+		srcVal = reflect.ValueOf(srcComplex)
+		dstVal = reflect.ValueOf(dstComplex)
+		deepCopyValue(srcVal, dstVal)
+
+		var srcUint uint = 42
+		var dstUint uint
+		srcVal = reflect.ValueOf(srcUint)
+		dstVal = reflect.ValueOf(dstUint)
+		deepCopyValue(srcVal, dstVal)
+
+		var srcStr string = "test"
+		var dstStr string
+		srcVal = reflect.ValueOf(srcStr)
+		dstVal = reflect.ValueOf(dstStr)
+		deepCopyValue(srcVal, dstVal)
+
+		var srcBool bool = true
+		var dstBool bool
+		srcVal = reflect.ValueOf(srcBool)
+		dstVal = reflect.ValueOf(dstBool)
+		deepCopyValue(srcVal, dstVal)
+	})
+}
+
+// TestDeepCopyMissingCoverage tests specific uncovered lines
+func TestDeepCopyMissingCoverage(t *testing.T) {
+	t.Run("reflect_invalid_kind_after_deref", func(t *testing.T) {
+		// Test line 35-37: reflect.Invalid kind after dereferencing
+		// This is very hard to trigger in normal code, but we can use unsafe reflection
+		var nilPtr *int
+		var dstInt int
+		
+		srcVal := reflect.ValueOf(nilPtr)
+		dstVal := reflect.ValueOf(&dstInt).Elem()
+		
+		// This should trigger the nil pointer handling and early return
+		deepCopyValue(srcVal, dstVal)
+	})
+	
+	t.Run("channel_unsupported_type", func(t *testing.T) {
+		// Test line 133: unsupported channel type should panic
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("Expected panic for channel type")
+			}
+		}()
+		
+		srcChan := make(chan int, 1)
+		dstChan := make(chan int, 1)
+		
+		srcVal := reflect.ValueOf(srcChan)
+		dstVal := reflect.ValueOf(&dstChan).Elem()
+		
+		// This should trigger the default case panic
+		deepCopyValue(srcVal, dstVal)
+	})
+	
+	t.Run("func_unsupported_type", func(t *testing.T) {
+		// Test line 133: unsupported func type should panic
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("Expected panic for func type")
+			}
+		}()
+		
+		srcFunc := func() {}
+		dstFunc := func() {}
+		
+		srcVal := reflect.ValueOf(srcFunc)
+		dstVal := reflect.ValueOf(&dstFunc).Elem()
+		
+		// This should trigger the default case panic
+		deepCopyValue(srcVal, dstVal)
+	})
+	
+	t.Run("uintptr_unsupported_type", func(t *testing.T) {
+		// Test line 133: unsupported uintptr type should panic
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("Expected panic for uintptr type")
+			}
+		}()
+		
+		var srcUintptr uintptr = 0x123456
+		var dstUintptr uintptr
+		
+		srcVal := reflect.ValueOf(srcUintptr)
+		dstVal := reflect.ValueOf(&dstUintptr).Elem()
+		
+		// This should trigger the default case panic
+		deepCopyValue(srcVal, dstVal)
+	})
+	
+	t.Run("canset_false_scenarios", func(t *testing.T) {
+		// Test scenarios where CanSet() returns false for uint, float, complex types
+		// Create non-settable reflection values to cover lines 504-506, 508-510, 512-514
+		
+		var srcUint uint = 42
+		var dstUint uint
+		srcVal := reflect.ValueOf(srcUint)
+		dstVal := reflect.ValueOf(dstUint)  // Non-settable value
+		deepCopyValue(srcVal, dstVal)  // Should not panic, just not set
+		
+		var srcFloat float32 = 3.14
+		var dstFloat float32
+		srcVal = reflect.ValueOf(srcFloat)
+		dstVal = reflect.ValueOf(dstFloat)  // Non-settable value
+		deepCopyValue(srcVal, dstVal)  // Should not panic, just not set
+		
+		var srcComplex complex64 = 1 + 2i
+		var dstComplex complex64
+		srcVal = reflect.ValueOf(srcComplex)
+		dstVal = reflect.ValueOf(dstComplex)  // Non-settable value
+		deepCopyValue(srcVal, dstVal)  // Should not panic, just not set
+	})
+	
+	t.Run("reflect_invalid_case_in_switch", func(t *testing.T) {
+		// Test the reflect.Invalid case in the switch statement (lines 128-129)
+		// Create a reflect.Value with Kind() == reflect.Invalid
+		var invalidValue reflect.Value // Zero value has Invalid kind
+		var validDest reflect.Value = reflect.ValueOf(new(int)).Elem()
+		
+		// This should hit the reflect.Invalid case in the switch and do nothing
+		deepCopyValue(invalidValue, validDest)
+		
+		// Test reverse case too - valid source, invalid destination
+		validSrc := reflect.ValueOf(42)
+		deepCopyValue(validSrc, invalidValue)
+	})
+	
+	t.Run("reflect_invalid_after_deref", func(t *testing.T) {
+		// Try to trigger line 431-433: reflect.Invalid kind after dereferencing
+		// This is extremely hard to trigger naturally, but we can try some edge cases
+		
+		// Create a scenario with interface{} containing nil
+		var srcInterface interface{}
+		var dstInterface interface{}
+		
+		// Set src to a valid value, dst to nil
+		srcInterface = 42
+		dstInterface = nil
+		
+		srcVal := reflect.ValueOf(&srcInterface).Elem()
+		dstVal := reflect.ValueOf(&dstInterface).Elem()
+		
+		// This should handle the interface case gracefully
+		deepCopyValue(srcVal, dstVal)
+	})
+}
+
 // BenchmarkDeepCopy provides basic benchmarks
 func BenchmarkDeepCopy(b *testing.B) {
 	b.Run("int", func(b *testing.B) {

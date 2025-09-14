@@ -208,6 +208,42 @@ func TestToStringSliceDefaultSeparator(t *testing.T) {
 	}
 }
 
+// TestToStringSliceMissingCoverage tests specific uncovered lines
+func TestToStringSliceMissingCoverage(t *testing.T) {
+	t.Run("uint8_slice_coverage", func(t *testing.T) {
+		// Test []uint8 which is the same as []byte and should be handled by []byte case
+		// []uint8 is handled as []byte, so it should split by comma
+		data := []uint8{49, 44, 50, 44, 51} // ASCII for "1,2,3"
+		result := ToStringSlice(data, ",")
+		expected := []string{"1", "2", "3"}
+		assert.Equal(t, expected, result)
+	})
+	
+	t.Run("float32_integer_format", func(t *testing.T) {
+		// Test float32 that should be formatted as integer (line 101-102)
+		data := []float32{1.0, 2.0, 3.0} // These are whole numbers
+		result := ToStringSlice(data, ",")
+		expected := []string{"1", "2", "3"}
+		assert.Equal(t, expected, result)
+	})
+	
+	t.Run("float64_integer_format", func(t *testing.T) {
+		// Test float64 that should be formatted as integer (line 112-113)
+		data := []float64{1.0, 2.0, 3.0} // These are whole numbers
+		result := ToStringSlice(data, ",")
+		expected := []string{"1", "2", "3"}
+		assert.Equal(t, expected, result)
+	})
+	
+	t.Run("byte_slice_empty_separator", func(t *testing.T) {
+		// Test []byte with empty separator to trigger line 3297-3299
+		data := []byte("hello")
+		result := ToStringSlice(data, "")
+		expected := []string{"hello"}
+		assert.Equal(t, expected, result)
+	})
+}
+
 // BenchmarkToStringSlice 性能基准测试
 func BenchmarkToStringSlice(b *testing.B) {
 	b.Run("[]int", func(b *testing.B) {
