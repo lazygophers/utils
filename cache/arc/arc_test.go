@@ -1,6 +1,7 @@
 package arc
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 )
@@ -741,5 +742,213 @@ func BenchmarkPutGet(b *testing.B) {
 		key := i % 1000
 		cache.Put(key, i)
 		cache.Get(key)
+	}
+}
+
+func TestGhostListOverflow(t *testing.T) {
+	cache := New[string, int](1)
+	
+	// Fill cache and create many ghost entries to trigger ghost list maintenance
+	cache.Put("a", 1)
+	cache.Put("b", 2) // evicts "a" to B1
+	cache.Put("c", 3) // evicts "b" to B1 
+	cache.Put("d", 4) // evicts "c" to B1, should trigger B1 maintenance (B1 > capacity)
+	
+	stats := cache.Stats()
+	// B1 should be maintained to not exceed capacity
+	if stats.B1Size > cache.Cap() {
+		t.Errorf("B1 size %d should not exceed capacity %d", stats.B1Size, cache.Cap())
+	}
+}
+
+func TestNilCheckInMaintainGhostLists(t *testing.T) {
+	cache := New[string, int](1)
+	
+	// Create a scenario where maintainGhostLists is called but lists might be empty
+	// This is to cover the nil check lines in maintainGhostLists
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	cache.Put("c", 3)
+	
+	// Force maintainGhostLists to be called with potential empty conditions
+	cache.maintainGhostLists()
+	
+	// The test passes if no panic occurs
+}
+
+func TestB2GhostListMaintenance(t *testing.T) {
+	cache := New[string, int](1)
+	
+	// Create scenario where B2 fills up and needs maintenance
+	cache.Put("a", 1) // T1
+	cache.Get("a")    // a moves to T2
+	cache.Put("b", 2) // evicts "a" from T2 to B2
+	cache.Get("b")    // b moves to T2
+	cache.Put("c", 3) // evicts "b" from T2 to B2
+	
+	// Create more B2 entries to trigger B2 maintenance
+	cache.Get("c")    // c moves to T2
+	cache.Put("d", 4) // evicts "c" from T2 to B2, should trigger B2 maintenance
+	
+	stats := cache.Stats()
+	// B2 should be maintained within capacity bounds
+	if stats.B2Size > cache.Cap() {
+		t.Errorf("B2 size %d should not exceed capacity %d", stats.B2Size, cache.Cap())
+	}
+}
+
+func TestExtremePressureOnGhosts(t *testing.T) {
+	// Use a very small cache to force heavy ghost list churn
+	cache := New[string, int](1)
+	
+	// Create maximum ghost pressure to test all edge cases
+	// This should create multiple evictions and force ghost list maintenance
+	for i := 0; i < 10; i++ {
+		key := fmt.Sprintf("key%d", i)
+		cache.Put(key, i)
+		
+		// Also try some hits to create T2 -> B2 evictions
+		if i > 0 {
+			prevKey := fmt.Sprintf("key%d", i-1)
+			cache.Get(prevKey) // This should create B1 ghost hits
+		}
+	}
+	
+	// Force many more evictions to stress test ghost maintenance
+	for i := 10; i < 20; i++ {
+		key := fmt.Sprintf("key%d", i)
+		cache.Put(key, i)
+	}
+	
+	stats := cache.Stats()
+	t.Logf("Final ghost lists: B1=%d, B2=%d", stats.B1Size, stats.B2Size)
+	
+	// The test should pass without panics and ghost lists should be maintained
+	if stats.B1Size > cache.Cap()*2 {
+		t.Errorf("B1 ghost list grew too large: %d", stats.B1Size)
+	}
+	if stats.B2Size > cache.Cap()*2 {
+		t.Errorf("B2 ghost list grew too large: %d", stats.B2Size)
+	}
+}
+
+func TestMassForcedEvictions(t *testing.T) {
+	// Create cache with capacity that will force constant ghost maintenance
+	cache := New[string, int](2)
+	
+	// Force a massive number of evictions
+	for i := 0; i < 100; i++ {
+		key := fmt.Sprintf("k%d", i)
+		cache.Put(key, i)
+		
+		// Mix in some hits to create T2 entries and B2 ghosts
+		if i > 2 && i%3 == 0 {
+			prevKey := fmt.Sprintf("k%d", i-2) 
+			cache.Get(prevKey) // Try to hit ghosts
+		}
+	}
+	
+	// Test passes if no panic occurs during this massive churn
+	stats := cache.Stats()
+	t.Logf("After mass evictions: B1=%d, B2=%d", stats.B1Size, stats.B2Size)
+}
+
+func TestValuesWithEmptyT1(t *testing.T) {
+	cache := New[string, int](3)
+	
+	// Put items and immediately access them to move to T2
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	cache.Put("c", 3)
+	
+	// Access all items to move them to T2
+	cache.Get("a")
+	cache.Get("b") 
+	cache.Get("c")
+	
+	// Now T1 should be empty and T2 should have all items
+	values := cache.Values()
+	expectedCount := 3
+	if len(values) != expectedCount {
+		t.Errorf("Expected %d values, got %d", expectedCount, len(values))
+	}
+	
+	// Values should come from T2 first
+	valueMap := make(map[int]bool)
+	for _, v := range values {
+		valueMap[v] = true
+	}
+	
+	for i := 1; i <= 3; i++ {
+		if !valueMap[i] {
+			t.Errorf("Expected value %d to be present", i)
+		}
+	}
+}
+
+func TestItemsWithEmptyT1(t *testing.T) {
+	cache := New[string, int](3)
+	
+	// Put items and access them to move to T2
+	cache.Put("a", 1)
+	cache.Put("b", 2) 
+	cache.Put("c", 3)
+	
+	// Access all to move to T2
+	cache.Get("a")
+	cache.Get("b")
+	cache.Get("c")
+	
+	// Now T1 should be empty and T2 should have all items
+	items := cache.Items()
+	expectedCount := 3
+	if len(items) != expectedCount {
+		t.Errorf("Expected %d items, got %d", expectedCount, len(items))
+	}
+	
+	expectedItems := map[string]int{"a": 1, "b": 2, "c": 3}
+	for key, expectedValue := range expectedItems {
+		if value, exists := items[key]; !exists || value != expectedValue {
+			t.Errorf("Expected items[%s] = %d, got %d, exists=%t", key, expectedValue, value, exists)
+		}
+	}
+}
+
+func TestSuperIntensiveGhostMaintenance(t *testing.T) {
+	// Use capacity = 1 to force maximum ghost maintenance stress
+	cache := New[string, int](1)
+	
+	// Create a scenario that forces ghost lists to exceed capacity
+	// This should stress test the maintainGhostLists function thoroughly
+	
+	// First fill and create massive B1 ghost list
+	for i := 0; i < 50; i++ {
+		key := fmt.Sprintf("b1_%d", i)
+		cache.Put(key, i)
+	}
+	
+	// Now create B2 ghost entries by moving items through T2
+	for i := 50; i < 100; i++ {
+		key := fmt.Sprintf("b2_%d", i)
+		cache.Put(key, i)
+		cache.Get(key) // Move to T2
+		
+		// Force eviction from T2 to B2
+		nextKey := fmt.Sprintf("b2_%d", i+1000)
+		cache.Put(nextKey, i+1000)
+	}
+	
+	stats := cache.Stats()
+	t.Logf("Intensive ghost maintenance: B1=%d, B2=%d, capacity=%d", 
+		stats.B1Size, stats.B2Size, cache.Cap())
+	
+	// With such intensive operations, ghost lists should be properly maintained
+	// The key is to not crash and to have reasonable ghost list sizes
+	maxReasonableGhostSize := cache.Cap() * 10 // Very generous upper bound
+	if stats.B1Size > maxReasonableGhostSize {
+		t.Errorf("B1 ghost list excessive: %d > %d", stats.B1Size, maxReasonableGhostSize)
+	}
+	if stats.B2Size > maxReasonableGhostSize {
+		t.Errorf("B2 ghost list excessive: %d > %d", stats.B2Size, maxReasonableGhostSize)
 	}
 }
