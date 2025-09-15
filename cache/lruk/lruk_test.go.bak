@@ -1,0 +1,638 @@
+package lruk
+
+import (
+	"fmt"
+	"sync"
+	"testing"
+	"time"
+)
+
+func TestNew(t *testing.T) {
+	cache := New[string, int](5, 2)
+	if cache.Cap() != 5 {
+		t.Errorf("Expected capacity 5, got %d", cache.Cap())
+	}
+	if cache.Len() != 0 {
+		t.Errorf("Expected empty cache, got length %d", cache.Len())
+	}
+	if cache.GetK() != 2 {
+		t.Errorf("Expected K=2, got %d", cache.GetK())
+	}
+}
+
+func TestNewPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Expected panic for zero capacity")
+		}
+	}()
+	New[string, int](0, 2)
+}
+
+func TestNewPanicK(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Expected panic for zero K")
+		}
+	}()
+	New[string, int](5, 0)
+}
+
+func TestPutAndGet(t *testing.T) {
+	cache := New[string, int](5, 2)
+
+	evicted := cache.Put("a", 1)
+	if evicted {
+		t.Error("Should not evict when cache is not full")
+	}
+
+	// First Get - should not be in cache yet (need K=2 accesses total)
+	value, ok := cache.Get("a")  // This is the 2nd access (Put was 1st)
+	if !ok || value != 1 {
+		t.Errorf("Expected value 1 after K=2 accesses, got %d, ok=%t", value, ok)
+	}
+}
+
+func TestKAccessPromotion(t *testing.T) {
+	cache := New[string, int](3, 3) // Need 3 accesses for promotion
+
+	cache.Put("item", 1) // 1st access - in history
+	
+	stats := cache.Stats()
+	if stats.Size != 0 {
+		t.Errorf("Expected cache size 0 after 1 access, got %d", stats.Size)
+	}
+	if stats.HistorySize != 1 {
+		t.Errorf("Expected history size 1, got %d", stats.HistorySize)
+	}
+
+	cache.Get("item") // 2nd access - still in history
+	
+	stats = cache.Stats()
+	if stats.Size != 0 {
+		t.Errorf("Expected cache size 0 after 2 accesses, got %d", stats.Size)
+	}
+
+	cache.Get("item") // 3rd access - should promote to cache
+	
+	stats = cache.Stats()
+	if stats.Size != 1 {
+		t.Errorf("Expected cache size 1 after K=3 accesses, got %d", stats.Size)
+	}
+	if stats.HistorySize != 0 {
+		t.Errorf("Expected history size 0 after promotion, got %d", stats.HistorySize)
+	}
+
+	// Now it should be accessible
+	value, ok := cache.Get("item")
+	if !ok || value != 1 {
+		t.Errorf("Expected item to be accessible after promotion, got %d, ok=%t", value, ok)
+	}
+}
+
+func TestLRUEviction(t *testing.T) {
+	cache := New[string, int](2, 2) // Capacity 2, K=2
+
+	// Add items and promote them
+	cache.Put("a", 1)
+	cache.Get("a") // Promote "a"
+
+	cache.Put("b", 2)
+	cache.Get("b") // Promote "b"
+
+	// Cache is now full
+	stats := cache.Stats()
+	if stats.Size != 2 {
+		t.Errorf("Expected cache size 2, got %d", stats.Size)
+	}
+
+	// Access "a" to make it more recently used
+	cache.Get("a")
+
+	// Add new item - should evict "b" (least recently used)
+	cache.Put("c", 3)
+	cache.Get("c") // Promote "c"
+
+	// "b" should be evicted
+	_, ok := cache.Get("b")
+	if ok {
+		t.Error("Expected 'b' to be evicted (LRU)")
+	}
+
+	// "a" and "c" should still be there
+	if value, ok := cache.Get("a"); !ok || value != 1 {
+		t.Errorf("Expected 'a' to have value 1, got %d, ok=%t", value, ok)
+	}
+	if value, ok := cache.Get("c"); !ok || value != 3 {
+		t.Errorf("Expected 'c' to have value 3, got %d, ok=%t", value, ok)
+	}
+}
+
+func TestUpdateExisting(t *testing.T) {
+	cache := New[string, int](5, 2)
+
+	cache.Put("a", 1)
+	cache.Get("a") // Promote
+
+	evicted := cache.Put("a", 10) // Update existing
+	if evicted {
+		t.Error("Should not evict when updating existing key")
+	}
+
+	value, ok := cache.Get("a")
+	if !ok || value != 10 {
+		t.Errorf("Expected updated value 10, got %d, ok=%t", value, ok)
+	}
+}
+
+func TestRemove(t *testing.T) {
+	cache := New[string, int](5, 2)
+
+	cache.Put("a", 1)
+	cache.Get("a") // Promote
+
+	cache.Put("b", 2)
+
+	value, ok := cache.Remove("a")
+	if !ok || value != 1 {
+		t.Errorf("Expected removed value 1, got %d, ok=%t", value, ok)
+	}
+
+	_, ok = cache.Get("a")
+	if ok {
+		t.Error("Expected 'a' to be removed")
+	}
+
+	_, ok = cache.Remove("non-existent")
+	if ok {
+		t.Error("Expected false for removing non-existent key")
+	}
+}
+
+func TestContains(t *testing.T) {
+	cache := New[string, int](5, 2)
+
+	cache.Put("a", 1)
+	
+	// Should not contain until promoted
+	if cache.Contains("a") {
+		t.Error("Expected 'a' to not be contained before promotion")
+	}
+
+	cache.Get("a") // Promote
+	
+	if !cache.Contains("a") {
+		t.Error("Expected 'a' to be contained after promotion")
+	}
+
+	if cache.Contains("non-existent") {
+		t.Error("Expected 'non-existent' to not be contained")
+	}
+}
+
+func TestPeek(t *testing.T) {
+	cache := New[string, int](5, 2)
+
+	cache.Put("a", 1)
+	cache.Get("a") // Promote
+
+	value, ok := cache.Peek("a")
+	if !ok || value != 1 {
+		t.Errorf("Expected peek value 1, got %d, ok=%t", value, ok)
+	}
+
+	// Peek on non-promoted item should return false
+	cache.Put("b", 2)
+	_, ok = cache.Peek("b")
+	if ok {
+		t.Error("Expected false for peeking non-promoted item")
+	}
+
+	_, ok = cache.Peek("non-existent")
+	if ok {
+		t.Error("Expected false for peeking non-existent key")
+	}
+}
+
+func TestClear(t *testing.T) {
+	evictCount := 0
+	cache := NewWithEvict[string, int](5, 2, func(key string, value int) {
+		evictCount++
+	})
+
+	cache.Put("a", 1)
+	cache.Get("a") // Promote
+
+	cache.Put("b", 2)
+	cache.Get("b") // Promote
+
+	cache.Put("c", 3) // Not promoted
+
+	cache.Clear()
+
+	if cache.Len() != 0 {
+		t.Errorf("Expected empty cache after clear, got length %d", cache.Len())
+	}
+
+	// Only promoted items should trigger eviction callback
+	if evictCount != 2 {
+		t.Errorf("Expected 2 evictions on clear (promoted items only), got %d", evictCount)
+	}
+}
+
+func TestKeys(t *testing.T) {
+	cache := New[string, int](5, 2)
+
+	cache.Put("c", 3)
+	cache.Get("c") // Promote
+
+	cache.Put("a", 1)
+	cache.Get("a") // Promote
+
+	cache.Put("b", 2)
+	cache.Get("b") // Promote
+
+	keys := cache.Keys()
+	expectedLen := 3
+
+	if len(keys) != expectedLen {
+		t.Errorf("Expected %d keys, got %d", expectedLen, len(keys))
+	}
+
+	// Keys should be in LRU order (most recent first)
+	// "b" was accessed last, so should be first
+	if keys[0] != "b" {
+		t.Errorf("Expected first key to be 'b' (most recent), got %s", keys[0])
+	}
+}
+
+func TestValues(t *testing.T) {
+	cache := New[string, int](5, 2)
+
+	cache.Put("a", 1)
+	cache.Get("a") // Promote
+
+	cache.Put("b", 2)
+	cache.Get("b") // Promote
+
+	values := cache.Values()
+
+	if len(values) != 2 {
+		t.Errorf("Expected 2 values, got %d", len(values))
+	}
+
+	// Check that values correspond to promoted items
+	valueSet := make(map[int]bool)
+	for _, v := range values {
+		valueSet[v] = true
+	}
+
+	if !valueSet[1] || !valueSet[2] {
+		t.Error("Expected values to contain 1 and 2")
+	}
+}
+
+func TestItems(t *testing.T) {
+	cache := New[string, int](5, 2)
+
+	cache.Put("a", 1)
+	cache.Get("a") // Promote
+
+	cache.Put("b", 2)
+	cache.Get("b") // Promote
+
+	cache.Put("c", 3) // Not promoted
+
+	items := cache.Items()
+
+	// Should only contain promoted items
+	if len(items) != 2 {
+		t.Errorf("Expected 2 items (promoted only), got %d", len(items))
+	}
+
+	if items["a"] != 1 || items["b"] != 2 {
+		t.Error("Expected items map to contain promoted values only")
+	}
+
+	if _, exists := items["c"]; exists {
+		t.Error("Expected non-promoted item 'c' to not be in items map")
+	}
+}
+
+func TestResize(t *testing.T) {
+	cache := New[string, int](10, 2)
+
+	// Fill cache with promoted items
+	for i := 0; i < 8; i++ {
+		key := fmt.Sprintf("key%d", i)
+		cache.Put(key, i)
+		cache.Get(key) // Promote
+	}
+
+	initialLen := cache.Len()
+
+	// Resize to smaller capacity
+	cache.Resize(5)
+
+	if cache.Cap() != 5 {
+		t.Errorf("Expected capacity 5 after resize, got %d", cache.Cap())
+	}
+
+	if cache.Len() > 5 {
+		t.Errorf("Expected length <= 5 after resize, got %d", cache.Len())
+	}
+
+	if cache.Len() >= initialLen {
+		t.Error("Expected some items to be evicted during resize")
+	}
+}
+
+func TestResizePanic(t *testing.T) {
+	cache := New[string, int](5, 2)
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Expected panic for zero capacity resize")
+		}
+	}()
+	cache.Resize(0)
+}
+
+func TestStats(t *testing.T) {
+	cache := New[string, int](10, 3)
+
+	cache.Put("a", 1) // In history
+	cache.Put("b", 2) // In history
+	cache.Get("a")    // Still in history (need 3 accesses)
+
+	cache.Put("c", 3)
+	cache.Get("c")
+	cache.Get("c") // Promoted to cache
+
+	stats := cache.Stats()
+
+	if stats.Size != 1 { // Only "c" is promoted
+		t.Errorf("Expected cache size 1, got %d", stats.Size)
+	}
+	if stats.Capacity != 10 {
+		t.Errorf("Expected capacity 10, got %d", stats.Capacity)
+	}
+	if stats.K != 3 {
+		t.Errorf("Expected K=3, got %d", stats.K)
+	}
+	if stats.HistorySize != 2 { // "a" and "b" are in history
+		t.Errorf("Expected history size 2, got %d", stats.HistorySize)
+	}
+	if stats.TotalEntries != 3 { // Total: "a", "b", "c"
+		t.Errorf("Expected total entries 3, got %d", stats.TotalEntries)
+	}
+}
+
+func TestAccessTimeTracking(t *testing.T) {
+	cache := New[string, int](5, 3)
+
+	// Add item and access it multiple times
+	cache.Put("item", 1)
+	
+	// Sleep to ensure different timestamps
+	time.Sleep(1 * time.Millisecond)
+	cache.Get("item")
+	
+	time.Sleep(1 * time.Millisecond)
+	cache.Get("item") // Should be promoted now
+
+	// Item should be in cache
+	if !cache.Contains("item") {
+		t.Error("Expected item to be promoted to cache after K accesses")
+	}
+}
+
+func TestHistoryManagement(t *testing.T) {
+	cache := New[string, int](2, 2) // Small cache to test eviction
+
+	// Add items that will stay in history
+	cache.Put("hist1", 1)
+	cache.Put("hist2", 2)
+
+	// Add and promote items to fill cache
+	cache.Put("cache1", 10)
+	cache.Get("cache1") // Promote
+
+	cache.Put("cache2", 20)
+	cache.Get("cache2") // Promote
+
+	stats := cache.Stats()
+	if stats.Size != 2 {
+		t.Errorf("Expected cache size 2, got %d", stats.Size)
+	}
+	if stats.HistorySize != 2 {
+		t.Errorf("Expected history size 2, got %d", stats.HistorySize)
+	}
+
+	// Add new promoted item - should evict from cache
+	cache.Put("cache3", 30)
+	cache.Get("cache3") // Promote
+
+	stats = cache.Stats()
+	if stats.Size != 2 { // Still 2 (evicted one, added one)
+		t.Errorf("Expected cache size 2 after eviction, got %d", stats.Size)
+	}
+}
+
+func TestConcurrency(t *testing.T) {
+	cache := New[int, int](1000, 2)
+
+	var wg sync.WaitGroup
+	numGoroutines := 10
+	numOperations := 100
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < numOperations; j++ {
+				key := id*numOperations + j
+				cache.Put(key, key*2)
+				cache.Get(key) // Try to promote
+				cache.Contains(key)
+				cache.Peek(key)
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	// Test that cache still works correctly after concurrent operations
+	cache.Put(9999, 9999)
+	cache.Get(9999) // Promote
+	value, ok := cache.Get(9999)
+	if !ok || value != 9999 {
+		t.Errorf("Expected value 9999 after concurrent operations, got %d, ok=%t", value, ok)
+	}
+}
+
+func TestNewWithEvict(t *testing.T) {
+	evictedKeys := []string{}
+	evictedValues := []int{}
+
+	cache := NewWithEvict[string, int](2, 2, func(key string, value int) {
+		evictedKeys = append(evictedKeys, key)
+		evictedValues = append(evictedValues, value)
+	})
+
+	// Add and promote items to fill cache
+	cache.Put("a", 1)
+	cache.Get("a") // Promote
+
+	cache.Put("b", 2)
+	cache.Get("b") // Promote
+
+	// Add new item that will cause eviction
+	cache.Put("c", 3)
+	cache.Get("c") // Promote - should evict LRU item
+
+	if len(evictedKeys) < 1 {
+		t.Errorf("Expected at least 1 evicted key, got %d", len(evictedKeys))
+	}
+	if len(evictedValues) < 1 {
+		t.Errorf("Expected at least 1 evicted value, got %d", len(evictedValues))
+	}
+}
+
+func TestMultipleKValues(t *testing.T) {
+	// Test different K values
+	testCases := []int{1, 2, 3, 5}
+
+	for _, k := range testCases {
+		t.Run(fmt.Sprintf("K=%d", k), func(t *testing.T) {
+			cache := New[string, int](10, k)
+
+			cache.Put("item", 1) // This is the 1st access
+
+			// For K=1, item should already be promoted after Put
+			if k == 1 {
+				if !cache.Contains("item") {
+					t.Errorf("Item should be promoted immediately for K=1")
+				}
+				return
+			}
+
+			// Access k-1 more times (total k accesses including Put)
+			for i := 1; i < k; i++ {
+				cache.Get("item")
+			}
+
+			// Now should be promoted
+			if !cache.Contains("item") {
+				t.Errorf("Item should be promoted after %d total accesses (K=%d)", k, k)
+			}
+		})
+	}
+}
+
+func BenchmarkPut(b *testing.B) {
+	cache := New[int, int](1000, 2)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		cache.Put(i%1000, i)
+	}
+}
+
+func BenchmarkGet(b *testing.B) {
+	cache := New[int, int](1000, 2)
+
+	// Pre-populate and promote items
+	for i := 0; i < 1000; i++ {
+		cache.Put(i, i)
+		cache.Get(i) // Promote
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		cache.Get(i % 1000)
+	}
+}
+
+func BenchmarkMixed(b *testing.B) {
+	cache := New[int, int](1000, 2)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		key := i % 1000
+		if i%2 == 0 {
+			cache.Put(key, i)
+		} else {
+			cache.Get(key)
+		}
+	}
+}
+
+func TestPromoteToCacheAlreadyInCache(t *testing.T) {
+	cache := New[string, int](3, 2)
+	
+	// Add and promote item
+	cache.Put("item", 1)
+	cache.Get("item") // Promote to cache
+	
+	// Verify item is in cache
+	if !cache.Contains("item") {
+		t.Error("Item should be promoted to cache")
+	}
+	
+	// Access again - this should hit the early return in promoteToCache
+	// since the item is already in cache
+	cache.Get("item") // This should trigger the already-in-cache branch
+	
+	// Item should still be accessible
+	value, ok := cache.Get("item")
+	if !ok || value != 1 {
+		t.Errorf("Expected item to remain in cache, got value=%d, ok=%t", value, ok)
+	}
+}
+
+func TestEvictFromEmptyCache(t *testing.T) {
+	cache := New[string, int](2, 2)
+	
+	// Try to evict from empty cache - this should hit the return false branch
+	result := cache.evictFromCache()
+	if result {
+		t.Errorf("Expected evictFromCache to return false for empty cache")
+	}
+	
+	// Verify cache is still empty
+	if cache.Len() != 0 {
+		t.Errorf("Expected cache to remain empty, got length %d", cache.Len())
+	}
+}
+
+func TestRemoveEntryFromHistory(t *testing.T) {
+	cache := New[string, int](3, 2)
+	
+	// Add item that will stay in history (not promoted)
+	cache.Put("hist_item", 1)
+	
+	// Verify item is not yet in cache (in history)
+	stats := cache.Stats()
+	if stats.HistorySize != 1 {
+		t.Errorf("Expected 1 item in history, got %d", stats.HistorySize)
+	}
+	if stats.Size != 0 {
+		t.Errorf("Expected 0 items in cache, got %d", stats.Size)
+	}
+	
+	// Remove the item from history - this should hit the else branch in removeEntry
+	_, ok := cache.Remove("hist_item")
+	if !ok {
+		t.Error("Expected to remove item from history")
+	}
+	
+	// Verify item is completely gone
+	stats = cache.Stats()
+	if stats.HistorySize != 0 {
+		t.Errorf("Expected 0 items in history after removal, got %d", stats.HistorySize)
+	}
+	if stats.TotalEntries != 0 {
+		t.Errorf("Expected 0 total entries after removal, got %d", stats.TotalEntries)
+	}
+}
