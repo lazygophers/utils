@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
-	"golang.org/x/crypto/ripemd160"
 )
 
 // Md5 计算输入字符串或字节切片的 MD5 哈希值，并返回十六进制表示的字符串。
@@ -48,11 +47,4 @@ func Sha512_224[M string | []byte](s M) string {
 // Sha512_256 计算输入字符串或字节切片的 SHA-512/256 哈希值，并返回十六进制表示的字符串。
 func Sha512_256[M string | []byte](s M) string {
 	return fmt.Sprintf("%x", sha512.Sum512_256([]byte(s)))
-}
-
-// RIPEMD160 计算输入字符串或字节切片的 RIPEMD-160 哈希值，并返回十六进制表示的字符串。
-func RIPEMD160[M string | []byte](s M) string {
-	h := ripemd160.New()
-	_, _ = h.Write([]byte(s))
-	return fmt.Sprintf("%x", h.Sum(nil))
 }

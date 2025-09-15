@@ -1,7 +1,7 @@
 // Package candy 提供 Go 语法糖工具函数，简化常见的编程操作
 package candy
 
-import "golang.org/x/exp/constraints"
+import "cmp"
 
 // Min 返回切片中的最小值
 //
@@ -38,7 +38,7 @@ import "golang.org/x/exp/constraints"
 //	empty := []int{}
 //	result := Min(empty)
 //	// result = 0 (int类型的零值)
-func Min[T constraints.Ordered](ss []T) (min T) {
+func Min[T cmp.Ordered](ss []T) (min T) {
 	if len(ss) == 0 {
 		return
 	}

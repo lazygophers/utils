@@ -1,7 +1,7 @@
 package routine
 
 import (
-	"golang.org/x/exp/constraints"
+	"cmp"
 	"sync"
 	"time"
 )
@@ -12,7 +12,7 @@ type cacheItem[V any] struct {
 }
 
 // Cache 协程的信息缓存
-type Cache[K constraints.Ordered, V any] struct {
+type Cache[K cmp.Ordered, V any] struct {
 	sync.RWMutex
 
 	data map[K]*cacheItem[V]
@@ -71,7 +71,7 @@ func (p *Cache[K, V]) Delete(key K) {
 	p.Unlock()
 }
 
-func NewCache[K constraints.Ordered, V any]() *Cache[K, V] {
+func NewCache[K cmp.Ordered, V any]() *Cache[K, V] {
 	p := &Cache[K, V]{
 		data: make(map[K]*cacheItem[V]),
 	}

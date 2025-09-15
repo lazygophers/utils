@@ -1,0 +1,13 @@
+package cryptox
+
+import (
+	"fmt"
+	"golang.org/x/crypto/ripemd160"
+)
+
+// RIPEMD160 计算输入字符串或字节切片的 RIPEMD-160 哈希值，并返回十六进制表示的字符串。
+func RIPEMD160[M string | []byte](s M) string {
+	h := ripemd160.New()
+	_, _ = h.Write([]byte(s))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}

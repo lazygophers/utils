@@ -3,13 +3,13 @@ package candy
 import (
 	"sort"
 
-	"golang.org/x/exp/constraints"
+	"cmp"
 )
 
 // Sort 对有序类型的切片进行排序
-// 接受一个实现了 constraints.Ordered 接口的切片，返回一个新的已排序切片
+// 接受一个实现了 cmp.Ordered 接口的切片，返回一个新的已排序切片
 // 原始切片不会被修改，返回的是排序后的副本
-func Sort[T constraints.Ordered](ss []T) []T {
+func Sort[T cmp.Ordered](ss []T) []T {
 	// 如果切片长度小于2，直接返回副本
 	if len(ss) < 2 {
 		return ss
