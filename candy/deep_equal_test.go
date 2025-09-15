@@ -673,16 +673,16 @@ func TestDeepEqualCoverage(t *testing.T) {
 	type uncomparableStruct struct {
 		fn func()
 	}
-	
+
 	s1 := uncomparableStruct{fn: func() { println("test1") }}
 	s2 := uncomparableStruct{fn: func() { println("test2") }}
-	
+
 	// These structs contain function fields, making them uncomparable
 	// This should trigger the panic recovery in the default case of deepValueEqual
 	if DeepEqual(s1, s2) {
 		t.Error("Structs with different functions should not be equal")
 	}
-	
+
 	// Test with maps that contain uncomparable elements
 	m3 := map[string]uncomparableStruct{
 		"key": {fn: func() { println("test1") }},
@@ -690,7 +690,7 @@ func TestDeepEqualCoverage(t *testing.T) {
 	m4 := map[string]uncomparableStruct{
 		"key": {fn: func() { println("test2") }},
 	}
-	
+
 	// This should trigger deep comparison of uncomparable values
 	if DeepEqual(m3, m4) {
 		t.Error("Maps with uncomparable values should not be equal")

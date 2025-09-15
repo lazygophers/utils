@@ -71,4 +71,3 @@ func Register(callback func()) {
 	callbacks = append(callbacks, callback)
 	callbacksMu.Unlock()
 }
-

@@ -210,7 +210,7 @@ func TestGetListenIp_ComprehensiveScenarios(t *testing.T) {
 			desc:  "Should prefer IPv4 addresses",
 		},
 		{
-			name:  "Test true preference", 
+			name:  "Test true preference",
 			prev6: []bool{true},
 			desc:  "Should prefer IPv6 addresses",
 		},
@@ -225,14 +225,14 @@ func TestGetListenIp_ComprehensiveScenarios(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// This test mainly ensures the function doesn't panic and handles all code paths
 			result := GetListenIp(tt.prev6...)
-			
+
 			// 结果应该是空字符串或有效IP地址
 			if result != "" {
 				if net.ParseIP(result) == nil {
 					t.Errorf("GetListenIp() returned invalid IP: %s", result)
 				}
 			}
-			
+
 			// The function should not panic, regardless of network configuration
 		})
 	}
@@ -242,7 +242,7 @@ func TestGetListenIp_ComprehensiveScenarios(t *testing.T) {
 func TestGetListenIp_CoverageEdgeCases(t *testing.T) {
 	t.Run("Coverage for all branches", func(t *testing.T) {
 		// Test various scenarios to improve coverage
-		
+
 		// Test with IPv4 preference (default)
 		ipv4Result := GetListenIp()
 		if ipv4Result != "" {
@@ -250,7 +250,7 @@ func TestGetListenIp_CoverageEdgeCases(t *testing.T) {
 				t.Errorf("Invalid IPv4 result: %s", ipv4Result)
 			}
 		}
-		
+
 		// Test with explicit IPv4 preference
 		ipv4ExplicitResult := GetListenIp(false)
 		if ipv4ExplicitResult != "" {
@@ -258,7 +258,7 @@ func TestGetListenIp_CoverageEdgeCases(t *testing.T) {
 				t.Errorf("Invalid IPv4 explicit result: %s", ipv4ExplicitResult)
 			}
 		}
-		
+
 		// Test with IPv6 preference
 		ipv6Result := GetListenIp(true)
 		if ipv6Result != "" {
@@ -280,7 +280,7 @@ func TestGetInterfaceIpByName_WithValidInterface(t *testing.T) {
 			}
 		}
 	})
-	
+
 	t.Run("Loopback interface IPv6", func(t *testing.T) {
 		result := GetInterfaceIpByName("lo", true)
 		// For loopback, we might get empty (as it's filtered out) or a valid IP
@@ -297,20 +297,20 @@ func TestGetListenIp_SystemInterface(t *testing.T) {
 	// This test helps exercise the eth0/en0 branches in GetListenIp
 	// by trying multiple interface naming conventions
 	interfaceNames := []string{"lo", "lo0", "eth0", "en0", "wlan0", "wifi0"}
-	
+
 	for _, ifName := range interfaceNames {
 		t.Run("Interface "+ifName, func(t *testing.T) {
 			// Test both IPv4 and IPv6 for each interface
 			ipv4Result := GetInterfaceIpByName(ifName, false)
 			ipv6Result := GetInterfaceIpByName(ifName, true)
-			
+
 			// Validate results if they are not empty
 			if ipv4Result != "" {
 				if net.ParseIP(ipv4Result) == nil {
 					t.Errorf("Invalid IPv4 result for %s: %s", ifName, ipv4Result)
 				}
 			}
-			
+
 			if ipv6Result != "" {
 				if net.ParseIP(ipv6Result) == nil {
 					t.Errorf("Invalid IPv6 result for %s: %s", ifName, ipv6Result)
@@ -327,7 +327,7 @@ func TestGetListenIp_AllSystemInterfaces(t *testing.T) {
 	if err != nil {
 		t.Skipf("Could not get system interfaces: %v", err)
 	}
-	
+
 	// Test with different preferences to cover all branches
 	for _, preferIPv6 := range []bool{false, true} {
 		t.Run(fmt.Sprintf("IPv6Preferred_%t", preferIPv6), func(t *testing.T) {
@@ -340,7 +340,7 @@ func TestGetListenIp_AllSystemInterfaces(t *testing.T) {
 			}
 		})
 	}
-	
+
 	// Also test the exact interface names that GetListenIp checks
 	specialInterfaces := []string{"eth0", "en0"}
 	for _, ifName := range specialInterfaces {
@@ -350,7 +350,7 @@ func TestGetListenIp_AllSystemInterfaces(t *testing.T) {
 				result := GetInterfaceIpByName(ifName, preferIPv6)
 				if result != "" {
 					if net.ParseIP(result) == nil {
-						t.Errorf("GetInterfaceIpByName(%s, %t) returned invalid IP: %s", 
+						t.Errorf("GetInterfaceIpByName(%s, %t) returned invalid IP: %s",
 							ifName, preferIPv6, result)
 					}
 				}
@@ -364,21 +364,21 @@ func TestGetListenIp_ErrorLogging(t *testing.T) {
 	t.Run("Exercise error paths", func(t *testing.T) {
 		// Call GetListenIp multiple times with different preferences
 		// This helps ensure we hit all branches and error paths
-		
+
 		// Test with no args (default false)
 		result1 := GetListenIp()
-		
+
 		// Test with explicit false
 		result2 := GetListenIp(false)
-		
+
 		// Test with true
 		result3 := GetListenIp(true)
-		
+
 		// Test with multiple args (only first is used)
 		result4 := GetListenIp(true, false, true)
-		
+
 		results := []string{result1, result2, result3, result4}
-		
+
 		// All results should be either empty or valid IPs
 		for i, result := range results {
 			if result != "" {
@@ -387,7 +387,7 @@ func TestGetListenIp_ErrorLogging(t *testing.T) {
 				}
 			}
 		}
-		
+
 		// This ensures we exercise all code paths in GetListenIp
 		// including cases where interfaces don't exist and error logging occurs
 	})

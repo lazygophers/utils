@@ -1,4 +1,4 @@
-//go:build validator_zh || validator_all
+//go:build i18n_zh_cn || i18n_all
 
 package validator
 

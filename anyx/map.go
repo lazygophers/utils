@@ -457,7 +457,7 @@ func MapValuesFloat64(m interface{}) []float64 {
 
 func MergeMap[K cmp.Ordered, V any](source, target map[K]V) map[K]V {
 	res := make(map[K]V, len(source))
-	
+
 	// Manual clone implementation
 	for k, v := range source {
 		res[k] = v

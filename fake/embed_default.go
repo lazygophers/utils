@@ -5,10 +5,11 @@ package fake
 import "embed"
 
 // 默认配置：包含有数据的语言
+//
 //go:embed data/en
 var defaultDataEN embed.FS
 
-//go:embed data/zh-CN  
+//go:embed data/zh-CN
 var defaultDataZhCN embed.FS
 
 //go:embed data/fr

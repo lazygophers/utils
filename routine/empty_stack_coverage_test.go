@@ -11,15 +11,15 @@ import (
 func TestGoWithRecoverEmptyStackScenario(t *testing.T) {
 	t.Run("empty_stack_coverage", func(t *testing.T) {
 		done := make(chan bool, 1)
-		
+
 		GoWithRecover(func() error {
 			defer func() { done <- true }()
-			
+
 			// Try to create a scenario where debug.Stack might return empty
 			// This is extremely rare but we need to test the code path
 			panic("test empty stack scenario")
 		})
-		
+
 		// Wait for goroutine to complete
 		select {
 		case <-done:
@@ -37,12 +37,12 @@ func TestGoWithRecoverEmptyStackScenario(t *testing.T) {
 		} else {
 			t.Logf("debug.Stack() returned %d bytes in normal context", len(stack))
 		}
-		
+
 		done := make(chan bool, 1)
-		
+
 		GoWithRecover(func() error {
 			defer func() { done <- true }()
-			
+
 			// Test stack in panic context
 			defer func() {
 				if r := recover(); r != nil {
@@ -55,10 +55,10 @@ func TestGoWithRecoverEmptyStackScenario(t *testing.T) {
 					panic(r) // Re-panic to continue the test
 				}
 			}()
-			
+
 			panic("test stack behavior")
 		})
-		
+
 		select {
 		case <-done:
 			// Test completed
@@ -66,24 +66,24 @@ func TestGoWithRecoverEmptyStackScenario(t *testing.T) {
 			t.Error("Stack behavior test timed out")
 		}
 	})
-	
+
 	t.Run("attempt_empty_stack_edge_case", func(t *testing.T) {
 		// This test attempts to trigger the len(st) == 0 case
 		// in GoWithRecover function (lines 85-87).
 		// This is extremely difficult to achieve in normal Go code,
 		// as debug.Stack() almost always returns non-empty stack.
 		// The code path exists for defensive programming.
-		
+
 		done := make(chan bool, 1)
-		
+
 		GoWithRecover(func() error {
 			defer func() { done <- true }()
-			
+
 			// Create a panic scenario - the empty stack case is
 			// handled by the runtime internally and is very rare
 			panic("testing edge case for empty stack")
 		})
-		
+
 		select {
 		case <-done:
 			// Success - the function handles both empty and non-empty stack cases
@@ -100,33 +100,33 @@ func TestGoWithRecoverComplexPanicScenarios(t *testing.T) {
 		panicFunc func()
 	}{
 		{
-			name: "string_panic",
+			name:      "string_panic",
 			panicFunc: func() { panic("string panic") },
 		},
 		{
-			name: "nil_panic", 
+			name:      "nil_panic",
 			panicFunc: func() { panic(nil) },
 		},
 		{
-			name: "int_panic",
+			name:      "int_panic",
 			panicFunc: func() { panic(42) },
 		},
 		{
-			name: "struct_panic",
+			name:      "struct_panic",
 			panicFunc: func() { panic(struct{ msg string }{msg: "struct panic"}) },
 		},
 	}
-	
+
 	for _, scenario := range scenarios {
 		t.Run(scenario.name, func(t *testing.T) {
 			done := make(chan bool, 1)
-			
+
 			GoWithRecover(func() error {
 				defer func() { done <- true }()
 				scenario.panicFunc()
 				return nil
 			})
-			
+
 			select {
 			case <-done:
 				// Success - panic was recovered
@@ -141,10 +141,10 @@ func TestGoWithRecoverComplexPanicScenarios(t *testing.T) {
 func TestGoWithRecoverNestedPanic(t *testing.T) {
 	t.Run("nested_panic_scenario", func(t *testing.T) {
 		done := make(chan bool, 1)
-		
+
 		GoWithRecover(func() error {
 			defer func() { done <- true }()
-			
+
 			// Create nested panic scenario
 			func() {
 				defer func() {
@@ -155,10 +155,10 @@ func TestGoWithRecoverNestedPanic(t *testing.T) {
 				}()
 				panic("original panic")
 			}()
-			
+
 			return nil
 		})
-		
+
 		select {
 		case <-done:
 			// Success
@@ -173,22 +173,22 @@ func TestGoWithRecoverConcurrentPanics(t *testing.T) {
 	t.Run("concurrent_panics", func(t *testing.T) {
 		const numGoroutines = 10
 		var wg sync.WaitGroup
-		
+
 		for i := 0; i < numGoroutines; i++ {
 			wg.Add(1)
-			
+
 			GoWithRecover(func() error {
 				defer wg.Done()
 				panic("concurrent panic test")
 			})
 		}
-		
+
 		done := make(chan struct{})
 		go func() {
 			wg.Wait()
 			close(done)
 		}()
-		
+
 		select {
 		case <-done:
 			// All panics should be recovered
@@ -203,10 +203,10 @@ func TestGoWithRecoverConcurrentPanics(t *testing.T) {
 func TestGoWithRecoverStackManipulation(t *testing.T) {
 	t.Run("deep_stack_scenario", func(t *testing.T) {
 		done := make(chan bool, 1)
-		
+
 		GoWithRecover(func() error {
 			defer func() { done <- true }()
-			
+
 			// Create a deep call stack before panicking
 			var deepFunc func(int)
 			deepFunc = func(depth int) {
@@ -215,11 +215,11 @@ func TestGoWithRecoverStackManipulation(t *testing.T) {
 				}
 				deepFunc(depth - 1)
 			}
-			
+
 			deepFunc(20) // Create 20-level deep stack
 			return nil
 		})
-		
+
 		select {
 		case <-done:
 			// Success
@@ -227,13 +227,13 @@ func TestGoWithRecoverStackManipulation(t *testing.T) {
 			t.Error("Deep stack scenario timed out")
 		}
 	})
-	
+
 	t.Run("goroutine_stack_scenario", func(t *testing.T) {
 		done := make(chan bool, 1)
-		
+
 		GoWithRecover(func() error {
 			defer func() { done <- true }()
-			
+
 			// Test different stack scenarios within the same goroutine
 			defer func() {
 				if r := recover(); r != nil {
@@ -241,15 +241,15 @@ func TestGoWithRecoverStackManipulation(t *testing.T) {
 					panic(r)
 				}
 			}()
-			
+
 			// Create a scenario that might affect stack traces
 			func() {
 				panic("inner function panic")
 			}()
-			
+
 			return nil
 		})
-		
+
 		select {
 		case <-done:
 			// Success

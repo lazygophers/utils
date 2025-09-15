@@ -174,7 +174,7 @@ func TestPluckSliceArray(t *testing.T) {
 		// 此测试主要是为了覆盖 IsValid() 检查的代码路径
 		// 在实际情况下，reflect.Value.IsValid() == false 的情况很少见
 		// 但我们可以通过某些特殊场景来达到这种状态
-		
+
 		users := []*User{{ID: 1}, nil, {ID: 3}}
 		// nil指针解引用会导致panic
 		assert.Panics(t, func() {

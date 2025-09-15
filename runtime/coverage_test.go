@@ -224,7 +224,7 @@ func TestExitFunctionLogic(t *testing.T) {
 		// 使用一个非常大的PID，通常不会存在
 		invalidPID := 999999999
 		process, err := os.FindProcess(invalidPID)
-		
+
 		// 在某些系统上，FindProcess可能不会立即返回错误
 		// 但后续的Signal操作会失败
 		if err == nil && process != nil {

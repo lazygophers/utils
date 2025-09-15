@@ -12,12 +12,12 @@ func TestFaker(t *testing.T) {
 	if faker == nil {
 		t.Fatal("New() returned nil")
 	}
-	
+
 	// 测试默认值
 	if faker.language != LanguageEnglish {
 		t.Errorf("Expected default language %s, got %s", LanguageEnglish, faker.language)
 	}
-	
+
 	if faker.country != CountryUS {
 		t.Errorf("Expected default country %s, got %s", CountryUS, faker.country)
 	}
@@ -31,15 +31,15 @@ func TestFakerWithOptions(t *testing.T) {
 		WithGender(GenderMale),
 		WithSeed(12345),
 	)
-	
+
 	if faker.language != LanguageChineseSimplified {
 		t.Errorf("Expected language %s, got %s", LanguageChineseSimplified, faker.language)
 	}
-	
+
 	if faker.country != CountryChina {
 		t.Errorf("Expected country %s, got %s", CountryChina, faker.country)
 	}
-	
+
 	if faker.gender != GenderMale {
 		t.Errorf("Expected gender %s, got %s", GenderMale, faker.gender)
 	}
@@ -51,17 +51,17 @@ func TestWithContext(t *testing.T) {
 	ctx = ContextWithLanguage(ctx, LanguageFrench)
 	ctx = ContextWithCountry(ctx, CountryFrance)
 	ctx = ContextWithGender(ctx, GenderFemale)
-	
+
 	faker := WithContext(ctx)
-	
+
 	if faker.language != LanguageFrench {
 		t.Errorf("Expected language from context %s, got %s", LanguageFrench, faker.language)
 	}
-	
+
 	if faker.country != CountryFrance {
 		t.Errorf("Expected country from context %s, got %s", CountryFrance, faker.country)
 	}
-	
+
 	if faker.gender != GenderFemale {
 		t.Errorf("Expected gender from context %s, got %s", GenderFemale, faker.gender)
 	}
@@ -70,17 +70,17 @@ func TestWithContext(t *testing.T) {
 // TestStats 测试统计功能
 func TestStats(t *testing.T) {
 	faker := New()
-	
+
 	// 初始统计应该为0
 	stats := faker.Stats()
 	if stats["call_count"] != 0 {
 		t.Errorf("Expected initial call_count 0, got %d", stats["call_count"])
 	}
-	
+
 	// 调用一些方法
 	_ = faker.Name()
 	_ = faker.Email()
-	
+
 	stats = faker.Stats()
 	// 由于 Name() 和 Email() 内部可能调用其他方法，所以计数可能大于2
 	if stats["call_count"] < 2 {
@@ -92,16 +92,16 @@ func TestStats(t *testing.T) {
 func TestClone(t *testing.T) {
 	original := New(WithLanguage(LanguageChineseSimplified))
 	clone := original.Clone()
-	
+
 	if clone.language != original.language {
 		t.Error("Clone should preserve language")
 	}
-	
+
 	// 克隆应该有独立的统计
 	_ = original.Name()
 	originalStats := original.Stats()
 	cloneStats := clone.Stats()
-	
+
 	if originalStats["call_count"] == cloneStats["call_count"] {
 		t.Error("Clone should have independent stats")
 	}
@@ -110,14 +110,14 @@ func TestClone(t *testing.T) {
 // TestClearCache 测试缓存清理
 func TestClearCache(t *testing.T) {
 	faker := New()
-	
+
 	// 生成一些数据以填充缓存
 	_ = faker.Name()
 	_ = faker.Email()
-	
+
 	// 清理缓存
 	faker.ClearCache()
-	
+
 	// 缓存应该被清空
 	// 这里我们主要测试不会崩溃
 	_ = faker.Name()
@@ -127,18 +127,18 @@ func TestClearCache(t *testing.T) {
 func TestRandomUserAgent(t *testing.T) {
 	// Test basic functionality
 	ua := RandomUserAgent()
-	
+
 	if ua == "" {
 		t.Error("RandomUserAgent() returned empty string")
 	}
-	
+
 	// Test that returned user agent has basic structure
 	if !strings.HasPrefix(ua, "Mozilla/") {
 		t.Errorf("RandomUserAgent() returned invalid user agent (should start with Mozilla/): %q", ua)
 	}
-	
+
 	// Should contain a browser name
-	hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") || 
+	hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") ||
 		strings.Contains(ua, "Safari") || strings.Contains(ua, "Edge") || strings.Contains(ua, "Opera")
 	if !hasBrowser {
 		t.Errorf("RandomUserAgent() returned invalid user agent (missing browser name): %q", ua)
@@ -147,17 +147,17 @@ func TestRandomUserAgent(t *testing.T) {
 
 func TestRandomUserAgentReturnsValidUserAgent(t *testing.T) {
 	ua := RandomUserAgent()
-	
+
 	// All user agents should contain "Mozilla"
 	if !strings.Contains(ua, "Mozilla") {
 		t.Errorf("RandomUserAgent() returned invalid user agent (missing Mozilla): %q", ua)
 	}
-	
+
 	// Should contain either a browser engine (AppleWebKit, Gecko) or browser name
 	hasEngine := strings.Contains(ua, "AppleWebKit") || strings.Contains(ua, "Gecko")
-	hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") || 
+	hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") ||
 		strings.Contains(ua, "Safari") || strings.Contains(ua, "Edge") || strings.Contains(ua, "Opera")
-	
+
 	if !hasEngine && !hasBrowser {
 		t.Errorf("RandomUserAgent() returned invalid user agent (missing engine or browser): %q", ua)
 	}
@@ -167,16 +167,16 @@ func TestRandomUserAgentConsistency(t *testing.T) {
 	// Test that function doesn't panic and returns consistent format
 	for i := 0; i < 100; i++ {
 		ua := RandomUserAgent()
-		
+
 		if ua == "" {
 			t.Fatalf("RandomUserAgent() returned empty string on iteration %d", i)
 		}
-		
+
 		// Each user agent should be reasonably long
 		if len(ua) < 30 {
 			t.Errorf("RandomUserAgent() returned suspiciously short user agent: %q", ua)
 		}
-		
+
 		// Should not contain line breaks or tabs
 		if strings.Contains(ua, "\n") || strings.Contains(ua, "\t") || strings.Contains(ua, "\r") {
 			t.Errorf("RandomUserAgent() returned user agent with invalid characters: %q", ua)
@@ -187,22 +187,22 @@ func TestRandomUserAgentConsistency(t *testing.T) {
 func TestRandomUserAgentDistribution(t *testing.T) {
 	// Test that function returns different user agents over multiple calls
 	// This is probabilistic, but with 255+ user agents, we should get variety
-	
+
 	results := make(map[string]int)
 	iterations := 1000
-	
+
 	for i := 0; i < iterations; i++ {
 		ua := RandomUserAgent()
 		results[ua]++
 	}
-	
+
 	// We should get at least 50 different user agents in 1000 calls
 	// (this is very conservative given we have 255+ options)
 	if len(results) < 50 {
 		t.Errorf("RandomUserAgent() showed poor distribution: only %d unique user agents in %d calls", len(results), iterations)
 	}
-	
-	// No single user agent should appear more than 5% of the time 
+
+	// No single user agent should appear more than 5% of the time
 	// (again, very conservative)
 	maxAllowed := iterations / 20
 	for ua, count := range results {
@@ -216,22 +216,22 @@ func TestUserAgentGeneration(t *testing.T) {
 	// Test that generated user agents have proper structure
 	for i := 0; i < 10; i++ {
 		ua := RandomUserAgent()
-		
+
 		if ua == "" {
 			t.Errorf("Generated user agent %d is empty", i)
 		}
-		
+
 		if len(ua) < 30 {
 			t.Errorf("Generated user agent %d is too short: %q", i, ua)
 		}
-		
+
 		// Should start with Mozilla
 		if !strings.HasPrefix(ua, "Mozilla/") {
 			t.Errorf("Generated user agent %d doesn't start with Mozilla/: %q", i, ua)
 		}
-		
+
 		// Should contain key browser components (at least one browser name)
-		hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") || 
+		hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") ||
 			strings.Contains(ua, "Safari") || strings.Contains(ua, "Edge") || strings.Contains(ua, "Opera")
 		if !hasBrowser {
 			t.Errorf("Generated user agent %d missing browser name: %q", i, ua)
@@ -242,12 +242,12 @@ func TestUserAgentGeneration(t *testing.T) {
 func TestUserAgentVariety(t *testing.T) {
 	// Test that we generate different user agents
 	agents := make(map[string]bool)
-	
+
 	for i := 0; i < 20; i++ {
 		ua := RandomUserAgent()
 		agents[ua] = true
 	}
-	
+
 	// We should have generated multiple different user agents
 	if len(agents) < 2 {
 		t.Errorf("Generated user agents lack variety: only %d unique agents", len(agents))
@@ -261,11 +261,11 @@ func TestRandomUserAgentBrowserTypes(t *testing.T) {
 	linuxCount := 0
 	macCount := 0
 	androidCount := 0
-	
+
 	// Sample a reasonable number to check distribution
 	for i := 0; i < 100; i++ {
 		ua := RandomUserAgent()
-		
+
 		if strings.Contains(ua, "Chrome") {
 			chromeCount++
 		}
@@ -282,17 +282,17 @@ func TestRandomUserAgentBrowserTypes(t *testing.T) {
 			androidCount++
 		}
 	}
-	
+
 	// We should have Chrome user agents (most of our list is Chrome)
 	if chromeCount == 0 {
 		t.Error("No Chrome user agents found in sample")
 	}
-	
+
 	// We should have Windows user agents
 	if windowsCount == 0 {
 		t.Error("No Windows user agents found in sample")
 	}
-	
+
 	// We should have some mobile (Android) user agents
 	if androidCount == 0 {
 		t.Error("No Android user agents found in sample")
@@ -303,11 +303,11 @@ func TestRandomUserAgentNoEmptyOrNil(t *testing.T) {
 	// Test edge cases to ensure function is robust
 	for i := 0; i < 50; i++ {
 		ua := RandomUserAgent()
-		
+
 		if ua == "" {
 			t.Errorf("RandomUserAgent() returned empty string on call %d", i)
 		}
-		
+
 		// Test for common invalid values
 		invalidValues := []string{
 			"<nil>",
@@ -317,7 +317,7 @@ func TestRandomUserAgentNoEmptyOrNil(t *testing.T) {
 			"\t",
 			"\n",
 		}
-		
+
 		for _, invalid := range invalidValues {
 			if ua == invalid {
 				t.Errorf("RandomUserAgent() returned invalid value: %q", ua)
@@ -343,7 +343,7 @@ func BenchmarkRandomUserAgentAllocation(b *testing.B) {
 // Test that the function works correctly with concurrent access
 func TestRandomUserAgentConcurrency(t *testing.T) {
 	results := make(chan string, 100)
-	
+
 	// Launch 10 goroutines
 	for i := 0; i < 10; i++ {
 		go func() {
@@ -352,21 +352,21 @@ func TestRandomUserAgentConcurrency(t *testing.T) {
 			}
 		}()
 	}
-	
+
 	// Collect results
 	for i := 0; i < 100; i++ {
 		ua := <-results
 		if ua == "" {
 			t.Error("Concurrent access resulted in empty user agent")
 		}
-		
+
 		// Verify it's a valid user agent structure
 		if !strings.HasPrefix(ua, "Mozilla/") {
 			t.Errorf("Concurrent access returned invalid user agent (should start with Mozilla/): %q", ua)
 		}
-		
+
 		// Should contain a browser name
-		hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") || 
+		hasBrowser := strings.Contains(ua, "Chrome") || strings.Contains(ua, "Firefox") ||
 			strings.Contains(ua, "Safari") || strings.Contains(ua, "Edge") || strings.Contains(ua, "Opera")
 		if !hasBrowser {
 			t.Errorf("Concurrent access returned invalid user agent (missing browser name): %q", ua)

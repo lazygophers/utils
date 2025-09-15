@@ -23,14 +23,14 @@ type Company struct {
 // CompanyName 生成公司名称
 func (f *Faker) CompanyName() string {
 	f.incrementCallCount()
-	
+
 	// 尝试从数据文件加载
 	names, weights, err := getWeightedItems(f.language, "companies", "names")
 	if err != nil {
 		// 回退到生成模式
 		return f.generateCompanyName()
 	}
-	
+
 	f.incrementGeneratedData()
 	return randx.WeightedChoose(names, weights)
 }
@@ -38,46 +38,46 @@ func (f *Faker) CompanyName() string {
 // generateCompanyName 生成式公司名称
 func (f *Faker) generateCompanyName() string {
 	patterns := []string{
-		"%s %s",           // Apple Inc.
-		"%s & %s",         // Smith & Johnson
-		"%s-%s",           // Micro-Systems
-		"%s%s",            // TechCorp
-		"%s %s %s",        // Global Tech Solutions
+		"%s %s",    // Apple Inc.
+		"%s & %s",  // Smith & Johnson
+		"%s-%s",    // Micro-Systems
+		"%s%s",     // TechCorp
+		"%s %s %s", // Global Tech Solutions
 	}
-	
+
 	firstNames := f.getCompanyFirstNames()
 	suffixes := f.getCompanySuffixes()
-	
+
 	pattern := randx.Choose(patterns)
-	
+
 	switch pattern {
 	case "%s %s":
 		firstName := randx.Choose(firstNames)
 		suffix := randx.Choose(suffixes)
 		return fmt.Sprintf(pattern, firstName, suffix)
-		
+
 	case "%s & %s":
 		name1 := randx.Choose(firstNames)
 		name2 := randx.Choose(firstNames)
 		suffix := randx.Choose(suffixes)
 		return fmt.Sprintf("%s & %s %s", name1, name2, suffix)
-		
+
 	case "%s-%s":
 		name1 := randx.Choose(firstNames)
 		name2 := randx.Choose(firstNames)
 		return fmt.Sprintf(pattern, name1, name2)
-		
+
 	case "%s%s":
 		name1 := randx.Choose(firstNames)
 		name2 := randx.Choose(firstNames)
 		return fmt.Sprintf(pattern, name1, name2)
-		
+
 	case "%s %s %s":
 		adj := randx.Choose([]string{"Global", "Advanced", "Premium", "Elite", "Smart", "Digital", "Modern", "Future", "Dynamic", "Innovative"})
 		name := randx.Choose(firstNames)
 		suffix := randx.Choose(suffixes)
 		return fmt.Sprintf(pattern, adj, name, suffix)
-		
+
 	default:
 		firstName := randx.Choose(firstNames)
 		suffix := randx.Choose(suffixes)
@@ -108,7 +108,7 @@ func (f *Faker) getCompanySuffixes() []string {
 	if err == nil {
 		return suffixes
 	}
-	
+
 	// 回退默认值
 	return []string{
 		"Inc.", "LLC", "Corp.", "Co.", "Ltd.", "Group", "Holdings",
@@ -121,13 +121,13 @@ func (f *Faker) getCompanySuffixes() []string {
 // CompanySuffix 生成公司后缀
 func (f *Faker) CompanySuffix() string {
 	f.incrementCallCount()
-	
+
 	suffixes, weights, err := getWeightedItems(f.language, "companies", "suffixes")
 	if err != nil {
 		suffixes = f.getCompanySuffixes()
 		return randx.Choose(suffixes)
 	}
-	
+
 	f.incrementGeneratedData()
 	return randx.WeightedChoose(suffixes, weights)
 }
@@ -135,7 +135,7 @@ func (f *Faker) CompanySuffix() string {
 // Industry 生成行业名称
 func (f *Faker) Industry() string {
 	f.incrementCallCount()
-	
+
 	industries := []string{
 		"Technology", "Healthcare", "Finance", "Education", "Manufacturing",
 		"Retail", "Hospitality", "Transportation", "Energy", "Construction",
@@ -148,18 +148,18 @@ func (f *Faker) Industry() string {
 		"Non-profit", "Government", "Military", "Space", "Ocean",
 		"Environmental", "Renewable Energy", "Mining", "Oil & Gas", "Utilities",
 	}
-	
+
 	return randx.Choose(industries)
 }
 
 // JobTitle 生成职位名称
 func (f *Faker) JobTitle() string {
 	f.incrementCallCount()
-	
+
 	// 职位级别
 	levels := []string{"", "Junior", "Senior", "Lead", "Principal", "Staff", "Chief"}
 	level := randx.Choose(levels)
-	
+
 	// 职位类型
 	positions := []string{
 		"Engineer", "Developer", "Designer", "Manager", "Director", "Analyst",
@@ -170,7 +170,7 @@ func (f *Faker) JobTitle() string {
 		"President", "CEO", "CTO", "CIO", "CFO", "CMO", "CHRO", "COO",
 	}
 	position := randx.Choose(positions)
-	
+
 	// 专业领域
 	fields := []string{
 		"Software", "Hardware", "Network", "Security", "Data", "AI", "ML",
@@ -179,7 +179,7 @@ func (f *Faker) JobTitle() string {
 		"DevOps", "QA", "Testing", "Support", "Customer", "Technical",
 		"Project", "Program", "Portfolio", "Risk", "Compliance", "Legal",
 	}
-	
+
 	// 30% 概率添加专业领域
 	if randx.Float32() < 0.3 {
 		field := randx.Choose(fields)
@@ -188,18 +188,18 @@ func (f *Faker) JobTitle() string {
 		}
 		return fmt.Sprintf("%s %s", field, position)
 	}
-	
+
 	if level != "" {
 		return fmt.Sprintf("%s %s", level, position)
 	}
-	
+
 	return position
 }
 
 // Department 生成部门名称
 func (f *Faker) Department() string {
 	f.incrementCallCount()
-	
+
 	departments := []string{
 		"Engineering", "Development", "Design", "Product", "Marketing", "Sales",
 		"Finance", "Accounting", "Human Resources", "Operations", "Support",
@@ -211,17 +211,17 @@ func (f *Faker) Department() string {
 		"Shipping", "Receiving", "Inventory", "Planning", "Forecasting",
 		"Risk Management", "Audit", "Training", "Learning", "Innovation",
 	}
-	
+
 	return randx.Choose(departments)
 }
 
 // CompanyInfo 生成完整公司信息
 func (f *Faker) CompanyInfo() *Company {
 	f.incrementCallCount()
-	
+
 	name := f.CompanyName()
 	industry := f.Industry()
-	
+
 	// 生成公司描述
 	descriptions := []string{
 		"Leading provider of innovative %s solutions",
@@ -237,34 +237,34 @@ func (f *Faker) CompanyInfo() *Company {
 	}
 	descTemplate := randx.Choose(descriptions)
 	description := fmt.Sprintf(descTemplate, strings.ToLower(industry))
-	
+
 	// 生成网站域名
 	domain := strings.ToLower(strings.ReplaceAll(name, " ", ""))
 	domain = strings.ReplaceAll(domain, ".", "")
 	domain = strings.ReplaceAll(domain, "&", "and")
 	domain = strings.ReplaceAll(domain, "-", "")
 	website := fmt.Sprintf("https://www.%s.com", domain)
-	
+
 	// 生成公司邮箱
 	emailPrefix := []string{"info", "contact", "hello", "support", "sales", "admin"}
 	email := fmt.Sprintf("%s@%s.com", randx.Choose(emailPrefix), domain)
-	
+
 	// 生成成立年份
 	currentYear := 2024
 	founded := randx.Intn(currentYear-1900) + 1900
-	
+
 	// 生成员工数量
 	employeeRanges := [][]int{
-		{1, 10},      // Startup
-		{11, 50},     // Small
-		{51, 200},    // Medium
-		{201, 1000},  // Large
-		{1001, 10000}, // Enterprise
+		{1, 10},         // Startup
+		{11, 50},        // Small
+		{51, 200},       // Medium
+		{201, 1000},     // Large
+		{1001, 10000},   // Enterprise
 		{10001, 100000}, // Multinational
 	}
 	employeeRange := randx.Choose(employeeRanges)
 	employees := randx.Intn(employeeRange[1]-employeeRange[0]+1) + employeeRange[0]
-	
+
 	return &Company{
 		Name:        name,
 		Industry:    industry,
@@ -281,7 +281,7 @@ func (f *Faker) CompanyInfo() *Company {
 // BS 生成商业术语/废话（Business Speak）
 func (f *Faker) BS() string {
 	f.incrementCallCount()
-	
+
 	verbs := []string{
 		"implement", "utilize", "integrate", "streamline", "optimize", "leverage",
 		"enhance", "facilitate", "maximize", "revolutionize", "transform", "innovate",
@@ -289,7 +289,7 @@ func (f *Faker) BS() string {
 		"deliver", "provide", "enable", "empower", "accelerate", "scale",
 		"modernize", "digitize", "automate", "orchestrate", "synchronize", "align",
 	}
-	
+
 	adjectives := []string{
 		"strategic", "tactical", "dynamic", "robust", "scalable", "flexible",
 		"innovative", "cutting-edge", "next-generation", "world-class", "best-in-class",
@@ -297,7 +297,7 @@ func (f *Faker) BS() string {
 		"cross-platform", "end-to-end", "seamless", "integrated", "comprehensive",
 		"customizable", "user-friendly", "intuitive", "efficient", "effective",
 	}
-	
+
 	nouns := []string{
 		"solutions", "systems", "platforms", "frameworks", "architectures", "infrastructures",
 		"applications", "services", "technologies", "methodologies", "processes", "workflows",
@@ -305,11 +305,11 @@ func (f *Faker) BS() string {
 		"synergies", "paradigms", "ecosystems", "networks", "channels", "interfaces",
 		"functionalities", "capabilities", "features", "components", "modules", "elements",
 	}
-	
+
 	verb := randx.Choose(verbs)
 	adjective := randx.Choose(adjectives)
 	noun := randx.Choose(nouns)
-	
+
 	patterns := []string{
 		"%s %s %s",
 		"%s world-class %s",
@@ -317,9 +317,9 @@ func (f *Faker) BS() string {
 		"seamlessly %s next-generation %s",
 		"globally %s enterprise-wide %s",
 	}
-	
+
 	pattern := randx.Choose(patterns)
-	
+
 	switch pattern {
 	case "%s %s %s":
 		return fmt.Sprintf(pattern, verb, adjective, noun)
@@ -339,7 +339,7 @@ func (f *Faker) BS() string {
 // Catchphrase 生成公司口号
 func (f *Faker) Catchphrase() string {
 	f.incrementCallCount()
-	
+
 	patterns := []string{
 		"Think %s, Act %s",
 		"%s Solutions for a %s World",
@@ -350,19 +350,19 @@ func (f *Faker) Catchphrase() string {
 		"Leading the %s Revolution",
 		"Innovation in %s, Excellence in %s",
 	}
-	
+
 	adjectives := []string{
 		"Smart", "Digital", "Global", "Future", "Innovative", "Dynamic", "Strategic",
 		"Advanced", "Modern", "Progressive", "Cutting-edge", "Revolutionary",
 	}
-	
+
 	nouns := []string{
 		"Technology", "Innovation", "Excellence", "Quality", "Performance", "Growth",
 		"Success", "Solutions", "Results", "Value", "Trust", "Partnership",
 	}
-	
+
 	pattern := randx.Choose(patterns)
-	
+
 	switch pattern {
 	case "Think %s, Act %s":
 		return fmt.Sprintf(pattern, randx.Choose(adjectives), randx.Choose(adjectives))

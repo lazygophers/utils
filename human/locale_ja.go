@@ -1,19 +1,19 @@
-//go:build human_ja || human_all
+//go:build i18n_ja || i18n_all
 
 package human
 
 // 注册日文语言支持
 func init() {
 	RegisterLocale("ja", &Locale{
-		Language:   "ja",
-		Region:     "JP",
+		Language:      "ja",
+		Region:        "JP",
 		ByteUnits:     []string{"B", "KB", "MB", "GB", "TB", "PB"},
 		SpeedUnits:    []string{"B/s", "KB/s", "MB/s", "GB/s", "TB/s", "PB/s"},
 		BitSpeedUnits: []string{"bps", "Kbps", "Mbps", "Gbps", "Tbps", "Pbps"},
-		
+
 		TimeUnits: TimeUnits{
 			Nanosecond:  "ナノ秒",
-			Microsecond: "マイクロ秒", 
+			Microsecond: "マイクロ秒",
 			Millisecond: "ミリ秒",
 			Second:      "秒",
 			Minute:      "分",
@@ -22,7 +22,7 @@ func init() {
 			Week:        "週間",
 			Month:       "ヶ月",
 			Year:        "年",
-			
+
 			// 日文不需要复数形式
 			Seconds: "秒",
 			Minutes: "分",
@@ -32,17 +32,17 @@ func init() {
 			Months:  "ヶ月",
 			Years:   "年",
 		},
-		
+
 		RelativeTime: RelativeTimeStrings{
-			JustNow:      "たった今",
-			SecondsAgo:   "%d秒前",
-			MinutesAgo:   "%d分前",
-			HoursAgo:     "%d時間前",
-			DaysAgo:      "%d日前",
-			WeeksAgo:     "%d週間前",
-			MonthsAgo:    "%dヶ月前",
-			YearsAgo:     "%d年前",
-			
+			JustNow:    "たった今",
+			SecondsAgo: "%d秒前",
+			MinutesAgo: "%d分前",
+			HoursAgo:   "%d時間前",
+			DaysAgo:    "%d日前",
+			WeeksAgo:   "%d週間前",
+			MonthsAgo:  "%dヶ月前",
+			YearsAgo:   "%d年前",
+
 			In:           "",
 			SecondsLater: "%d秒後",
 			MinutesLater: "%d分後",
@@ -52,13 +52,13 @@ func init() {
 			MonthsLater:  "%dヶ月後",
 			YearsLater:   "%d年後",
 		},
-		
+
 		NumberFormat: NumberFormat{
 			DecimalSeparator:  ".",
 			ThousandSeparator: ",",
 			LargeNumberUnits:  []string{"千", "万", "十万", "百万", "千万"},
 		},
-		
+
 		Common: CommonStrings{
 			And: "と",
 			Or:  "または",

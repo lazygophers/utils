@@ -10,7 +10,7 @@ import (
 // PhoneNumber 生成电话号码
 func (f *Faker) PhoneNumber() string {
 	f.incrementCallCount()
-	
+
 	switch f.country {
 	case CountryUS, CountryCanada:
 		return f.generateNorthAmericanPhone()
@@ -33,10 +33,10 @@ func (f *Faker) PhoneNumber() string {
 
 func (f *Faker) generateNorthAmericanPhone() string {
 	// 北美电话号码格式: +1 (XXX) XXX-XXXX
-	areaCode := randx.Intn(900) + 100  // 100-999
-	exchange := randx.Intn(900) + 100  // 100-999
-	number := randx.Intn(10000)        // 0000-9999
-	
+	areaCode := randx.Intn(900) + 100 // 100-999
+	exchange := randx.Intn(900) + 100 // 100-999
+	number := randx.Intn(10000)       // 0000-9999
+
 	formats := []string{
 		"+1 (%d) %d-%04d",
 		"(%d) %d-%04d",
@@ -44,7 +44,7 @@ func (f *Faker) generateNorthAmericanPhone() string {
 		"%d.%d.%04d",
 		"%d %d %04d",
 	}
-	
+
 	format := randx.Choose(formats)
 	return fmt.Sprintf(format, areaCode, exchange, number)
 }
@@ -55,10 +55,10 @@ func (f *Faker) generateChinesePhone() string {
 		"150", "151", "152", "153", "155", "156", "157", "158", "159",
 		"180", "181", "182", "183", "184", "185", "186", "187", "188", "189",
 		"170", "171", "172", "173", "174", "175", "176", "177", "178"}
-	
+
 	prefix := randx.Choose(prefixes)
 	suffix := randx.Intn(100000000) // 8位数字
-	
+
 	return fmt.Sprintf("+86 %s %08d", prefix, suffix)
 }
 
@@ -66,18 +66,18 @@ func (f *Faker) generateUKPhone() string {
 	// 英国电话号码格式: +44 XXXX XXXXXX
 	areaCode := randx.Intn(9000) + 1000 // 1000-9999
 	number := randx.Intn(1000000)       // 000000-999999
-	
+
 	return fmt.Sprintf("+44 %d %06d", areaCode, number)
 }
 
 func (f *Faker) generateFrenchPhone() string {
 	// 法国电话号码格式: +33 X XX XX XX XX
-	first := randx.Intn(9) + 1    // 1-9
+	first := randx.Intn(9) + 1 // 1-9
 	parts := make([]int, 4)
 	for i := range parts {
 		parts[i] = randx.Intn(100) // 00-99
 	}
-	
+
 	return fmt.Sprintf("+33 %d %02d %02d %02d %02d", first, parts[0], parts[1], parts[2], parts[3])
 }
 
@@ -85,7 +85,7 @@ func (f *Faker) generateGermanPhone() string {
 	// 德国电话号码格式: +49 XXX XXXXXXX
 	areaCode := randx.Intn(900) + 100 // 100-999
 	number := randx.Intn(10000000)    // 0000000-9999999
-	
+
 	return fmt.Sprintf("+49 %d %07d", areaCode, number)
 }
 
@@ -94,23 +94,23 @@ func (f *Faker) generateJapanesePhone() string {
 	area := randx.Intn(90) + 10   // 10-99
 	exchange := randx.Intn(10000) // 0000-9999
 	number := randx.Intn(10000)   // 0000-9999
-	
+
 	return fmt.Sprintf("+81 %d-%04d-%04d", area, exchange, number)
 }
 
 func (f *Faker) generateKoreanPhone() string {
 	// 韩国电话号码格式: +82 XX-XXX-XXXX
-	area := randx.Intn(90) + 10    // 10-99
-	exchange := randx.Intn(1000)   // 000-999
-	number := randx.Intn(10000)    // 0000-9999
-	
+	area := randx.Intn(90) + 10  // 10-99
+	exchange := randx.Intn(1000) // 000-999
+	number := randx.Intn(10000)  // 0000-9999
+
 	return fmt.Sprintf("+82 %d-%03d-%04d", area, exchange, number)
 }
 
 // MobileNumber 生成手机号码
 func (f *Faker) MobileNumber() string {
 	f.incrementCallCount()
-	
+
 	switch f.country {
 	case CountryUS, CountryCanada:
 		// 北美手机号码使用特定的区号
@@ -119,10 +119,10 @@ func (f *Faker) MobileNumber() string {
 		exchange := randx.Intn(900) + 100
 		number := randx.Intn(10000)
 		return fmt.Sprintf("+1 (%d) %d-%04d", areaCode, exchange, number)
-		
+
 	case CountryChina:
 		return f.generateChinesePhone()
-		
+
 	default:
 		return f.PhoneNumber()
 	}
@@ -131,37 +131,37 @@ func (f *Faker) MobileNumber() string {
 // Email 生成邮箱地址
 func (f *Faker) Email() string {
 	f.incrementCallCount()
-	
+
 	username := f.generateEmailUsername()
 	domain := f.generateEmailDomain()
-	
+
 	return fmt.Sprintf("%s@%s", username, domain)
 }
 
 func (f *Faker) generateEmailUsername() string {
 	// 生成用户名部分
 	patterns := []string{
-		"%s.%s",     // john.doe
-		"%s_%s",     // john_doe
-		"%s%s",      // johndoe
-		"%s.%s%d",   // john.doe123
-		"%s_%s%d",   // john_doe123
-		"%s%d",      // john123
+		"%s.%s",   // john.doe
+		"%s_%s",   // john_doe
+		"%s%s",    // johndoe
+		"%s.%s%d", // john.doe123
+		"%s_%s%d", // john_doe123
+		"%s%d",    // john123
 	}
-	
+
 	firstName := strings.ToLower(f.FirstName())
 	lastName := strings.ToLower(f.LastName())
-	
+
 	// 移除空格和特殊字符
 	firstName = strings.ReplaceAll(firstName, " ", "")
 	lastName = strings.ReplaceAll(lastName, " ", "")
-	
+
 	// 移除非ASCII字符（针对中文名字等）
 	firstName = f.toASCII(firstName)
 	lastName = f.toASCII(lastName)
-	
+
 	pattern := randx.Choose(patterns)
-	
+
 	switch pattern {
 	case "%s.%s":
 		return fmt.Sprintf(pattern, firstName, lastName)
@@ -188,17 +188,17 @@ func (f *Faker) generateEmailDomain() string {
 		"sina.com", "sohu.com", "yeah.net", "foxmail.com", "139.com",
 		"company.com", "business.net", "enterprise.org", "startup.io", "tech.co",
 	}
-	
+
 	return randx.Choose(domains)
 }
 
 // CompanyEmail 生成企业邮箱地址
 func (f *Faker) CompanyEmail() string {
 	f.incrementCallCount()
-	
+
 	username := f.generateEmailUsername()
 	domain := f.generateCompanyEmailDomain()
-	
+
 	return fmt.Sprintf("%s@%s", username, domain)
 }
 
@@ -210,36 +210,36 @@ func (f *Faker) generateCompanyEmailDomain() string {
 		"technologies.info", "innovations.org", "dynamics.com", "global.net",
 		"international.org", "worldwide.com", "united.co", "associates.net",
 	}
-	
+
 	return randx.Choose(domains)
 }
 
 // SafeEmail 生成安全的邮箱地址（使用example.com等域名）
 func (f *Faker) SafeEmail() string {
 	f.incrementCallCount()
-	
+
 	username := f.generateEmailUsername()
 	domains := []string{"example.com", "example.org", "example.net", "test.com", "sample.org"}
 	domain := randx.Choose(domains)
-	
+
 	return fmt.Sprintf("%s@%s", username, domain)
 }
 
 // URL 生成网址
 func (f *Faker) URL() string {
 	f.incrementCallCount()
-	
+
 	protocols := []string{"http", "https"}
 	protocol := randx.Choose(protocols)
-	
+
 	domain := f.generateWebDomain()
-	
+
 	// 30% 概率添加路径
 	if randx.Float32() < 0.3 {
 		path := f.generateURLPath()
 		return fmt.Sprintf("%s://%s/%s", protocol, domain, path)
 	}
-	
+
 	return fmt.Sprintf("%s://%s", protocol, domain)
 }
 
@@ -250,7 +250,7 @@ func (f *Faker) generateWebDomain() string {
 		"microsoft.com", "netflix.com", "github.com", "stackoverflow.com", "medium.com",
 		"example.com", "sample.org", "demo.net", "test.co", "placeholder.io",
 	}
-	
+
 	return randx.Choose(domains)
 }
 
@@ -260,22 +260,22 @@ func (f *Faker) generateURLPath() string {
 		"help", "support", "faq", "login", "register", "profile", "settings",
 		"dashboard", "admin", "user", "search", "category", "item", "page",
 	}
-	
+
 	// 生成1-3个路径段
 	segments := randx.Intn(3) + 1
 	pathParts := make([]string, segments)
-	
+
 	for i := 0; i < segments; i++ {
 		pathParts[i] = randx.Choose(paths)
 	}
-	
+
 	return strings.Join(pathParts, "/")
 }
 
 // IPv4 生成IPv4地址
 func (f *Faker) IPv4() string {
 	f.incrementCallCount()
-	
+
 	return fmt.Sprintf("%d.%d.%d.%d",
 		randx.Intn(256),
 		randx.Intn(256),
@@ -286,24 +286,24 @@ func (f *Faker) IPv4() string {
 // IPv6 生成IPv6地址
 func (f *Faker) IPv6() string {
 	f.incrementCallCount()
-	
+
 	parts := make([]string, 8)
 	for i := range parts {
 		parts[i] = fmt.Sprintf("%04x", randx.Intn(65536))
 	}
-	
+
 	return strings.Join(parts, ":")
 }
 
 // MAC 生成MAC地址
 func (f *Faker) MAC() string {
 	f.incrementCallCount()
-	
+
 	parts := make([]string, 6)
 	for i := range parts {
 		parts[i] = fmt.Sprintf("%02x", randx.Intn(256))
 	}
-	
+
 	return strings.Join(parts, ":")
 }
 
@@ -316,7 +316,7 @@ func (f *Faker) toASCII(s string) string {
 		'伟': "wei", '强': "qiang", '明': "ming", '军': "jun", '杰': "jie",
 		'芳': "fang", '秀': "xiu", '敏': "min", '静': "jing", '丽': "li",
 	}
-	
+
 	var result strings.Builder
 	for _, r := range s {
 		if r < 128 {
@@ -326,13 +326,13 @@ func (f *Faker) toASCII(s string) string {
 		}
 		// 忽略其他非ASCII字符
 	}
-	
+
 	resultStr := result.String()
 	if resultStr == "" {
 		// 如果结果为空，生成一个随机的ASCII字符串
 		return fmt.Sprintf("user%d", randx.Intn(10000))
 	}
-	
+
 	return resultStr
 }
 

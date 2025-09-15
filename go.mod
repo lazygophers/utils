@@ -26,7 +26,6 @@ require (
 
 require (
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
@@ -55,7 +54,6 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
-	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/stretchr/testify v1.11.1
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect

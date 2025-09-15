@@ -50,7 +50,7 @@ func TestExitErrorHandlingSubprocess(t *testing.T) {
 		if err == nil {
 			t.Fatal("Expected process to exit")
 		}
-		
+
 		t.Logf("Exit function error handling tested: %v", err)
 	})
 }

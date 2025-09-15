@@ -478,7 +478,7 @@ func TestBatchBooln(t *testing.T) {
 
 		for _, prob := range testCases {
 			result := BatchBooln(prob, count)
-			
+
 			if len(result) != count {
 				t.Errorf("Expected length %d, got %d", count, len(result))
 			}
@@ -498,7 +498,7 @@ func TestBatchBooln(t *testing.T) {
 
 		for _, prob := range testCases {
 			result := BatchBooln(prob, count)
-			
+
 			if len(result) != count {
 				t.Errorf("Expected length %d, got %d", count, len(result))
 			}

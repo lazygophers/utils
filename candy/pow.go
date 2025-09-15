@@ -40,6 +40,8 @@ import (
 //	// 大数幂运算
 //	result := Pow(10, 6)
 //	// result = 1000000
-func Pow[T interface{ ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64 }](x, y T) T {
+func Pow[T interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
+}](x, y T) T {
 	return T(math.Pow(float64(x), float64(y)))
 }

@@ -8,35 +8,35 @@ import (
 // NanoPerformanceFaker 纳秒级性能优化 - 追求亚纳秒级别
 type NanoPerformanceFaker struct {
 	// 固定4个字符串 - 完全内联
-	name1 uintptr
-	name2 uintptr  
-	name3 uintptr
-	name4 uintptr
+	name1   uintptr
+	name2   uintptr
+	name3   uintptr
+	name4   uintptr
 	counter uint32
 }
 
 // NewNanoPerformance 创建纳秒级性能生成器
 func NewNanoPerformance() *NanoPerformanceFaker {
 	np := &NanoPerformanceFaker{}
-	
+
 	// 预计算字符串指针
 	name1 := "John Smith"
 	name2 := "Mary Johnson"
 	name3 := "James Williams"
 	name4 := "Patricia Brown"
-	
+
 	np.name1 = uintptr(unsafe.Pointer(&name1))
 	np.name2 = uintptr(unsafe.Pointer(&name2))
 	np.name3 = uintptr(unsafe.Pointer(&name3))
 	np.name4 = uintptr(unsafe.Pointer(&name4))
-	
+
 	return np
 }
 
 // NanoName 纳秒级姓名生成 - 目标 < 1ns
 func (np *NanoPerformanceFaker) NanoName() string {
 	count := atomic.AddUint32(&np.counter, 1)
-	
+
 	// 直接指针访问，避免任何间接寻址
 	switch count & 3 {
 	case 0:
@@ -63,15 +63,15 @@ func NewAtomic() *AtomicFaker {
 // AtomicName 原子操作姓名生成
 func (af *AtomicFaker) AtomicName() string {
 	count := atomic.AddUint64(&af.counter, 1)
-	
+
 	// 内联常量字符串，编译器优化
 	names := [4]string{
 		"John Smith",
-		"Mary Johnson", 
+		"Mary Johnson",
 		"James Williams",
 		"Patricia Brown",
 	}
-	
+
 	return names[count&3]
 }
 
@@ -88,13 +88,17 @@ func NewConstant() *ConstantFaker {
 // ConstantName 常量姓名生成 - 消除所有可能的开销
 func (cf *ConstantFaker) ConstantName() string {
 	count := atomic.AddUint64(&cf.counter, 1)
-	
+
 	// 使用 & 运算替代 % 运算，更快的位操作
 	switch count & 3 {
-	case 0: return "John Smith"      // 编译时常量
-	case 1: return "Mary Johnson"    // 编译时常量
-	case 2: return "James Williams"  // 编译时常量
-	default: return "Patricia Brown" // 编译时常量
+	case 0:
+		return "John Smith" // 编译时常量
+	case 1:
+		return "Mary Johnson" // 编译时常量
+	case 2:
+		return "James Williams" // 编译时常量
+	default:
+		return "Patricia Brown" // 编译时常量
 	}
 }
 
@@ -179,14 +183,20 @@ func NewCPUOptimized() *CPUOptimizedFaker {
 func (cpu *CPUOptimizedFaker) CPUOptimizedName() string {
 	// 使用汇编友好的操作
 	count := atomic.AddUint64(&cpu.counter, 1)
-	
+
 	// 位运算选择，编译器会生成最优汇编
 	idx := count & 3
-	
+
 	// 跳转表友好的结构
-	if idx == 0 { return "John Smith" }
-	if idx == 1 { return "Mary Johnson" }  
-	if idx == 2 { return "James Williams" }
+	if idx == 0 {
+		return "John Smith"
+	}
+	if idx == 1 {
+		return "Mary Johnson"
+	}
+	if idx == 2 {
+		return "James Williams"
+	}
 	return "Patricia Brown"
 }
 
@@ -201,7 +211,7 @@ func NewBranchless() *BranchlessFaker {
 	return &BranchlessFaker{
 		names: [4]string{
 			"John Smith",
-			"Mary Johnson", 
+			"Mary Johnson",
 			"James Williams",
 			"Patricia Brown",
 		},
@@ -211,7 +221,7 @@ func NewBranchless() *BranchlessFaker {
 // BranchlessName 无分支姓名生成
 func (bf *BranchlessFaker) BranchlessName() string {
 	count := atomic.AddUint64(&bf.counter, 1)
-	
+
 	// 直接数组索引，无分支
 	return bf.names[count&3]
 }

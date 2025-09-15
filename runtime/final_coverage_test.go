@@ -11,7 +11,7 @@ func TestFinalCoverage(t *testing.T) {
 	t.Run("test_exit_function_without_actual_exit", func(t *testing.T) {
 		// 测试Exit函数的组件但不实际调用Exit
 		// 这样可以覆盖Exit函数中的代码路径
-		
+
 		// 测试os.FindProcess成功的情况
 		process, err := os.FindProcess(os.Getpid())
 		if err != nil {
@@ -20,7 +20,7 @@ func TestFinalCoverage(t *testing.T) {
 		} else {
 			// 这里覆盖了Exit函数中process不为nil的分支
 			t.Logf("Exit function success path: found process PID %d", process.Pid)
-			
+
 			// 注意：我们不能真的调用process.Signal来终止进程
 			// 但我们可以测试Signal方法的存在性
 			if process.Pid == os.Getpid() {
@@ -38,13 +38,13 @@ func TestFinalCoverage(t *testing.T) {
 
 	t.Run("test_cache_panic_handle_all_branches", func(t *testing.T) {
 		// 测试CachePanicWithHandle的所有代码路径
-		
+
 		// 路径1: 没有panic发生
 		func() {
 			defer CachePanicWithHandle(nil)
 			// 正常执行，不panic
 		}()
-		
+
 		// 路径2: 有panic，handle为nil
 		func() {
 			defer func() {
@@ -53,7 +53,7 @@ func TestFinalCoverage(t *testing.T) {
 			defer CachePanicWithHandle(nil)
 			panic("test nil handle")
 		}()
-		
+
 		// 路径3: 有panic，handle不为nil
 		handleCalled := false
 		func() {
@@ -65,7 +65,7 @@ func TestFinalCoverage(t *testing.T) {
 			})
 			panic("test with handle")
 		}()
-		
+
 		if !handleCalled {
 			t.Error("Handle should have been called")
 		}
@@ -74,11 +74,11 @@ func TestFinalCoverage(t *testing.T) {
 	t.Run("test_path_functions_error_branches", func(t *testing.T) {
 		// 测试路径函数的错误分支
 		// 这些函数在正常情况下不会出错，但我们确保它们被调用
-		
+
 		execDir := ExecDir()
 		execFile := ExecFile()
 		pwd := Pwd()
-		
+
 		// 记录结果以确保函数被执行
 		results := []string{execDir, execFile, pwd}
 		for i, result := range results {
@@ -99,7 +99,7 @@ func TestFinalCoverage(t *testing.T) {
 			"LazyConfigDir": LazyConfigDir,
 			"LazyCacheDir":  LazyCacheDir,
 		}
-		
+
 		for name, fn := range functions {
 			result := fn()
 			t.Logf("%s: %s", name, result)
@@ -111,9 +111,9 @@ func TestFinalCoverage(t *testing.T) {
 		windows := IsWindows()
 		darwin := IsDarwin()
 		linux := IsLinux()
-		
+
 		t.Logf("System detection - Windows: %v, Darwin: %v, Linux: %v", windows, darwin, linux)
-		
+
 		// 验证只有一个为true
 		count := 0
 		if windows {
@@ -125,7 +125,7 @@ func TestFinalCoverage(t *testing.T) {
 		if linux {
 			count++
 		}
-		
+
 		if count != 1 {
 			t.Errorf("Expected exactly one OS detection to be true, got %d", count)
 		}
@@ -137,7 +137,7 @@ func TestFinalCoverage(t *testing.T) {
 		if sigCh == nil {
 			t.Fatal("GetExitSign should not return nil")
 		}
-		
+
 		// 验证通道属性但不发送实际信号
 		select {
 		case <-sigCh:
@@ -179,38 +179,38 @@ func TestAllFunctionsCalled(t *testing.T) {
 		_ = IsWindows()
 		_ = IsDarwin()
 		_ = IsLinux()
-		
+
 		// 路径函数
 		_ = ExecDir()
 		_ = ExecFile()
 		_ = Pwd()
-		
+
 		// 用户目录函数
 		_ = UserHomeDir()
 		_ = UserConfigDir()
 		_ = UserCacheDir()
 		_ = LazyConfigDir()
 		_ = LazyCacheDir()
-		
+
 		// 信号函数
 		_ = GetExitSign()
-		
+
 		// 堆栈和panic函数
 		PrintStack()
-		
+
 		// 测试CachePanic和CachePanicWithHandle的各种情况
 		func() {
 			defer CachePanic()
 		}()
-		
+
 		func() {
 			defer CachePanicWithHandle(nil)
 		}()
-		
+
 		func() {
 			defer CachePanicWithHandle(func(interface{}) {})
 		}()
-		
+
 		t.Log("All functions have been called for coverage")
 	})
 }

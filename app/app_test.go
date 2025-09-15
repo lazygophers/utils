@@ -118,7 +118,7 @@ func TestReleaseTypeConstants(t *testing.T) {
 func TestGlobalVariables(t *testing.T) {
 	// Test that global variables exist and are accessible
 	// We can't test their initial values as they may be set by build flags
-	
+
 	// Test string variables exist
 	_ = Commit
 	_ = ShortCommit
@@ -134,12 +134,12 @@ func TestGlobalVariables(t *testing.T) {
 	_ = Description
 	_ = Name
 	_ = Version
-	
+
 	// Test Organization is set
 	if Organization != "lazygophers" {
 		t.Errorf("Organization = %q, expected %q", Organization, "lazygophers")
 	}
-	
+
 	// Test PackageType variable exists and is a valid ReleaseType
 	if PackageType < Debug || PackageType > Release {
 		// Allow for build tag variations, just ensure it's accessible
@@ -153,13 +153,13 @@ func TestVariableAssignments(t *testing.T) {
 	originalName := Name
 	originalVersion := Version
 	originalPackageType := PackageType
-	
+
 	// Test assignment
 	Commit = "test-commit-123"
 	Name = "test-app"
 	Version = "v1.0.0"
 	PackageType = Beta
-	
+
 	// Verify assignments
 	if Commit != "test-commit-123" {
 		t.Errorf("Commit assignment failed, got %q", Commit)
@@ -173,7 +173,7 @@ func TestVariableAssignments(t *testing.T) {
 	if PackageType != Beta {
 		t.Errorf("PackageType assignment failed, got %d", PackageType)
 	}
-	
+
 	// Restore original values
 	Commit = originalCommit
 	Name = originalName
@@ -188,7 +188,7 @@ func TestReleaseTypeImplementsStringer(t *testing.T) {
 	if !ok {
 		t.Error("ReleaseType does not implement String() method")
 	}
-	
+
 	result := stringer.String()
 	if result != "debug" {
 		t.Errorf("String() method returned %q, expected %q", result, "debug")
@@ -213,18 +213,18 @@ func TestBuildMetadataVariables(t *testing.T) {
 		"Name":        &Name,
 		"Version":     &Version,
 	}
-	
+
 	for varName, varPtr := range variables {
 		t.Run("Variable_"+varName, func(t *testing.T) {
 			// Test that the variable can be accessed and modified
 			original := *varPtr
 			testValue := "test-" + varName
 			*varPtr = testValue
-			
+
 			if *varPtr != testValue {
 				t.Errorf("Failed to set %s to %q, got %q", varName, testValue, *varPtr)
 			}
-			
+
 			// Restore original value
 			*varPtr = original
 		})

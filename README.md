@@ -2,7 +2,7 @@
 
 > 🚀 A feature-rich, high-performance Go utility library that makes Go development more efficient
 
-**🌍 Languages**: [English](README.md) • [中文](README_zh.md) • [繁體中文](README_zh-hant.md) • [Español](README_es.md) • [Français](README_fr.md) • [Русский](README_ru.md) • [العربية](README_ar.md)
+**🌍 Languages**: [English](README.md) • [简体中文](README_zh_CN.md)
 
 [![Go Version](https://img.shields.io/badge/Go-1.18+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/License-AGPL%20v3-green.svg)](LICENSE)
@@ -94,12 +94,7 @@ func main() {
 - [🏗️ Architecture Documentation](docs/architecture_en.md) - Deep dive into system design
 
 ### 🌍 Multi-language Documentation
-- [中文](README_zh.md) - Chinese version
-- [繁體中文](README_zh-hant.md) - Traditional Chinese
-- [Español](README_es.md) - Spanish version
-- [Français](README_fr.md) - French version
-- [Русский](README_ru.md) - Russian version
-- [العربية](README_ar.md) - Arabic version
+- [简体中文](README_zh_CN.md) - Chinese Simplified
 
 ## 🔧 Core Modules
 

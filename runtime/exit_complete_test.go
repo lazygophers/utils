@@ -34,7 +34,7 @@ func TestExitFunctionComplete(t *testing.T) {
 		// 在某些系统上，FindProcess可能对无效PID返回错误
 		invalidPID := -1 // 负数PID通常无效
 		process, err := os.FindProcess(invalidPID)
-		
+
 		if err != nil {
 			t.Logf("Exit function path: os.FindProcess failed for invalid PID %d as expected: %v", invalidPID, err)
 		} else if process != nil {
@@ -64,7 +64,7 @@ func TestExitFunctionComplete(t *testing.T) {
 		// 尝试向一个很可能不存在的进程发送信号
 		veryLargePID := 99999999
 		process, err := os.FindProcess(veryLargePID)
-		
+
 		if err != nil {
 			t.Logf("Exit function path: os.FindProcess failed for large PID %d: %v", veryLargePID, err)
 		} else if process != nil {
@@ -85,7 +85,7 @@ func TestWaitExitEdgeCases(t *testing.T) {
 		// 测试WaitExit函数的信号接收机制
 		// 我们不能直接测试WaitExit，因为它会阻塞
 		// 但我们可以测试它使用的GetExitSign机制
-		
+
 		sigCh := GetExitSign()
 		if sigCh == nil {
 			t.Fatal("GetExitSign should not return nil")
@@ -118,7 +118,7 @@ func TestWaitExitEdgeCases(t *testing.T) {
 	t.Run("test_wait_exit_multiple_signals", func(t *testing.T) {
 		// 测试WaitExit对多个信号的处理
 		sigCh := GetExitSign()
-		
+
 		// 发送多个信号
 		signals := []os.Signal{os.Interrupt, os.Kill}
 		for _, sig := range signals {
@@ -146,7 +146,7 @@ func TestExitSignalCoverage(t *testing.T) {
 	t.Run("test_exit_signal_array_access", func(t *testing.T) {
 		// 确保exitSignal数组被正确访问
 		sigCh := GetExitSign()
-		
+
 		// 验证通道不为空
 		if sigCh == nil {
 			t.Fatal("GetExitSign should not return nil channel")
@@ -165,7 +165,7 @@ func TestExitSignalCoverage(t *testing.T) {
 		// 测试signal.Notify的设置
 		// 这间接测试了exitSignal数组的使用
 		sigCh := GetExitSign()
-		
+
 		// 验证通道可以接收信号
 		select {
 		case sigCh <- os.Interrupt:
@@ -186,7 +186,7 @@ func TestExitSignalCoverage(t *testing.T) {
 func TestExitIntegration(t *testing.T) {
 	t.Run("test_exit_workflow_simulation", func(t *testing.T) {
 		// 模拟完整的exit工作流程但不实际退出
-		
+
 		// 步骤1: 获取退出信号通道
 		sigCh := GetExitSign()
 		if sigCh == nil {

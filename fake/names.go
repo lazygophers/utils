@@ -10,7 +10,7 @@ import (
 // Name 生成完整姓名 - 高性能优化版本
 func (f *Faker) Name() string {
 	f.incrementCallCount()
-	
+
 	// 使用高性能内联实现
 	return f.fastName()
 }
@@ -18,7 +18,7 @@ func (f *Faker) Name() string {
 // FirstName 生成名字
 func (f *Faker) FirstName() string {
 	f.incrementCallCount()
-	
+
 	var dataType string
 	switch f.gender {
 	case GenderMale:
@@ -33,7 +33,7 @@ func (f *Faker) FirstName() string {
 			dataType = "first_female"
 		}
 	}
-	
+
 	values, weights, err := getWeightedItems(f.language, "names", dataType)
 	if err != nil {
 		// 如果当前语言不支持，回退到英语
@@ -45,7 +45,7 @@ func (f *Faker) FirstName() string {
 			return getDefaultFirstName(f.gender)
 		}
 	}
-	
+
 	f.incrementGeneratedData()
 	return randx.WeightedChoose(values, weights)
 }
@@ -53,7 +53,7 @@ func (f *Faker) FirstName() string {
 // LastName 生成姓氏
 func (f *Faker) LastName() string {
 	f.incrementCallCount()
-	
+
 	values, weights, err := getWeightedItems(f.language, "names", "last")
 	if err != nil {
 		// 如果当前语言不支持，回退到英语
@@ -65,7 +65,7 @@ func (f *Faker) LastName() string {
 			return getDefaultLastName()
 		}
 	}
-	
+
 	f.incrementGeneratedData()
 	return randx.WeightedChoose(values, weights)
 }
@@ -73,10 +73,10 @@ func (f *Faker) LastName() string {
 // FullName 生成带中间名的完整姓名（仅英语支持）
 func (f *Faker) FullName() string {
 	f.incrementCallCount()
-	
+
 	firstName := f.FirstName()
 	lastName := f.LastName()
-	
+
 	// 只有英语才有中间名概念
 	if f.language == LanguageEnglish {
 		// 30% 概率添加中间名
@@ -85,14 +85,14 @@ func (f *Faker) FullName() string {
 			return fmt.Sprintf("%s %s %s", firstName, middleName, lastName)
 		}
 	}
-	
+
 	return f.Name()
 }
 
 // NamePrefix 生成姓名前缀（如 Mr., Ms., Dr. 等）
 func (f *Faker) NamePrefix() string {
 	f.incrementCallCount()
-	
+
 	switch f.language {
 	case LanguageEnglish:
 		switch f.gender {
@@ -138,7 +138,7 @@ func (f *Faker) NamePrefix() string {
 // NameSuffix 生成姓名后缀（如 Jr., Sr., III 等）
 func (f *Faker) NameSuffix() string {
 	f.incrementCallCount()
-	
+
 	if f.language == LanguageEnglish {
 		suffixes := []string{"Jr.", "Sr.", "II", "III", "IV", "V"}
 		// 10% 概率有后缀
@@ -146,29 +146,29 @@ func (f *Faker) NameSuffix() string {
 			return randx.Choose(suffixes)
 		}
 	}
-	
+
 	return ""
 }
 
 // FormattedName 生成格式化的姓名（包含前缀和后缀）
 func (f *Faker) FormattedName() string {
 	f.incrementCallCount()
-	
+
 	var parts []string
-	
+
 	prefix := f.NamePrefix()
 	if prefix != "" {
 		parts = append(parts, prefix)
 	}
-	
+
 	name := f.Name()
 	parts = append(parts, name)
-	
+
 	suffix := f.NameSuffix()
 	if suffix != "" {
 		parts = append(parts, suffix)
 	}
-	
+
 	return strings.Join(parts, " ")
 }
 
@@ -177,14 +177,14 @@ func (f *Faker) FormattedName() string {
 // BatchFirstNames 批量生成名字
 func (f *Faker) BatchFirstNames(count int) []string {
 	f.incrementCallCount()
-	
+
 	return f.batchGenerate(count, f.FirstName)
 }
 
 // BatchLastNames 批量生成姓氏
 func (f *Faker) BatchLastNames(count int) []string {
 	f.incrementCallCount()
-	
+
 	return f.batchGenerate(count, f.LastName)
 }
 

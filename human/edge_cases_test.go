@@ -8,7 +8,7 @@ import (
 // TestFormatWithUnitLargeIndex 测试单位索引超出范围的情况
 func TestFormatWithUnitLargeIndex(t *testing.T) {
 	config := DefaultConfig()
-	
+
 	// Test with index larger than available units
 	result := formatWithUnit(1.0, 999, config, "byte")
 	if result == "" {
@@ -56,19 +56,19 @@ func TestFormatFloatNegativePrecision(t *testing.T) {
 // TestFormatDurationVerySmall 测试非常小的时间间隔
 func TestFormatDurationVerySmall(t *testing.T) {
 	config := DefaultConfig()
-	
+
 	// Test nanoseconds
 	result := formatDuration(1*time.Nanosecond, config)
 	if result == "" {
 		t.Error("formatDuration(1ns) should not return empty string")
 	}
-	
+
 	// Test microseconds
 	result = formatDuration(1*time.Microsecond, config)
 	if result == "" {
 		t.Error("formatDuration(1μs) should not return empty string")
 	}
-	
+
 	// Test milliseconds
 	result = formatDuration(1*time.Millisecond, config)
 	if result == "" {
@@ -84,7 +84,7 @@ func TestFormatClockTimeVeryLarge(t *testing.T) {
 	if result != expected {
 		t.Errorf("formatClockTime(25h) = %s, want %s", result, expected)
 	}
-	
+
 	// Test with seconds
 	result = formatClockTime(25*time.Hour + 30*time.Minute + 45*time.Second)
 	expected = "25:30:45"
@@ -96,7 +96,7 @@ func TestFormatClockTimeVeryLarge(t *testing.T) {
 // TestFormatRelativeTimeEdgeCases 测试相对时间的边界情况
 func TestFormatRelativeTimeEdgeCases(t *testing.T) {
 	config := DefaultConfig()
-	
+
 	// Test exactly 10 seconds (boundary between "just now" and "X seconds ago")
 	now := time.Now()
 	past := now.Add(-10 * time.Second)
@@ -104,7 +104,7 @@ func TestFormatRelativeTimeEdgeCases(t *testing.T) {
 	if result == "" {
 		t.Error("formatRelativeTime(10s ago) should not return empty string")
 	}
-	
+
 	// Test future time at various boundaries
 	future := now.Add(59 * time.Second) // Just under 1 minute
 	result = formatRelativeTime(future, config)
@@ -116,7 +116,7 @@ func TestFormatRelativeTimeEdgeCases(t *testing.T) {
 // TestFormatPastTimeAllRanges 测试过去时间的所有时间范围
 func TestFormatPastTimeAllRanges(t *testing.T) {
 	locale, _ := GetLocaleConfig("en")
-	
+
 	tests := []struct {
 		duration time.Duration
 		contains string
@@ -130,7 +130,7 @@ func TestFormatPastTimeAllRanges(t *testing.T) {
 		{45 * 24 * time.Hour, "months ago"},
 		{400 * 24 * time.Hour, "years ago"},
 	}
-	
+
 	for _, tt := range tests {
 		result := formatPastTime(tt.duration, locale)
 		if result == "" {
@@ -142,7 +142,7 @@ func TestFormatPastTimeAllRanges(t *testing.T) {
 // TestFormatFutureTimeAllRanges 测试未来时间的所有时间范围
 func TestFormatFutureTimeAllRanges(t *testing.T) {
 	locale, _ := GetLocaleConfig("en")
-	
+
 	tests := []struct {
 		duration time.Duration
 		contains string
@@ -155,7 +155,7 @@ func TestFormatFutureTimeAllRanges(t *testing.T) {
 		{45 * 24 * time.Hour, "months"},
 		{400 * 24 * time.Hour, "years"},
 	}
-	
+
 	for _, tt := range tests {
 		result := formatFutureTime(tt.duration, locale)
 		if result == "" {
@@ -168,7 +168,7 @@ func TestFormatFutureTimeAllRanges(t *testing.T) {
 func TestApplyOptionsEmpty(t *testing.T) {
 	config := applyOptions()
 	defaultConfig := DefaultConfig()
-	
+
 	if config.Precision != defaultConfig.Precision {
 		t.Errorf("Empty options precision = %d, want %d", config.Precision, defaultConfig.Precision)
 	}
@@ -180,7 +180,7 @@ func TestApplyOptionsEmpty(t *testing.T) {
 // TestDefaultConfigValues 测试默认配置值
 func TestDefaultConfigValues(t *testing.T) {
 	config := DefaultConfig()
-	
+
 	if config.Precision != defaultPrecision {
 		t.Errorf("DefaultConfig precision = %d, want %d", config.Precision, defaultPrecision)
 	}
@@ -202,11 +202,11 @@ func TestIntegerValues(t *testing.T) {
 		input    int64
 		expected string
 	}{
-		{1024, "1 KB"},     // Exactly 1KB
-		{2048, "2 KB"},     // Exactly 2KB
+		{1024, "1 KB"},        // Exactly 1KB
+		{2048, "2 KB"},        // Exactly 2KB
 		{1024 * 1024, "1 MB"}, // Exactly 1MB
 	}
-	
+
 	for _, tt := range tests {
 		result := ByteSize(tt.input)
 		if result != tt.expected {
@@ -218,14 +218,14 @@ func TestIntegerValues(t *testing.T) {
 // TestFormatWithUnitIntegerValue 测试formatWithUnit的整数值
 func TestFormatWithUnitIntegerValue(t *testing.T) {
 	config := DefaultConfig()
-	
+
 	// Test with exact integer value
 	result := formatWithUnit(1.0, 1, config, "byte")
 	expected := "1 KB"
 	if result != expected {
 		t.Errorf("formatWithUnit(1.0, 1, byte) = %s, want %s", result, expected)
 	}
-	
+
 	// Test with decimal value
 	result = formatWithUnit(1.5, 1, config, "byte")
 	expected = "1.5 KB"
@@ -237,9 +237,9 @@ func TestFormatWithUnitIntegerValue(t *testing.T) {
 // TestAllUnitTypes 测试所有单位类型
 func TestAllUnitTypes(t *testing.T) {
 	config := DefaultConfig()
-	
+
 	unitTypes := []string{"byte", "speed", "bitspeed"}
-	
+
 	for _, unitType := range unitTypes {
 		result := formatWithUnit(1.5, 1, config, unitType)
 		if result == "" {
@@ -255,7 +255,7 @@ func TestLocaleConfigEdgeCases(t *testing.T) {
 	if !ok {
 		t.Error("GetLocaleConfig('') should fallback to English and return true")
 	}
-	
+
 	// Test with hyphenated locale that doesn't exist
 	retrieved, ok := GetLocaleConfig("nonexistent-REGION")
 	if !ok {
@@ -269,13 +269,13 @@ func TestLocaleConfigEdgeCases(t *testing.T) {
 // TestGetTimeUnitEdgeCases 测试getTimeUnit的边界情况
 func TestGetTimeUnitEdgeCases(t *testing.T) {
 	locale, _ := GetLocaleConfig("en")
-	
+
 	// Test with zero count
 	result := getTimeUnit(locale, locale.TimeUnits.Second, 0)
 	if result != "second" { // Zero is treated as singular
 		t.Errorf("getTimeUnit(0) = %s, want second", result)
 	}
-	
+
 	// Test with non-English locale (should not pluralize)
 	locale.Language = "zh"
 	result = getTimeUnit(locale, locale.TimeUnits.Second, 2)

@@ -50,30 +50,30 @@ func getDataManager() *DataManager {
 // LoadDataSet 加载指定的数据集
 func (dm *DataManager) LoadDataSet(language Language, dataType, subType string) (*DataSet, error) {
 	key := fmt.Sprintf("%s:%s:%s", language, dataType, subType)
-	
+
 	// 尝试从缓存获取
 	if cached, ok := dm.cache.Load(key); ok {
 		return cached.(*DataSet), nil
 	}
-	
+
 	// 构建文件路径
 	filePath := path.Join("data", string(language), dataType, subType+".json")
-	
+
 	// 读取嵌入的文件
 	data, err := fs.ReadFile(DataFS, filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read data file %s: %w", filePath, err)
 	}
-	
+
 	// 解析JSON
 	var dataSet DataSet
 	if err := json.Unmarshal(data, &dataSet); err != nil {
 		return nil, fmt.Errorf("failed to parse data file %s: %w", filePath, err)
 	}
-	
+
 	// 存入缓存
 	dm.cache.Store(key, &dataSet)
-	
+
 	return &dataSet, nil
 }
 
@@ -83,7 +83,7 @@ func (dm *DataManager) GetItems(language Language, dataType, subType string) ([]
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return dataSet.Items, nil
 }
 
@@ -93,12 +93,12 @@ func (dm *DataManager) GetItemValues(language Language, dataType, subType string
 	if err != nil {
 		return nil, err
 	}
-	
+
 	values := make([]string, len(items))
 	for i, item := range items {
 		values[i] = item.Value
 	}
-	
+
 	return values, nil
 }
 
@@ -108,10 +108,10 @@ func (dm *DataManager) GetWeightedItems(language Language, dataType, subType str
 	if err != nil {
 		return nil, nil, err
 	}
-	
+
 	values := make([]string, len(items))
 	weights := make([]float64, len(items))
-	
+
 	for i, item := range items {
 		values[i] = item.Value
 		weight := item.Weight
@@ -120,7 +120,7 @@ func (dm *DataManager) GetWeightedItems(language Language, dataType, subType str
 		}
 		weights[i] = weight
 	}
-	
+
 	return values, weights, nil
 }
 
@@ -130,7 +130,7 @@ func (dm *DataManager) GetItemsByTag(language Language, dataType, subType, tag s
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var filtered []DataItem
 	for _, item := range items {
 		for _, itemTag := range item.Tags {
@@ -140,7 +140,7 @@ func (dm *DataManager) GetItemsByTag(language Language, dataType, subType, tag s
 			}
 		}
 	}
-	
+
 	return filtered, nil
 }
 
@@ -155,27 +155,27 @@ func (dm *DataManager) ClearCache() {
 // ListAvailableDataSets 列出可用的数据集
 func (dm *DataManager) ListAvailableDataSets() ([]string, error) {
 	var dataSets []string
-	
+
 	// 读取所有支持的语言目录
 	for _, lang := range GetSupportedLanguages() {
 		langDir := path.Join("data", string(lang))
-		
+
 		entries, err := fs.ReadDir(DataFS, langDir)
 		if err != nil {
 			continue // 跳过不存在的语言目录
 		}
-		
+
 		for _, entry := range entries {
 			if entry.IsDir() {
 				dataType := entry.Name()
-				
+
 				// 读取数据类型目录
 				typeDir := path.Join(langDir, dataType)
 				subEntries, err := fs.ReadDir(DataFS, typeDir)
 				if err != nil {
 					continue
 				}
-				
+
 				for _, subEntry := range subEntries {
 					if !subEntry.IsDir() && strings.HasSuffix(subEntry.Name(), ".json") {
 						subType := strings.TrimSuffix(subEntry.Name(), ".json")
@@ -186,33 +186,33 @@ func (dm *DataManager) ListAvailableDataSets() ([]string, error) {
 			}
 		}
 	}
-	
+
 	return dataSets, nil
 }
 
 // PreloadData 预加载指定语言的所有数据
 func (dm *DataManager) PreloadData(language Language) error {
 	langDir := path.Join("data", string(language))
-	
+
 	entries, err := dataFS.ReadDir(langDir)
 	if err != nil {
 		return fmt.Errorf("language %s not supported: %w", language, err)
 	}
-	
+
 	for _, entry := range entries {
 		if entry.IsDir() {
 			dataType := entry.Name()
-			
+
 			typeDir := path.Join(langDir, dataType)
 			subEntries, err := fs.ReadDir(DataFS, typeDir)
 			if err != nil {
 				continue
 			}
-			
+
 			for _, subEntry := range subEntries {
 				if !subEntry.IsDir() && strings.HasSuffix(subEntry.Name(), ".json") {
 					subType := strings.TrimSuffix(subEntry.Name(), ".json")
-					
+
 					// 预加载数据集
 					_, err := dm.LoadDataSet(language, dataType, subType)
 					if err != nil {
@@ -222,7 +222,7 @@ func (dm *DataManager) PreloadData(language Language) error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -233,7 +233,7 @@ func (dm *DataManager) GetCacheStats() map[string]int {
 		count++
 		return true
 	})
-	
+
 	return map[string]int{
 		"cached_datasets": count,
 	}

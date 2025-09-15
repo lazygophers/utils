@@ -107,7 +107,7 @@ func TestNewMapWithAnyErrorPaths(t *testing.T) {
 		input := map[string]interface{}{
 			"validField": "test",
 		}
-		
+
 		result, err := NewMapWithAny(input)
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)

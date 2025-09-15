@@ -23,7 +23,7 @@ func TestExitFunctionCoverage(t *testing.T) {
 	// Run the test in a subprocess
 	cmd := exec.Command(os.Args[0], "-test.run=TestExitFunctionCoverage")
 	cmd.Env = append(os.Environ(), "TEST_EXIT_SUBPROCESS=1")
-	
+
 	// Set up to capture output and process state
 	err := cmd.Start()
 	assert.NoError(t, err, "Should be able to start subprocess")
@@ -69,16 +69,16 @@ func TestCachePanicEmptyStackCoverage(t *testing.T) {
 	// But we can still test the panic handling logic
 	handlerCalled := false
 	var capturedError interface{}
-	
+
 	func() {
 		defer CachePanicWithHandle(func(err interface{}) {
 			handlerCalled = true
 			capturedError = err
 		})
-		
+
 		panic("test error for stack coverage")
 	}()
-	
+
 	assert.True(t, handlerCalled, "Handler should have been called")
 	assert.Equal(t, "test error for stack coverage", capturedError)
 }
@@ -88,7 +88,7 @@ func TestPrintStackEmptyPathCoverage(t *testing.T) {
 	// PrintStack should always work normally - the empty case is very rare
 	// but we'll ensure the function is called for coverage
 	PrintStack()
-	
+
 	// Test multiple calls to ensure consistent behavior
 	for i := 0; i < 3; i++ {
 		PrintStack()
@@ -99,23 +99,23 @@ func TestPrintStackEmptyPathCoverage(t *testing.T) {
 func TestDirectoryErrorPaths(t *testing.T) {
 	// These functions have error paths that are difficult to trigger normally
 	// But we can ensure they're called and test their normal behavior
-	
+
 	t.Run("exec_dir_normal_path", func(t *testing.T) {
 		dir := ExecDir()
 		assert.NotEmpty(t, dir, "ExecDir should return a directory")
 		assert.True(t, strings.Contains(dir, "/") || strings.Contains(dir, "\\"), "Should be a valid path")
 	})
-	
+
 	t.Run("exec_file_normal_path", func(t *testing.T) {
 		file := ExecFile()
 		assert.NotEmpty(t, file, "ExecFile should return a file path")
 		assert.True(t, strings.Contains(file, "/") || strings.Contains(file, "\\"), "Should be a valid path")
 	})
-	
+
 	t.Run("pwd_normal_path", func(t *testing.T) {
 		pwd := Pwd()
 		assert.NotEmpty(t, pwd, "Pwd should return current directory")
-		
+
 		// Compare with os.Getwd() to verify
 		expected, err := os.Getwd()
 		assert.NoError(t, err)
@@ -127,7 +127,7 @@ func TestDirectoryErrorPaths(t *testing.T) {
 func TestGetExitSignCoverage(t *testing.T) {
 	sigCh := GetExitSign()
 	assert.NotNil(t, sigCh, "GetExitSign should return a channel")
-	
+
 	// Verify it's a buffered channel by checking it doesn't block on receive
 	select {
 	case <-sigCh:
@@ -144,7 +144,7 @@ func TestCachePanicNilHandlerCoverage(t *testing.T) {
 		defer CachePanicWithHandle(nil) // nil handler
 		panic("test panic with nil handler")
 	}()
-	
+
 	// If we get here, the panic was caught and handled properly
 }
 
@@ -156,12 +156,12 @@ func TestCachePanicBasicCoverage(t *testing.T) {
 			t.Errorf("Should not panic: %v", r)
 		}
 	}()
-	
+
 	func() {
 		defer CachePanic()
 		// No panic here - test normal case
 	}()
-	
+
 	// Test with actual panic
 	func() {
 		defer func() {
@@ -170,7 +170,7 @@ func TestCachePanicBasicCoverage(t *testing.T) {
 				t.Logf("Recovered in test: %v", r)
 			}
 		}()
-		
+
 		func() {
 			defer CachePanic()
 			panic("test basic cache panic")
@@ -183,23 +183,23 @@ func TestAllDirectoryFunctionsCompletely(t *testing.T) {
 	// Test UserHomeDir
 	home := UserHomeDir()
 	assert.NotEmpty(t, home, "UserHomeDir should not be empty")
-	
-	// Test UserConfigDir  
+
+	// Test UserConfigDir
 	config := UserConfigDir()
 	assert.NotEmpty(t, config, "UserConfigDir should not be empty")
-	
+
 	// Test UserCacheDir
 	cache := UserCacheDir()
 	assert.NotEmpty(t, cache, "UserCacheDir should not be empty")
-	
+
 	// Test LazyConfigDir
 	lazyConfig := LazyConfigDir()
 	assert.NotEmpty(t, lazyConfig, "LazyConfigDir should not be empty")
 	assert.Contains(t, lazyConfig, config, "LazyConfigDir should contain config dir")
-	
+
 	// Test LazyCacheDir
 	lazyCache := LazyCacheDir()
-	assert.NotEmpty(t, lazyCache, "LazyCacheDir should not be empty")  
+	assert.NotEmpty(t, lazyCache, "LazyCacheDir should not be empty")
 	assert.Contains(t, lazyCache, cache, "LazyCacheDir should contain cache dir")
 }
 
@@ -208,12 +208,18 @@ func TestSystemDetectionComplete(t *testing.T) {
 	windows := IsWindows()
 	darwin := IsDarwin()
 	linux := IsLinux()
-	
+
 	// Exactly one should be true
 	trueCount := 0
-	if windows { trueCount++ }
-	if darwin { trueCount++ }
-	if linux { trueCount++ }
-	
+	if windows {
+		trueCount++
+	}
+	if darwin {
+		trueCount++
+	}
+	if linux {
+		trueCount++
+	}
+
 	assert.Equal(t, 1, trueCount, "Exactly one platform should be detected")
 }

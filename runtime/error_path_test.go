@@ -11,7 +11,7 @@ func TestPathFunctionsErrorHandling(t *testing.T) {
 	t.Run("test_exec_dir_comprehensive", func(t *testing.T) {
 		// 测试ExecDir函数的完整逻辑
 		result := ExecDir()
-		
+
 		if result == "" {
 			t.Log("ExecDir returned empty string - error path covered")
 		} else {
@@ -19,11 +19,11 @@ func TestPathFunctionsErrorHandling(t *testing.T) {
 			if !filepath.IsAbs(result) {
 				t.Errorf("ExecDir should return absolute path, got: %s", result)
 			}
-			
+
 			if stat, err := os.Stat(result); err != nil || !stat.IsDir() {
 				t.Errorf("ExecDir should return existing directory, got: %s", result)
 			}
-			
+
 			t.Logf("ExecDir success path: %s", result)
 		}
 	})
@@ -31,7 +31,7 @@ func TestPathFunctionsErrorHandling(t *testing.T) {
 	t.Run("test_exec_file_comprehensive", func(t *testing.T) {
 		// 测试ExecFile函数的完整逻辑
 		result := ExecFile()
-		
+
 		if result == "" {
 			t.Log("ExecFile returned empty string - error path covered")
 		} else {
@@ -39,11 +39,11 @@ func TestPathFunctionsErrorHandling(t *testing.T) {
 			if !filepath.IsAbs(result) {
 				t.Errorf("ExecFile should return absolute path, got: %s", result)
 			}
-			
+
 			if stat, err := os.Stat(result); err != nil || stat.IsDir() {
 				t.Errorf("ExecFile should return existing file, got: %s", result)
 			}
-			
+
 			t.Logf("ExecFile success path: %s", result)
 		}
 	})
@@ -51,7 +51,7 @@ func TestPathFunctionsErrorHandling(t *testing.T) {
 	t.Run("test_pwd_comprehensive", func(t *testing.T) {
 		// 测试Pwd函数的完整逻辑
 		result := Pwd()
-		
+
 		if result == "" {
 			t.Log("Pwd returned empty string - error path covered")
 		} else {
@@ -59,17 +59,17 @@ func TestPathFunctionsErrorHandling(t *testing.T) {
 			if !filepath.IsAbs(result) {
 				t.Errorf("Pwd should return absolute path, got: %s", result)
 			}
-			
+
 			if stat, err := os.Stat(result); err != nil || !stat.IsDir() {
 				t.Errorf("Pwd should return existing directory, got: %s", result)
 			}
-			
+
 			// 与os.Getwd()比较
 			expected, err := os.Getwd()
 			if err == nil && result != expected {
 				t.Errorf("Pwd (%s) should match os.Getwd (%s)", result, expected)
 			}
-			
+
 			t.Logf("Pwd success path: %s", result)
 		}
 	})
@@ -80,13 +80,13 @@ func TestPathFunctionsUnderDifferentConditions(t *testing.T) {
 	t.Run("test_functions_consistency", func(t *testing.T) {
 		// 确保多次调用返回一致的结果
 		results := make(map[string][]string)
-		
+
 		functions := map[string]func() string{
 			"ExecDir":  ExecDir,
 			"ExecFile": ExecFile,
 			"Pwd":      Pwd,
 		}
-		
+
 		// 多次调用每个函数
 		for name, fn := range functions {
 			for i := 0; i < 3; i++ {
@@ -94,7 +94,7 @@ func TestPathFunctionsUnderDifferentConditions(t *testing.T) {
 				results[name] = append(results[name], result)
 			}
 		}
-		
+
 		// 验证一致性
 		for name, values := range results {
 			first := values[0]
@@ -143,7 +143,7 @@ func TestUserDirectoryFunctionsComplete(t *testing.T) {
 	t.Run("test_user_home_dir_complete", func(t *testing.T) {
 		// 测试UserHomeDir的完整逻辑
 		result := UserHomeDir()
-		
+
 		if result == "" {
 			t.Log("UserHomeDir returned empty - may be normal in some environments")
 		} else {
@@ -157,7 +157,7 @@ func TestUserDirectoryFunctionsComplete(t *testing.T) {
 	t.Run("test_user_config_dir_complete", func(t *testing.T) {
 		// 测试UserConfigDir的完整逻辑
 		result := UserConfigDir()
-		
+
 		if result == "" {
 			t.Log("UserConfigDir returned empty - may be normal in some environments")
 		} else {
@@ -171,7 +171,7 @@ func TestUserDirectoryFunctionsComplete(t *testing.T) {
 	t.Run("test_user_cache_dir_complete", func(t *testing.T) {
 		// 测试UserCacheDir的完整逻辑
 		result := UserCacheDir()
-		
+
 		if result == "" {
 			t.Log("UserCacheDir returned empty - may be normal in some environments")
 		} else {
@@ -228,11 +228,11 @@ func TestPathFunctionsWithEnvironmentChanges(t *testing.T) {
 	t.Run("test_with_modified_environment", func(t *testing.T) {
 		// 备份原始环境变量
 		originalVars := map[string]string{
-			"HOME":                os.Getenv("HOME"),
-			"XDG_CONFIG_HOME":     os.Getenv("XDG_CONFIG_HOME"),
-			"XDG_CACHE_HOME":      os.Getenv("XDG_CACHE_HOME"),
-			"APPDATA":             os.Getenv("APPDATA"),
-			"LocalAppData":        os.Getenv("LocalAppData"),
+			"HOME":            os.Getenv("HOME"),
+			"XDG_CONFIG_HOME": os.Getenv("XDG_CONFIG_HOME"),
+			"XDG_CACHE_HOME":  os.Getenv("XDG_CACHE_HOME"),
+			"APPDATA":         os.Getenv("APPDATA"),
+			"LocalAppData":    os.Getenv("LocalAppData"),
 		}
 
 		defer func() {
@@ -253,11 +253,11 @@ func TestPathFunctionsWithEnvironmentChanges(t *testing.T) {
 
 		// 测试各个函数在受限环境下的行为
 		functions := map[string]func() string{
-			"UserHomeDir":    UserHomeDir,
-			"UserConfigDir":  UserConfigDir,
-			"UserCacheDir":   UserCacheDir,
-			"LazyConfigDir":  LazyConfigDir,
-			"LazyCacheDir":   LazyCacheDir,
+			"UserHomeDir":   UserHomeDir,
+			"UserConfigDir": UserConfigDir,
+			"UserCacheDir":  UserCacheDir,
+			"LazyConfigDir": LazyConfigDir,
+			"LazyCacheDir":  LazyCacheDir,
 		}
 
 		for name, fn := range functions {
@@ -278,14 +278,14 @@ func TestPathFunctionsConcurrency(t *testing.T) {
 		const callsPerGoroutine = 5
 
 		functions := map[string]func() string{
-			"ExecDir":        ExecDir,
-			"ExecFile":       ExecFile,
-			"Pwd":            Pwd,
-			"UserHomeDir":    UserHomeDir,
-			"UserConfigDir":  UserConfigDir,
-			"UserCacheDir":   UserCacheDir,
-			"LazyConfigDir":  LazyConfigDir,
-			"LazyCacheDir":   LazyCacheDir,
+			"ExecDir":       ExecDir,
+			"ExecFile":      ExecFile,
+			"Pwd":           Pwd,
+			"UserHomeDir":   UserHomeDir,
+			"UserConfigDir": UserConfigDir,
+			"UserCacheDir":  UserCacheDir,
+			"LazyConfigDir": LazyConfigDir,
+			"LazyCacheDir":  LazyCacheDir,
 		}
 
 		results := make(chan map[string]string, numGoroutines)

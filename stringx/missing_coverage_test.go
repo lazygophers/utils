@@ -44,7 +44,7 @@ func TestCamel2SnakeUnicode(t *testing.T) {
 		{
 			name:     "unicode_uppercase",
 			input:    "ÜberTest",
-			expected: "\xfcber_test",  // This is the actual UTF-8 encoding
+			expected: "\xfcber_test", // This is the actual UTF-8 encoding
 		},
 	}
 
@@ -248,13 +248,13 @@ func TestSplitLenMissingBranches(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := SplitLen(tc.input, tc.length)
 			if len(result) != len(tc.expected) {
-				t.Errorf("SplitLen(%q, %d) returned %d parts, expected %d", 
+				t.Errorf("SplitLen(%q, %d) returned %d parts, expected %d",
 					tc.input, tc.length, len(result), len(tc.expected))
 				return
 			}
 			for i, part := range result {
 				if part != tc.expected[i] {
-					t.Errorf("SplitLen(%q, %d)[%d] = %q, expected %q", 
+					t.Errorf("SplitLen(%q, %d)[%d] = %q, expected %q",
 						tc.input, tc.length, i, part, tc.expected[i])
 				}
 			}
@@ -319,12 +319,12 @@ func TestEdgeCasesForCompleteCoverage(t *testing.T) {
 	t.Run("unicode_edge_cases", func(t *testing.T) {
 		// Test various Unicode scenarios that might hit different branches
 		testCases := []string{
-			"Ñoño",           // Spanish with tildes
-			"Москва",         // Cyrillic
-			"العربية",        // Arabic
-			"한국어",           // Korean
-			"🎉🎊",            // Emojis
-			"𝕌𝕟𝕚𝕔𝕠𝕕𝕖",        // Mathematical symbols
+			"Ñoño",    // Spanish with tildes
+			"Москва",  // Cyrillic
+			"العربية", // Arabic
+			"한국어",     // Korean
+			"🎉🎊",      // Emojis
+			"𝕌𝕟𝕚𝕔𝕠𝕕𝕖", // Mathematical symbols
 		}
 
 		for _, input := range testCases {
@@ -337,8 +337,8 @@ func TestEdgeCasesForCompleteCoverage(t *testing.T) {
 			if len(result1) < 0 || len(result2) < 0 || len(result3) < 0 {
 				t.Errorf("Negative length result for input %q", input)
 			}
-			
-			t.Logf("Input: %q, Camel2Snake: %q, ToSnake: %q, ToSmallCamel: %q", 
+
+			t.Logf("Input: %q, Camel2Snake: %q, ToSnake: %q, ToSmallCamel: %q",
 				input, result1, result2, result3)
 		}
 	})
@@ -394,9 +394,9 @@ func TestAllBranchesInStringFunctions(t *testing.T) {
 			}
 
 			// Log results for inspection (helps with debugging coverage)
-			t.Logf("Input: %q -> ToString: %q, Camel2Snake: %q, ToSnake: %q, ToSmallCamel: %q", 
+			t.Logf("Input: %q -> ToString: %q, Camel2Snake: %q, ToSnake: %q, ToSmallCamel: %q",
 				p.input, r1, r3, r6, r11)
-				
+
 			_ = r4
 			_ = r5
 			_ = r7

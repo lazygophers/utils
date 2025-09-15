@@ -39,7 +39,7 @@ func TestPrintStackEdgeCases(t *testing.T) {
 		// 测试PrintStack函数中的日志分支
 		// 由于debug.Stack()在正常情况下不会返回空，
 		// 我们主要确保函数被完整执行
-		
+
 		// 多次调用以确保稳定性
 		for i := 0; i < 3; i++ {
 			func() {
@@ -51,7 +51,7 @@ func TestPrintStackEdgeCases(t *testing.T) {
 				PrintStack()
 			}()
 		}
-		
+
 		t.Log("Multiple PrintStack calls completed successfully")
 	})
 }
@@ -72,11 +72,11 @@ func TestCachePanicStackHandling(t *testing.T) {
 			if r := recover(); r != nil {
 				t.Logf("Test recovered panic: %v", r)
 			}
-			
+
 			if !handleCalled {
 				t.Error("Handle should have been called")
 			}
-			
+
 			if capturedErr == nil {
 				t.Error("Handle should have received error")
 			}
@@ -91,7 +91,7 @@ func TestCachePanicStackHandling(t *testing.T) {
 	t.Run("test_cache_panic_stack_logging", func(t *testing.T) {
 		// 测试CachePanicWithHandle中堆栈日志记录的完整路径
 		// 确保所有日志分支都被执行
-		
+
 		for i := 0; i < 2; i++ {
 			func() {
 				defer func() {
@@ -103,18 +103,18 @@ func TestCachePanicStackHandling(t *testing.T) {
 				defer CachePanicWithHandle(func(err interface{}) {
 					t.Logf("Iteration %d: handle called with error: %v", i, err)
 				})
-				
+
 				panic("test iteration " + string(rune('0'+i)))
 			}()
 		}
-		
+
 		t.Log("Stack logging test completed")
 	})
 
 	t.Run("test_cache_panic_empty_stack_simulation", func(t *testing.T) {
 		// 虽然我们不能真正模拟debug.Stack()返回空，
 		// 但我们可以确保CachePanicWithHandle的所有分支都被测试
-		
+
 		// 测试不同类型的panic值
 		panicValues := []interface{}{
 			"string panic",
@@ -134,11 +134,11 @@ func TestCachePanicStackHandling(t *testing.T) {
 				defer CachePanicWithHandle(func(err interface{}) {
 					t.Logf("Handle for panic value %d: %v", i, err)
 				})
-				
+
 				panic(panicValue)
 			}()
 		}
-		
+
 		t.Log("Different panic value types tested")
 	})
 }
@@ -226,11 +226,11 @@ func TestPanicHandlingComplete(t *testing.T) {
 				})
 				panic("inner panic")
 			}()
-			
+
 			defer CachePanicWithHandle(func(err interface{}) {
 				t.Logf("Outer handle: %v", err)
 			})
-			
+
 			panic("outer panic")
 		}()
 

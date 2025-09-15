@@ -11,13 +11,13 @@ func TestSpecialInterfaceConditions(t *testing.T) {
 	specialInterfaces := []string{
 		// Virtual/tunnel interfaces that might not have addresses or have addr issues
 		"utun0", "utun1", "utun2", "utun3", // Tunnel interfaces
-		"anpi0", "anpi1",                   // Apple network interfaces
-		"gif0", "stf0",                     // IPv6 transition interfaces
-		"pktap0",                           // Packet tap interface (might cause issues)
-		
+		"anpi0", "anpi1", // Apple network interfaces
+		"gif0", "stf0", // IPv6 transition interfaces
+		"pktap0", // Packet tap interface (might cause issues)
+
 		// Try some known active interfaces too
 		"bridge100", "bridge101", "bridge102", // Bridge interfaces with IPs
-		"vmenet0", "vmenet1", "vmenet2",      // VMware interfaces
+		"vmenet0", "vmenet1", "vmenet2", // VMware interfaces
 	}
 
 	for _, ifName := range specialInterfaces {
@@ -25,7 +25,7 @@ func TestSpecialInterfaceConditions(t *testing.T) {
 			// Test both IPv4 and IPv6 to exercise all branches
 			ipv4 := GetInterfaceIpByName(ifName, false)
 			ipv6 := GetInterfaceIpByName(ifName, true)
-			
+
 			// Validate results
 			if ipv4 != "" && net.ParseIP(ipv4) == nil {
 				t.Errorf("Invalid IPv4 for %s: %s", ifName, ipv4)
@@ -48,12 +48,12 @@ func TestGetListenIp_DetailedPaths(t *testing.T) {
 			if result != "" && net.ParseIP(result) == nil {
 				t.Errorf("Invalid IP from GetListenIp(): %s", result)
 			}
-			
+
 			result4 := GetListenIp(false)
 			if result4 != "" && net.ParseIP(result4) == nil {
 				t.Errorf("Invalid IPv4 from GetListenIp(false): %s", result4)
 			}
-			
+
 			result6 := GetListenIp(true)
 			if result6 != "" && net.ParseIP(result6) == nil {
 				t.Errorf("Invalid IPv6 from GetListenIp(true): %s", result6)
@@ -74,7 +74,7 @@ func TestGetInterfaceIpByName_AllInterfaces(t *testing.T) {
 			// Test both IP versions for every interface
 			ipv4 := GetInterfaceIpByName(iface.Name, false)
 			ipv6 := GetInterfaceIpByName(iface.Name, true)
-			
+
 			if ipv4 != "" && net.ParseIP(ipv4) == nil {
 				t.Errorf("Invalid IPv4 for %s: %s", iface.Name, ipv4)
 			}
@@ -106,7 +106,7 @@ func TestGetInterfaceIpByAddrs_CompleteBranchCoverage(t *testing.T) {
 			desc:      "Empty address list should return empty string",
 		},
 		{
-			name:      "Empty_list_IPv6", 
+			name:      "Empty_list_IPv6",
 			addresses: []net.Addr{},
 			prev6:     true,
 			desc:      "Empty address list should return empty string",

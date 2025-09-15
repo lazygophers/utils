@@ -22,7 +22,7 @@ func TestComprehensiveFinalCoverage(t *testing.T) {
 		} else {
 			// 这对应Exit函数中的成功路径：log.Infof("will stop process:%d", process.Pid)
 			t.Logf("Exit function success path: found process %d", process.Pid)
-			
+
 			// 验证进程对象
 			if process.Pid != currentPID {
 				t.Errorf("Process PID mismatch: expected %d, got %d", currentPID, process.Pid)
@@ -71,7 +71,7 @@ func TestComprehensiveFinalCoverage(t *testing.T) {
 
 		// 等待完成
 		<-done
-		
+
 		t.Log("WaitExit component testing completed")
 	})
 
@@ -130,13 +130,13 @@ func TestComprehensiveFinalCoverage(t *testing.T) {
 	t.Run("path_functions_error_branch_attempt", func(t *testing.T) {
 		// 这些函数的错误分支在正常环境中很难触发：
 		// - ExecDir: return "" if os.Executable() fails
-		// - ExecFile: return "" if os.Executable() fails  
+		// - ExecFile: return "" if os.Executable() fails
 		// - Pwd: return "" if os.Getwd() fails
 
 		// 我们只能测试正常情况，并记录结果
 		functions := map[string]func() string{
 			"ExecDir":  ExecDir,
-			"ExecFile": ExecFile,  
+			"ExecFile": ExecFile,
 			"Pwd":      Pwd,
 		}
 
@@ -198,7 +198,7 @@ func TestEdgeCasesForMaxCoverage(t *testing.T) {
 				_ = LazyCacheDir()
 				_ = GetExitSign()
 				PrintStack()
-				
+
 				func() {
 					defer CachePanic()
 				}()
@@ -222,7 +222,7 @@ func TestEdgeCasesForMaxCoverage(t *testing.T) {
 		for i := 0; i < iterations; i++ {
 			// 系统检测函数
 			_ = IsWindows()
-			_ = IsDarwin()  
+			_ = IsDarwin()
 			_ = IsLinux()
 
 			// 路径函数
@@ -245,7 +245,7 @@ func TestEdgeCasesForMaxCoverage(t *testing.T) {
 
 			// 堆栈和panic函数
 			PrintStack()
-			
+
 			func() {
 				defer CachePanic()
 			}()

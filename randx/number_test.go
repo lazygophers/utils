@@ -685,7 +685,7 @@ func TestInternalFunctions(t *testing.T) {
 	t.Run("test_fast_seed_through_usage", func(t *testing.T) {
 		// 通过使用公共函数来间接测试fastSeed函数
 		// 虽然我们无法直接调用fastSeed，但它在内部被使用
-		
+
 		// 多次调用随机函数，确保内部的种子生成器工作正常
 		for i := 0; i < 100; i++ {
 			_ = Int() // 这会间接使用fastSeed相关的逻辑
@@ -716,26 +716,26 @@ func TestInternalFunctions(t *testing.T) {
 		if !v.IsValid() {
 			t.Fatalf("fastSeed function not found")
 		}
-		
+
 		// 调用fastSeed函数
 		results := v.Call(nil)
 		if len(results) != 1 {
 			t.Fatalf("Expected 1 return value, got %d", len(results))
 		}
-		
+
 		seed := results[0].Int()
 		// fastSeed应该返回一个非零值
 		if seed == 0 {
 			t.Logf("fastSeed returned 0, which is unlikely but possible")
 		}
-		
+
 		// 多次调用应该返回不同的值
 		var seeds []int64
 		for i := 0; i < 10; i++ {
 			results := v.Call(nil)
 			seeds = append(seeds, results[0].Int())
 		}
-		
+
 		// 检查是否有一些变化（不是所有值都相同）
 		allSame := true
 		for i := 1; i < len(seeds); i++ {
@@ -744,7 +744,7 @@ func TestInternalFunctions(t *testing.T) {
 				break
 			}
 		}
-		
+
 		if allSame {
 			t.Logf("All fastSeed calls returned the same value: %d", seeds[0])
 		}

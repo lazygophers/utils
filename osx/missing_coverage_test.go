@@ -26,7 +26,7 @@ func TestCopyMissingPaths(t *testing.T) {
 		if err := os.MkdirAll(readOnlyDir, 0755); err != nil {
 			t.Fatal(err)
 		}
-		
+
 		// Make the directory read-only
 		if err := os.Chmod(readOnlyDir, 0444); err != nil {
 			t.Skip("Cannot change directory permissions on this system")
@@ -54,7 +54,7 @@ func TestCopyMissingPaths(t *testing.T) {
 		// Try to copy from non-existent source
 		src := filepath.Join(tmpDir, "nonexistent.txt")
 		dst := filepath.Join(tmpDir, "dest.txt")
-		
+
 		err = Copy(src, dst)
 		if err == nil {
 			t.Error("Expected error when copying from non-existent source")
@@ -77,7 +77,7 @@ func TestCopyMissingPaths(t *testing.T) {
 		}
 
 		dst := filepath.Join(tmpDir, "dest.txt")
-		
+
 		// This should fail when trying to copy a directory as a file
 		err = Copy(srcDir, dst)
 		if err == nil {
@@ -102,7 +102,7 @@ func TestCopyMissingPaths(t *testing.T) {
 
 		// Try to copy to an invalid path (parent directory doesn't exist)
 		dst := filepath.Join(tmpDir, "nonexistent_dir", "dest.txt")
-		
+
 		err = Copy(src, dst)
 		if err == nil {
 			t.Error("Expected error when copying to invalid destination path")
@@ -203,11 +203,11 @@ func TestExistsEdgeCases(t *testing.T) {
 		// Test with empty path
 		result := Exists("")
 		t.Logf("Exists(\"\") = %v", result)
-		
+
 		// Test with invalid characters (if supported by OS)
 		result = Exists("/\x00invalid")
 		t.Logf("Exists with null character = %v", result)
-		
+
 		// Test with very long path
 		longPath := filepath.Join(os.TempDir(), string(make([]byte, 300)))
 		result = Exists(longPath)
@@ -231,25 +231,25 @@ func TestFsHasFileEdgeCases(t *testing.T) {
 		}
 
 		fsys := os.DirFS(tmpDir)
-		
+
 		// Test with valid file
 		result := FsHasFile(fsys, "test.txt")
 		if !result {
 			t.Error("Should find existing file")
 		}
-		
+
 		// Test with non-existent file
 		result = FsHasFile(fsys, "nonexistent.txt")
 		if result {
 			t.Error("Should not find non-existent file")
 		}
-		
+
 		// Test with directory
 		subDir := filepath.Join(tmpDir, "subdir")
 		if err := os.MkdirAll(subDir, 0755); err != nil {
 			t.Fatal(err)
 		}
-		
+
 		result = FsHasFile(fsys, "subdir")
 		// This should succeed because directories can be opened in fs.FS
 		t.Logf("FsHasFile with directory = %v", result)

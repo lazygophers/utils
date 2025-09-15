@@ -269,7 +269,6 @@ func TestRelativeTime(t *testing.T) {
 	}
 }
 
-
 func TestOptions(t *testing.T) {
 	// 测试自定义选项
 	opts := Options{
@@ -311,4 +310,3 @@ func BenchmarkRelativeTime(b *testing.B) {
 		RelativeTime(t)
 	}
 }
-

@@ -122,9 +122,9 @@ func TestLargeValues(t *testing.T) {
 		input    int64
 		expected string
 	}{
-		{1024 * 1024 * 1024 * 1024 * 1024, "1 PB"},                        // 1 PB
-		{1024 * 1024 * 1024 * 1024 * 1024 * 1024, "1024 PB"},             // 1024 PB (beyond units)
-		{1000 * 1000 * 1000 * 1000 * 1000, "909.5 TB"},                   // ~1000^5 in binary
+		{1024 * 1024 * 1024 * 1024 * 1024, "1 PB"},           // 1 PB
+		{1024 * 1024 * 1024 * 1024 * 1024 * 1024, "1024 PB"}, // 1024 PB (beyond units)
+		{1000 * 1000 * 1000 * 1000 * 1000, "909.5 TB"},       // ~1000^5 in binary
 	}
 
 	for _, tt := range tests {
@@ -211,12 +211,12 @@ func TestAbsFunction(t *testing.T) {
 func TestRelativeTimeFuture(t *testing.T) {
 	future := time.Now().Add(5 * time.Minute)
 	result := RelativeTime(future)
-	
+
 	// The exact result may vary, but it should not be empty
 	if result == "" {
 		t.Error("RelativeTime for future should not be empty")
 	}
-	
+
 	// Test very distant future
 	distantFuture := time.Now().Add(365 * 24 * time.Hour)
 	result = RelativeTime(distantFuture)
@@ -242,9 +242,9 @@ func TestConfigToOptions(t *testing.T) {
 		Compact:    true,
 		TimeFormat: "clock",
 	}
-	
+
 	options := configToOptions(config)
-	
+
 	if options.Precision != config.Precision {
 		t.Errorf("Precision conversion failed: %d != %d", options.Precision, config.Precision)
 	}
@@ -312,25 +312,25 @@ func TestLocaleRegistration(t *testing.T) {
 		SpeedUnits:    []string{"B/s", "KB/s", "MB/s"},
 		BitSpeedUnits: []string{"bps", "Kbps", "Mbps"},
 	}
-	
+
 	RegisterLocale("test", testLocale)
-	
+
 	// Get the registered locale
 	retrieved, ok := GetLocaleConfig("test")
 	if !ok {
 		t.Error("Failed to retrieve registered locale")
 	}
-	
+
 	if retrieved.Language != "test" {
 		t.Errorf("Retrieved locale language = %s, want test", retrieved.Language)
 	}
-	
+
 	// Test fallback to language without region
 	retrieved, ok = GetLocaleConfig("test-REGION")
 	if !ok {
 		t.Error("Failed to fallback to language locale")
 	}
-	
+
 	// Test fallback to English
 	retrieved, ok = GetLocaleConfig("nonexistent")
 	if !ok {
@@ -344,13 +344,13 @@ func TestLocaleRegistration(t *testing.T) {
 // TestFormatWithLocale 测试locale格式化
 func TestFormatWithLocale(t *testing.T) {
 	locale, _ := GetLocaleConfig("en")
-	
+
 	result := formatWithLocale(locale, "Test %s", "value")
 	expected := "Test value"
 	if result != expected {
 		t.Errorf("formatWithLocale failed: %s != %s", result, expected)
 	}
-	
+
 	// Test with nil locale (should fallback to English)
 	result = formatWithLocale(nil, "Test %s", "value")
 	if result != expected {
@@ -361,19 +361,19 @@ func TestFormatWithLocale(t *testing.T) {
 // TestGetTimeUnit 测试时间单位获取
 func TestGetTimeUnit(t *testing.T) {
 	locale, _ := GetLocaleConfig("en")
-	
+
 	// Test singular
 	result := getTimeUnit(locale, locale.TimeUnits.Second, 1)
 	if result != "second" {
 		t.Errorf("getTimeUnit(1 second) = %s, want second", result)
 	}
-	
+
 	// Test plural
 	result = getTimeUnit(locale, locale.TimeUnits.Second, 2)
 	if result != "second" {
 		t.Errorf("getTimeUnit(2 seconds) = %s, want second", result)
 	}
-	
+
 	// Test with nil locale
 	result = getTimeUnit(nil, "second", 2)
 	if result != "second" {
@@ -389,20 +389,20 @@ func TestCompatibilityFunctions(t *testing.T) {
 	if result != expected {
 		t.Errorf("BitSpeedWithOptions = %s, want %s", result, expected)
 	}
-	
+
 	// Test ClockDuration
 	result = ClockDuration(90 * time.Second)
 	expected = "1:30"
 	if result != expected {
 		t.Errorf("ClockDuration = %s, want %s", result, expected)
 	}
-	
+
 	// Test DurationWithOptions
 	result = DurationWithOptions(90*time.Second, Options{TimeFormat: "clock"})
 	if result != expected {
 		t.Errorf("DurationWithOptions = %s, want %s", result, expected)
 	}
-	
+
 	// Test ByteSizeWithOptions
 	result = ByteSizeWithOptions(1536, Options{Precision: 1})
 	expected = "1.5 KB"
@@ -414,14 +414,14 @@ func TestCompatibilityFunctions(t *testing.T) {
 // TestFormatWithUnitDefaultCase 测试formatWithUnit的默认情况
 func TestFormatWithUnitDefaultCase(t *testing.T) {
 	config := DefaultConfig()
-	
+
 	// Test with invalid unit type to trigger default case
 	result := formatWithUnit(123.45, 0, config, "invalid")
 	expected := "-"
 	if result != expected {
 		t.Errorf("formatWithUnit with invalid unit type = %s, want %s", result, expected)
 	}
-	
+
 	// Test with unitIndex >= len(units) to trigger index clamping
 	result = formatWithUnit(1024.0, 10, config, "byte") // 10 is larger than byte units array
 	// Should clamp to last index and return largest unit
@@ -434,7 +434,7 @@ func TestFormatWithUnitDefaultCase(t *testing.T) {
 func TestGetLocaleConfigFallbackPath(t *testing.T) {
 	// Test language-region fallback to language only
 	RegisterLocale("unique-test", &Locale{Language: "unique-test"})
-	
+
 	locale, ok := GetLocaleConfig("unique-test-REGION")
 	if !ok {
 		t.Error("Should fallback to language when region not found")
@@ -443,7 +443,7 @@ func TestGetLocaleConfigFallbackPath(t *testing.T) {
 	if locale.Language == "" {
 		t.Error("Fallback locale should not be empty")
 	}
-	
+
 	// Test the scenario where fallback actually occurs
 	// This should test the fallback to first available locale
 	locale, ok = GetLocaleConfig("completely-nonexistent")
@@ -454,7 +454,7 @@ func TestGetLocaleConfigFallbackPath(t *testing.T) {
 	if locale.Language == "" {
 		t.Error("Fallback locale should not be empty")
 	}
-	
+
 	// Note: Testing the case where GetLocaleConfig returns nil, false
 	// is difficult since English locale is always registered in init()
 	// This would require temporarily removing all locales, which isn't safe
@@ -468,7 +468,7 @@ func TestGetTimeUnitNilLocale(t *testing.T) {
 	if result != "second" {
 		t.Errorf("getTimeUnit with nil locale = %s, want second", result)
 	}
-	
+
 	// Test nil locale with plural
 	result = getTimeUnit(nil, "second", 2)
 	if result != "second" { // Based on current behavior
@@ -483,7 +483,7 @@ func TestGetTimeUnitAllCases(t *testing.T) {
 		Language: "en",
 		TimeUnits: TimeUnits{
 			Second:  "second",
-			Minute:  "minute", 
+			Minute:  "minute",
 			Hour:    "hour",
 			Day:     "day",
 			Week:    "week",
@@ -498,10 +498,10 @@ func TestGetTimeUnitAllCases(t *testing.T) {
 			Years:   "years",
 		},
 	}
-	
+
 	testCases := []struct {
-		unit string
-		count int64
+		unit     string
+		count    int64
 		expected string
 	}{
 		{"second", 2, "seconds"},
@@ -516,14 +516,14 @@ func TestGetTimeUnitAllCases(t *testing.T) {
 		// Test non-English behavior
 		{"unknown", 2, "unknown"},
 	}
-	
+
 	for _, tc := range testCases {
 		result := getTimeUnit(enLocale, tc.unit, tc.count)
 		if result != tc.expected {
 			t.Errorf("getTimeUnit(%s, %d) = %s, want %s", tc.unit, tc.count, result, tc.expected)
 		}
 	}
-	
+
 	// Test with non-English locale (should not pluralize)
 	zhLocale := &Locale{Language: "zh"}
 	result := getTimeUnit(zhLocale, "second", 2)

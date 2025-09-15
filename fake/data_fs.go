@@ -24,7 +24,7 @@ func (m *MultiFS) Open(name string) (fs.File, error) {
 func (m *MultiFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	var allEntries []fs.DirEntry
 	seen := make(map[string]bool)
-	
+
 	for _, fsys := range m.filesystems {
 		if entries, err := fsys.ReadDir(name); err == nil {
 			for _, entry := range entries {
@@ -35,7 +35,7 @@ func (m *MultiFS) ReadDir(name string) ([]fs.DirEntry, error) {
 			}
 		}
 	}
-	
+
 	if len(allEntries) == 0 {
 		return nil, fs.ErrNotExist
 	}
@@ -58,7 +58,7 @@ func (m *MultiFS) GetAvailableLanguages() []string {
 	if err != nil {
 		return langs
 	}
-	
+
 	for _, entry := range entries {
 		if entry.IsDir() {
 			langs = append(langs, entry.Name())

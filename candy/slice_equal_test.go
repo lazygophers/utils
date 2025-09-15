@@ -404,12 +404,12 @@ func TestSliceEqualBoundaries(t *testing.T) {
 		result := SliceEqual(a, b)
 		assert.True(t, result, "Same elements with same count should be equal")
 	})
-	
+
 	t.Run("final_count_not_zero", func(t *testing.T) {
 		// This should specifically trigger the final count != 0 check (line 1789-1791)
 		// Create a scenario where after the second loop, some counts remain > 0
-		a := []int{1, 2, 3, 3}  // 3 appears twice
-		b := []int{1, 2, 3}     // 3 appears once
+		a := []int{1, 2, 3, 3} // 3 appears twice
+		b := []int{1, 2, 3}    // 3 appears once
 		result := SliceEqual(a, b)
 		assert.False(t, result, "Different element frequencies should return false")
 	})

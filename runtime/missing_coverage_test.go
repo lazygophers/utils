@@ -24,7 +24,7 @@ func TestMissingCoverage(t *testing.T) {
 			// 注意: 我们不调用实际的Signal因为会终止测试进程
 			// 但我们可以验证Signal方法的存在和可调用性
 			// 这模拟了Exit函数中err = process.Signal(os.Interrupt)的路径
-			
+
 			// 模拟signal失败的情况（不实际发送信号）
 			// 这对应Exit函数中Signal失败后的错误处理路径
 			t.Log("Exit simulation: Would send signal to process")
@@ -66,7 +66,7 @@ func TestMissingCoverage(t *testing.T) {
 				recover() // 防止panic传播
 			}()
 			defer CachePanicWithHandle(handle)
-			
+
 			// 触发panic以测试堆栈处理逻辑
 			panic("test for stack handling")
 		}()
@@ -247,7 +247,7 @@ func TestCompleteSystemCoverage(t *testing.T) {
 
 		// panic处理相关
 		PrintStack()
-		
+
 		func() {
 			defer CachePanic()
 		}()

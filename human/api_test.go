@@ -33,17 +33,17 @@ func TestDirectFunctionAPI(t *testing.T) {
 	// 测试Speed vs BitSpeed 的区别
 	t.Run("Speed vs BitSpeed distinction", func(t *testing.T) {
 		value := int64(8000)
-		byteSpeed := Speed(value)     // 1024-based: 8000/1024 = 7.8 KB/s
-		bitSpeed := BitSpeed(value)   // 1000-based: 8000/1000 = 8 Kbps
-		
+		byteSpeed := Speed(value)   // 1024-based: 8000/1024 = 7.8 KB/s
+		bitSpeed := BitSpeed(value) // 1000-based: 8000/1000 = 8 Kbps
+
 		if byteSpeed == bitSpeed {
 			t.Error("Speed and BitSpeed should produce different results")
 		}
-		
+
 		if byteSpeed != "7.8 KB/s" {
 			t.Errorf("Speed(%d) = %s, want 7.8 KB/s", value, byteSpeed)
 		}
-		
+
 		if bitSpeed != "8 Kbps" {
 			t.Errorf("BitSpeed(%d) = %s, want 8 Kbps", value, bitSpeed)
 		}
@@ -91,7 +91,7 @@ func TestDirectFunctionAPI(t *testing.T) {
 		if result := ByteSize(0); result != "0 B" {
 			t.Errorf("ByteSize(0) = %s, want 0 B", result)
 		}
-		
+
 		if result := Duration(0, WithClockFormat()); result != "0:00" {
 			t.Errorf("Duration(0, WithClockFormat()) = %s, want 0:00", result)
 		}

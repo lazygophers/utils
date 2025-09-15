@@ -225,10 +225,10 @@ func TestMustFunctions_TypeSafety(t *testing.T) {
 	t.Run("string_type", func(t *testing.T) {
 		result := Must("hello", nil)
 		require.Equal(t, "hello", result)
-		
+
 		okResult := MustOk("world", true)
 		require.Equal(t, "world", okResult)
-		
+
 		ignoreResult := Ignore("test", errors.New("ignored"))
 		require.Equal(t, "test", ignoreResult)
 	})
@@ -236,10 +236,10 @@ func TestMustFunctions_TypeSafety(t *testing.T) {
 	t.Run("int_type", func(t *testing.T) {
 		result := Must(123, nil)
 		require.Equal(t, 123, result)
-		
+
 		okResult := MustOk(456, true)
 		require.Equal(t, 456, okResult)
-		
+
 		ignoreResult := Ignore(789, "ignored")
 		require.Equal(t, 789, ignoreResult)
 	})
@@ -248,10 +248,10 @@ func TestMustFunctions_TypeSafety(t *testing.T) {
 		slice := []string{"a", "b", "c"}
 		result := Must(slice, nil)
 		require.Equal(t, slice, result)
-		
+
 		okResult := MustOk(slice, true)
 		require.Equal(t, slice, okResult)
-		
+
 		ignoreResult := Ignore(slice, nil)
 		require.Equal(t, slice, ignoreResult)
 	})
@@ -260,10 +260,10 @@ func TestMustFunctions_TypeSafety(t *testing.T) {
 		m := map[string]int{"key": 42}
 		result := Must(m, nil)
 		require.Equal(t, m, result)
-		
+
 		okResult := MustOk(m, true)
 		require.Equal(t, m, okResult)
-		
+
 		ignoreResult := Ignore(m, true)
 		require.Equal(t, m, ignoreResult)
 	})

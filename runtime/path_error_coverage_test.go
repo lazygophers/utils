@@ -33,7 +33,7 @@ func TestPathFunctionErrorBranches(t *testing.T) {
 		cmd := exec.Command(os.Args[0], "-test.run=TestPathFunctionErrorBranches")
 		cmd.Env = append(os.Environ(), "GO_SIMULATE_PATH_ERRORS=1")
 		output, err := cmd.CombinedOutput()
-		
+
 		t.Logf("Subprocess output: %s", string(output))
 		if err != nil {
 			t.Logf("Subprocess completed with: %v", err)

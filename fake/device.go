@@ -49,14 +49,14 @@ const (
 // DeviceInfo 生成设备信息
 func (f *Faker) DeviceInfo() *Device {
 	f.incrementCallCount()
-	
+
 	deviceTypes := []DeviceType{
-		DeviceTypeDesktop, DeviceTypeLaptop, DeviceTypeTablet, 
+		DeviceTypeDesktop, DeviceTypeLaptop, DeviceTypeTablet,
 		DeviceTypeMobile, DeviceTypeWatch, DeviceTypeTV,
 	}
-	
+
 	deviceType := randx.Choose(deviceTypes)
-	
+
 	switch deviceType {
 	case DeviceTypeDesktop, DeviceTypeLaptop:
 		return f.generateDesktopDevice(deviceType)
@@ -76,10 +76,10 @@ func (f *Faker) DeviceInfo() *Device {
 func (f *Faker) generateDesktopDevice(deviceType DeviceType) *Device {
 	platforms := []Platform{PlatformWindows, PlatformMacOS, PlatformLinux}
 	platform := randx.Choose(platforms)
-	
+
 	var manufacturer, model, os, osVersion, browser, version string
 	var screenWidth, screenHeight int
-	
+
 	switch platform {
 	case PlatformWindows:
 		manufacturer = randx.Choose([]string{"Dell", "HP", "Lenovo", "ASUS", "Acer", "MSI", "Custom Build"})
@@ -88,7 +88,7 @@ func (f *Faker) generateDesktopDevice(deviceType DeviceType) *Device {
 		os = "Windows"
 		versions := []string{"10", "11"}
 		osVersion = randx.Choose(versions)
-		
+
 	case PlatformMacOS:
 		manufacturer = "Apple"
 		if deviceType == DeviceTypeLaptop {
@@ -100,19 +100,19 @@ func (f *Faker) generateDesktopDevice(deviceType DeviceType) *Device {
 		}
 		os = "macOS"
 		osVersion = fmt.Sprintf("%d.%d", randx.Intn(5)+10, randx.Intn(10))
-		
+
 	case PlatformLinux:
 		manufacturer = randx.Choose([]string{"Dell", "HP", "Lenovo", "System76", "Custom Build"})
 		model = randx.Choose([]string{"XPS", "ThinkPad", "Galago", "Oryx", "Custom"})
 		os = randx.Choose([]string{"Ubuntu", "Fedora", "Arch", "Debian", "openSUSE", "Manjaro"})
 		osVersion = fmt.Sprintf("%d.%d", randx.Intn(10)+20, randx.Intn(12)+1)
 	}
-	
+
 	// 浏览器信息
 	browsers := []string{"Chrome", "Firefox", "Safari", "Edge", "Opera"}
 	browser = randx.Choose(browsers)
 	version = fmt.Sprintf("%d.%d.%d", randx.Intn(100)+80, randx.Intn(10), randx.Intn(1000))
-	
+
 	// 屏幕分辨率
 	resolutions := [][]int{
 		{1920, 1080}, {2560, 1440}, {3840, 2160}, {1366, 768}, {1440, 900},
@@ -120,10 +120,10 @@ func (f *Faker) generateDesktopDevice(deviceType DeviceType) *Device {
 	}
 	resolution := randx.Choose(resolutions)
 	screenWidth, screenHeight = resolution[0], resolution[1]
-	
+
 	// 生成用户代理字符串
 	userAgent := f.generateUserAgentForDevice(platform, os, osVersion, browser, version, deviceType)
-	
+
 	return &Device{
 		Type:         string(deviceType),
 		Platform:     string(platform),
@@ -142,15 +142,15 @@ func (f *Faker) generateDesktopDevice(deviceType DeviceType) *Device {
 func (f *Faker) generateMobileDevice() *Device {
 	platforms := []Platform{PlatformAndroid, PlatformIOS}
 	platform := randx.Choose(platforms)
-	
+
 	var manufacturer, model, os, osVersion, browser, version string
 	var screenWidth, screenHeight int
-	
+
 	switch platform {
 	case PlatformAndroid:
 		manufacturers := []string{"Samsung", "Google", "OnePlus", "Xiaomi", "Huawei", "Sony", "LG", "Motorola"}
 		manufacturer = randx.Choose(manufacturers)
-		
+
 		switch manufacturer {
 		case "Samsung":
 			models := []string{"Galaxy S23", "Galaxy S22", "Galaxy Note 20", "Galaxy A54", "Galaxy A34"}
@@ -164,11 +164,11 @@ func (f *Faker) generateMobileDevice() *Device {
 		default:
 			model = fmt.Sprintf("%s-%d", manufacturer, randx.Intn(900)+100)
 		}
-		
+
 		os = "Android"
 		osVersion = fmt.Sprintf("%d.%d", randx.Intn(5)+9, randx.Intn(10))
 		browser = randx.Choose([]string{"Chrome", "Samsung Internet", "Firefox", "Opera"})
-		
+
 	case PlatformIOS:
 		manufacturer = "Apple"
 		models := []string{"iPhone 14", "iPhone 13", "iPhone 12", "iPhone SE", "iPhone 14 Pro", "iPhone 13 Pro"}
@@ -177,9 +177,9 @@ func (f *Faker) generateMobileDevice() *Device {
 		osVersion = fmt.Sprintf("%d.%d", randx.Intn(5)+13, randx.Intn(8))
 		browser = randx.Choose([]string{"Safari", "Chrome", "Firefox", "Opera"})
 	}
-	
+
 	version = fmt.Sprintf("%d.%d.%d", randx.Intn(100)+80, randx.Intn(10), randx.Intn(1000))
-	
+
 	// 手机屏幕分辨率
 	resolutions := [][]int{
 		{375, 812}, {390, 844}, {414, 896}, {360, 800}, {412, 915},
@@ -187,9 +187,9 @@ func (f *Faker) generateMobileDevice() *Device {
 	}
 	resolution := randx.Choose(resolutions)
 	screenWidth, screenHeight = resolution[0], resolution[1]
-	
+
 	userAgent := f.generateUserAgentForDevice(platform, os, osVersion, browser, version, DeviceTypeMobile)
-	
+
 	return &Device{
 		Type:         string(DeviceTypeMobile),
 		Platform:     string(platform),
@@ -208,14 +208,14 @@ func (f *Faker) generateMobileDevice() *Device {
 func (f *Faker) generateTabletDevice() *Device {
 	platforms := []Platform{PlatformAndroid, PlatformIOS}
 	platform := randx.Choose(platforms)
-	
+
 	var manufacturer, model, os, osVersion string
-	
+
 	switch platform {
 	case PlatformAndroid:
 		manufacturers := []string{"Samsung", "Google", "Lenovo", "Huawei", "Amazon"}
 		manufacturer = randx.Choose(manufacturers)
-		
+
 		switch manufacturer {
 		case "Samsung":
 			model = randx.Choose([]string{"Galaxy Tab S8", "Galaxy Tab A8", "Galaxy Tab S7"})
@@ -226,20 +226,20 @@ func (f *Faker) generateTabletDevice() *Device {
 		default:
 			model = fmt.Sprintf("%s Tab", manufacturer)
 		}
-		
+
 		os = "Android"
 		osVersion = fmt.Sprintf("%d.%d", randx.Intn(5)+9, randx.Intn(10))
-		
+
 	case PlatformIOS:
 		manufacturer = "Apple"
 		model = randx.Choose([]string{"iPad Pro", "iPad Air", "iPad", "iPad mini"})
 		os = "iPadOS"
 		osVersion = fmt.Sprintf("%d.%d", randx.Intn(5)+13, randx.Intn(8))
 	}
-	
+
 	browser := randx.Choose([]string{"Chrome", "Safari", "Firefox", "Opera"})
 	version := fmt.Sprintf("%d.%d.%d", randx.Intn(100)+80, randx.Intn(10), randx.Intn(1000))
-	
+
 	// 平板屏幕分辨率
 	resolutions := [][]int{
 		{768, 1024}, {810, 1080}, {1200, 1920}, {1536, 2048}, {834, 1194},
@@ -247,9 +247,9 @@ func (f *Faker) generateTabletDevice() *Device {
 	}
 	resolution := randx.Choose(resolutions)
 	screenWidth, screenHeight := resolution[0], resolution[1]
-	
+
 	userAgent := f.generateUserAgentForDevice(platform, os, osVersion, browser, version, DeviceTypeTablet)
-	
+
 	return &Device{
 		Type:         string(DeviceTypeTablet),
 		Platform:     string(platform),
@@ -268,32 +268,32 @@ func (f *Faker) generateTabletDevice() *Device {
 func (f *Faker) generateWatchDevice() *Device {
 	platforms := []Platform{PlatformAndroid, PlatformIOS}
 	platform := randx.Choose(platforms)
-	
+
 	var manufacturer, model, os, osVersion string
-	
+
 	switch platform {
 	case PlatformAndroid:
 		manufacturer = randx.Choose([]string{"Samsung", "Fossil", "Garmin", "Fitbit"})
 		model = randx.Choose([]string{"Galaxy Watch", "Gear S3", "Vivoactive", "Versa"})
 		os = "Wear OS"
 		osVersion = fmt.Sprintf("3.%d", randx.Intn(5))
-		
+
 	case PlatformIOS:
 		manufacturer = "Apple"
 		model = randx.Choose([]string{"Apple Watch Series 8", "Apple Watch SE", "Apple Watch Ultra"})
 		os = "watchOS"
 		osVersion = fmt.Sprintf("%d.%d", randx.Intn(3)+8, randx.Intn(5))
 	}
-	
+
 	// 智能手表通常使用内置浏览器或简化版浏览器
 	browser := "Watch Browser"
 	version := "1.0"
-	
+
 	// 手表屏幕分辨率
 	screenWidth, screenHeight := 396, 484 // Apple Watch typical resolution
-	
+
 	userAgent := fmt.Sprintf("WatchOS/%s (%s; %s %s)", osVersion, manufacturer, model, os)
-	
+
 	return &Device{
 		Type:         string(DeviceTypeWatch),
 		Platform:     string(platform),
@@ -312,9 +312,9 @@ func (f *Faker) generateWatchDevice() *Device {
 func (f *Faker) generateTVDevice() *Device {
 	manufacturers := []string{"Samsung", "LG", "Sony", "TCL", "Roku", "Amazon", "Google", "Apple"}
 	manufacturer := randx.Choose(manufacturers)
-	
+
 	var model, os, osVersion string
-	
+
 	switch manufacturer {
 	case "Samsung":
 		model = "Smart TV"
@@ -337,19 +337,19 @@ func (f *Faker) generateTVDevice() *Device {
 		os = "Android TV"
 		osVersion = fmt.Sprintf("%d.%d", randx.Intn(3)+9, randx.Intn(5))
 	}
-	
+
 	browser := "TV Browser"
 	version := "1.0"
-	
+
 	// TV屏幕分辨率
 	resolutions := [][]int{
 		{1920, 1080}, {3840, 2160}, {2560, 1440}, {1366, 768},
 	}
 	resolution := randx.Choose(resolutions)
 	screenWidth, screenHeight := resolution[0], resolution[1]
-	
+
 	userAgent := fmt.Sprintf("SmartTV/%s (%s; %s %s)", osVersion, manufacturer, model, os)
-	
+
 	return &Device{
 		Type:         string(DeviceTypeTV),
 		Platform:     "TV",
@@ -368,14 +368,14 @@ func (f *Faker) generateTVDevice() *Device {
 func (f *Faker) generateUserAgentForDevice(platform Platform, os, osVersion, browser, version string, deviceType DeviceType) string {
 	// 使用新的用户代理生成器
 	opts := UserAgentOptions{
-		Platform:    platform,
-		Browser:     browser,
-		OS:          os,
-		OSVersion:   osVersion,
-		DeviceType:  deviceType,
-		Mobile:      deviceType == DeviceTypeMobile || deviceType == DeviceTypeTablet,
+		Platform:   platform,
+		Browser:    browser,
+		OS:         os,
+		OSVersion:  osVersion,
+		DeviceType: deviceType,
+		Mobile:     deviceType == DeviceTypeMobile || deviceType == DeviceTypeTablet,
 	}
-	
+
 	return defaultUserAgentGen.GenerateUserAgent(opts)
 }
 

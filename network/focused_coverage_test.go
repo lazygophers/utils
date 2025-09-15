@@ -11,17 +11,17 @@ func TestGetInterfaceIpByName_EdgeCasesCoverage(t *testing.T) {
 	// We test with interfaces that might exist but have address retrieval issues
 	problematicInterfaces := []string{
 		"anpi0", "anpi1", "gif0", "stf0", // macOS virtual interfaces that might have address issues
-		"ap1", "awdl0", "llw0",          // Apple wireless interfaces
-		"pktap0",                         // Packet capture interface
-		"utun0", "utun1",                 // Tunnel interfaces
+		"ap1", "awdl0", "llw0", // Apple wireless interfaces
+		"pktap0",         // Packet capture interface
+		"utun0", "utun1", // Tunnel interfaces
 	}
-	
+
 	for _, ifName := range problematicInterfaces {
 		t.Run("EdgeCase_"+ifName, func(t *testing.T) {
 			// Test both IP versions to exercise all paths
 			ipv4 := GetInterfaceIpByName(ifName, false)
 			ipv6 := GetInterfaceIpByName(ifName, true)
-			
+
 			// Either empty or valid IP
 			if ipv4 != "" && net.ParseIP(ipv4) == nil {
 				t.Errorf("Invalid IPv4 for %s: %s", ifName, ipv4)
@@ -38,7 +38,7 @@ func TestGetListenIp_PathCoverage(t *testing.T) {
 	t.Run("EdgePathTesting", func(t *testing.T) {
 		// Multiple calls to try to hit different network states
 		// This tries to exercise the specific uncovered paths in GetListenIp
-		
+
 		tests := []struct {
 			name string
 			args []bool
@@ -47,7 +47,7 @@ func TestGetListenIp_PathCoverage(t *testing.T) {
 			{"IPv4", []bool{false}},
 			{"IPv6", []bool{true}},
 		}
-		
+
 		for _, test := range tests {
 			t.Run(test.name, func(t *testing.T) {
 				result := GetListenIp(test.args...)
@@ -63,13 +63,13 @@ func TestGetListenIp_PathCoverage(t *testing.T) {
 func TestSystemInterfaceReality(t *testing.T) {
 	// These interfaces definitely exist based on our earlier ifconfig output
 	knownInterfaces := []string{"lo0", "en0", "bridge100", "bridge101", "en5", "en6"}
-	
+
 	for _, iface := range knownInterfaces {
 		t.Run("Known_"+iface, func(t *testing.T) {
 			// Test with both preferences
 			ipv4 := GetInterfaceIpByName(iface, false)
 			ipv6 := GetInterfaceIpByName(iface, true)
-			
+
 			if ipv4 != "" && net.ParseIP(ipv4) == nil {
 				t.Errorf("Invalid IPv4 for known interface %s: %s", iface, ipv4)
 			}

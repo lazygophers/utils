@@ -33,27 +33,27 @@ type CreditCard struct {
 // SSN 生成美国社会安全号码
 func (f *Faker) SSN() string {
 	f.incrementCallCount()
-	
+
 	// SSN格式: XXX-XX-XXXX
 	// 第一部分: 001-899 (避免 000, 666, 900-999)
 	area := randx.Intn(899) + 1
 	if area == 666 {
 		area = 665 // 避免666
 	}
-	
+
 	// 第二部分: 01-99
 	group := randx.Intn(99) + 1
-	
+
 	// 第三部分: 0001-9999
 	serial := randx.Intn(9999) + 1
-	
+
 	return fmt.Sprintf("%03d-%02d-%04d", area, group, serial)
 }
 
 // ChineseIDNumber 生成中国身份证号码
 func (f *Faker) ChineseIDNumber() string {
 	f.incrementCallCount()
-	
+
 	// 地区代码 (前6位)
 	areaCodes := []string{
 		"110101", "110102", "110105", "110106", // 北京
@@ -68,22 +68,22 @@ func (f *Faker) ChineseIDNumber() string {
 		"420101", "420102", "420103", "420104", // 武汉
 	}
 	areaCode := randx.Choose(areaCodes)
-	
+
 	// 出生日期 (第7-14位)
-	year := randx.Intn(50) + 1960  // 1960-2009
+	year := randx.Intn(50) + 1960 // 1960-2009
 	month := randx.Intn(12) + 1
-	day := randx.Intn(28) + 1      // 简化处理，使用1-28天
+	day := randx.Intn(28) + 1 // 简化处理，使用1-28天
 	birthDate := fmt.Sprintf("%04d%02d%02d", year, month, day)
-	
+
 	// 顺序码 (第15-17位)
 	sequence := randx.Intn(999) + 1
-	
+
 	// 前17位
 	id17 := fmt.Sprintf("%s%s%03d", areaCode, birthDate, sequence)
-	
+
 	// 计算校验码 (第18位)
 	checksum := f.calculateChineseIDChecksum(id17)
-	
+
 	return id17 + checksum
 }
 
@@ -92,45 +92,45 @@ func (f *Faker) calculateChineseIDChecksum(id17 string) string {
 	weights := []int{7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2}
 	// 校验码对应表
 	checksums := []string{"1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"}
-	
+
 	sum := 0
 	for i, char := range id17 {
 		digit, _ := strconv.Atoi(string(char))
 		sum += digit * weights[i]
 	}
-	
+
 	return checksums[sum%11]
 }
 
 // Passport 生成护照号码
 func (f *Faker) Passport() string {
 	f.incrementCallCount()
-	
+
 	switch f.country {
 	case CountryUS:
 		// 美国护照: 9位数字
 		return fmt.Sprintf("%09d", randx.Intn(999999999))
-		
+
 	case CountryUK:
 		// 英国护照: 9位数字
 		return fmt.Sprintf("%09d", randx.Intn(999999999))
-		
+
 	case CountryChina:
 		// 中国护照: E + 8位数字
 		return fmt.Sprintf("E%08d", randx.Intn(99999999))
-		
+
 	case CountryCanada:
 		// 加拿大护照: 2个字母 + 6位数字
 		letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		return fmt.Sprintf("%c%c%06d", 
+		return fmt.Sprintf("%c%c%06d",
 			letters[randx.Intn(len(letters))],
 			letters[randx.Intn(len(letters))],
 			randx.Intn(999999))
-		
+
 	default:
 		// 通用格式: 字母 + 数字
 		letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		return fmt.Sprintf("%c%08d", 
+		return fmt.Sprintf("%c%08d",
 			letters[randx.Intn(len(letters))],
 			randx.Intn(99999999))
 	}
@@ -139,23 +139,23 @@ func (f *Faker) Passport() string {
 // DriversLicense 生成驾照号码
 func (f *Faker) DriversLicense() string {
 	f.incrementCallCount()
-	
+
 	switch f.country {
 	case CountryUS:
 		// 美国驾照格式因州而异，使用通用格式
 		letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		digits := randx.Intn(99999999)
-		return fmt.Sprintf("%c%c%08d", 
+		return fmt.Sprintf("%c%c%08d",
 			letters[randx.Intn(len(letters))],
 			letters[randx.Intn(len(letters))],
 			digits)
-		
+
 	case CountryChina:
 		// 中国驾照: 地区码 + 12位数字
 		areaCodes := []string{"1101", "3101", "4401", "4403", "1201", "5001"}
 		areaCode := randx.Choose(areaCodes)
 		return fmt.Sprintf("%s%012d", areaCode, randx.Intn(999999999999))
-		
+
 	default:
 		return fmt.Sprintf("%012d", randx.Intn(999999999999))
 	}
@@ -164,10 +164,10 @@ func (f *Faker) DriversLicense() string {
 // IdentityDoc 生成身份证件信息
 func (f *Faker) IdentityDoc() *IdentityDocument {
 	f.incrementCallCount()
-	
+
 	docTypes := []string{"ID Card", "Passport", "Driver License", "Social Security"}
 	docType := randx.Choose(docTypes)
-	
+
 	var number string
 	switch docType {
 	case "ID Card":
@@ -183,11 +183,11 @@ func (f *Faker) IdentityDoc() *IdentityDocument {
 	case "Social Security":
 		number = f.SSN()
 	}
-	
+
 	// 生成发证日期和过期日期
 	issuedDate := time.Now().AddDate(-randx.Intn(10), -randx.Intn(12), -randx.Intn(30))
 	expiryDate := issuedDate.AddDate(randx.Intn(10)+5, 0, 0) // 5-15年有效期
-	
+
 	return &IdentityDocument{
 		Type:       docType,
 		Number:     number,
@@ -201,22 +201,22 @@ func (f *Faker) IdentityDoc() *IdentityDocument {
 // CreditCardNumber 生成信用卡号码
 func (f *Faker) CreditCardNumber() string {
 	f.incrementCallCount()
-	
+
 	// 信用卡品牌前缀
 	prefixes := map[string][]string{
-		"Visa":       {"4"},
-		"MasterCard": {"5"},
+		"Visa":             {"4"},
+		"MasterCard":       {"5"},
 		"American Express": {"34", "37"},
-		"Discover":   {"6"},
-		"JCB":        {"35"},
-		"UnionPay":   {"62"},
+		"Discover":         {"6"},
+		"JCB":              {"35"},
+		"UnionPay":         {"62"},
 	}
-	
+
 	brands := []string{"Visa", "MasterCard", "American Express", "Discover", "JCB", "UnionPay"}
 	brand := randx.Choose(brands)
 	brandPrefixes := prefixes[brand]
 	prefix := randx.Choose(brandPrefixes)
-	
+
 	var totalLength int
 	switch brand {
 	case "American Express":
@@ -226,47 +226,47 @@ func (f *Faker) CreditCardNumber() string {
 	default:
 		totalLength = 16
 	}
-	
+
 	// 生成剩余数字
 	remaining := totalLength - len(prefix) - 1 // -1 for check digit
 	numberPart := prefix
-	
+
 	for i := 0; i < remaining; i++ {
 		numberPart += fmt.Sprintf("%d", randx.Intn(10))
 	}
-	
+
 	// 计算Luhn校验位
 	checkDigit := f.calculateLuhnCheckDigit(numberPart)
-	
+
 	return numberPart + fmt.Sprintf("%d", checkDigit)
 }
 
 func (f *Faker) calculateLuhnCheckDigit(number string) int {
 	sum := 0
 	alternate := true
-	
+
 	// 从右到左遍历
 	for i := len(number) - 1; i >= 0; i-- {
 		digit, _ := strconv.Atoi(string(number[i]))
-		
+
 		if alternate {
 			digit *= 2
 			if digit > 9 {
 				digit = (digit % 10) + 1
 			}
 		}
-		
+
 		sum += digit
 		alternate = !alternate
 	}
-	
+
 	return (10 - (sum % 10)) % 10
 }
 
 // CVV 生成信用卡CVV码
 func (f *Faker) CVV() string {
 	f.incrementCallCount()
-	
+
 	// 大部分卡是3位，American Express是4位
 	if randx.Float32() < 0.1 { // 10% 概率是4位
 		return fmt.Sprintf("%04d", randx.Intn(10000))
@@ -277,18 +277,18 @@ func (f *Faker) CVV() string {
 // BankAccount 生成银行账号
 func (f *Faker) BankAccount() string {
 	f.incrementCallCount()
-	
+
 	switch f.country {
 	case CountryUS:
 		// 美国银行账号: 8-17位数字
 		length := randx.Intn(10) + 8
 		return fmt.Sprintf("%0*d", length, randx.Intn(int(1e17)))
-		
+
 	case CountryChina:
 		// 中国银行账号: 16-19位数字
 		length := randx.Intn(4) + 16
 		return fmt.Sprintf("%0*d", length, randx.Intn(int(1e18)))
-		
+
 	default:
 		// 通用格式: 10-16位数字
 		length := randx.Intn(7) + 10
@@ -299,7 +299,7 @@ func (f *Faker) BankAccount() string {
 // IBAN 生成国际银行账号 (International Bank Account Number)
 func (f *Faker) IBAN() string {
 	f.incrementCallCount()
-	
+
 	countryCodes := map[Country]string{
 		CountryGermany: "DE",
 		CountryFrance:  "FR",
@@ -307,29 +307,29 @@ func (f *Faker) IBAN() string {
 		CountrySpain:   "ES",
 		CountryItaly:   "IT",
 	}
-	
+
 	countryCode, exists := countryCodes[f.country]
 	if !exists {
 		countryCode = "DE" // 默认德国
 	}
-	
+
 	// 生成银行代码和账号
 	bankCode := fmt.Sprintf("%08d", randx.Intn(99999999))
 	accountNumber := fmt.Sprintf("%010d", randx.Intn(9999999999))
-	
+
 	// IBAN校验码计算简化版本
 	checkDigits := fmt.Sprintf("%02d", randx.Intn(100))
-	
+
 	return fmt.Sprintf("%s%s%s%s", countryCode, checkDigits, bankCode, accountNumber)
 }
 
 // CreditCardInfo 生成完整信用卡信息
 func (f *Faker) CreditCardInfo() *CreditCard {
 	f.incrementCallCount()
-	
+
 	number := f.CreditCardNumber()
 	cvv := f.CVV()
-	
+
 	// 根据卡号确定品牌
 	var brand, cardType string
 	switch {
@@ -355,20 +355,20 @@ func (f *Faker) CreditCardInfo() *CreditCard {
 		brand = "Unknown"
 		cardType = "Credit"
 	}
-	
+
 	// 生成过期日期
 	currentMonth := int(time.Now().Month())
 	currentYear := time.Now().Year()
-	
+
 	expiryMonth := randx.Intn(12) + 1
 	expiryYear := currentYear + randx.Intn(5) + 1 // 1-5年后过期
-	
+
 	// 检查是否有效
 	isValid := true
 	if expiryYear == currentYear && expiryMonth <= currentMonth {
 		isValid = false
 	}
-	
+
 	return &CreditCard{
 		Number:      number,
 		Type:        cardType,
@@ -384,15 +384,15 @@ func (f *Faker) CreditCardInfo() *CreditCard {
 // SafeCreditCardNumber 生成测试用的安全信用卡号码
 func (f *Faker) SafeCreditCardNumber() string {
 	f.incrementCallCount()
-	
+
 	// 使用测试卡号前缀，这些不是真实的信用卡号码
 	testPrefixes := []string{
-		"4000000000000", // Visa测试卡
-		"5555555555554", // MasterCard测试卡
-		"378282246310005", // American Express测试卡
+		"4000000000000",    // Visa测试卡
+		"5555555555554",    // MasterCard测试卡
+		"378282246310005",  // American Express测试卡
 		"6011111111111117", // Discover测试卡
 	}
-	
+
 	return randx.Choose(testPrefixes)[:16] // 截取前16位
 }
 

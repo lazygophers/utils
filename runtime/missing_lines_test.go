@@ -20,7 +20,7 @@ func TestExitFunctionSpecific(t *testing.T) {
 	// Run the test in a subprocess
 	cmd := exec.Command(os.Args[0], "-test.run=TestExitFunctionSpecific")
 	cmd.Env = append(os.Environ(), "TEST_EXIT_SUBPROCESS=1")
-	
+
 	err := cmd.Start()
 	assert.NoError(t, err)
 
@@ -49,17 +49,17 @@ func TestEmptyStackCondition(t *testing.T) {
 	// The empty stack condition is nearly impossible to trigger in normal circumstances
 	// because debug.Stack() almost always returns a non-empty stack trace in Go.
 	// However, we can test the normal code path to ensure these functions work correctly.
-	
+
 	t.Run("cache_panic_with_stack", func(t *testing.T) {
 		panicHandled := false
-		
+
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
 					t.Logf("Test recovered panic: %v", r)
 				}
 			}()
-			
+
 			func() {
 				defer CachePanicWithHandle(func(err interface{}) {
 					panicHandled = true
@@ -68,10 +68,10 @@ func TestEmptyStackCondition(t *testing.T) {
 				panic("stack test")
 			}()
 		}()
-		
+
 		assert.True(t, panicHandled)
 	})
-	
+
 	t.Run("print_stack_normal", func(t *testing.T) {
 		// PrintStack should work normally
 		PrintStack() // This tests the normal path (lines 38-40)
@@ -85,7 +85,7 @@ func TestErrorPathsFilesystem(t *testing.T) {
 	// - os.Executable() fails
 	// - os.Getwd() fails
 	// These are very rare in normal conditions, but let's test the normal paths
-	
+
 	t.Run("exec_dir_coverage", func(t *testing.T) {
 		dir := ExecDir()
 		// In normal conditions, this should return a valid directory
@@ -98,7 +98,7 @@ func TestErrorPathsFilesystem(t *testing.T) {
 			t.Logf("ExecDir: %s", dir)
 		}
 	})
-	
+
 	t.Run("exec_file_coverage", func(t *testing.T) {
 		file := ExecFile()
 		// In normal conditions, this should return a valid file path
@@ -111,7 +111,7 @@ func TestErrorPathsFilesystem(t *testing.T) {
 			t.Logf("ExecFile: %s", file)
 		}
 	})
-	
+
 	t.Run("pwd_coverage", func(t *testing.T) {
 		pwd := Pwd()
 		// In normal conditions, this should return a valid directory

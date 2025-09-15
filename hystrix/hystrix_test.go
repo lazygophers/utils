@@ -267,7 +267,7 @@ func TestCleanUpOptimizedEdgeCases(t *testing.T) {
 	// 手动设置一个不匹配的值来模拟CAS失败
 	originalTime := cb.stats.lastCleanupTime.Load()
 	cb.stats.lastCleanupTime.Store(originalTime + 1) // 修改值
-	
+
 	// 尝试清理，应该失败（因为lastCleanupTime已被修改）
 	result := cb.cleanUpOptimized()
 	// 这个测试可能成功或失败，取决于timing，但不应该panic
@@ -339,11 +339,11 @@ func TestAfterEdgeCases(t *testing.T) {
 	cb2 := NewCircuitBreaker(CircuitBreakerConfig{
 		TimeWindow: time.Second,
 	})
-	
+
 	// 设置很久以前的cleanup时间来强制使用绝对时间
 	cb2.stats.lastCleanupTime.Store(1) // 很久以前
 	cb2.After(true)
-	
+
 	succ2, _ := cb2.Stat()
 	if succ2 != 1 {
 		t.Error("Should handle large time differences")
@@ -499,11 +499,11 @@ func TestAdditionalEdgeCases(t *testing.T) {
 	cb := NewCircuitBreaker(CircuitBreakerConfig{
 		TimeWindow: time.Millisecond * 100,
 	})
-	
+
 	// 设置一个非常特殊的状态值来触发default分支
-	cb.state.Store(999) // 非法状态
+	cb.state.Store(999)       // 非法状态
 	cb.stats.changed.Store(0) // 不触发更新
-	
+
 	// 直接调用Before，应该返回false（default分支）
 	result := cb.Before()
 	if result {
@@ -512,11 +512,11 @@ func TestAdditionalEdgeCases(t *testing.T) {
 
 	// 测试AfterBatch的超时情况
 	cb2 := NewBatchCircuitBreaker(CircuitBreakerConfig{TimeWindow: time.Second}, 100, time.Millisecond*5)
-	
+
 	// 模拟超时状态
 	cb2.lastFlush.Store(time.Now().UnixNano() - int64(time.Millisecond*10)) // 10ms前
-	cb2.AfterBatch(true) // 应该触发超时刷新
-	
+	cb2.AfterBatch(true)                                                    // 应该触发超时刷新
+
 	// 验证数据被记录（给更多时间让异步操作完成）
 	time.Sleep(time.Millisecond * 50)
 	successes, _ := cb2.Stat()
@@ -531,15 +531,15 @@ func TestAdditionalEdgeCases(t *testing.T) {
 
 	// 测试AfterBatch的溢出重试情况
 	cb3 := NewBatchCircuitBreaker(CircuitBreakerConfig{TimeWindow: time.Second}, 2, time.Second)
-	
+
 	// 填满缓冲区
 	for i := 0; i < 3; i++ {
 		cb3.AfterBatch(true)
 	}
-	
+
 	// 再次填满缓冲区触发重试
 	cb3.AfterBatch(false)
-	
+
 	// 验证数据被正确记录
 	time.Sleep(time.Millisecond * 10)
 	successes, failures := cb3.Stat()
@@ -549,14 +549,14 @@ func TestAdditionalEdgeCases(t *testing.T) {
 
 	// 测试cleanupOptimized的空数据情况
 	rb := newOptimizedRingBuffer(10)
-	
+
 	// 添加一个空数据（packed = 0）
 	rb.buffer[0] = 0
 	rb.tail.Store(1)
-	
+
 	baseTime := time.Now().UnixNano()
 	threshold := baseTime + int64(time.Second)
-	
+
 	removed1, removed2 := rb.cleanupOptimized(threshold, baseTime)
 	if removed1 != 0 || removed2 != 0 {
 		t.Errorf("Should not remove empty data, got %d/%d", removed1, removed2)
@@ -565,7 +565,7 @@ func TestAdditionalEdgeCases(t *testing.T) {
 	// 测试CallFast的半开状态恢复逻辑的另一种情况
 	fcb := NewFastCircuitBreaker(5, time.Second)
 	fcb.state.Store(stateHalfOpenOpt)
-	
+
 	// 半开状态下失败调用（不会恢复状态）
 	err := fcb.CallFast(func() error {
 		return errors.New("test error")
@@ -573,7 +573,7 @@ func TestAdditionalEdgeCases(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error from failed call")
 	}
-	
+
 	// 状态应该保持半开或变为开启
 	if fcb.state.Load() == stateClosedOpt {
 		t.Error("State should not be closed after failed call in half-open")
@@ -676,7 +676,7 @@ func TestAfterBatchOverflow(t *testing.T) {
 	// 填满批次
 	cb.AfterBatch(true)
 	cb.AfterBatch(false)
-	
+
 	// 强制刷新
 	cb.flush()
 
@@ -827,7 +827,7 @@ func TestCleanupOptimized(t *testing.T) {
 
 	// 使用实际的时间戳来添加数据
 	oldTime := baseTime - int64(time.Second)
-	
+
 	// 直接使用绝对时间戳（大于32位阈值）
 	packed1 := oldTime << timeShift
 	packed1 |= successFlag
@@ -843,7 +843,7 @@ func TestCleanupOptimized(t *testing.T) {
 
 	// 验证至少有数据被清理
 	if removedSuccesses+removedFailures < 2 {
-		t.Errorf("Expected at least 2 items removed, got %d successes + %d failures = %d total", 
+		t.Errorf("Expected at least 2 items removed, got %d successes + %d failures = %d total",
 			removedSuccesses, removedFailures, removedSuccesses+removedFailures)
 	}
 
@@ -858,12 +858,12 @@ func TestCleanupOptimized(t *testing.T) {
 	cb := NewCircuitBreaker(CircuitBreakerConfig{
 		TimeWindow: time.Millisecond * 100,
 	})
-	
+
 	// 添加一些数据然后清理
 	cb.After(true)
 	cb.After(false)
 	time.Sleep(time.Millisecond * 150) // 等待时间窗口过期
-	
+
 	// 触发清理
 	cleaned := cb.cleanUpOptimized()
 	if !cleaned {
@@ -937,7 +937,7 @@ func TestProbeWithChance(t *testing.T) {
 
 	// 允许一定的偏差（40%-60%之间）
 	if trueCount < totalTests*2/5 || trueCount > totalTests*3/5 {
-		t.Errorf("ProbeWithChance(50) should return true approximately 50%% of the time, got %d/%d (%.1f%%)", 
+		t.Errorf("ProbeWithChance(50) should return true approximately 50%% of the time, got %d/%d (%.1f%%)",
 			trueCount, totalTests, float64(trueCount)/float64(totalTests)*100)
 	}
 }

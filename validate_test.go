@@ -17,8 +17,8 @@ type ValidateTestStruct struct {
 }
 
 type NestedValidateStruct struct {
-	ID       int                 `validate:"required,gt=0"`
-	User     ValidateTestStruct  `validate:"required"`
+	ID       int                `validate:"required,gt=0"`
+	User     ValidateTestStruct `validate:"required"`
 	Tags     []string           `validate:"required,min=1"`
 	Settings map[string]string  `validate:"required"`
 }
@@ -30,19 +30,19 @@ type OptionalFieldsStruct struct {
 }
 
 type NumericValidationStruct struct {
-	PositiveInt   int     `validate:"gt=0"`
-	NonNegativeInt int    `validate:"gte=0"`
-	LimitedFloat  float64 `validate:"min=0.0,max=100.0"`
-	RangeInt      int     `validate:"min=10,max=100"`
+	PositiveInt    int     `validate:"gt=0"`
+	NonNegativeInt int     `validate:"gte=0"`
+	LimitedFloat   float64 `validate:"min=0.0,max=100.0"`
+	RangeInt       int     `validate:"min=10,max=100"`
 }
 
 type StringValidationStruct struct {
-	AlphaOnly     string `validate:"alpha"`
-	AlphaNumOnly  string `validate:"alphanum"`
-	NumericOnly   string `validate:"numeric"`
-	FixedLength   string `validate:"len=10"`
-	MinLength     string `validate:"min=5"`
-	MaxLength     string `validate:"max=20"`
+	AlphaOnly    string `validate:"alpha"`
+	AlphaNumOnly string `validate:"alphanum"`
+	NumericOnly  string `validate:"numeric"`
+	FixedLength  string `validate:"len=10"`
+	MinLength    string `validate:"min=5"`
+	MaxLength    string `validate:"max=20"`
 }
 
 func TestValidate(t *testing.T) {
@@ -462,8 +462,8 @@ func TestValidate(t *testing.T) {
 
 		// Edge cases
 		{
-			name: "nil_input",
-			input: nil,
+			name:        "nil_input",
+			input:       nil,
 			expectError: true,
 			description: "Nil input should cause error",
 		},
@@ -566,10 +566,10 @@ func TestValidate_StructPointers(t *testing.T) {
 // TestValidate_ComplexValidations tests more complex validation scenarios
 func TestValidate_ComplexValidations(t *testing.T) {
 	type ComplexStruct struct {
-		Email     string   `validate:"required,email"`
-		URLs      []string `validate:"required,dive,url"`
-		Metadata  map[string]interface{} `validate:"required"`
-		Count     int      `validate:"required,gte=1,lte=100"`
+		Email    string                 `validate:"required,email"`
+		URLs     []string               `validate:"required,dive,url"`
+		Metadata map[string]interface{} `validate:"required"`
+		Count    int                    `validate:"required,gte=1,lte=100"`
 	}
 
 	t.Run("valid_complex", func(t *testing.T) {

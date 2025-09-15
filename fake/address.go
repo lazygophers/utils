@@ -8,19 +8,19 @@ import (
 
 // Address 地址信息结构体
 type Address struct {
-	Street     string `json:"street"`
-	City       string `json:"city"`
-	State      string `json:"state,omitempty"`
-	Province   string `json:"province,omitempty"`
-	ZipCode    string `json:"zip_code"`
-	Country    string `json:"country"`
+	Street      string `json:"street"`
+	City        string `json:"city"`
+	State       string `json:"state,omitempty"`
+	Province    string `json:"province,omitempty"`
+	ZipCode     string `json:"zip_code"`
+	Country     string `json:"country"`
 	FullAddress string `json:"full_address"`
 }
 
 // Street 生成街道地址
 func (f *Faker) Street() string {
 	f.incrementCallCount()
-	
+
 	values, weights, err := getWeightedItems(f.language, "addresses", "streets")
 	if err != nil {
 		// 回退到英语
@@ -31,20 +31,20 @@ func (f *Faker) Street() string {
 			return getDefaultStreet()
 		}
 	}
-	
+
 	f.incrementGeneratedData()
 	street := randx.WeightedChoose(values, weights)
-	
+
 	// 生成街道号码
 	streetNumber := randx.Intn(9999) + 1
-	
+
 	return fmt.Sprintf("%d %s", streetNumber, street)
 }
 
 // City 生成城市名称
 func (f *Faker) City() string {
 	f.incrementCallCount()
-	
+
 	values, weights, err := getWeightedItems(f.language, "addresses", "cities")
 	if err != nil {
 		// 回退到英语
@@ -55,7 +55,7 @@ func (f *Faker) City() string {
 			return getDefaultCity()
 		}
 	}
-	
+
 	f.incrementGeneratedData()
 	return randx.WeightedChoose(values, weights)
 }
@@ -63,7 +63,7 @@ func (f *Faker) City() string {
 // State 生成州/省份名称
 func (f *Faker) State() string {
 	f.incrementCallCount()
-	
+
 	switch f.country {
 	case CountryUS:
 		return f.generateUSState()
@@ -122,7 +122,7 @@ func (f *Faker) generateGenericState() string {
 // ZipCode 生成邮政编码
 func (f *Faker) ZipCode() string {
 	f.incrementCallCount()
-	
+
 	switch f.country {
 	case CountryUS:
 		return fmt.Sprintf("%05d", randx.Intn(99999))
@@ -156,7 +156,7 @@ func (f *Faker) ZipCode() string {
 // CountryName 生成国家名称
 func (f *Faker) CountryName() string {
 	f.incrementCallCount()
-	
+
 	switch f.language {
 	case LanguageEnglish:
 		return f.generateEnglishCountryName()
@@ -214,13 +214,13 @@ func (f *Faker) generateTraditionalChineseCountryName() string {
 // FullAddress 生成完整地址
 func (f *Faker) FullAddress() *Address {
 	f.incrementCallCount()
-	
+
 	street := f.Street()
 	city := f.City()
 	state := f.State()
 	zipCode := f.ZipCode()
 	country := f.CountryName()
-	
+
 	var fullAddress string
 	switch f.language {
 	case LanguageChineseSimplified, LanguageChineseTraditional:
@@ -238,7 +238,7 @@ func (f *Faker) FullAddress() *Address {
 			fullAddress = fmt.Sprintf("%s, %s %s, %s", street, city, zipCode, country)
 		}
 	}
-	
+
 	return &Address{
 		Street:      street,
 		City:        city,
@@ -252,12 +252,12 @@ func (f *Faker) FullAddress() *Address {
 // AddressLine 生成地址行（不包含国家）
 func (f *Faker) AddressLine() string {
 	f.incrementCallCount()
-	
+
 	street := f.Street()
 	city := f.City()
 	state := f.State()
 	zipCode := f.ZipCode()
-	
+
 	switch f.language {
 	case LanguageChineseSimplified, LanguageChineseTraditional:
 		if state != "" {
