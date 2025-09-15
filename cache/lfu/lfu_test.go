@@ -721,3 +721,131 @@ func TestEvictLFUWithNilFreqList(t *testing.T) {
 		t.Errorf("Expected cache to work despite nil frequency list, got value=%d, ok=%t", value, ok)
 	}
 }
+
+func TestDirectEvictLFUEdgeCases(t *testing.T) {
+	cache := New[string, int](1)
+	
+	// Test 1: evictLFU with nil frequency list
+	// Create a state where minFreq points to non-existent list
+	cache.minFreq = 999 // Non-existent frequency
+	
+	// Direct call to evictLFU should handle nil gracefully
+	cache.evictLFU() // This should hit the nil check and return early
+	
+	// Test 2: evictLFU with empty frequency list 
+	cache.Put("item", 1) // freq = 1, creates frequency list
+	
+	// Manually clear the frequency list to make it empty
+	if freqList := cache.freqLists[1]; freqList != nil {
+		freqList.Init() // Clear the list but keep it non-nil
+	}
+	
+	// Now evictLFU should handle empty list gracefully
+	cache.evictLFU() // This should hit the empty list check and return
+	
+	// Cache should still be functional
+	if cache.Len() != 1 {
+		t.Errorf("Expected cache length 1, got %d", cache.Len())
+	}
+}
+
+func TestUpdateMinFreqEmptyCache(t *testing.T) {
+	cache := New[string, int](3)
+	
+	// Add an item
+	cache.Put("item", 1)
+	
+	// Remove it to make cache empty
+	cache.Remove("item")
+	
+	// At this point, cache should be empty and updateMinFreq should have been called
+	// This should hit the empty cache branch that sets minFreq = 1
+	if cache.Len() != 0 {
+		t.Errorf("Expected empty cache, got length %d", cache.Len())
+	}
+	
+	stats := cache.Stats()
+	if stats.MinFreq != 1 {
+		t.Errorf("Expected minFreq to be 1 for empty cache, got %d", stats.MinFreq)
+	}
+}
+
+func TestUpdateMinFreqCorruptedFrequencies(t *testing.T) {
+	cache := New[string, int](2)
+	
+	// Add items
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	
+	// Artificially corrupt an entry's frequency to 0 to trigger the else branch
+	if entry, exists := cache.items["a"]; exists {
+		entry.freq = 0 // Set invalid frequency
+	}
+	
+	// Force updateMinFreq call by removing an item with minFreq
+	cache.Remove("b")
+	
+	// This should trigger updateMinFreq, which should handle the 0 frequency
+	// and set minFreq to 1 via the else branch
+	stats := cache.Stats()
+	if stats.MinFreq < 1 {
+		t.Errorf("Expected minFreq >= 1 after handling corrupted frequency, got %d", stats.MinFreq)
+	}
+}
+
+func TestSpecificUpdateMinFreqEmptyBranch(t *testing.T) {
+	// This test specifically targets the empty cache branch in updateMinFreq
+	cache := New[string, int](2)
+	
+	// Add one item with frequency 1
+	cache.Put("item", 1)
+	
+	// Set minFreq to 1 so that when we remove the item, it triggers updateMinFreq
+	cache.minFreq = 1
+	
+	// Now remove the item - this should trigger updateMinFreq on empty cache
+	// The removeEntry method will call updateMinFreq when the removed item has minFreq
+	// and the frequency list becomes empty
+	if entry, exists := cache.items["item"]; exists {
+		entry.freq = 1 // Ensure it has minFreq
+		// Remove from frequency list first
+		if list, ok := cache.freqLists[1]; ok {
+			list.Remove(entry.element)
+		}
+		// Remove from items
+		delete(cache.items, entry.key)
+		// Now manually call updateMinFreq on empty cache
+		cache.updateMinFreq()
+	}
+	
+	// Verify cache is empty and minFreq is reset to 1
+	if len(cache.items) != 0 {
+		t.Errorf("Expected empty cache, got length %d", len(cache.items))
+	}
+	
+	if cache.minFreq != 1 {
+		t.Errorf("Expected minFreq = 1 for empty cache, got %d", cache.minFreq)
+	}
+}
+
+func TestAllEntriesZeroFreqBranch(t *testing.T) {
+	// This test specifically targets the else branch when all entries have freq 0
+	cache := New[string, int](2)
+	
+	// Add items
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	
+	// Corrupt all entries to have frequency 0
+	for _, entry := range cache.items {
+		entry.freq = 0
+	}
+	
+	// Manually call updateMinFreq to trigger the else branch
+	cache.updateMinFreq()
+	
+	// Should set minFreq to 1 because all frequencies were 0
+	if cache.minFreq != 1 {
+		t.Errorf("Expected minFreq = 1 when all entries have freq 0, got %d", cache.minFreq)
+	}
+}

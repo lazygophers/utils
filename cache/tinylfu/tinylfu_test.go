@@ -1274,3 +1274,77 @@ func TestKeysFullSegmentCoverage(t *testing.T) {
 		t.Error("Expected at least some keys in cache")
 	}
 }
+
+func TestDemoteFromProtected(t *testing.T) {
+	// Test demoteFromProtected function by creating specific conditions
+	cache := New[string, int](10)
+	
+	// Fill cache to trigger protection/demotion scenarios
+	for i := 0; i < 15; i++ {
+		cache.Put(fmt.Sprintf("key%d", i), i)
+	}
+	
+	// This should trigger various internal methods including demoteFromProtected
+	stats := cache.Stats()
+	if stats.Size == 0 {
+		t.Error("Expected cache to have items after puts")
+	}
+}
+
+func TestEvictFromProtected(t *testing.T) {
+	// Test evictFromProtected function
+	cache := New[string, int](5)
+	
+	// Add enough items to trigger protected segment eviction
+	for i := 0; i < 20; i++ {
+		cache.Put(fmt.Sprintf("item%d", i), i)
+	}
+	
+	// This should trigger evictFromProtected at some point
+	if cache.Len() > cache.Cap() {
+		t.Errorf("Cache size (%d) exceeded capacity (%d)", cache.Len(), cache.Cap())
+	}
+}
+
+func TestCountMinSketchEdgeCases(t *testing.T) {
+	// Test EstimateCount with edge cases
+	sketch := NewCountMinSketch(100)
+	
+	// Test with empty sketch
+	count := sketch.EstimateCount([]byte("nonexistent"))
+	if count != 0 {
+		t.Errorf("Expected count 0 for nonexistent key, got %d", count)
+	}
+	
+	// Add some values and test
+	sketch.Add([]byte("test"))
+	sketch.Add([]byte("test"))
+	sketch.Add([]byte("test"))
+	
+	count = sketch.EstimateCount([]byte("test"))
+	if count < 3 {
+		t.Errorf("Expected count >= 3, got %d", count)
+	}
+}
+
+func TestResizeEdgeCases(t *testing.T) {
+	// Test Resize with various scenarios
+	cache := New[string, int](10)
+	
+	// Add some items first
+	for i := 0; i < 5; i++ {
+		cache.Put(fmt.Sprintf("key%d", i), i)
+	}
+	
+	// Resize to smaller capacity
+	cache.Resize(3)
+	if cache.Cap() != 3 {
+		t.Errorf("Expected capacity 3 after resize, got %d", cache.Cap())
+	}
+	
+	// Resize to larger capacity
+	cache.Resize(20)
+	if cache.Cap() != 20 {
+		t.Errorf("Expected capacity 20 after resize, got %d", cache.Cap())
+	}
+}
