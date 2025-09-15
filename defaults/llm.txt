@@ -1,0 +1,205 @@
+# Defaults Module
+
+## Overview
+LazyGophers Utils defaults module provides comprehensive struct default value handling with advanced configuration options. Supports complex data types, custom default functions, and multiple error handling strategies for robust application initialization.
+
+## Key Features
+- Automatic default value assignment via struct tags
+- Support for all Go data types including complex types
+- Custom default value functions and type handlers
+- Multiple error handling modes (Panic/Ignore/Return)
+- JSON parsing for complex default values
+- Time parsing with multiple format support
+- Recursive struct and nested type processing
+- Zero-value detection and overwrite control
+
+## Core Functions
+
+### Main Operations
+- `SetDefaults(interface{})` - Set defaults using panic error mode
+- `SetDefaultsWithOptions(interface{}, *Options) error` - Set defaults with custom configuration
+- `RegisterCustomDefault(string, DefaultFunc)` - Register type-specific default functions
+- `ClearCustomDefaults()` - Clear all custom default functions
+
+### Configuration Types
+- `Options` - Configuration for default value behavior
+- `DefaultFunc` - Custom default value function type
+- `ErrorMode` - Error handling strategy enumeration
+
+## Error Handling Modes
+
+### ErrorMode Types
+- `ErrorModePanic` - Panic on validation errors (default)
+- `ErrorModeIgnore` - Skip errors and continue processing
+- `ErrorModeReturn` - Return errors for handling
+
+## Data Type Support
+
+### Primitive Types
+- `string` - String values with empty string detection
+- `int/int8/int16/int32/int64` - Integer types with zero detection
+- `uint/uint8/uint16/uint32/uint64` - Unsigned integer types
+- `float32/float64` - Floating point numbers
+- `bool` - Boolean values with false as zero value
+
+### Complex Types
+- `time.Time` - Time values with multiple parsing formats and "now" keyword
+- `*T` (pointers) - Automatic pointer allocation and nested processing
+- `[]T` (slices) - JSON parsing and comma-separated value support
+- `[N]T` (arrays) - Fixed-size array default value assignment
+- `map[K]V` - Map initialization and JSON parsing
+- `chan T` - Channel creation with buffer size specification
+- `interface{}` - Interface type with JSON and simple value support
+
+### Special Features
+- Recursive struct processing
+- Multi-level pointer handling
+- Nested struct default assignment
+- Custom type function mapping
+
+## Usage Examples
+
+```go
+// Basic struct with default tags
+type Config struct {
+    Name        string        `default:"MyApp"`
+    Port        int           `default:"8080"`
+    Debug       bool          `default:"true"`
+    Timeout     time.Duration `default:"30s"`
+    StartTime   time.Time     `default:"now"`
+    Features    []string      `default:"feature1,feature2,feature3"`
+    Settings    map[string]int `default:"{\"max_conn\":100,\"max_idle\":10}"`
+}
+
+// Simple default assignment
+config := &Config{}
+defaults.SetDefaults(config)
+
+// Advanced configuration with options
+opts := &defaults.Options{
+    ErrorMode:        defaults.ErrorModeReturn,
+    ValidateDefaults: true,
+    AllowOverwrite:   false,
+    CustomDefaults:   map[string]defaults.DefaultFunc{
+        "string": func() interface{} { return "custom_default" },
+    },
+}
+
+if err := defaults.SetDefaultsWithOptions(config, opts); err != nil {
+    // Handle errors
+}
+
+// Custom default function registration
+defaults.RegisterCustomDefault("int", func() interface{} {
+    return int64(42) // Default integer value
+})
+
+// Complex nested struct
+type DatabaseConfig struct {
+    Host     string `default:"localhost"`
+    Port     int    `default:"5432"`
+    Username string `default:"admin"`
+    Settings *ConnectionSettings
+}
+
+type ConnectionSettings struct {
+    MaxConns    int           `default:"10"`
+    IdleTimeout time.Duration `default:"5m"`
+    Features    []string      `default:"ssl,compression"`
+}
+
+dbConfig := &DatabaseConfig{
+    Settings: &ConnectionSettings{}, // Will be processed recursively
+}
+defaults.SetDefaults(dbConfig)
+```
+
+## Advanced Configuration Options
+
+```go
+// Custom options configuration
+opts := &defaults.Options{
+    ErrorMode:        defaults.ErrorModeIgnore,  // Skip validation errors
+    ValidateDefaults: true,                      // Validate assigned defaults
+    AllowOverwrite:   true,                      // Overwrite non-zero values
+    CustomDefaults: map[string]defaults.DefaultFunc{
+        "string": func() interface{} { return "global_default" },
+        "int":    func() interface{} { return int64(999) },
+        "bool":   func() interface{} { return true },
+    },
+}
+
+// Time format support
+type TimeConfig struct {
+    RFC3339Time  time.Time `default:"2023-01-01T12:00:00Z"`
+    SimpleDate   time.Time `default:"2023-01-01"`
+    TimeOnly     time.Time `default:"15:04:05"`
+    CurrentTime  time.Time `default:"now"`
+}
+
+// Array and slice defaults
+type CollectionConfig struct {
+    StringArray  [3]string    `default:"a,b,c"`
+    IntSlice     []int        `default:"[1,2,3,4,5]"`
+    StringSlice  []string     `default:"alpha,beta,gamma"`
+    JsonArray    []map[string]string `default:"[{\"key\":\"value\"}]"`
+}
+
+// Channel defaults with buffer sizes
+type ChannelConfig struct {
+    Unbuffered chan string `default:"0"`
+    Buffered   chan int    `default:"10"`
+}
+```
+
+## Performance Notes
+- Reflection-based processing optimized for initialization scenarios
+- Efficient zero-value detection algorithms
+- Minimal memory allocation during default assignment
+- JSON parsing cached for repeated operations
+- Recursive processing with cycle detection
+
+## Use Cases
+- Application configuration initialization
+- Database model default value assignment
+- API request/response struct preparation
+- Test data setup and fixture creation
+- CLI tool default parameter setting
+- Microservice configuration management
+- Plugin system default configuration
+
+## Thread Safety
+The module is designed for initialization scenarios and is not inherently thread-safe during configuration changes. However:
+- `SetDefaults()` and `SetDefaultsWithOptions()` are safe for concurrent use on different struct instances
+- `RegisterCustomDefault()` should be called during application initialization
+- Custom default functions should be thread-safe if called concurrently
+
+## Error Handling Strategies
+
+### Panic Mode (Default)
+```go
+// Will panic on invalid default values
+defaults.SetDefaults(config) // Panics on error
+```
+
+### Return Mode
+```go
+opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
+if err := defaults.SetDefaultsWithOptions(config, opts); err != nil {
+    log.Printf("Default assignment failed: %v", err)
+}
+```
+
+### Ignore Mode
+```go
+opts := &defaults.Options{ErrorMode: defaults.ErrorModeIgnore}
+defaults.SetDefaultsWithOptions(config, opts) // Silently skips errors
+```
+
+## Tag Format Support
+- Simple values: `default:"value"`
+- JSON arrays: `default:"[1,2,3]"`
+- JSON objects: `default:"{\"key\":\"value\"}"`
+- Comma-separated: `default:"a,b,c"`
+- Time formats: `default:"now"` or `default:"2023-01-01T12:00:00Z"`
+- Channel buffers: `default:"10"` (buffer size)

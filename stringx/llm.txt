@@ -1,0 +1,126 @@
+# stringx - Advanced String Manipulation Utilities
+
+The stringx package provides high-performance string manipulation utilities with zero-copy optimizations, Unicode support, and advanced string processing functions.
+
+## Key Features
+- Zero-copy string/byte slice conversions using unsafe operations
+- Case conversions (camel, snake, kebab, pascal)
+- Random string generation with customizable character sets
+- String validation and checking utilities
+- Unicode-aware text processing
+- Performance-optimized operations with minimal allocations
+
+## Core Functions
+
+### Zero-Copy Conversions
+- ToString(b []byte) string - Convert byte slice to string (zero-copy, O(1))
+- ToBytes(s string) []byte - Convert string to byte slice (zero-copy, O(1))
+
+### Case Conversions
+- Camel2Snake(s string) string - camelCase → snake_case
+- Snake2Camel(s string) string - snake_case → camelCase
+- Camel2Kebab(s string) string - camelCase → kebab-case
+- Snake2Pascal(s string) string - snake_case → PascalCase
+- Pascal2Snake(s string) string - PascalCase → snake_case
+- Kebab2Camel(s string) string - kebab-case → camelCase
+
+### Random String Generation
+- RandString(length int) string - Generate alphanumeric string
+- RandStringWithCharset(length int, charset string) string - Custom charset
+- RandAlphaNumeric(length int) string - Letters and numbers
+- RandAlphabetic(length int) string - Letters only
+- RandNumeric(length int) string - Numbers only
+- RandHex(length int) string - Hexadecimal string
+- RandBase64(length int) string - Base64 string
+
+### String Validation
+- IsAlphaNumeric(s string) bool - Check alphanumeric characters
+- IsAlphabetic(s string) bool - Check alphabetic characters only
+- IsNumeric(s string) bool - Check numeric characters only
+- IsASCII(s string) bool - Check ASCII characters only
+- IsBlank(s string) bool - Check empty or whitespace
+- IsEmpty(s string) bool - Check empty string
+- IsUpper/IsLower(s string) bool - Check case
+
+### Text Processing
+- Reverse(s string) string - Reverse string
+- Capitalize(s string) string - Capitalize first letter
+- ToTitle(s string) string - Convert to title case
+- Center(s string, width int, fillChar string) string - Center with padding
+- PadLeft/PadRight(s string, width int, padChar string) string - Padding
+- Truncate(s string, length int) string - Truncate with ellipsis
+- TruncateWords(s string, wordCount int) string - Truncate by words
+
+### Advanced Operations
+- SplitAndTrim(s, sep string) []string - Split and trim whitespace
+- JoinNonEmpty(strs []string, sep string) string - Join non-empty strings
+- ExtractWords(s string) []string - Extract words from text
+- CountOccurrences(s, substr string) int - Count substring occurrences
+- ReplaceMultiple(s string, replacements map[string]string) string - Multiple replacements
+- RemoveDuplicates(s string) string - Remove duplicate characters
+- Similarity(s1, s2 string) float64 - Calculate string similarity
+
+### Unicode Support
+- ContainsUnicode(s string) bool - Check Unicode content
+- UnicodeLength(s string) int - Get Unicode character count
+- UnicodeSubstring(s string, start, length int) string - Unicode-aware substring
+- NormalizeSpaces(s string) string - Normalize whitespace
+
+## Usage Examples
+
+```go
+import "github.com/lazygophers/utils/stringx"
+
+// Zero-copy conversions
+str := "hello world"
+bytes := stringx.ToBytes(str)      // O(1), no allocation
+backToStr := stringx.ToString(bytes) // O(1), no allocation
+
+// Case conversions
+camel := stringx.Snake2Camel("user_profile_data")     // "userProfileData"
+snake := stringx.Camel2Snake("getUserProfile")        // "get_user_profile"
+kebab := stringx.Camel2Kebab("getUserProfile")        // "get-user-profile"
+
+// Random generation
+sessionID := stringx.RandHex(32)           // "a1b2c3d4..."
+apiKey := stringx.RandBase64(24)           // "YWJjZGVmZ2g..."
+token := stringx.RandAlphaNumeric(16)      // "Abc123Def456"
+
+// Validation
+stringx.IsAlphaNumeric("Abc123")  // true
+stringx.IsNumeric("12345")        // true
+stringx.IsBlank("   ")            // true
+
+// Text processing
+stringx.Reverse("hello")                                    // "olleh"
+stringx.Capitalize("hello world")                           // "Hello world"
+stringx.Center("hello", 10, " ")                           // "  hello   "
+stringx.Truncate("This is a long string", 10)             // "This is..."
+
+// Advanced operations
+stringx.SplitAndTrim("apple, banana, cherry", ",")        // ["apple", "banana", "cherry"]
+stringx.CountOccurrences("hello world hello", "hello")    // 2
+stringx.ExtractWords("Hello, World! How are you?")        // ["Hello", "World", "How", "are", "you"]
+```
+
+## Performance Optimizations
+- ASCII-only strings use optimized fast path for case conversions
+- Zero-copy operations eliminate memory allocations
+- Pre-calculated capacity to minimize reallocations
+- Memory-efficient random generation with reused buffers
+- Efficient slice operations with pre-allocated capacity
+
+## Use Cases
+- Configuration key conversion between formats
+- API response formatting and transformation
+- User input validation and sanitization
+- Random ID and token generation
+- Text processing pipelines
+- Database field name conversions
+- URL slug generation
+- Template string processing
+
+## Thread Safety
+All functions are thread-safe for concurrent use. Random generation functions use separate sources for each goroutine.
+
+This package is essential for applications requiring high-performance string processing with minimal memory overhead.

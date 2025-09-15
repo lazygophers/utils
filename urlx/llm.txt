@@ -1,0 +1,71 @@
+# URLx Module
+
+## Overview
+LazyGophers Utils urlx module provides URL manipulation and query parameter processing utilities. Focuses on reliable URL parameter normalization and sorting for consistent API interactions and caching keys.
+
+## Key Features
+- URL query parameter sorting and normalization
+- Consistent parameter ordering for caching and comparison
+- Safe handling of empty and malformed query strings
+- Integration with standard Go `net/url` package
+- Zero memory allocation for empty queries
+
+## Core Functions
+
+### Query Parameter Management
+- `SortQuery(url.Values) url.Values` - Sort URL query parameters alphabetically
+
+## Data Types
+- `url.Values` - Standard Go URL query parameter map
+- Preserves all standard URL query operations
+- Compatible with `net/url.URL.Query()`
+
+## Usage Examples
+
+```go
+import (
+    "net/url"
+    "github.com/lazygophers/utils/urlx"
+)
+
+// Sort query parameters for consistent ordering
+u, _ := url.Parse("https://api.example.com/users?name=john&age=30&city=NYC")
+sortedQuery := urlx.SortQuery(u.Query())
+
+// Build normalized URL
+u.RawQuery = sortedQuery.Encode()
+// Result: https://api.example.com/users?age=30&city=NYC&name=john
+
+// Handle empty queries safely
+emptyQuery := url.Values{}
+sorted := urlx.SortQuery(emptyQuery) // Returns same empty Values
+```
+
+## Performance Notes
+- Microsecond-level performance for parameter sorting
+- Zero overhead for empty query strings
+- Minimal memory allocation during sorting
+- Efficient key extraction and ordering
+
+## Use Cases
+- API request normalization for caching
+- Consistent URL generation for rate limiting
+- Database query key standardization
+- HTTP signature generation
+- URL comparison and deduplication
+- Cache key generation from URLs
+
+## Thread Safety
+All functions are goroutine-safe and can be called concurrently. The function creates new `url.Values` instances and does not modify input parameters.
+
+## Integration
+- Works seamlessly with Go's standard `net/url` package
+- Compatible with HTTP client libraries
+- Integrates with routing and middleware systems
+- Supports REST API parameter standardization
+
+## Implementation Details
+- Uses the `candy.Sort()` function for efficient string slice sorting
+- Preserves only the first value for duplicate parameter names
+- Maintains parameter value integrity during sorting
+- Returns new `url.Values` instance without modifying input

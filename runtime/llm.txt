@@ -1,0 +1,219 @@
+# runtime - Runtime System Information
+
+The runtime package provides comprehensive utilities for gathering system and runtime information about Go applications and their environment, including system metrics, memory statistics, and runtime diagnostics.
+
+## Key Features
+- Cross-platform system information (Linux, macOS, Windows)
+- Real-time Go runtime metrics and memory statistics
+- Process information and resource usage monitoring
+- CPU, memory, disk, and network information gathering
+- Performance monitoring and profiling data collection
+- Container and virtual environment detection
+
+## Core Functions
+
+### System Information
+- GetSystemInfo() SystemInfo - General system details (OS, arch, hostname, CPU cores, memory)
+- GetRuntimeInfo() RuntimeInfo - Go runtime details (version, goroutines, CGO calls, GOMAXPROCS)
+- GetHostname() string - System hostname
+- GetUptime() time.Duration - System uptime since boot
+
+### Memory Information
+- GetMemoryStats() MemoryStats - Detailed memory statistics (alloc, total, sys, GC info)
+- GetHeapInfo() HeapInfo - Heap-specific information (heap alloc, objects, next GC)
+- ForceGC() - Trigger garbage collection
+- ReadMemStats() *runtime.MemStats - Raw Go runtime memory stats
+
+### Process Information
+- GetProcessInfo() ProcessInfo - Current process details (PID, PPID, executable, CPU%, memory)
+- GetPID() int - Process ID
+- GetPPID() int - Parent process ID
+- GetExecutablePath() string - Path to current executable
+
+### CPU Information
+- GetCPUInfo() []CPUInfo - CPU details (model, cores, threads, frequency, cache)
+- GetCPUUsage() CPUUsage - CPU usage statistics (total, user, system, idle)
+- GetCPUCount() int - Number of CPU cores
+- GetLoadAverage() (float64, float64, float64) - System load averages (1m, 5m, 15m)
+
+### Disk Information
+- GetDiskInfo() []DiskInfo - Disk usage for all mounted filesystems
+- GetDiskUsage(path string) DiskUsage - Usage statistics for specific path
+
+### Network Information
+- GetNetworkInterfaces() []NetworkInterface - Network interface details
+- GetNetworkStats() NetworkStats - Network traffic statistics
+
+## Data Types
+
+### SystemInfo
+```go
+type SystemInfo struct {
+    OS           string        // Operating system name
+    Arch         string        // Architecture (amd64, arm64, etc.)
+    Hostname     string        // System hostname
+    Platform     string        // Platform details
+    CPUCores     int          // Number of CPU cores
+    TotalMemory  uint64       // Total system memory (bytes)
+    Uptime       time.Duration // System uptime
+    BootTime     time.Time    // System boot time
+}
+```
+
+### MemoryStats
+```go
+type MemoryStats struct {
+    Alloc        uint64        // Currently allocated memory
+    TotalAlloc   uint64        // Total allocations over lifetime
+    Sys          uint64        // System memory obtained from OS
+    NumGC        uint32        // Number of GC cycles
+    LastGC       time.Time     // Last GC time
+    PauseTotal   time.Duration // Total GC pause time
+}
+```
+
+### ProcessInfo
+```go
+type ProcessInfo struct {
+    PID          int           // Process ID
+    PPID         int           // Parent process ID
+    Executable   string        // Executable file path
+    WorkingDir   string        // Current working directory
+    StartTime    time.Time     // Process start time
+    CPUPercent   float64       // CPU usage percentage
+    MemoryUsage  uint64        // Memory usage in bytes
+    OpenFiles    int           // Number of open file descriptors
+    Threads      int           // Number of threads
+}
+```
+
+## Usage Examples
+
+```go
+import "github.com/lazygophers/utils/runtime"
+
+// Get basic system information
+sysInfo := runtime.GetSystemInfo()
+fmt.Printf("OS: %s, Arch: %s, CPU Cores: %d, Memory: %d MB\n",
+    sysInfo.OS, sysInfo.Arch, sysInfo.CPUCores, sysInfo.TotalMemory/1024/1024)
+
+// Monitor memory usage
+memStats := runtime.GetMemoryStats()
+fmt.Printf("Allocated: %d KB, GC Cycles: %d, Last GC: %v\n",
+    memStats.Alloc/1024, memStats.NumGC, memStats.LastGC)
+
+// Get process information
+processInfo := runtime.GetProcessInfo()
+fmt.Printf("PID: %d, CPU: %.2f%%, Memory: %d KB\n",
+    processInfo.PID, processInfo.CPUPercent, processInfo.MemoryUsage/1024)
+
+// Monitor CPU usage
+cpuUsage := runtime.GetCPUUsage()
+fmt.Printf("CPU Usage - Total: %.2f%%, User: %.2f%%, System: %.2f%%\n",
+    cpuUsage.Total, cpuUsage.User, cpuUsage.System)
+
+// Get disk information
+diskInfo := runtime.GetDiskInfo()
+for _, disk := range diskInfo {
+    fmt.Printf("Device: %s, Total: %d GB, Used: %.2f%%\n",
+        disk.Device, disk.Total/1024/1024/1024, disk.UsedPercent)
+}
+
+// Monitor network interfaces
+interfaces := runtime.GetNetworkInterfaces()
+for _, iface := range interfaces {
+    fmt.Printf("Interface: %s, MAC: %s, Addresses: %v\n",
+        iface.Name, iface.HardwareAddr, iface.Addrs)
+}
+```
+
+## Advanced Features
+
+### System Monitoring
+```go
+// Continuous monitoring
+monitor := runtime.NewSystemMonitor()
+monitor.Start(5 * time.Second) // Update every 5 seconds
+
+for update := range monitor.Updates() {
+    fmt.Printf("CPU: %.2f%%, Memory: %d MB, Goroutines: %d\n",
+        update.CPU.Total, update.Memory.Alloc/1024/1024, update.Runtime.NumGoroutines)
+}
+```
+
+### Resource Tracking
+```go
+// Track resource usage over time
+tracker := runtime.NewResourceTracker()
+tracker.Start()
+
+// Perform operations...
+doWork()
+
+report := tracker.GetReport()
+fmt.Printf("Peak Memory: %d MB, Average CPU: %.2f%%, Duration: %v\n",
+    report.PeakMemory/1024/1024, report.AverageCPU, report.Duration)
+```
+
+### Performance Profiling
+```go
+// Collect profiling data
+profiler := runtime.NewProfiler()
+profiler.Start()
+
+// Execute operations to profile...
+performOperations()
+
+profile := profiler.Stop()
+// Access CPU, memory, and goroutine profiles
+```
+
+## Platform-Specific Implementation
+
+### Linux
+- Uses `/proc` filesystem for detailed system information
+- Supports cgroups for container environments
+- Network statistics from `/proc/net/dev`
+- Memory information from `/proc/meminfo`
+
+### macOS
+- Uses `sysctl` system calls for system information
+- Core Foundation APIs for detailed metrics
+- Activity Monitor integration capabilities
+
+### Windows
+- Uses WMI (Windows Management Instrumentation)
+- Performance counters for metrics
+- Windows API for process information
+
+## Performance Considerations
+- Information is cached to reduce system call overhead
+- Lazy loading - data retrieved only when requested
+- Efficient system APIs used where available
+- Minimal memory allocations for frequently called functions
+
+## Use Cases
+- **Application Monitoring**: Real-time resource usage tracking
+- **Performance Profiling**: Identify bottlenecks and optimize performance
+- **Health Checks**: Monitor application and system health
+- **Debugging**: Gather diagnostic information for troubleshooting
+- **Capacity Planning**: Understand resource utilization patterns
+- **Container Monitoring**: Track resource usage in containerized environments
+- **Alerting**: Trigger alerts based on resource thresholds
+
+## Error Handling
+```go
+// Safe error handling
+sysInfo, err := runtime.GetSystemInfoSafe()
+if err != nil {
+    log.Printf("Failed to get system info: %v", err)
+    // Use defaults or fallback
+}
+
+// Container detection
+if runtime.IsContainer() {
+    // Adjust behavior for containerized environment
+}
+```
+
+This package is essential for applications requiring comprehensive system monitoring, performance analysis, and runtime diagnostics.

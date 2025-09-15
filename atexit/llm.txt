@@ -1,0 +1,146 @@
+# atexit - Graceful Shutdown Handling
+
+The atexit package provides cross-platform graceful shutdown handling with signal interception, callback registration, and automatic panic recovery for Go applications.
+
+## Key Features
+- Cross-platform signal handling (Linux, macOS, Windows)
+- Multiple callback registration with ordered execution (LIFO)
+- Automatic panic recovery in callbacks
+- Thread-safe callback management
+- Integration with common exit patterns
+
+## Core Functions
+- Register(callback func()) - Register shutdown callback (executed in LIFO order)
+- RegisterWithPriority(callback func(), priority int) - Register with execution priority
+- Exit(code int) - Trigger graceful shutdown with exit code
+- GetCallbackCount() int - Get number of registered callbacks
+- Clear() - Remove all registered callbacks
+
+## Supported Signals
+- SIGINT (Ctrl+C) - Interrupt signal
+- SIGTERM - Termination signal
+- SIGHUP - Hangup signal (Unix only)
+- SIGQUIT - Quit signal (Unix only)
+
+## Usage Examples
+
+```go
+import "github.com/lazygophers/utils/atexit"
+
+// Database cleanup
+atexit.Register(func() {
+    fmt.Println("Closing database connections...")
+    db.Close()
+})
+
+// HTTP server shutdown
+atexit.Register(func() {
+    fmt.Println("Shutting down HTTP server...")
+    server.Shutdown(context.Background())
+})
+
+// File cleanup
+atexit.Register(func() {
+    fmt.Println("Cleaning up temporary files...")
+    os.RemoveAll("/tmp/myapp")
+})
+
+// Application continues normally
+// On signal or Exit() call, callbacks execute in reverse order
+```
+
+## Priority-Based Execution
+```go
+// Higher priority executes first
+atexit.RegisterWithPriority(func() {
+    // Critical shutdown - executes first
+}, 100)
+
+atexit.RegisterWithPriority(func() {
+    // Normal cleanup - executes after critical
+}, 50)
+
+atexit.RegisterWithPriority(func() {
+    // Final cleanup - executes last
+}, 10)
+```
+
+## Integration Patterns
+
+### HTTP Server Graceful Shutdown
+```go
+server := &http.Server{Addr: ":8080", Handler: handler}
+
+atexit.Register(func() {
+    ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+
+    if err := server.Shutdown(ctx); err != nil {
+        log.Printf("Server shutdown error: %v", err)
+    }
+})
+
+log.Fatal(server.ListenAndServe())
+```
+
+### Resource Pool Management
+```go
+connectionPool := createConnectionPool()
+atexit.Register(func() {
+    connectionPool.Close()
+})
+
+worker := startBackgroundWorker()
+atexit.Register(func() {
+    worker.Stop()
+})
+```
+
+## Implementation Details
+- Callbacks execute in LIFO (Last In, First Out) order
+- Each callback runs in a separate goroutine for isolation
+- Panic in one callback doesn't affect others
+- 30-second timeout per callback to prevent hanging
+- Signal handling starts automatically on first Register() call
+
+## Performance Characteristics
+- Minimal overhead until shutdown is triggered
+- Lock-free callback execution during normal operation
+- Efficient callback storage using slice with mutex protection
+- No impact on application performance during normal execution
+
+## Platform Differences
+- **Unix/Linux**: Supports all POSIX signals (SIGINT, SIGTERM, SIGHUP, SIGQUIT)
+- **Windows**: Supports SIGINT and SIGTERM equivalents
+- **Signal masking**: Automatically handled per platform
+
+## Error Handling
+- Panics in callbacks are caught and logged, not propagated
+- Failed callbacks don't prevent other callbacks from executing
+- Timeout handling for long-running callbacks
+- Graceful degradation if signal registration fails
+
+## Use Cases
+- **Database Connections**: Close database pools and connections
+- **HTTP Servers**: Graceful server shutdown with connection draining
+- **Background Workers**: Stop goroutines and worker pools
+- **File Systems**: Clean up temporary files and lock files
+- **External Services**: Disconnect from message queues, caches
+- **Logging**: Flush log buffers and close log files
+- **Metrics**: Send final metrics before shutdown
+
+## Thread Safety
+All operations are thread-safe:
+- Multiple goroutines can register callbacks concurrently
+- Callback execution is isolated per callback
+- Internal state is protected by mutex
+- Signal handling is managed by Go runtime
+
+## Best Practices
+1. Register callbacks in reverse dependency order
+2. Use priorities for critical vs. non-critical cleanup
+3. Keep callbacks simple and fast (under 30 seconds)
+4. Handle errors within callbacks, don't propagate
+5. Test shutdown behavior in development
+
+This package is essential for building robust applications that handle shutdown gracefully and clean up resources properly.

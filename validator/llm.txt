@@ -1,0 +1,188 @@
+# Validator Module
+
+## Overview
+LazyGophers Utils validator module provides comprehensive struct validation with multi-language support and enhanced validation rules. Built on a custom validation engine with extensive localization support for 12+ languages including Chinese, Japanese, Korean, and European languages.
+
+## Key Features
+- Multi-language validation error messages (12+ locales)
+- Custom validation engine with extensible rules
+- Enhanced built-in validators for Chinese scenarios
+- JSON field name support with fallback to struct names
+- Thread-safe validation with concurrent support
+- Custom validator registration and translation system
+- Comprehensive error reporting with field context
+
+## Core Functions
+
+### Validation Operations
+- `Struct(interface{}) error` - Validate entire struct
+- `Var(interface{}, string) error` - Validate single variable
+- `New(...Option) (*Validator, error)` - Create custom validator instance
+- `Default() *Validator` - Get singleton default validator
+
+### Configuration
+- `SetLocale(string)` - Set validation message language
+- `SetUseJSON(bool)` - Configure JSON vs struct field names
+- `RegisterValidation(string, ValidatorFunc)` - Add custom validators
+- `RegisterTranslation(locale, tag, translation string)` - Add custom messages
+
+### Global Functions
+- `SetLocale(locale string)` - Configure default validator locale
+- `SetUseJSON(useJSON bool)` - Configure default validator field naming
+- `Struct(s interface{}) error` - Validate using default validator
+- `Var(field interface{}, tag string) error` - Validate variable using default validator
+
+## Enhanced Validation Rules
+
+### Chinese-Specific Validators
+- `mobile` - Chinese mobile phone number validation
+- `idcard` - Chinese ID card validation (18-digit)
+- `bankcard` - Bank card number validation with Luhn algorithm
+- `chinese_name` - Chinese name format validation
+
+### Enhanced Standard Validators
+- `email` - Improved email validation with better regex
+- `url` - Enhanced URL validation for HTTP/HTTPS/FTP
+- `strong_password` - Password strength validation
+- `ipv4` - IPv4 address validation
+- `mac` - MAC address validation
+- `json` - JSON string validation
+- `uuid` - UUID format validation
+
+### Built-in Validators
+- `required` - Non-zero value validation
+- `min/max` - Minimum/maximum value or length
+- `len` - Exact length validation
+- `eq/ne` - Equal/not equal validation
+- `numeric` - Numeric string validation
+- `alpha/alphanum` - Alphabetic/alphanumeric validation
+
+## Data Types
+
+### Core Types
+- `Validator` - Main validator instance with configuration
+- `Engine` - Internal validation engine
+- `FieldLevel` - Validation context interface
+- `ValidationErrors` - Collection of field errors
+- `FieldError` - Individual field validation error
+
+### Configuration Types
+- `ErrorMode` - Error handling strategy (Panic/Ignore/Return)
+- `Options` - Validator configuration options
+- `ValidatorFunc` - Custom validator function type
+
+## Language Support
+
+### Supported Locales
+- `en` - English (default)
+- `zh` - Simplified Chinese
+- `zh_tw` - Traditional Chinese
+- `ja` - Japanese
+- `ko` - Korean
+- `fr` - French
+- `es` - Spanish
+- `ar` - Arabic
+- `ru` - Russian
+- `it` - Italian
+- `pt` - Portuguese
+- `de` - German
+
+## Usage Examples
+
+```go
+// Basic struct validation
+type User struct {
+    Name     string `validate:"required" json:"name"`
+    Email    string `validate:"required,email" json:"email"`
+    Age      int    `validate:"min=0,max=120" json:"age"`
+    Mobile   string `validate:"mobile" json:"mobile"`
+    IDCard   string `validate:"idcard" json:"id_card"`
+}
+
+user := User{Name: "张三", Email: "invalid", Age: -1}
+
+// Using default validator
+if err := validator.Struct(user); err != nil {
+    // Handle validation errors
+}
+
+// Custom validator with Chinese locale
+v, _ := validator.New(
+    validator.WithLocale("zh"),
+    validator.WithUseJSON(true),
+)
+
+if err := v.Struct(user); err != nil {
+    // Chinese error messages
+}
+
+// Single variable validation
+if err := validator.Var("invalid-email", "email"); err != nil {
+    // Handle email validation error
+}
+
+// Custom validator registration
+validator.RegisterValidation("custom_rule", func(fl validator.FieldLevel) bool {
+    return fl.Field().String() != "forbidden"
+})
+```
+
+## Advanced Configuration
+
+```go
+// Create validator with custom options
+v, err := validator.New(
+    validator.WithLocale("zh"),           // Chinese messages
+    validator.WithUseJSON(true),          // Use JSON field names
+    validator.WithErrorMode(validator.ErrorModeReturn), // Return errors instead of panic
+)
+
+// Register custom translation
+v.RegisterTranslation("zh", "required", "{field}是必填字段")
+
+// Field name customization
+v.SetFieldNameFunc(func(field reflect.StructField) string {
+    if name := field.Tag.Get("label"); name != "" {
+        return name
+    }
+    return field.Name
+})
+```
+
+## Performance Notes
+- Microsecond-level validation performance
+- Concurrent validation support with sync.RWMutex
+- Efficient reflection-based field processing
+- Lazy initialization of validation rules
+- Optimized error message formatting
+
+## Use Cases
+- API request validation with localized errors
+- Form data validation in web applications
+- Database model validation before persistence
+- Configuration file validation
+- Multi-language application error reporting
+- Chinese business application validation
+
+## Thread Safety
+All validator operations are goroutine-safe. Multiple goroutines can safely:
+- Validate different structs concurrently
+- Register new validation rules
+- Change locale settings
+- Access validation errors
+
+## Error Handling
+Validation errors provide detailed context:
+- Field name (JSON or struct name)
+- Validation tag that failed
+- Actual field value
+- Validation parameter
+- Localized error message
+- Namespace path for nested structs
+
+## Integration
+- Works with struct tags (`validate:"rule"`)
+- Integrates with JSON marshaling (`json:"field_name"`)
+- Compatible with web frameworks (Gin, Echo, Fiber)
+- Supports custom error message templates
+- Extensible with custom validation functions
