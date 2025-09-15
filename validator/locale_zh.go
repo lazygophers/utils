@@ -1,4 +1,4 @@
-//go:build validator_zh || validator_all
+//go:build lang_zh_cn || lang_all
 
 package validator
 

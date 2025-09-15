@@ -1,4 +1,4 @@
-//go:build human_ru || human_all
+//go:build lang_ru || lang_all
 
 package human
 
@@ -10,10 +10,10 @@ func init() {
 		ByteUnits:     []string{"Б", "КБ", "МБ", "ГБ", "ТБ", "ПБ"},
 		SpeedUnits:    []string{"Б/с", "КБ/с", "МБ/с", "ГБ/с", "ТБ/с", "ПБ/с"},
 		BitSpeedUnits: []string{"бит/с", "Кбит/с", "Мбит/с", "Гбит/с", "Тбит/с", "Пбит/с"},
-		
+
 		TimeUnits: TimeUnits{
 			Nanosecond:  "нс",
-			Microsecond: "мкс", 
+			Microsecond: "мкс",
 			Millisecond: "мс",
 			Second:      "секунда",
 			Minute:      "минута",
@@ -22,7 +22,7 @@ func init() {
 			Week:        "неделя",
 			Month:       "месяц",
 			Year:        "год",
-			
+
 			// 俄语复数形式（基本复数）
 			Seconds: "секунды",
 			Minutes: "минуты",
@@ -32,17 +32,17 @@ func init() {
 			Months:  "месяца",
 			Years:   "года",
 		},
-		
+
 		RelativeTime: RelativeTimeStrings{
-			JustNow:      "только что",
-			SecondsAgo:   "%d секунд назад",
-			MinutesAgo:   "%d минут назад",
-			HoursAgo:     "%d часов назад",
-			DaysAgo:      "%d дней назад",
-			WeeksAgo:     "%d недель назад",
-			MonthsAgo:    "%d месяцев назад",
-			YearsAgo:     "%d лет назад",
-			
+			JustNow:    "только что",
+			SecondsAgo: "%d секунд назад",
+			MinutesAgo: "%d минут назад",
+			HoursAgo:   "%d часов назад",
+			DaysAgo:    "%d дней назад",
+			WeeksAgo:   "%d недель назад",
+			MonthsAgo:  "%d месяцев назад",
+			YearsAgo:   "%d лет назад",
+
 			In:           "через",
 			SecondsLater: "через %d секунд",
 			MinutesLater: "через %d минут",
@@ -52,13 +52,13 @@ func init() {
 			MonthsLater:  "через %d месяцев",
 			YearsLater:   "через %d лет",
 		},
-		
+
 		NumberFormat: NumberFormat{
 			DecimalSeparator:  ",",
 			ThousandSeparator: " ",
 			LargeNumberUnits:  []string{"тысяча", "миллион", "миллиард", "триллион"},
 		},
-		
+
 		Common: CommonStrings{
 			And: "и",
 			Or:  "или",
