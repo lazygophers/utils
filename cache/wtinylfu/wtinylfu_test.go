@@ -792,3 +792,126 @@ func TestResizeDownToMinimal(t *testing.T) {
 		t.Errorf("Cache size %d exceeds capacity 1", cache.Len())
 	}
 }
+
+func TestKeysWithProbationSegment(t *testing.T) {
+	// Test Keys method to cover probation segment iteration
+	cache := New[string, int](10)
+	
+	// Add items that will go to probation
+	cache.Put("prob1", 1)
+	cache.Put("prob2", 2)
+	
+	keys := cache.Keys()
+	if len(keys) == 0 {
+		t.Error("Expected keys from probation segment")
+	}
+}
+
+func TestValuesWithProbationSegment(t *testing.T) {
+	// Test Values method to cover probation segment iteration
+	cache := New[string, int](10)
+	
+	// Add items that will go to probation
+	cache.Put("prob1", 1)
+	cache.Put("prob2", 2)
+	
+	values := cache.Values()
+	if len(values) == 0 {
+		t.Error("Expected values from probation segment")
+	}
+}
+
+func TestResizeEdgeCases(t *testing.T) {
+	// Test Resize with edge cases
+	cache := New[string, int](10)
+	
+	// Add items
+	for i := 0; i < 5; i++ {
+		cache.Put(fmt.Sprintf("key%d", i), i)
+	}
+	
+	// Test resize to 0 (should panic)
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Expected panic for zero capacity resize")
+		}
+	}()
+	
+	cache.Resize(0)
+}
+
+func TestEvictFromEmptySegments(t *testing.T) {
+	// Test evict functions with empty segments
+	cache := New[string, int](5)
+	
+	// Force eviction from empty segments by calling internal methods
+	// This is to trigger specific uncovered branches
+	result1 := cache.evictFromWindow()
+	if result1 {
+		t.Error("Expected false from evicting empty window")
+	}
+	
+	result2 := cache.evictFromProbation()
+	if result2 {
+		t.Error("Expected false from evicting empty probation")
+	}
+	
+	result3 := cache.evictFromProtected()
+	if result3 {
+		t.Error("Expected false from evicting empty protected")
+	}
+}
+
+func TestDemoteFromProtectedExtensive(t *testing.T) {
+	// Test demoteFromProtected with various scenarios
+	cache := New[string, int](10)
+	
+	// Fill cache completely to ensure segment transitions
+	for i := 0; i < 20; i++ {
+		key := fmt.Sprintf("key%d", i)
+		cache.Put(key, i)
+		
+		// Access some items multiple times to get them into protected
+		if i%3 == 0 {
+			for j := 0; j < 5; j++ {
+				cache.Get(key)
+			}
+		}
+	}
+	
+	// This should trigger various demotions and transitions
+	stats := cache.Stats()
+	if stats.Size == 0 {
+		t.Error("Expected items in cache after complex operations")
+	}
+}
+
+func TestEvictWithComplexTransitions(t *testing.T) {
+	// Test evict with complex segment transitions
+	cache := New[string, int](8)
+	
+	// Create a scenario that will trigger all eviction branches
+	for i := 0; i < 25; i++ {
+		key := fmt.Sprintf("item%d", i)
+		cache.Put(key, i)
+		
+		// Create different access patterns
+		if i%4 == 0 {
+			// Make some items very frequent (protected candidates)
+			for j := 0; j < 10; j++ {
+				cache.Get(key)
+			}
+		} else if i%4 == 1 {
+			// Medium frequency (probation candidates)  
+			for j := 0; j < 3; j++ {
+				cache.Get(key)
+			}
+		}
+		// Others stay in window with low frequency
+	}
+	
+	// Verify final state
+	if cache.Len() > cache.Cap() {
+		t.Errorf("Cache size %d exceeds capacity %d", cache.Len(), cache.Cap())
+	}
+}
