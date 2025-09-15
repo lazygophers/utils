@@ -4,7 +4,6 @@ import (
 	"github.com/grafana/pyroscope-go"
 	"github.com/lazygophers/log"
 	"github.com/lazygophers/utils/app"
-	"github.com/pterm/pterm"
 	"os"
 )
 
@@ -36,6 +35,6 @@ func load(address string) {
 		DisableGCRuns: true,
 	})
 	if err != nil {
-		pterm.Error.Printfln("start pyroscope err:%v", err)
+		log.Errorf("start pyroscope err:%v", err)
 	}
 }
