@@ -540,3 +540,25 @@ func BenchmarkMixed(b *testing.B) {
 		}
 	}
 }
+
+func TestEvictLeastFrequentEdgeCase(t *testing.T) {
+	cache := New[string, int](1)
+	
+	// Test evictLeastFrequent on empty cache
+	// This should cover the return false case when no items can be evicted
+	result := cache.evictLeastFrequent()
+	if result {
+		t.Errorf("Expected evictLeastFrequent to return false for empty cache")
+	}
+	
+	// Also test with no evictable items due to empty frequency lists
+	// This edge case happens when all frequency lists are empty but the loop still runs
+	cache.Put("test", 1)
+	cache.Remove("test") // This leaves empty frequency lists but might not reset minFreq correctly
+	
+	// Now try eviction again - should return false as no items exist to evict
+	result = cache.evictLeastFrequent()
+	if result {
+		t.Errorf("Expected evictLeastFrequent to return false when no items exist to evict")
+	}
+}

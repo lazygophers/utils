@@ -567,3 +567,72 @@ func BenchmarkMixed(b *testing.B) {
 		}
 	}
 }
+
+func TestPromoteToCacheAlreadyInCache(t *testing.T) {
+	cache := New[string, int](3, 2)
+	
+	// Add and promote item
+	cache.Put("item", 1)
+	cache.Get("item") // Promote to cache
+	
+	// Verify item is in cache
+	if !cache.Contains("item") {
+		t.Error("Item should be promoted to cache")
+	}
+	
+	// Access again - this should hit the early return in promoteToCache
+	// since the item is already in cache
+	cache.Get("item") // This should trigger the already-in-cache branch
+	
+	// Item should still be accessible
+	value, ok := cache.Get("item")
+	if !ok || value != 1 {
+		t.Errorf("Expected item to remain in cache, got value=%d, ok=%t", value, ok)
+	}
+}
+
+func TestEvictFromEmptyCache(t *testing.T) {
+	cache := New[string, int](2, 2)
+	
+	// Try to evict from empty cache - this should hit the return false branch
+	result := cache.evictFromCache()
+	if result {
+		t.Errorf("Expected evictFromCache to return false for empty cache")
+	}
+	
+	// Verify cache is still empty
+	if cache.Len() != 0 {
+		t.Errorf("Expected cache to remain empty, got length %d", cache.Len())
+	}
+}
+
+func TestRemoveEntryFromHistory(t *testing.T) {
+	cache := New[string, int](3, 2)
+	
+	// Add item that will stay in history (not promoted)
+	cache.Put("hist_item", 1)
+	
+	// Verify item is not yet in cache (in history)
+	stats := cache.Stats()
+	if stats.HistorySize != 1 {
+		t.Errorf("Expected 1 item in history, got %d", stats.HistorySize)
+	}
+	if stats.Size != 0 {
+		t.Errorf("Expected 0 items in cache, got %d", stats.Size)
+	}
+	
+	// Remove the item from history - this should hit the else branch in removeEntry
+	_, ok := cache.Remove("hist_item")
+	if !ok {
+		t.Error("Expected to remove item from history")
+	}
+	
+	// Verify item is completely gone
+	stats = cache.Stats()
+	if stats.HistorySize != 0 {
+		t.Errorf("Expected 0 items in history after removal, got %d", stats.HistorySize)
+	}
+	if stats.TotalEntries != 0 {
+		t.Errorf("Expected 0 total entries after removal, got %d", stats.TotalEntries)
+	}
+}
