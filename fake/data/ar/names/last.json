@@ -1,0 +1,18 @@
+{
+  "language": "ar",
+  "country": "SA",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "الأحمد", "weight": 2.0, "tags": ["patronymic"], "origin": "Arabic", "type": "patronymic", "meaning": "son of Ahmad"},
+    {"value": "العلي", "weight": 1.8, "tags": ["patronymic"], "origin": "Arabic", "type": "patronymic", "meaning": "son of Ali"},
+    {"value": "المحمد", "weight": 1.6, "tags": ["patronymic"], "origin": "Arabic", "type": "patronymic", "meaning": "son of Mohammad"},
+    {"value": "الحسن", "weight": 1.4, "tags": ["patronymic"], "origin": "Arabic", "type": "patronymic", "meaning": "son of Hassan"},
+    {"value": "العمر", "weight": 1.2, "tags": ["patronymic"], "origin": "Arabic", "type": "patronymic", "meaning": "son of Omar"},
+    {"value": "الخالد", "weight": 1.1, "tags": ["patronymic"], "origin": "Arabic", "type": "patronymic", "meaning": "son of Khalid"},
+    {"value": "اليوسف", "weight": 1.0, "tags": ["patronymic"], "origin": "Arabic", "type": "patronymic", "meaning": "son of Youssef"},
+    {"value": "الإبراهيم", "weight": 0.9, "tags": ["patronymic"], "origin": "Arabic", "type": "patronymic", "meaning": "son of Ibrahim"},
+    {"value": "العبدالله", "weight": 0.8, "tags": ["patronymic"], "origin": "Arabic", "type": "patronymic", "meaning": "son of Abdullah"},
+    {"value": "الصالح", "weight": 0.7, "tags": ["descriptive"], "origin": "Arabic", "type": "descriptive", "meaning": "the righteous"}
+  ]
+}

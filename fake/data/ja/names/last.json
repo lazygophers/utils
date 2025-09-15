@@ -1,0 +1,18 @@
+{
+  "language": "ja",
+  "country": "JP",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "佐藤", "weight": 2.0, "tags": ["geographical"], "origin": "Japanese", "type": "geographical", "meaning": "help wisteria"},
+    {"value": "鈴木", "weight": 1.8, "tags": ["nature"], "origin": "Japanese", "type": "nature", "meaning": "bell tree"},
+    {"value": "高橋", "weight": 1.6, "tags": ["geographical"], "origin": "Japanese", "type": "geographical", "meaning": "high bridge"},
+    {"value": "田中", "weight": 1.4, "tags": ["geographical"], "origin": "Japanese", "type": "geographical", "meaning": "middle of rice field"},
+    {"value": "渡辺", "weight": 1.2, "tags": ["geographical"], "origin": "Japanese", "type": "geographical", "meaning": "cross border"},
+    {"value": "伊藤", "weight": 1.1, "tags": ["geographical"], "origin": "Japanese", "type": "geographical", "meaning": "this wisteria"},
+    {"value": "山本", "weight": 1.0, "tags": ["geographical"], "origin": "Japanese", "type": "geographical", "meaning": "mountain base"},
+    {"value": "中村", "weight": 0.9, "tags": ["geographical"], "origin": "Japanese", "type": "geographical", "meaning": "middle village"},
+    {"value": "小林", "weight": 0.8, "tags": ["geographical"], "origin": "Japanese", "type": "geographical", "meaning": "small forest"},
+    {"value": "加藤", "weight": 0.7, "tags": ["geographical"], "origin": "Japanese", "type": "geographical", "meaning": "add wisteria"}
+  ]
+}

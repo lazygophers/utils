@@ -1,0 +1,18 @@
+{
+  "language": "fr",
+  "country": "FR",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Paris", "weight": 2.0, "tags": ["capital", "major"]},
+    {"value": "Marseille", "weight": 1.8, "tags": ["major", "port"]},
+    {"value": "Lyon", "weight": 1.6, "tags": ["major", "gastronomy"]},
+    {"value": "Toulouse", "weight": 1.4, "tags": ["major", "aerospace"]},
+    {"value": "Nice", "weight": 1.2, "tags": ["coastal", "tourism"]},
+    {"value": "Nantes", "weight": 1.1, "tags": ["major", "western"]},
+    {"value": "Strasbourg", "weight": 1.0, "tags": ["european", "eastern"]},
+    {"value": "Montpellier", "weight": 0.9, "tags": ["university", "southern"]},
+    {"value": "Bordeaux", "weight": 0.8, "tags": ["wine", "major"]},
+    {"value": "Lille", "weight": 0.7, "tags": ["northern", "industrial"]}
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "language": "de",
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "Siemens",
+      "weight": 2.0,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "BMW",
+      "weight": 1.85,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Mercedes",
+      "weight": 1.7,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Volkswagen",
+      "weight": 1.55,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "SAP",
+      "weight": 1.4,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Bayer",
+      "weight": 1.25,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "BASF",
+      "weight": 1.1,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Deutsche Bank",
+      "weight": 0.95,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Allianz",
+      "weight": 0.8,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Adidas",
+      "weight": 0.6500000000000001,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    }
+  ]
+}

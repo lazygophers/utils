@@ -1,0 +1,18 @@
+{
+  "language": "it",
+  "country": "IT",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Giulia", "weight": 2.0, "tags": ["classical", "youthful"], "origin": "Latin", "meaning": "youthful"},
+    {"value": "Francesca", "weight": 1.8, "tags": ["traditional", "french"], "origin": "Latin", "meaning": "from France"},
+    {"value": "Anna", "weight": 1.6, "tags": ["biblical", "grace"], "origin": "Hebrew", "meaning": "grace"},
+    {"value": "Sara", "weight": 1.4, "tags": ["biblical", "princess"], "origin": "Hebrew", "meaning": "princess"},
+    {"value": "Chiara", "weight": 1.2, "tags": ["traditional", "bright"], "origin": "Latin", "meaning": "bright"},
+    {"value": "Alessia", "weight": 1.1, "tags": ["modern", "defender"], "origin": "Greek", "meaning": "defender"},
+    {"value": "Martina", "weight": 1.0, "tags": ["traditional", "war"], "origin": "Latin", "meaning": "warlike"},
+    {"value": "Valentina", "weight": 0.9, "tags": ["traditional", "strong"], "origin": "Latin", "meaning": "strong"},
+    {"value": "Elena", "weight": 0.8, "tags": ["classical", "light"], "origin": "Greek", "meaning": "light"},
+    {"value": "Giorgia", "weight": 0.7, "tags": ["traditional", "farmer"], "origin": "Greek", "meaning": "farmer"}
+  ]
+}

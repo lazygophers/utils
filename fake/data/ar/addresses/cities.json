@@ -1,0 +1,18 @@
+{
+  "language": "ar",
+  "country": "SA",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {"value": "الرياض", "weight": 2.0, "tags": ["capital", "major"], "meta": {"region": "نجد"}},
+    {"value": "جدة", "weight": 1.8, "tags": ["major", "coast"], "meta": {"region": "الحجاز"}},
+    {"value": "مكة المكرمة", "weight": 1.6, "tags": ["holy", "major"], "meta": {"region": "الحجاز"}},
+    {"value": "المدينة المنورة", "weight": 1.4, "tags": ["holy", "major"], "meta": {"region": "الحجاز"}},
+    {"value": "الدمام", "weight": 1.2, "tags": ["major", "east"], "meta": {"region": "الشرقية"}},
+    {"value": "تبوك", "weight": 1.0, "tags": ["north"], "meta": {"region": "تبوك"}},
+    {"value": "أبها", "weight": 0.9, "tags": ["south", "mountain"], "meta": {"region": "عسير"}},
+    {"value": "الطائف", "weight": 0.8, "tags": ["summer", "mountain"], "meta": {"region": "الحجاز"}},
+    {"value": "بريدة", "weight": 0.7, "tags": ["central"], "meta": {"region": "القصيم"}},
+    {"value": "خميس مشيط", "weight": 0.6, "tags": ["south"], "meta": {"region": "عسير"}}
+  ]
+}

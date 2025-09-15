@@ -1,0 +1,18 @@
+{
+  "language": "es",
+  "country": "ES",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Calle Mayor", "weight": 2.0, "tags": ["common", "main"]},
+    {"value": "Gran Vía", "weight": 1.8, "tags": ["major", "commercial"]},
+    {"value": "Calle Real", "weight": 1.6, "tags": ["traditional", "royal"]},
+    {"value": "Plaza Mayor", "weight": 1.4, "tags": ["central", "square"]},
+    {"value": "Avenida de la Constitución", "weight": 1.2, "tags": ["major", "constitutional"]},
+    {"value": "Calle de Alcalá", "weight": 1.1, "tags": ["famous", "madrid"]},
+    {"value": "Paseo de Gracia", "weight": 1.0, "tags": ["elegant", "barcelona"]},
+    {"value": "Calle Serrano", "weight": 0.9, "tags": ["upscale", "shopping"]},
+    {"value": "Rambla", "weight": 0.8, "tags": ["pedestrian", "tourist"]},
+    {"value": "Plaza de España", "weight": 0.7, "tags": ["central", "square"]}
+  ]
+}

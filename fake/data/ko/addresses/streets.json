@@ -1,0 +1,42 @@
+{
+  "language": "ko",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "중앙대로",
+      "weight": 2.0,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "역앞로",
+      "weight": 1.7,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "시청로",
+      "weight": 1.4,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "대학로",
+      "weight": 1.1,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "상가로",
+      "weight": 0.8,
+      "tags": [
+        "common"
+      ]
+    }
+  ]
+}

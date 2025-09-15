@@ -1,0 +1,18 @@
+{
+  "language": "pt",
+  "country": "BR",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Silva", "weight": 2.0, "tags": ["geographical"], "origin": "Portuguese", "type": "geographical", "meaning": "forest"},
+    {"value": "Santos", "weight": 1.8, "tags": ["religious"], "origin": "Portuguese", "type": "religious", "meaning": "saints"},
+    {"value": "Ferreira", "weight": 1.6, "tags": ["occupational"], "origin": "Portuguese", "type": "occupational", "meaning": "blacksmith"},
+    {"value": "Pereira", "weight": 1.4, "tags": ["geographical"], "origin": "Portuguese", "type": "geographical", "meaning": "pear tree"},
+    {"value": "Oliveira", "weight": 1.2, "tags": ["geographical"], "origin": "Portuguese", "type": "geographical", "meaning": "olive tree"},
+    {"value": "Sousa", "weight": 1.1, "tags": ["geographical"], "origin": "Portuguese", "type": "geographical", "meaning": "from Sousa"},
+    {"value": "Costa", "weight": 1.0, "tags": ["geographical"], "origin": "Portuguese", "type": "geographical", "meaning": "coast"},
+    {"value": "Rodrigues", "weight": 0.9, "tags": ["patronymic"], "origin": "Portuguese", "type": "patronymic", "meaning": "son of Rodrigo"},
+    {"value": "Martins", "weight": 0.8, "tags": ["patronymic"], "origin": "Portuguese", "type": "patronymic", "meaning": "son of Martin"},
+    {"value": "Jesus", "weight": 0.7, "tags": ["religious"], "origin": "Portuguese", "type": "religious", "meaning": "savior"}
+  ]
+}

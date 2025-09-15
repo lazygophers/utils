@@ -1,0 +1,18 @@
+{
+  "language": "de",
+  "country": "DE",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Anna", "weight": 2.0, "tags": ["traditional", "biblical"], "origin": "Hebrew", "meaning": "grace"},
+    {"value": "Emma", "weight": 1.8, "tags": ["modern", "popular"], "origin": "Germanic", "meaning": "universal"},
+    {"value": "Mia", "weight": 1.6, "tags": ["modern", "short"], "origin": "Hebrew", "meaning": "bitter"},
+    {"value": "Sophie", "weight": 1.4, "tags": ["traditional", "wisdom"], "origin": "Greek", "meaning": "wisdom"},
+    {"value": "Marie", "weight": 1.4, "tags": ["traditional", "biblical"], "origin": "Hebrew", "meaning": "bitter"},
+    {"value": "Lena", "weight": 1.2, "tags": ["modern", "popular"], "origin": "Greek", "meaning": "light"},
+    {"value": "Laura", "weight": 1.1, "tags": ["classical", "nature"], "origin": "Latin", "meaning": "laurel"},
+    {"value": "Lea", "weight": 1.0, "tags": ["biblical", "modern"], "origin": "Hebrew", "meaning": "weary"},
+    {"value": "Julia", "weight": 0.9, "tags": ["classical", "noble"], "origin": "Latin", "meaning": "youthful"},
+    {"value": "Sarah", "weight": 0.8, "tags": ["biblical", "traditional"], "origin": "Hebrew", "meaning": "princess"}
+  ]
+}

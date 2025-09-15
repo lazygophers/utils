@@ -1,0 +1,18 @@
+{
+  "language": "ja",
+  "country": "JP",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "太郎", "weight": 2.0, "tags": ["traditional", "eldest"], "origin": "Japanese", "meaning": "eldest son"},
+    {"value": "一郎", "weight": 1.8, "tags": ["traditional", "first"], "origin": "Japanese", "meaning": "first son"},
+    {"value": "二郎", "weight": 1.6, "tags": ["traditional", "second"], "origin": "Japanese", "meaning": "second son"},
+    {"value": "健太", "weight": 1.4, "tags": ["modern", "health"], "origin": "Japanese", "meaning": "healthy and thick"},
+    {"value": "翔太", "weight": 1.2, "tags": ["modern", "soar"], "origin": "Japanese", "meaning": "soar and thick"},
+    {"value": "ひろし", "weight": 1.1, "tags": ["traditional", "wide"], "origin": "Japanese", "meaning": "wide"},
+    {"value": "まさき", "weight": 1.0, "tags": ["traditional", "correct"], "origin": "Japanese", "meaning": "correct tree"},
+    {"value": "たくや", "weight": 0.9, "tags": ["modern", "expand"], "origin": "Japanese", "meaning": "expand"},
+    {"value": "ゆうき", "weight": 0.8, "tags": ["modern", "courage"], "origin": "Japanese", "meaning": "courage"},
+    {"value": "りょう", "weight": 0.7, "tags": ["modern", "cool"], "origin": "Japanese", "meaning": "cool"}
+  ]
+}

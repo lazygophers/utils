@@ -1,0 +1,18 @@
+{
+  "language": "ko",
+  "country": "KR",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "김", "weight": 2.0, "tags": ["clan"], "origin": "Korean", "type": "clan", "meaning": "gold"},
+    {"value": "이", "weight": 1.8, "tags": ["clan"], "origin": "Korean", "type": "clan", "meaning": "plum"},
+    {"value": "박", "weight": 1.6, "tags": ["clan"], "origin": "Korean", "type": "clan", "meaning": "gourd"},
+    {"value": "최", "weight": 1.4, "tags": ["clan"], "origin": "Korean", "type": "clan", "meaning": "best"},
+    {"value": "정", "weight": 1.2, "tags": ["clan"], "origin": "Korean", "type": "clan", "meaning": "correct"},
+    {"value": "강", "weight": 1.1, "tags": ["clan"], "origin": "Korean", "type": "clan", "meaning": "river"},
+    {"value": "조", "weight": 1.0, "tags": ["clan"], "origin": "Korean", "type": "clan", "meaning": "assist"},
+    {"value": "윤", "weight": 0.9, "tags": ["clan"], "origin": "Korean", "type": "clan", "meaning": "govern"},
+    {"value": "장", "weight": 0.8, "tags": ["clan"], "origin": "Korean", "type": "clan", "meaning": "long"},
+    {"value": "임", "weight": 0.7, "tags": ["clan"], "origin": "Korean", "type": "clan", "meaning": "forest"}
+  ]
+}

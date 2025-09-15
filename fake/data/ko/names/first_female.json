@@ -1,0 +1,18 @@
+{
+  "language": "ko",
+  "country": "KR",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "영희", "weight": 2.0, "tags": ["traditional", "flower"], "origin": "Korean", "meaning": "flower joy"},
+    {"value": "수진", "weight": 1.8, "tags": ["traditional", "excellence"], "origin": "Korean", "meaning": "excellence truth"},
+    {"value": "은지", "weight": 1.6, "tags": ["modern", "silver"], "origin": "Korean", "meaning": "silver wisdom"},
+    {"value": "지영", "weight": 1.4, "tags": ["modern", "wisdom"], "origin": "Korean", "meaning": "wisdom flower"},
+    {"value": "혜진", "weight": 1.2, "tags": ["traditional", "wisdom"], "origin": "Korean", "meaning": "wisdom truth"},
+    {"value": "미경", "weight": 1.1, "tags": ["traditional", "beauty"], "origin": "Korean", "meaning": "beauty respect"},
+    {"value": "소영", "weight": 1.0, "tags": ["modern", "small"], "origin": "Korean", "meaning": "small flower"},
+    {"value": "정아", "weight": 0.9, "tags": ["traditional", "correct"], "origin": "Korean", "meaning": "correct beautiful"},
+    {"value": "유진", "weight": 0.8, "tags": ["modern", "flow"], "origin": "Korean", "meaning": "flow truth"},
+    {"value": "민지", "weight": 0.7, "tags": ["modern", "people"], "origin": "Korean", "meaning": "people wisdom"}
+  ]
+}

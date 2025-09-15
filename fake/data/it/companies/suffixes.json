@@ -1,0 +1,49 @@
+{
+  "language": "it",
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "S.p.A.",
+      "weight": 3.0,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "S.r.l.",
+      "weight": 2.7,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "S.n.c.",
+      "weight": 2.4,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "S.a.s.",
+      "weight": 2.1,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "Società",
+      "weight": 1.8,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "Gruppo",
+      "weight": 1.5,
+      "tags": [
+        "formal"
+      ]
+    }
+  ]
+}

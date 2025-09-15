@@ -1,0 +1,56 @@
+{
+  "language": "fr",
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "SA",
+      "weight": 3.0,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "SARL",
+      "weight": 2.7,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "SAS",
+      "weight": 2.4,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "SASU",
+      "weight": 2.1,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "SNC",
+      "weight": 1.8,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "Société Anonyme",
+      "weight": 1.5,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "EURL",
+      "weight": 1.2000000000000002,
+      "tags": [
+        "formal"
+      ]
+    }
+  ]
+}

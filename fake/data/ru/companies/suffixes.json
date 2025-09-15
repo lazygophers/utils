@@ -1,0 +1,63 @@
+{
+  "language": "ru",
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "ОАО",
+      "weight": 3.0,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "ЗАО",
+      "weight": 2.7,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "ООО",
+      "weight": 2.4,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "ОДО",
+      "weight": 2.1,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "ИП",
+      "weight": 1.8,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "АО",
+      "weight": 1.5,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "Группа",
+      "weight": 1.2000000000000002,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "Холдинг",
+      "weight": 0.8999999999999999,
+      "tags": [
+        "formal"
+      ]
+    }
+  ]
+}

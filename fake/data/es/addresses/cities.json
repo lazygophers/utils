@@ -1,0 +1,18 @@
+{
+  "language": "es",
+  "country": "ES",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Madrid", "weight": 2.0, "tags": ["capital", "major"]},
+    {"value": "Barcelona", "weight": 1.8, "tags": ["major", "catalonia"]},
+    {"value": "Valencia", "weight": 1.6, "tags": ["major", "coastal"]},
+    {"value": "Sevilla", "weight": 1.4, "tags": ["historical", "andalusia"]},
+    {"value": "Zaragoza", "weight": 1.2, "tags": ["major", "aragon"]},
+    {"value": "Málaga", "weight": 1.1, "tags": ["coastal", "tourism"]},
+    {"value": "Murcia", "weight": 1.0, "tags": ["southeastern"]},
+    {"value": "Palma", "weight": 0.9, "tags": ["island", "tourism"]},
+    {"value": "Las Palmas", "weight": 0.8, "tags": ["canary", "island"]},
+    {"value": "Bilbao", "weight": 0.7, "tags": ["basque", "industrial"]}
+  ]
+}

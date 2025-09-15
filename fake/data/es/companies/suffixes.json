@@ -1,0 +1,49 @@
+{
+  "language": "es",
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "S.A.",
+      "weight": 3.0,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "S.L.",
+      "weight": 2.7,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "S.C.",
+      "weight": 2.4,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "S.A.U.",
+      "weight": 2.1,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "Sociedad Limitada",
+      "weight": 1.8,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "Sociedad Anónima",
+      "weight": 1.5,
+      "tags": [
+        "formal"
+      ]
+    }
+  ]
+}

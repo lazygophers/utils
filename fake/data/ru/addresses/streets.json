@@ -1,0 +1,42 @@
+{
+  "language": "ru",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "Тверская улица",
+      "weight": 2.0,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Невский проспект",
+      "weight": 1.7,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Красная площадь",
+      "weight": 1.4,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Арбат",
+      "weight": 1.1,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "проспект Мира",
+      "weight": 0.8,
+      "tags": [
+        "common"
+      ]
+    }
+  ]
+}

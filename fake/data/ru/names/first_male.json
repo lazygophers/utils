@@ -1,0 +1,18 @@
+{
+  "language": "ru",
+  "country": "RU",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Александр", "weight": 2.0, "tags": ["traditional", "defender"], "origin": "Greek", "meaning": "defender of men"},
+    {"value": "Дмитрий", "weight": 1.8, "tags": ["traditional", "earth"], "origin": "Greek", "meaning": "earth-lover"},
+    {"value": "Максим", "weight": 1.6, "tags": ["traditional", "greatest"], "origin": "Latin", "meaning": "greatest"},
+    {"value": "Сергей", "weight": 1.4, "tags": ["traditional", "servant"], "origin": "Latin", "meaning": "servant"},
+    {"value": "Андрей", "weight": 1.2, "tags": ["biblical", "brave"], "origin": "Greek", "meaning": "brave"},
+    {"value": "Алексей", "weight": 1.1, "tags": ["traditional", "defender"], "origin": "Greek", "meaning": "defender"},
+    {"value": "Артём", "weight": 1.0, "tags": ["modern", "healthy"], "origin": "Greek", "meaning": "healthy"},
+    {"value": "Илья", "weight": 0.9, "tags": ["biblical", "traditional"], "origin": "Hebrew", "meaning": "the Lord is my God"},
+    {"value": "Кирилл", "weight": 0.8, "tags": ["traditional", "lord"], "origin": "Greek", "meaning": "lord"},
+    {"value": "Михаил", "weight": 0.7, "tags": ["biblical", "traditional"], "origin": "Hebrew", "meaning": "who is like God"}
+  ]
+}

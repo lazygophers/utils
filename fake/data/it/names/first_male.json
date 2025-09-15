@@ -1,0 +1,18 @@
+{
+  "language": "it",
+  "country": "IT",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Marco", "weight": 2.0, "tags": ["traditional", "war"], "origin": "Latin", "meaning": "warlike"},
+    {"value": "Alessandro", "weight": 1.8, "tags": ["classical", "defender"], "origin": "Greek", "meaning": "defender of men"},
+    {"value": "Luca", "weight": 1.6, "tags": ["traditional", "light"], "origin": "Latin", "meaning": "light"},
+    {"value": "Matteo", "weight": 1.4, "tags": ["biblical", "gift"], "origin": "Hebrew", "meaning": "gift of God"},
+    {"value": "Andrea", "weight": 1.2, "tags": ["traditional", "brave"], "origin": "Greek", "meaning": "brave"},
+    {"value": "Francesco", "weight": 1.1, "tags": ["religious", "french"], "origin": "Latin", "meaning": "Frenchman"},
+    {"value": "Giuseppe", "weight": 1.0, "tags": ["biblical", "traditional"], "origin": "Hebrew", "meaning": "God increases"},
+    {"value": "Antonio", "weight": 0.9, "tags": ["traditional", "roman"], "origin": "Latin", "meaning": "priceless"},
+    {"value": "Lorenzo", "weight": 0.8, "tags": ["classical", "laurel"], "origin": "Latin", "meaning": "from Laurentum"},
+    {"value": "Giovanni", "weight": 0.7, "tags": ["biblical", "traditional"], "origin": "Hebrew", "meaning": "God is gracious"}
+  ]
+}

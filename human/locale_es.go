@@ -1,4 +1,4 @@
-//go:build human_es || human_all
+//go:build lang_es || lang_all
 
 package human
 
@@ -10,10 +10,10 @@ func init() {
 		ByteUnits:     []string{"B", "KB", "MB", "GB", "TB", "PB"},
 		SpeedUnits:    []string{"B/s", "KB/s", "MB/s", "GB/s", "TB/s", "PB/s"},
 		BitSpeedUnits: []string{"bps", "Kbps", "Mbps", "Gbps", "Tbps", "Pbps"},
-		
+
 		TimeUnits: TimeUnits{
 			Nanosecond:  "ns",
-			Microsecond: "μs", 
+			Microsecond: "μs",
 			Millisecond: "ms",
 			Second:      "segundo",
 			Minute:      "minuto",
@@ -22,7 +22,7 @@ func init() {
 			Week:        "semana",
 			Month:       "mes",
 			Year:        "año",
-			
+
 			// 西班牙语复数形式
 			Seconds: "segundos",
 			Minutes: "minutos",
@@ -32,17 +32,17 @@ func init() {
 			Months:  "meses",
 			Years:   "años",
 		},
-		
+
 		RelativeTime: RelativeTimeStrings{
-			JustNow:      "ahora mismo",
-			SecondsAgo:   "hace %d segundos",
-			MinutesAgo:   "hace %d minutos",
-			HoursAgo:     "hace %d horas",
-			DaysAgo:      "hace %d días",
-			WeeksAgo:     "hace %d semanas",
-			MonthsAgo:    "hace %d meses",
-			YearsAgo:     "hace %d años",
-			
+			JustNow:    "ahora mismo",
+			SecondsAgo: "hace %d segundos",
+			MinutesAgo: "hace %d minutos",
+			HoursAgo:   "hace %d horas",
+			DaysAgo:    "hace %d días",
+			WeeksAgo:   "hace %d semanas",
+			MonthsAgo:  "hace %d meses",
+			YearsAgo:   "hace %d años",
+
 			In:           "en",
 			SecondsLater: "en %d segundos",
 			MinutesLater: "en %d minutos",
@@ -52,13 +52,13 @@ func init() {
 			MonthsLater:  "en %d meses",
 			YearsLater:   "en %d años",
 		},
-		
+
 		NumberFormat: NumberFormat{
 			DecimalSeparator:  ",",
 			ThousandSeparator: ".",
 			LargeNumberUnits:  []string{"mil", "millón", "mil millones", "billón"},
 		},
-		
+
 		Common: CommonStrings{
 			And: "y",
 			Or:  "o",

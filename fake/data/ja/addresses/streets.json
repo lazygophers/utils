@@ -1,0 +1,42 @@
+{
+  "language": "ja",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "中央通り",
+      "weight": 2.0,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "駅前通り",
+      "weight": 1.7,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "本町",
+      "weight": 1.4,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "大通り",
+      "weight": 1.1,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "商店街",
+      "weight": 0.8,
+      "tags": [
+        "common"
+      ]
+    }
+  ]
+}

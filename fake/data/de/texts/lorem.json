@@ -1,0 +1,67 @@
+{
+  "language": "de",
+  "type": "texts",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "text",
+      "weight": 1.0
+    },
+    {
+      "value": "wort",
+      "weight": 0.95
+    },
+    {
+      "value": "satz",
+      "weight": 0.9
+    },
+    {
+      "value": "absatz",
+      "weight": 0.85
+    },
+    {
+      "value": "artikel",
+      "weight": 0.8
+    },
+    {
+      "value": "bericht",
+      "weight": 0.75
+    },
+    {
+      "value": "studie",
+      "weight": 0.7
+    },
+    {
+      "value": "forschung",
+      "weight": 0.6499999999999999
+    },
+    {
+      "value": "analyse",
+      "weight": 0.6
+    },
+    {
+      "value": "inhalt",
+      "weight": 0.55
+    },
+    {
+      "value": "thema",
+      "weight": 0.5
+    },
+    {
+      "value": "begriff",
+      "weight": 0.44999999999999996
+    },
+    {
+      "value": "bedeutung",
+      "weight": 0.3999999999999999
+    },
+    {
+      "value": "sprache",
+      "weight": 0.35
+    },
+    {
+      "value": "literatur",
+      "weight": 0.29999999999999993
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-//go:build fake_ru
+//go:build lang_ru || lang_all
 
 package fake
 

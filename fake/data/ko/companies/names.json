@@ -1,0 +1,107 @@
+{
+  "language": "ko",
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "삼성",
+      "weight": 2.0,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "현대",
+      "weight": 1.85,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "LG",
+      "weight": 1.7,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "SK",
+      "weight": 1.55,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "롯데",
+      "weight": 1.4,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "포스코",
+      "weight": 1.25,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "한화",
+      "weight": 1.1,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "두산",
+      "weight": 0.95,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "GS",
+      "weight": 0.8,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "신세계",
+      "weight": 0.6500000000000001,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    }
+  ]
+}
