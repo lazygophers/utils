@@ -4,7 +4,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -79,7 +78,7 @@ func TestFieldNameWithoutJSON(t *testing.T) {
 // TestGlobalFunctionsExtra 测试全局函数覆盖率
 func TestGlobalFunctionsExtra(t *testing.T) {
 	// 测试全局 RegisterValidation
-	err := RegisterValidation("test_global", func(fl validator.FieldLevel) bool {
+	err := RegisterValidation("test_global", func(fl FieldLevel) bool {
 		return true
 	})
 	assert.NoError(t, err)
