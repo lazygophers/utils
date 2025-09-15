@@ -1,6 +1,7 @@
 package wtinylfu
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -496,5 +497,298 @@ func BenchmarkMixed(b *testing.B) {
 		} else {
 			cache.Get(i % 1000)
 		}
+	}
+}
+
+func TestGetMissScenarios(t *testing.T) {
+	cache := New[string, int](10)
+	
+	// Test Get on empty cache
+	_, ok := cache.Get("nonexistent")
+	if ok {
+		t.Error("Expected false for non-existent key in empty cache")
+	}
+	
+	// Add item and test Get miss
+	cache.Put("a", 1)
+	_, ok = cache.Get("missing")
+	if ok {
+		t.Error("Expected false for non-existent key")
+	}
+}
+
+func TestPeekMissScenarios(t *testing.T) {
+	cache := New[string, int](10)
+	
+	// Test Peek on empty cache
+	_, ok := cache.Peek("nonexistent")
+	if ok {
+		t.Error("Expected false for non-existent key in empty cache")
+	}
+	
+	// Add item and test Peek miss
+	cache.Put("a", 1)
+	_, ok = cache.Peek("missing")
+	if ok {
+		t.Error("Expected false for non-existent key")
+	}
+}
+
+func TestKeysValuesWithEmptySegments(t *testing.T) {
+	cache := New[string, int](10)
+	
+	// Test with empty cache
+	keys := cache.Keys()
+	if len(keys) != 0 {
+		t.Errorf("Expected 0 keys in empty cache, got %d", len(keys))
+	}
+	
+	values := cache.Values()
+	if len(values) != 0 {
+		t.Errorf("Expected 0 values in empty cache, got %d", len(values))
+	}
+	
+	// Fill only window (capacity 1 out of 10)
+	cache.Put("a", 1)
+	
+	keys = cache.Keys()
+	if len(keys) != 1 {
+		t.Errorf("Expected 1 key, got %d", len(keys))
+	}
+	
+	values = cache.Values()
+	if len(values) != 1 {
+		t.Errorf("Expected 1 value, got %d", len(values))
+	}
+}
+
+func TestEvictFromProtectedScenario(t *testing.T) {
+	// Create a very small cache to force protected eviction
+	cache := New[string, int](4) // Window=0 (1 item), Main=4 (Probation=1, Protected=3)
+	
+	// Fill the cache to trigger complex eviction scenarios
+	for i := 0; i < 8; i++ {
+		key := string(rune('a' + i))
+		cache.Put(key, i)
+		
+		// Access some items multiple times to build frequency and move to protected
+		if i < 4 {
+			for j := 0; j < 3; j++ {
+				cache.Get(key)
+			}
+		}
+	}
+	
+	stats := cache.Stats()
+	t.Logf("After complex scenario: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
+	
+	// Force more evictions to potentially trigger evictFromProtected
+	for i := 8; i < 16; i++ {
+		key := string(rune('a' + i))
+		cache.Put(key, i)
+	}
+	
+	// Verify cache is still functional
+	if cache.Len() > cache.Cap() {
+		t.Errorf("Cache size %d exceeds capacity %d", cache.Len(), cache.Cap())
+	}
+}
+
+func TestDemoteFromProtectedScenario(t *testing.T) {
+	// Create cache with specific sizing to trigger demotion
+	cache := New[string, int](6) // Window=1 (1 item), Main=5 (Probation=1, Protected=4)
+	
+	// Build up protected segment
+	protectedItems := []string{"p1", "p2", "p3", "p4"}
+	for _, key := range protectedItems {
+		cache.Put(key, 1)
+		// Access multiple times to promote to protected
+		for j := 0; j < 5; j++ {
+			cache.Get(key)
+		}
+	}
+	
+	stats := cache.Stats()
+	t.Logf("Before demotion test: Protected=%d, Probation=%d, Window=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize)
+	
+	// Try to trigger demotion by forcing more items into protected
+	moreItems := []string{"new1", "new2", "new3"}
+	for _, key := range moreItems {
+		cache.Put(key, 2)
+		// Access to try to promote
+		for j := 0; j < 10; j++ {
+			cache.Get(key)
+		}
+	}
+	
+	stats = cache.Stats()
+	t.Logf("After demotion test: Protected=%d, Probation=%d, Window=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize)
+	
+	// Verify cache integrity
+	if cache.Len() > cache.Cap() {
+		t.Errorf("Cache size %d exceeds capacity %d", cache.Len(), cache.Cap())
+	}
+}
+
+func TestResizeWithProtectedEviction(t *testing.T) {
+	cache := New[string, int](10)
+	
+	// Fill cache and build up protected segment
+	for i := 0; i < 10; i++ {
+		key := string(rune('a' + i))
+		cache.Put(key, i)
+		// Build frequency for some items
+		if i < 5 {
+			for j := 0; j < 5; j++ {
+				cache.Get(key)
+			}
+		}
+	}
+	
+	stats := cache.Stats()
+	t.Logf("Before resize: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
+	
+	// Resize to force evictions from protected segment
+	cache.Resize(3)
+	
+	stats = cache.Stats()
+	t.Logf("After resize to 3: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
+	
+	if cache.Cap() != 3 {
+		t.Errorf("Expected capacity 3, got %d", cache.Cap())
+	}
+	
+	if cache.Len() > 3 {
+		t.Errorf("Cache size %d exceeds new capacity 3", cache.Len())
+	}
+}
+
+func TestComplexEvictionChain(t *testing.T) {
+	// Create cache with minimal capacity to force edge case evictions
+	cache := New[string, int](5) // Window=1, Main=4 (Probation=1, Protected=3)
+	
+	// Create scenario where probation is empty but protected has items
+	// This should trigger evictFromProtected when probation segment is requested
+	
+	// Fill and promote items to protected
+	protectedKeys := []string{"p1", "p2", "p3"}
+	for _, key := range protectedKeys {
+		cache.Put(key, 1)
+		// Heavy access to ensure promotion to protected
+		for j := 0; j < 10; j++ {
+			cache.Get(key)
+		}
+	}
+	
+	// Fill remaining capacity
+	cache.Put("w1", 2) // Should go to window
+	cache.Put("pr1", 3) // Should go to probation if space
+	
+	stats := cache.Stats()
+	t.Logf("After setup: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
+	
+	// Now force eviction when probation is empty
+	// This should trigger the evictFromProtected path
+	for i := 0; i < 5; i++ {
+		key := fmt.Sprintf("force%d", i)
+		cache.Put(key, i+10)
+	}
+	
+	stats = cache.Stats()
+	t.Logf("After forced evictions: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
+	
+	// Verify cache integrity
+	if cache.Len() > cache.Cap() {
+		t.Errorf("Cache size %d exceeds capacity %d", cache.Len(), cache.Cap())
+	}
+}
+
+func TestDemoteFromProtectedEdgeCase(t *testing.T) {
+	cache := New[string, int](8) // Window=1, Main=7 (Probation=2, Protected=5)
+	
+	// Fill protected to capacity
+	for i := 0; i < 5; i++ {
+		key := fmt.Sprintf("prot%d", i)
+		cache.Put(key, i)
+		// Access multiple times to promote to protected
+		for j := 0; j < 8; j++ {
+			cache.Get(key)
+		}
+	}
+	
+	// Add some probation items  
+	cache.Put("prob1", 10)
+	cache.Put("prob2", 11)
+	
+	// Add window item
+	cache.Put("win1", 12)
+	
+	stats := cache.Stats()
+	t.Logf("Setup complete: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
+	
+	// Now try to promote something from probation when protected is full
+	// This should trigger demotion from protected
+	cache.Get("prob1") // Access probation item multiple times
+	for i := 0; i < 10; i++ {
+		cache.Get("prob1")
+	}
+	
+	stats = cache.Stats()
+	t.Logf("After promoting prob1: Protected=%d, Probation=%d, Window=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize)
+	
+	// Verify cache integrity
+	if cache.Len() > cache.Cap() {
+		t.Errorf("Cache size %d exceeds capacity %d", cache.Len(), cache.Cap())
+	}
+}
+
+func TestResizeDownToMinimal(t *testing.T) {
+	cache := New[string, int](10)
+	
+	// Fill cache
+	for i := 0; i < 10; i++ {
+		key := fmt.Sprintf("item%d", i)
+		cache.Put(key, i)
+		if i < 5 {
+			// Make some items frequent
+			for j := 0; j < 5; j++ {
+				cache.Get(key)
+			}
+		}
+	}
+	
+	// Resize down to force evictions from all segments
+	cache.Resize(2)
+	
+	stats := cache.Stats()
+	t.Logf("After resize to 2: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
+	
+	if cache.Cap() != 2 {
+		t.Errorf("Expected capacity 2, got %d", cache.Cap())
+	}
+	
+	if cache.Len() > 2 {
+		t.Errorf("Cache size %d exceeds capacity 2", cache.Len())
+	}
+	
+	// Resize to 1 to force even more extreme eviction
+	cache.Resize(1)
+	
+	if cache.Cap() != 1 {
+		t.Errorf("Expected capacity 1, got %d", cache.Cap())
+	}
+	
+	if cache.Len() > 1 {
+		t.Errorf("Cache size %d exceeds capacity 1", cache.Len())
 	}
 }

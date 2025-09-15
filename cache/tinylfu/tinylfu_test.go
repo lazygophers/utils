@@ -923,3 +923,153 @@ func TestComplexEvictionScenarios(t *testing.T) {
 		t.Errorf("Stats don't match actual cache size: stats=%d, len=%d", totalItems, cache.Len())
 	}
 }
+
+func TestValuesWithEmptySegments(t *testing.T) {
+	cache := New[string, int](10)
+	
+	// Test empty cache
+	values := cache.Values()
+	if len(values) != 0 {
+		t.Errorf("Expected 0 values in empty cache, got %d", len(values))
+	}
+	
+	// Add items to test different segment scenarios  
+	cache.Put("a", 1)
+	
+	values = cache.Values()
+	if len(values) < 1 {
+		t.Errorf("Expected at least 1 value, got %d", len(values))
+	}
+}
+
+func TestItemsWithEmptySegments(t *testing.T) {
+	cache := New[string, int](10)
+	
+	// Test empty cache
+	items := cache.Items()
+	if len(items) != 0 {
+		t.Errorf("Expected 0 items in empty cache, got %d", len(items))
+	}
+	
+	// Add item to test functionality
+	cache.Put("a", 1) 
+	
+	items = cache.Items()
+	if len(items) < 1 {
+		t.Errorf("Expected at least 1 item, got %d", len(items))
+	}
+	
+	if value, exists := items["a"]; exists && value != 1 {
+		t.Errorf("Expected items[a] = 1, got %d", value)
+	}
+}
+
+func TestEvictFromProtectedResize(t *testing.T) {
+	// Create small cache to force protected segment eviction
+	cache := New[string, int](8) // Window=1, Main=7 (Probation=2, Protected=5)
+	
+	// Fill protected segment to capacity
+	protectedKeys := []string{"p1", "p2", "p3", "p4", "p5"}
+	for _, key := range protectedKeys {
+		cache.Put(key, 1)
+		// Heavy access to ensure promotion to protected
+		for j := 0; j < 10; j++ {
+			cache.Get(key)
+		}
+	}
+	
+	// Now resize to force eviction from protected when probation is empty
+	cache.Resize(4) // This should force eviction from protected
+	
+	stats := cache.Stats()
+	t.Logf("After resize to force protected eviction: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
+	
+	if cache.Cap() != 4 {
+		t.Errorf("Expected capacity 4, got %d", cache.Cap())
+	}
+	
+	if cache.Len() > 4 {
+		t.Errorf("Cache size %d exceeds capacity 4", cache.Len())
+	}
+}
+
+func TestDemoteFromProtectedPromotion(t *testing.T) {
+	// Create cache that will trigger demotion
+	cache := New[string, int](10) // Window=1, Main=9 (Probation=2, Protected=7)
+	
+	// Fill protected segment to capacity
+	for i := 0; i < 7; i++ {
+		key := fmt.Sprintf("protected%d", i)
+		cache.Put(key, i)
+		// Heavy access to promote to protected
+		for j := 0; j < 8; j++ {
+			cache.Get(key)
+		}
+	}
+	
+	// Add probation items
+	cache.Put("prob1", 100)
+	cache.Put("prob2", 101)
+	
+	stats := cache.Stats()
+	t.Logf("Before demotion: Protected=%d, Probation=%d, Window=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize)
+	
+	// Now try to promote a probation item when protected is full
+	// This should trigger demotion from protected
+	for i := 0; i < 15; i++ {
+		cache.Get("prob1") // Heavy access to probation item
+	}
+	
+	stats = cache.Stats()
+	t.Logf("After heavy access to prob1: Protected=%d, Probation=%d, Window=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize)
+	
+	// Verify cache integrity
+	if cache.Len() > cache.Cap() {
+		t.Errorf("Cache size %d exceeds capacity %d", cache.Len(), cache.Cap())
+	}
+}
+
+func TestResizeEvictionCoverage(t *testing.T) {
+	cache := New[string, int](15)
+	
+	// Fill cache with mixed frequency items
+	for i := 0; i < 20; i++ {
+		key := fmt.Sprintf("item%d", i)
+		cache.Put(key, i)
+		
+		if i < 8 {
+			// High frequency - should end up in protected
+			for j := 0; j < 6; j++ {
+				cache.Get(key)
+			}
+		} else if i < 14 {
+			// Medium frequency - probation
+			for j := 0; j < 2; j++ {
+				cache.Get(key)
+			}
+		}
+		// Low frequency items remain in window or get evicted
+	}
+	
+	stats := cache.Stats()
+	t.Logf("Before resize: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
+	
+	// Resize to trigger different eviction paths
+	cache.Resize(5)
+	
+	stats = cache.Stats()
+	t.Logf("After resize to 5: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
+	
+	if cache.Cap() != 5 {
+		t.Errorf("Expected capacity 5, got %d", cache.Cap())
+	}
+	
+	if cache.Len() > 5 {
+		t.Errorf("Cache size %d exceeds capacity 5", cache.Len())
+	}
+}

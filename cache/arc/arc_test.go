@@ -648,6 +648,91 @@ func BenchmarkGet(b *testing.B) {
 	}
 }
 
+func TestValuesWithEmptyT2(t *testing.T) {
+	cache := New[string, int](5)
+	
+	// Test empty cache
+	values := cache.Values()
+	if len(values) != 0 {
+		t.Errorf("Expected 0 values in empty cache, got %d", len(values))
+	}
+	
+	// Add items only to T1 by not accessing them after initial put
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	
+	values = cache.Values()
+	expectedCount := 2
+	if len(values) != expectedCount {
+		t.Errorf("Expected %d values, got %d", expectedCount, len(values))
+	}
+	
+	// Verify values content
+	valueMap := make(map[int]bool)
+	for _, v := range values {
+		valueMap[v] = true
+	}
+	
+	if !valueMap[1] || !valueMap[2] {
+		t.Errorf("Expected values to contain 1 and 2")
+	}
+}
+
+func TestItemsWithEmptyT2(t *testing.T) {
+	cache := New[string, int](5)
+	
+	// Test empty cache
+	items := cache.Items()
+	if len(items) != 0 {
+		t.Errorf("Expected 0 items in empty cache, got %d", len(items))
+	}
+	
+	// Add items only to T1
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	
+	items = cache.Items()
+	expectedCount := 2
+	if len(items) != expectedCount {
+		t.Errorf("Expected %d items, got %d", expectedCount, len(items))
+	}
+	
+	// Verify items content
+	expectedItems := map[string]int{"a": 1, "b": 2}
+	for key, expectedValue := range expectedItems {
+		if value, exists := items[key]; !exists || value != expectedValue {
+			t.Errorf("Expected items[%s] = %d, got %d, exists=%t", key, expectedValue, value, exists)
+		}
+	}
+}
+
+func TestMaintainGhostListsEdgeCase(t *testing.T) {
+	cache := New[string, int](2)
+	
+	// Fill cache to create ghost entries
+	cache.Put("a", 1) // T1
+	cache.Put("b", 2) // T1
+	cache.Put("c", 3) // T1, evicts "a" to B1
+	cache.Put("d", 4) // T1, evicts "b" to B1
+	
+	// Now we should have B1 with 2 entries and need to trigger ghost list maintenance
+	// Add more entries to exceed ghost list capacity
+	cache.Put("e", 5) // T1, should evict "c" to B1, triggering B1 maintenance
+	cache.Put("f", 6) // T1, should evict "d" to B1, triggering B1 maintenance
+	
+	stats := cache.Stats()
+	t.Logf("After ghost maintenance: B1Size=%d, B2Size=%d", stats.B1Size, stats.B2Size)
+	
+	// Ghost lists should be maintained within reasonable bounds
+	maxGhostSize := cache.Cap() * 2 // Typical ARC constraint
+	if stats.B1Size > maxGhostSize {
+		t.Errorf("B1 size %d exceeds max ghost size %d", stats.B1Size, maxGhostSize)
+	}
+	if stats.B2Size > maxGhostSize {
+		t.Errorf("B2 size %d exceeds max ghost size %d", stats.B2Size, maxGhostSize)
+	}
+}
+
 func BenchmarkPutGet(b *testing.B) {
 	cache := New[int, int](1000)
 	
