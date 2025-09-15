@@ -1,0 +1,18 @@
+{
+  "language": "zh",
+  "country": "TW", 
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {"value": "有限公司", "weight": 3.0, "tags": ["common", "limited"]},
+    {"value": "股份有限公司", "weight": 2.5, "tags": ["common", "corporation"]},
+    {"value": "集團", "weight": 2.0, "tags": ["large", "group"]},
+    {"value": "控股", "weight": 1.8, "tags": ["holding", "investment"]},
+    {"value": "科技", "weight": 1.6, "tags": ["technology", "modern"]},
+    {"value": "實業", "weight": 1.4, "tags": ["industrial", "manufacturing"]},
+    {"value": "貿易", "weight": 1.2, "tags": ["trading", "commerce"]},
+    {"value": "投資", "weight": 1.0, "tags": ["investment", "financial"]},
+    {"value": "發展", "weight": 0.9, "tags": ["development", "growth"]},
+    {"value": "建設", "weight": 0.8, "tags": ["construction", "infrastructure"]}
+  ]
+}

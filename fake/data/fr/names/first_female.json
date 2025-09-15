@@ -1,0 +1,18 @@
+{
+  "language": "fr",
+  "country": "FR",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Marie", "weight": 2.0, "tags": ["traditional", "biblical"], "origin": "French", "meaning": "bitter"},
+    {"value": "Françoise", "weight": 1.8, "tags": ["traditional", "french"], "origin": "French", "meaning": "from France"},
+    {"value": "Monique", "weight": 1.6, "tags": ["traditional", "advisor"], "origin": "French", "meaning": "advisor"},
+    {"value": "Catherine", "weight": 1.4, "tags": ["traditional", "pure"], "origin": "French", "meaning": "pure"},
+    {"value": "Nathalie", "weight": 1.2, "tags": ["modern", "birth"], "origin": "French", "meaning": "birthday"},
+    {"value": "Isabelle", "weight": 1.1, "tags": ["traditional", "oath"], "origin": "French", "meaning": "God is my oath"},
+    {"value": "Sylvie", "weight": 1.0, "tags": ["modern", "forest"], "origin": "French", "meaning": "from the forest"},
+    {"value": "Martine", "weight": 0.9, "tags": ["traditional", "war"], "origin": "French", "meaning": "warlike"},
+    {"value": "Nicole", "weight": 0.8, "tags": ["modern", "victory"], "origin": "French", "meaning": "victory of the people"},
+    {"value": "Brigitte", "weight": 0.7, "tags": ["traditional", "strength"], "origin": "French", "meaning": "strength"}
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "language": "ru",
+  "country": "RU",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Анна", "weight": 2.0, "tags": ["biblical", "grace"], "origin": "Hebrew", "meaning": "grace"},
+    {"value": "Мария", "weight": 1.8, "tags": ["biblical", "bitter"], "origin": "Hebrew", "meaning": "bitter"},
+    {"value": "Елена", "weight": 1.6, "tags": ["classical", "light"], "origin": "Greek", "meaning": "light"},
+    {"value": "Ольга", "weight": 1.4, "tags": ["traditional", "holy"], "origin": "Old Norse", "meaning": "holy"},
+    {"value": "Татьяна", "weight": 1.2, "tags": ["traditional", "father"], "origin": "Latin", "meaning": "father"},
+    {"value": "Наталья", "weight": 1.1, "tags": ["traditional", "birth"], "origin": "Latin", "meaning": "birthday"},
+    {"value": "Ирина", "weight": 1.0, "tags": ["traditional", "peace"], "origin": "Greek", "meaning": "peace"},
+    {"value": "Светлана", "weight": 0.9, "tags": ["traditional", "light"], "origin": "Slavic", "meaning": "light"},
+    {"value": "Екатерина", "weight": 0.8, "tags": ["traditional", "pure"], "origin": "Greek", "meaning": "pure"},
+    {"value": "Юлия", "weight": 0.7, "tags": ["classical", "youthful"], "origin": "Latin", "meaning": "youthful"}
+  ]
+}

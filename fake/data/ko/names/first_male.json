@@ -1,0 +1,18 @@
+{
+  "language": "ko",
+  "country": "KR",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "민수", "weight": 2.0, "tags": ["traditional", "people"], "origin": "Korean", "meaning": "people's excellence"},
+    {"value": "철수", "weight": 1.8, "tags": ["traditional", "iron"], "origin": "Korean", "meaning": "iron excellence"},
+    {"value": "지훈", "weight": 1.6, "tags": ["modern", "wisdom"], "origin": "Korean", "meaning": "wisdom instruction"},
+    {"value": "현우", "weight": 1.4, "tags": ["modern", "virtuous"], "origin": "Korean", "meaning": "virtuous friend"},
+    {"value": "태현", "weight": 1.2, "tags": ["traditional", "great"], "origin": "Korean", "meaning": "great virtue"},
+    {"value": "준호", "weight": 1.1, "tags": ["modern", "standard"], "origin": "Korean", "meaning": "standard goodness"},
+    {"value": "성민", "weight": 1.0, "tags": ["traditional", "accomplish"], "origin": "Korean", "meaning": "accomplish people"},
+    {"value": "동현", "weight": 0.9, "tags": ["traditional", "east"], "origin": "Korean", "meaning": "east virtue"},
+    {"value": "상훈", "weight": 0.8, "tags": ["traditional", "reward"], "origin": "Korean", "meaning": "reward instruction"},
+    {"value": "정우", "weight": 0.7, "tags": ["traditional", "correct"], "origin": "Korean", "meaning": "correct friend"}
+  ]
+}

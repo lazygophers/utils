@@ -1,0 +1,107 @@
+{
+  "language": "ru",
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "Газпром",
+      "weight": 2.0,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Лукойл",
+      "weight": 1.85,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Роснефть",
+      "weight": 1.7,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Сбербанк",
+      "weight": 1.55,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Яндекс",
+      "weight": 1.4,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "МТС",
+      "weight": 1.25,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Вымпелком",
+      "weight": 1.1,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Норникель",
+      "weight": 0.95,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Магнит",
+      "weight": 0.8,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Тинькофф",
+      "weight": 0.6500000000000001,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    }
+  ]
+}

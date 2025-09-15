@@ -1,0 +1,18 @@
+{
+  "language": "de",
+  "country": "DE",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Berlin", "weight": 2.0, "tags": ["capital", "major"], "meta": {"state": "Berlin"}},
+    {"value": "Hamburg", "weight": 1.8, "tags": ["major", "port"], "meta": {"state": "Hamburg"}},
+    {"value": "München", "weight": 1.6, "tags": ["major", "bavarian"], "meta": {"state": "Bayern"}},
+    {"value": "Köln", "weight": 1.4, "tags": ["major", "rhine"], "meta": {"state": "Nordrhein-Westfalen"}},
+    {"value": "Frankfurt am Main", "weight": 1.2, "tags": ["major", "financial"], "meta": {"state": "Hessen"}},
+    {"value": "Stuttgart", "weight": 1.1, "tags": ["major", "automotive"], "meta": {"state": "Baden-Württemberg"}},
+    {"value": "Düsseldorf", "weight": 1.0, "tags": ["major", "business"], "meta": {"state": "Nordrhein-Westfalen"}},
+    {"value": "Dortmund", "weight": 0.9, "tags": ["major", "ruhr"], "meta": {"state": "Nordrhein-Westfalen"}},
+    {"value": "Essen", "weight": 0.8, "tags": ["major", "industrial"], "meta": {"state": "Nordrhein-Westfalen"}},
+    {"value": "Leipzig", "weight": 0.7, "tags": ["major", "eastern"], "meta": {"state": "Sachsen"}}
+  ]
+}

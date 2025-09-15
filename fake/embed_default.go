@@ -1,4 +1,4 @@
-//go:build !lang_en && !lang_zh_cn && !lang_zh_tw && !lang_fr && !lang_ru && !lang_pt && !lang_es && !lang_all
+//go:build !lang_en && !lang_zh_cn && !lang_zh_tw && !lang_fr && !lang_ru && !lang_pt && !lang_es && !lang_ar && !lang_ja && !lang_ko && !lang_it && !lang_de && !lang_all
 
 package fake
 

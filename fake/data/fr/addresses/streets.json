@@ -1,0 +1,18 @@
+{
+  "language": "fr",
+  "country": "FR",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Rue de la Paix", "weight": 2.0, "tags": ["famous", "upscale"]},
+    {"value": "Avenue des Champs-Élysées", "weight": 1.8, "tags": ["famous", "tourist"]},
+    {"value": "Rue Saint-Honoré", "weight": 1.6, "tags": ["commercial", "fashion"]},
+    {"value": "Boulevard Saint-Germain", "weight": 1.4, "tags": ["cultural", "major"]},
+    {"value": "Rue de Rivoli", "weight": 1.2, "tags": ["central", "shopping"]},
+    {"value": "Avenue Montaigne", "weight": 1.1, "tags": ["luxury", "fashion"]},
+    {"value": "Rue du Faubourg Saint-Antoine", "weight": 1.0, "tags": ["artisan", "historical"]},
+    {"value": "Boulevard Haussmann", "weight": 0.9, "tags": ["shopping", "major"]},
+    {"value": "Rue de la République", "weight": 0.8, "tags": ["common", "central"]},
+    {"value": "Avenue Victor Hugo", "weight": 0.7, "tags": ["residential", "prestigious"]}
+  ]
+}

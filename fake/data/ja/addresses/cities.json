@@ -1,0 +1,77 @@
+{
+  "language": "ja",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "東京",
+      "weight": 2.0,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "大阪",
+      "weight": 1.8,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "横浜",
+      "weight": 1.6,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "名古屋",
+      "weight": 1.4,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "札幌",
+      "weight": 1.2,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "神戸",
+      "weight": 1.0,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "京都",
+      "weight": 0.7999999999999998,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "福岡",
+      "weight": 0.5999999999999999,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "仙台",
+      "weight": 0.5,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "千葉",
+      "weight": 0.5,
+      "tags": [
+        "medium"
+      ]
+    }
+  ]
+}

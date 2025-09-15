@@ -1,0 +1,18 @@
+{
+  "language": "ar",
+  "country": "SA",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "محمد", "weight": 2.0, "tags": ["islamic", "traditional"], "origin": "Arabic", "meaning": "praised"},
+    {"value": "أحمد", "weight": 1.8, "tags": ["islamic", "traditional"], "origin": "Arabic", "meaning": "most praised"},
+    {"value": "علي", "weight": 1.6, "tags": ["islamic", "noble"], "origin": "Arabic", "meaning": "elevated"},
+    {"value": "حسن", "weight": 1.4, "tags": ["islamic", "virtue"], "origin": "Arabic", "meaning": "good"},
+    {"value": "عمر", "weight": 1.4, "tags": ["islamic", "traditional"], "origin": "Arabic", "meaning": "flourishing"},
+    {"value": "خالد", "weight": 1.2, "tags": ["traditional", "strong"], "origin": "Arabic", "meaning": "eternal"},
+    {"value": "يوسف", "weight": 1.2, "tags": ["biblical", "traditional"], "origin": "Arabic", "meaning": "God increases"},
+    {"value": "إبراهيم", "weight": 1.1, "tags": ["biblical", "traditional"], "origin": "Arabic", "meaning": "father of many"},
+    {"value": "عبدالله", "weight": 1.0, "tags": ["islamic", "religious"], "origin": "Arabic", "meaning": "servant of God"},
+    {"value": "عبدالرحمن", "weight": 0.9, "tags": ["islamic", "religious"], "origin": "Arabic", "meaning": "servant of the merciful"}
+  ]
+}

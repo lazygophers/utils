@@ -1,0 +1,77 @@
+{
+  "language": "ru",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "Москва",
+      "weight": 2.0,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "Санкт-Петербург",
+      "weight": 1.8,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "Новосибирск",
+      "weight": 1.6,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "Екатеринбург",
+      "weight": 1.4,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Казань",
+      "weight": 1.2,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Нижний Новгород",
+      "weight": 1.0,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Челябинск",
+      "weight": 0.7999999999999998,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Самара",
+      "weight": 0.5999999999999999,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Омск",
+      "weight": 0.5,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Ростов-на-Дону",
+      "weight": 0.5,
+      "tags": [
+        "medium"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "language": "it",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "Via Roma",
+      "weight": 2.0,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Corso Italia",
+      "weight": 1.7,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Via Nazionale",
+      "weight": 1.4,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Piazza del Duomo",
+      "weight": 1.1,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Via Garibaldi",
+      "weight": 0.8,
+      "tags": [
+        "common"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "language": "ko",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "서울",
+      "weight": 2.0,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "부산",
+      "weight": 1.8,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "대구",
+      "weight": 1.6,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "인천",
+      "weight": 1.4,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "광주",
+      "weight": 1.2,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "대전",
+      "weight": 1.0,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "울산",
+      "weight": 0.7999999999999998,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "창원",
+      "weight": 0.5999999999999999,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "고양",
+      "weight": 0.5,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "용인",
+      "weight": 0.5,
+      "tags": [
+        "medium"
+      ]
+    }
+  ]
+}

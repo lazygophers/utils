@@ -1,0 +1,107 @@
+{
+  "language": "pt",
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "Petrobras",
+      "weight": 2.0,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Vale",
+      "weight": 1.85,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Itaú",
+      "weight": 1.7,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Bradesco",
+      "weight": 1.55,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "JBS",
+      "weight": 1.4,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Embraer",
+      "weight": 1.25,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Gerdau",
+      "weight": 1.1,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Ambev",
+      "weight": 0.95,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Natura",
+      "weight": 0.8,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Magazine Luiza",
+      "weight": 0.6500000000000001,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    }
+  ]
+}

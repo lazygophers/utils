@@ -1,0 +1,18 @@
+{
+  "language": "ar",
+  "country": "SA",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "فاطمة", "weight": 2.0, "tags": ["islamic", "traditional"], "origin": "Arabic", "meaning": "captivating"},
+    {"value": "عائشة", "weight": 1.8, "tags": ["islamic", "traditional"], "origin": "Arabic", "meaning": "alive"},
+    {"value": "خديجة", "weight": 1.6, "tags": ["islamic", "traditional"], "origin": "Arabic", "meaning": "premature child"},
+    {"value": "زينب", "weight": 1.4, "tags": ["islamic", "beautiful"], "origin": "Arabic", "meaning": "father's precious jewel"},
+    {"value": "مريم", "weight": 1.4, "tags": ["biblical", "traditional"], "origin": "Arabic", "meaning": "beloved"},
+    {"value": "أسماء", "weight": 1.2, "tags": ["traditional", "noble"], "origin": "Arabic", "meaning": "names"},
+    {"value": "نورا", "weight": 1.2, "tags": ["modern", "light"], "origin": "Arabic", "meaning": "light"},
+    {"value": "سارة", "weight": 1.1, "tags": ["biblical", "traditional"], "origin": "Arabic", "meaning": "princess"},
+    {"value": "رقية", "weight": 1.0, "tags": ["islamic", "traditional"], "origin": "Arabic", "meaning": "ascension"},
+    {"value": "هدى", "weight": 0.9, "tags": ["islamic", "guidance"], "origin": "Arabic", "meaning": "guidance"}
+  ]
+}

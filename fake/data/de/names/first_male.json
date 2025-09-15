@@ -1,0 +1,18 @@
+{
+  "language": "de",
+  "country": "DE",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Max", "weight": 2.0, "tags": ["traditional", "popular"], "origin": "Latin", "meaning": "greatest"},
+    {"value": "Paul", "weight": 1.8, "tags": ["biblical", "traditional"], "origin": "Latin", "meaning": "small"},
+    {"value": "Leon", "weight": 1.6, "tags": ["modern", "strong"], "origin": "Greek", "meaning": "lion"},
+    {"value": "Ben", "weight": 1.4, "tags": ["modern", "short"], "origin": "Hebrew", "meaning": "son"},
+    {"value": "Felix", "weight": 1.4, "tags": ["traditional", "happy"], "origin": "Latin", "meaning": "happy"},
+    {"value": "Alexander", "weight": 1.2, "tags": ["classical", "strong"], "origin": "Greek", "meaning": "defender of men"},
+    {"value": "Maximilian", "weight": 1.1, "tags": ["noble", "traditional"], "origin": "Latin", "meaning": "greatest"},
+    {"value": "Johannes", "weight": 1.0, "tags": ["biblical", "traditional"], "origin": "Hebrew", "meaning": "God is gracious"},
+    {"value": "David", "weight": 0.9, "tags": ["biblical", "traditional"], "origin": "Hebrew", "meaning": "beloved"},
+    {"value": "Thomas", "weight": 0.8, "tags": ["biblical", "traditional"], "origin": "Aramaic", "meaning": "twin"}
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "language": "ko",
+  "type": "texts",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "텍스트",
+      "weight": 1.0
+    },
+    {
+      "value": "글자",
+      "weight": 0.95
+    },
+    {
+      "value": "문장",
+      "weight": 0.9
+    },
+    {
+      "value": "단락",
+      "weight": 0.85
+    },
+    {
+      "value": "기사",
+      "weight": 0.8
+    },
+    {
+      "value": "보고서",
+      "weight": 0.75
+    },
+    {
+      "value": "연구",
+      "weight": 0.7
+    },
+    {
+      "value": "분석",
+      "weight": 0.6499999999999999
+    },
+    {
+      "value": "내용",
+      "weight": 0.6
+    },
+    {
+      "value": "주제",
+      "weight": 0.55
+    },
+    {
+      "value": "개념",
+      "weight": 0.5
+    },
+    {
+      "value": "의미",
+      "weight": 0.44999999999999996
+    },
+    {
+      "value": "언어",
+      "weight": 0.3999999999999999
+    },
+    {
+      "value": "문학",
+      "weight": 0.35
+    },
+    {
+      "value": "글쓰기",
+      "weight": 0.29999999999999993
+    }
+  ]
+}

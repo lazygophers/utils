@@ -1,0 +1,18 @@
+{
+  "language": "de",
+  "country": "DE",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Müller", "weight": 2.0, "tags": ["occupational"], "origin": "German", "type": "occupational", "meaning": "miller"},
+    {"value": "Schmidt", "weight": 1.8, "tags": ["occupational"], "origin": "German", "type": "occupational", "meaning": "blacksmith"},
+    {"value": "Schneider", "weight": 1.6, "tags": ["occupational"], "origin": "German", "type": "occupational", "meaning": "tailor"},
+    {"value": "Fischer", "weight": 1.4, "tags": ["occupational"], "origin": "German", "type": "occupational", "meaning": "fisherman"},
+    {"value": "Weber", "weight": 1.2, "tags": ["occupational"], "origin": "German", "type": "occupational", "meaning": "weaver"},
+    {"value": "Meyer", "weight": 1.1, "tags": ["occupational"], "origin": "German", "type": "occupational", "meaning": "steward"},
+    {"value": "Wagner", "weight": 1.0, "tags": ["occupational"], "origin": "German", "type": "occupational", "meaning": "wagon maker"},
+    {"value": "Becker", "weight": 0.9, "tags": ["occupational"], "origin": "German", "type": "occupational", "meaning": "baker"},
+    {"value": "Schulz", "weight": 0.8, "tags": ["occupational"], "origin": "German", "type": "occupational", "meaning": "village headman"},
+    {"value": "Hoffmann", "weight": 0.7, "tags": ["occupational"], "origin": "German", "type": "occupational", "meaning": "steward"}
+  ]
+}

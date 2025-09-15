@@ -1,0 +1,18 @@
+{
+  "language": "pt",
+  "country": "BR",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "João", "weight": 2.0, "tags": ["biblical", "traditional"], "origin": "Portuguese", "meaning": "God is gracious"},
+    {"value": "José", "weight": 1.8, "tags": ["biblical", "traditional"], "origin": "Portuguese", "meaning": "God increases"},
+    {"value": "António", "weight": 1.6, "tags": ["traditional", "roman"], "origin": "Portuguese", "meaning": "priceless"},
+    {"value": "Manuel", "weight": 1.4, "tags": ["biblical", "traditional"], "origin": "Portuguese", "meaning": "God is with us"},
+    {"value": "Carlos", "weight": 1.2, "tags": ["traditional", "strong"], "origin": "Portuguese", "meaning": "free man"},
+    {"value": "Francisco", "weight": 1.1, "tags": ["religious", "traditional"], "origin": "Portuguese", "meaning": "Frenchman"},
+    {"value": "Luis", "weight": 1.0, "tags": ["traditional", "warrior"], "origin": "Portuguese", "meaning": "famous warrior"},
+    {"value": "Miguel", "weight": 0.9, "tags": ["biblical", "archangel"], "origin": "Portuguese", "meaning": "who is like God"},
+    {"value": "Pedro", "weight": 0.8, "tags": ["biblical", "rock"], "origin": "Portuguese", "meaning": "rock"},
+    {"value": "Ricardo", "weight": 0.7, "tags": ["traditional", "ruler"], "origin": "Portuguese", "meaning": "brave ruler"}
+  ]
+}

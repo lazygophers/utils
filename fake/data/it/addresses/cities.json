@@ -1,0 +1,77 @@
+{
+  "language": "it",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "Roma",
+      "weight": 2.0,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "Milano",
+      "weight": 1.8,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "Napoli",
+      "weight": 1.6,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "Torino",
+      "weight": 1.4,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Palermo",
+      "weight": 1.2,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Genova",
+      "weight": 1.0,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Bologna",
+      "weight": 0.7999999999999998,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Firenze",
+      "weight": 0.5999999999999999,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Bari",
+      "weight": 0.5,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Catania",
+      "weight": 0.5,
+      "tags": [
+        "medium"
+      ]
+    }
+  ]
+}

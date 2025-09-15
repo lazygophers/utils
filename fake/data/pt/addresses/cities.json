@@ -1,0 +1,77 @@
+{
+  "language": "pt",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "São Paulo",
+      "weight": 2.0,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "Rio de Janeiro",
+      "weight": 1.8,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "Brasília",
+      "weight": 1.6,
+      "tags": [
+        "major"
+      ]
+    },
+    {
+      "value": "Salvador",
+      "weight": 1.4,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Fortaleza",
+      "weight": 1.2,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Belo Horizonte",
+      "weight": 1.0,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Manaus",
+      "weight": 0.7999999999999998,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Curitiba",
+      "weight": 0.5999999999999999,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Recife",
+      "weight": 0.5,
+      "tags": [
+        "medium"
+      ]
+    },
+    {
+      "value": "Goiânia",
+      "weight": 0.5,
+      "tags": [
+        "medium"
+      ]
+    }
+  ]
+}

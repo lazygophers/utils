@@ -1,0 +1,18 @@
+{
+  "language": "pt",
+  "country": "BR",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Maria", "weight": 2.0, "tags": ["biblical", "traditional"], "origin": "Portuguese", "meaning": "bitter"},
+    {"value": "Ana", "weight": 1.8, "tags": ["biblical", "grace"], "origin": "Portuguese", "meaning": "grace"},
+    {"value": "Isabel", "weight": 1.6, "tags": ["biblical", "noble"], "origin": "Portuguese", "meaning": "God is my oath"},
+    {"value": "Francisca", "weight": 1.4, "tags": ["traditional", "french"], "origin": "Portuguese", "meaning": "from France"},
+    {"value": "Teresa", "weight": 1.2, "tags": ["traditional", "harvest"], "origin": "Portuguese", "meaning": "to harvest"},
+    {"value": "Catarina", "weight": 1.1, "tags": ["traditional", "pure"], "origin": "Portuguese", "meaning": "pure"},
+    {"value": "Margarida", "weight": 1.0, "tags": ["traditional", "pearl"], "origin": "Portuguese", "meaning": "pearl"},
+    {"value": "Joana", "weight": 0.9, "tags": ["biblical", "gracious"], "origin": "Portuguese", "meaning": "God is gracious"},
+    {"value": "Beatriz", "weight": 0.8, "tags": ["traditional", "blessed"], "origin": "Portuguese", "meaning": "blessed"},
+    {"value": "Carmen", "weight": 0.7, "tags": ["traditional", "song"], "origin": "Portuguese", "meaning": "song"}
+  ]
+}

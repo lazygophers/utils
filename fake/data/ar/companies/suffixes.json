@@ -1,0 +1,56 @@
+{
+  "language": "ar",
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "شركة",
+      "weight": 3.0,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "مؤسسة",
+      "weight": 2.7,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "مجموعة",
+      "weight": 2.4,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "القابضة",
+      "weight": 2.1,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "للتجارة",
+      "weight": 1.8,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "للخدمات",
+      "weight": 1.5,
+      "tags": [
+        "formal"
+      ]
+    },
+    {
+      "value": "المحدودة",
+      "weight": 1.2000000000000002,
+      "tags": [
+        "formal"
+      ]
+    }
+  ]
+}

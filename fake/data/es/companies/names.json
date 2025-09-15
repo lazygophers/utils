@@ -1,0 +1,107 @@
+{
+  "language": "es",
+  "type": "companies",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "Telefónica",
+      "weight": 2.0,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Santander",
+      "weight": 1.85,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Repsol",
+      "weight": 1.7,
+      "tags": [
+        "major"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Iberdrola",
+      "weight": 1.55,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "BBVA",
+      "weight": 1.4,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Inditex",
+      "weight": 1.25,
+      "tags": [
+        "medium"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "ACS",
+      "weight": 1.1,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Ferrovial",
+      "weight": 0.95,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Endesa",
+      "weight": 0.8,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    },
+    {
+      "value": "Mapfre",
+      "weight": 0.6500000000000001,
+      "tags": [
+        "small"
+      ],
+      "meta": {
+        "industry": "various"
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "language": "zh-CN",
+  "type": "texts",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "文本",
+      "weight": 1.0
+    },
+    {
+      "value": "文字",
+      "weight": 0.95
+    },
+    {
+      "value": "句子",
+      "weight": 0.9
+    },
+    {
+      "value": "段落",
+      "weight": 0.85
+    },
+    {
+      "value": "文章",
+      "weight": 0.8
+    },
+    {
+      "value": "报告",
+      "weight": 0.75
+    },
+    {
+      "value": "研究",
+      "weight": 0.7
+    },
+    {
+      "value": "分析",
+      "weight": 0.6499999999999999
+    },
+    {
+      "value": "内容",
+      "weight": 0.6
+    },
+    {
+      "value": "主题",
+      "weight": 0.55
+    },
+    {
+      "value": "概念",
+      "weight": 0.5
+    },
+    {
+      "value": "意义",
+      "weight": 0.44999999999999996
+    },
+    {
+      "value": "语言",
+      "weight": 0.3999999999999999
+    },
+    {
+      "value": "文学",
+      "weight": 0.35
+    },
+    {
+      "value": "写作",
+      "weight": 0.29999999999999993
+    }
+  ]
+}

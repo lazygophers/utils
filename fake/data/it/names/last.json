@@ -1,0 +1,18 @@
+{
+  "language": "it",
+  "country": "IT",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Rossi", "weight": 2.0, "tags": ["descriptive"], "origin": "Italian", "type": "descriptive", "meaning": "red-haired"},
+    {"value": "Ferrari", "weight": 1.8, "tags": ["occupational"], "origin": "Italian", "type": "occupational", "meaning": "blacksmith"},
+    {"value": "Bianchi", "weight": 1.6, "tags": ["descriptive"], "origin": "Italian", "type": "descriptive", "meaning": "white-haired"},
+    {"value": "Romano", "weight": 1.4, "tags": ["geographical"], "origin": "Italian", "type": "geographical", "meaning": "from Rome"},
+    {"value": "Galli", "weight": 1.2, "tags": ["geographical"], "origin": "Italian", "type": "geographical", "meaning": "from Gaul"},
+    {"value": "Conti", "weight": 1.1, "tags": ["noble"], "origin": "Italian", "type": "noble", "meaning": "count"},
+    {"value": "De Luca", "weight": 1.0, "tags": ["patronymic"], "origin": "Italian", "type": "patronymic", "meaning": "son of Luca"},
+    {"value": "Mancini", "weight": 0.9, "tags": ["descriptive"], "origin": "Italian", "type": "descriptive", "meaning": "left-handed"},
+    {"value": "Costa", "weight": 0.8, "tags": ["geographical"], "origin": "Italian", "type": "geographical", "meaning": "coast"},
+    {"value": "Giordano", "weight": 0.7, "tags": ["geographical"], "origin": "Italian", "type": "geographical", "meaning": "from Jordan"}
+  ]
+}

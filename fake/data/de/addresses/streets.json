@@ -1,0 +1,18 @@
+{
+  "language": "de",
+  "country": "DE",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Hauptstraße", "weight": 2.0, "tags": ["common", "main"]},
+    {"value": "Bahnhofstraße", "weight": 1.8, "tags": ["common", "transport"]},
+    {"value": "Kirchstraße", "weight": 1.6, "tags": ["common", "religious"]},
+    {"value": "Marktstraße", "weight": 1.4, "tags": ["commercial", "central"]},
+    {"value": "Schulstraße", "weight": 1.2, "tags": ["education"]},
+    {"value": "Gartenstraße", "weight": 1.1, "tags": ["residential", "green"]},
+    {"value": "Lindenstraße", "weight": 1.0, "tags": ["residential", "tree"]},
+    {"value": "Bergstraße", "weight": 0.9, "tags": ["elevation"]},
+    {"value": "Mühlenstraße", "weight": 0.8, "tags": ["historical", "mill"]},
+    {"value": "Friedhofstraße", "weight": 0.7, "tags": ["cemetery"]}
+  ]
+}

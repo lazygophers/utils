@@ -1,0 +1,42 @@
+{
+  "language": "pt",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "Avenida Paulista",
+      "weight": 2.0,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Rua Augusta",
+      "weight": 1.7,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Avenida Brasil",
+      "weight": 1.4,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Rua da Consolação",
+      "weight": 1.1,
+      "tags": [
+        "common"
+      ]
+    },
+    {
+      "value": "Avenida Atlântica",
+      "weight": 0.8,
+      "tags": [
+        "common"
+      ]
+    }
+  ]
+}

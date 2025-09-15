@@ -1,0 +1,67 @@
+{
+  "language": "es",
+  "type": "texts",
+  "version": "1.0.0",
+  "items": [
+    {
+      "value": "texto",
+      "weight": 1.0
+    },
+    {
+      "value": "palabra",
+      "weight": 0.95
+    },
+    {
+      "value": "oración",
+      "weight": 0.9
+    },
+    {
+      "value": "párrafo",
+      "weight": 0.85
+    },
+    {
+      "value": "artículo",
+      "weight": 0.8
+    },
+    {
+      "value": "informe",
+      "weight": 0.75
+    },
+    {
+      "value": "estudio",
+      "weight": 0.7
+    },
+    {
+      "value": "análisis",
+      "weight": 0.6499999999999999
+    },
+    {
+      "value": "contenido",
+      "weight": 0.6
+    },
+    {
+      "value": "tema",
+      "weight": 0.55
+    },
+    {
+      "value": "concepto",
+      "weight": 0.5
+    },
+    {
+      "value": "significado",
+      "weight": 0.44999999999999996
+    },
+    {
+      "value": "idioma",
+      "weight": 0.3999999999999999
+    },
+    {
+      "value": "literatura",
+      "weight": 0.35
+    },
+    {
+      "value": "escritura",
+      "weight": 0.29999999999999993
+    }
+  ]
+}

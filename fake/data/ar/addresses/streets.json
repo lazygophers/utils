@@ -1,0 +1,18 @@
+{
+  "language": "ar",
+  "country": "SA",
+  "type": "addresses",
+  "version": "1.0.0",
+  "items": [
+    {"value": "شارع الملك فهد", "weight": 2.0, "tags": ["major", "royal"]},
+    {"value": "شارع العليا", "weight": 1.8, "tags": ["commercial", "major"]},
+    {"value": "طريق الملك عبدالعزيز", "weight": 1.6, "tags": ["major", "royal"]},
+    {"value": "شارع التحلية", "weight": 1.4, "tags": ["commercial", "upscale"]},
+    {"value": "شارع الأمير محمد بن عبدالعزيز", "weight": 1.2, "tags": ["major", "royal"]},
+    {"value": "شارع الجامعة", "weight": 1.0, "tags": ["education"]},
+    {"value": "شارع المطار", "weight": 0.9, "tags": ["transport"]},
+    {"value": "شارع الخالدية", "weight": 0.8, "tags": ["residential"]},
+    {"value": "طريق الدائري", "weight": 0.7, "tags": ["highway"]},
+    {"value": "شارع الحرمين", "weight": 0.6, "tags": ["religious"]}
+  ]
+}

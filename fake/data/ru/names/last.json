@@ -1,0 +1,18 @@
+{
+  "language": "ru",
+  "country": "RU",
+  "type": "names",
+  "version": "1.0.0",
+  "items": [
+    {"value": "Смирнов", "weight": 2.0, "tags": ["descriptive"], "origin": "Russian", "type": "descriptive", "meaning": "quiet"},
+    {"value": "Иванов", "weight": 1.8, "tags": ["patronymic"], "origin": "Russian", "type": "patronymic", "meaning": "son of Ivan"},
+    {"value": "Кузнецов", "weight": 1.6, "tags": ["occupational"], "origin": "Russian", "type": "occupational", "meaning": "blacksmith"},
+    {"value": "Попов", "weight": 1.4, "tags": ["occupational"], "origin": "Russian", "type": "occupational", "meaning": "priest"},
+    {"value": "Соколов", "weight": 1.2, "tags": ["animal"], "origin": "Russian", "type": "animal", "meaning": "falcon"},
+    {"value": "Лебедев", "weight": 1.1, "tags": ["animal"], "origin": "Russian", "type": "animal", "meaning": "swan"},
+    {"value": "Козlov", "weight": 1.0, "tags": ["animal"], "origin": "Russian", "type": "animal", "meaning": "goat"},
+    {"value": "Новиков", "weight": 0.9, "tags": ["descriptive"], "origin": "Russian", "type": "descriptive", "meaning": "new"},
+    {"value": "Морозов", "weight": 0.8, "tags": ["descriptive"], "origin": "Russian", "type": "descriptive", "meaning": "frost"},
+    {"value": "Петров", "weight": 0.7, "tags": ["patronymic"], "origin": "Russian", "type": "patronymic", "meaning": "son of Peter"}
+  ]
+}
