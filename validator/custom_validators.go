@@ -5,12 +5,10 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
-
-	"github.com/go-playground/validator/v10"
 )
 
 // validateMobile 验证手机号码
-func validateMobile(fl validator.FieldLevel) bool {
+func validateMobile(fl FieldLevel) bool {
 	mobile := fl.Field().String()
 	if mobile == "" {
 		return false
@@ -22,7 +20,7 @@ func validateMobile(fl validator.FieldLevel) bool {
 }
 
 // validateIDCard 验证身份证号码
-func validateIDCard(fl validator.FieldLevel) bool {
+func validateIDCard(fl FieldLevel) bool {
 	idcard := fl.Field().String()
 	if idcard == "" {
 		return false
@@ -80,7 +78,7 @@ func validateIDCardChecksum(idcard string) bool {
 }
 
 // validateBankCard 验证银行卡号
-func validateBankCard(fl validator.FieldLevel) bool {
+func validateBankCard(fl FieldLevel) bool {
 	cardNo := fl.Field().String()
 	if cardNo == "" {
 		return false
@@ -129,7 +127,7 @@ func luhnCheck(cardNo string) bool {
 }
 
 // validateChineseName 验证中文姓名
-func validateChineseName(fl validator.FieldLevel) bool {
+func validateChineseName(fl FieldLevel) bool {
 	name := fl.Field().String()
 	if name == "" {
 		return false
@@ -141,7 +139,7 @@ func validateChineseName(fl validator.FieldLevel) bool {
 }
 
 // validateStrongPassword 验证强密码
-func validateStrongPassword(fl validator.FieldLevel) bool {
+func validateStrongPassword(fl FieldLevel) bool {
 	password := fl.Field().String()
 	if len(password) < 8 {
 		return false
@@ -186,7 +184,7 @@ func validateStrongPassword(fl validator.FieldLevel) bool {
 }
 
 // validateURL 增强的URL验证
-func validateURL(fl validator.FieldLevel) bool {
+func validateURL(fl FieldLevel) bool {
 	url := fl.Field().String()
 	if url == "" {
 		return false
@@ -198,7 +196,7 @@ func validateURL(fl validator.FieldLevel) bool {
 }
 
 // validateEmail 增强的邮箱验证
-func validateEmail(fl validator.FieldLevel) bool {
+func validateEmail(fl FieldLevel) bool {
 	email := fl.Field().String()
 	if email == "" {
 		return false
@@ -210,7 +208,7 @@ func validateEmail(fl validator.FieldLevel) bool {
 }
 
 // validateIPv4 IPv4地址验证
-func validateIPv4(fl validator.FieldLevel) bool {
+func validateIPv4(fl FieldLevel) bool {
 	ip := fl.Field().String()
 	if ip == "" {
 		return false
@@ -237,7 +235,7 @@ func validateIPv4(fl validator.FieldLevel) bool {
 }
 
 // validateMAC MAC地址验证
-func validateMAC(fl validator.FieldLevel) bool {
+func validateMAC(fl FieldLevel) bool {
 	mac := fl.Field().String()
 	if mac == "" {
 		return false
@@ -260,7 +258,7 @@ func validateMAC(fl validator.FieldLevel) bool {
 }
 
 // validateJSON JSON格式验证
-func validateJSON(fl validator.FieldLevel) bool {
+func validateJSON(fl FieldLevel) bool {
 	jsonStr := fl.Field().String()
 	if jsonStr == "" {
 		return false
@@ -273,7 +271,7 @@ func validateJSON(fl validator.FieldLevel) bool {
 }
 
 // validateUUID UUID格式验证
-func validateUUID(fl validator.FieldLevel) bool {
+func validateUUID(fl FieldLevel) bool {
 	uuid := fl.Field().String()
 	if uuid == "" {
 		return false

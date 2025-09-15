@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-
-	"github.com/go-playground/validator/v10"
 )
 
 var (
@@ -14,9 +12,9 @@ var (
 	once             sync.Once
 )
 
-// Validator 自定义验证器，兼容 github.com/go-playground/validator/v10
+// Validator 自定义验证器
 type Validator struct {
-	engine   *validator.Validate
+	engine   *Engine
 	locale   string
 	useJSON  bool
 	mu       sync.RWMutex
@@ -26,7 +24,7 @@ type Validator struct {
 // New 创建新的验证器实例
 func New(opts ...Option) (*Validator, error) {
 	v := &Validator{
-		engine:   validator.New(),
+		engine:   NewEngine(),
 		locale:   "en",
 		useJSON:  true,
 		messages: make(map[string]string),
@@ -37,9 +35,9 @@ func New(opts ...Option) (*Validator, error) {
 		opt(v)
 	}
 
-	// 设置字段名称函数
-	v.engine.RegisterTagNameFunc(v.getFieldName)
-
+	// 设置字段名称解析函数
+	v.updateFieldNameFunc()
+	
 	// 注册默认验证规则
 	if err := v.registerDefaultValidators(); err != nil {
 		return nil, fmt.Errorf("failed to register default validators: %w", err)
@@ -55,12 +53,11 @@ func Default() *Validator {
 		if err != nil {
 			// 如果创建默认验证器失败，创建一个基础版本
 			defaultValidator = &Validator{
-				engine:   validator.New(),
+				engine:   NewEngine(),
 				locale:   "en",
 				useJSON:  true,
 				messages: make(map[string]string),
 			}
-			defaultValidator.engine.RegisterTagNameFunc(defaultValidator.getFieldName)
 		} else {
 			defaultValidator = v
 		}
@@ -87,13 +84,14 @@ func (v *Validator) SetUseJSON(useJSON bool) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.useJSON = useJSON
+	v.updateFieldNameFunc()
 }
 
 // Struct 验证结构体
 func (v *Validator) Struct(s interface{}) error {
 	err := v.engine.Struct(s)
 	if err != nil {
-		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+		if validationErrors, ok := err.(ValidationErrors); ok {
 			return v.translateValidationErrors(validationErrors)
 		}
 		return err
@@ -105,8 +103,9 @@ func (v *Validator) Struct(s interface{}) error {
 func (v *Validator) Var(field interface{}, tag string) error {
 	err := v.engine.Var(field, tag)
 	if err != nil {
-		if validationErrors, ok := err.(validator.ValidationErrors); ok {
-			return v.translateValidationErrors(validationErrors)
+		if fieldError, ok := err.(*FieldError); ok {
+			fieldError.Message = v.translateFieldError(fieldError)
+			return fieldError
 		}
 		return err
 	}
@@ -114,8 +113,8 @@ func (v *Validator) Var(field interface{}, tag string) error {
 }
 
 // RegisterValidation 注册自定义验证规则
-func (v *Validator) RegisterValidation(tag string, fn validator.Func, callValidationEvenIfNull ...bool) error {
-	return v.engine.RegisterValidation(tag, fn, callValidationEvenIfNull...)
+func (v *Validator) RegisterValidation(tag string, fn ValidatorFunc) error {
+	return v.engine.RegisterValidation(tag, fn)
 }
 
 // RegisterTranslation 注册翻译
@@ -126,49 +125,16 @@ func (v *Validator) RegisterTranslation(locale, tag, translation string) {
 	v.messages[key] = translation
 }
 
-// getFieldName 获取字段名称，优先使用 JSON tag
-func (v *Validator) getFieldName(fld reflect.StructField) string {
-	v.mu.RLock()
-	useJSON := v.useJSON
-	v.mu.RUnlock()
-
-	if useJSON {
-		// 优先使用 json tag
-		if jsonTag := fld.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
-			// 处理 json:"name,omitempty" 格式
-			if parts := strings.Split(jsonTag, ","); len(parts) > 0 && parts[0] != "" {
-				return parts[0]
-			}
-		}
-	}
-
-	// 回退到字段名
-	return fld.Name
-}
-
 // translateValidationErrors 翻译验证错误
-func (v *Validator) translateValidationErrors(validationErrors validator.ValidationErrors) error {
-	var errs ValidationErrors
-
+func (v *Validator) translateValidationErrors(validationErrors ValidationErrors) error {
 	for _, err := range validationErrors {
-		fieldError := &FieldError{
-			Field:       err.Field(),
-			Tag:         err.Tag(),
-			Value:       err.Value(),
-			Param:       err.Param(),
-			ActualTag:   err.ActualTag(),
-			Namespace:   err.Namespace(),
-			StructField: err.StructNamespace(),
-			Message:     v.translateError(err),
-		}
-		errs = append(errs, fieldError)
+		err.Message = v.translateFieldError(err)
 	}
-
-	return errs
+	return validationErrors
 }
 
-// translateError 翻译单个错误
-func (v *Validator) translateError(err validator.FieldError) string {
+// translateFieldError 翻译字段错误
+func (v *Validator) translateFieldError(err *FieldError) string {
 	v.mu.RLock()
 	locale := v.locale
 	v.mu.RUnlock()
@@ -180,12 +146,12 @@ func (v *Validator) translateError(err validator.FieldError) string {
 			localeConfig = enConfig
 		} else {
 			// 如果连英文配置都没有，返回默认格式
-			return fmt.Sprintf("%s failed validation for tag '%s'", err.Field(), err.Tag())
+			return fmt.Sprintf("%s failed validation for tag '%s'", err.Field, err.Tag)
 		}
 	}
 
 	// 构建翻译键
-	key := fmt.Sprintf("%s.%s", locale, err.Tag())
+	key := fmt.Sprintf("%s.%s", locale, err.Tag)
 
 	v.mu.RLock()
 	if msg, exists := v.messages[key]; exists {
@@ -195,40 +161,68 @@ func (v *Validator) translateError(err validator.FieldError) string {
 	v.mu.RUnlock()
 
 	// 使用默认消息模板
-	if template, exists := localeConfig.Messages[err.Tag()]; exists {
+	if template, exists := localeConfig.Messages[err.Tag]; exists {
 		return v.formatMessage(template, err)
 	}
 
 	// 最后回退到英文默认消息
 	if locale != "en" {
 		if englishConfig, ok := GetLocaleConfig("en"); ok {
-			if template, exists := englishConfig.Messages[err.Tag()]; exists {
+			if template, exists := englishConfig.Messages[err.Tag]; exists {
 				return v.formatMessage(template, err)
 			}
 		}
 	}
 
 	// 如果没有找到翻译，返回默认格式
-	return fmt.Sprintf("%s failed validation for tag '%s'", err.Field(), err.Tag())
+	return fmt.Sprintf("%s failed validation for tag '%s'", err.Field, err.Tag)
 }
 
 // formatMessage 格式化错误消息
-func (v *Validator) formatMessage(template string, err validator.FieldError) string {
+func (v *Validator) formatMessage(template string, err *FieldError) string {
 	message := template
 
 	// 替换占位符
-	message = strings.ReplaceAll(message, "{field}", err.Field())
-	message = strings.ReplaceAll(message, "{tag}", err.Tag())
-	message = strings.ReplaceAll(message, "{param}", err.Param())
+	message = strings.ReplaceAll(message, "{field}", err.Field)
+	message = strings.ReplaceAll(message, "{tag}", err.Tag)
+	message = strings.ReplaceAll(message, "{param}", err.Param)
 
 	// 处理值的显示
-	if err.Value() != nil {
-		message = strings.ReplaceAll(message, "{value}", fmt.Sprintf("%v", err.Value()))
+	if err.Value != nil {
+		message = strings.ReplaceAll(message, "{value}", fmt.Sprintf("%v", err.Value))
 	} else {
 		message = strings.ReplaceAll(message, "{value}", "")
 	}
 
 	return message
+}
+
+// updateFieldNameFunc 更新字段名称解析函数
+func (v *Validator) updateFieldNameFunc() {
+	if v.useJSON {
+		v.engine.SetFieldNameFunc(v.jsonFieldNameFunc)
+	} else {
+		v.engine.SetFieldNameFunc(v.structFieldNameFunc)
+	}
+}
+
+// jsonFieldNameFunc JSON字段名称解析函数（优先使用JSON标签）
+func (v *Validator) jsonFieldNameFunc(field reflect.StructField) string {
+	// 优先使用 json tag
+	if jsonTag := field.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
+		// 处理 json:"name,omitempty" 格式
+		if parts := strings.Split(jsonTag, ","); len(parts) > 0 && parts[0] != "" {
+			return parts[0]
+		}
+	}
+	
+	// 回退到字段名
+	return field.Name
+}
+
+// structFieldNameFunc 结构体字段名称解析函数（不使用JSON标签）
+func (v *Validator) structFieldNameFunc(field reflect.StructField) string {
+	return field.Name
 }
 
 // registerDefaultValidators 注册默认验证器
@@ -258,6 +252,33 @@ func (v *Validator) registerDefaultValidators() error {
 		return fmt.Errorf("failed to register strong_password validator: %w", err)
 	}
 
+	// 覆盖内置的email验证
+	if err := v.RegisterValidation("email", validateEmail); err != nil {
+		return fmt.Errorf("failed to register email validator: %w", err)
+	}
+
+	// 覆盖内置的url验证
+	if err := v.RegisterValidation("url", validateURL); err != nil {
+		return fmt.Errorf("failed to register url validator: %w", err)
+	}
+
+	// 注册其他增强验证器
+	if err := v.RegisterValidation("ipv4", validateIPv4); err != nil {
+		return fmt.Errorf("failed to register ipv4 validator: %w", err)
+	}
+
+	if err := v.RegisterValidation("mac", validateMAC); err != nil {
+		return fmt.Errorf("failed to register mac validator: %w", err)
+	}
+
+	if err := v.RegisterValidation("json", validateJSON); err != nil {
+		return fmt.Errorf("failed to register json validator: %w", err)
+	}
+
+	if err := v.RegisterValidation("uuid", validateUUID); err != nil {
+		return fmt.Errorf("failed to register uuid validator: %w", err)
+	}
+
 	return nil
 }
 
@@ -284,8 +305,8 @@ func Var(field interface{}, tag string) error {
 }
 
 // RegisterValidation 在默认验证器上注册自定义验证规则
-func RegisterValidation(tag string, fn validator.Func, callValidationEvenIfNull ...bool) error {
-	return Default().RegisterValidation(tag, fn, callValidationEvenIfNull...)
+func RegisterValidation(tag string, fn ValidatorFunc) error {
+	return Default().RegisterValidation(tag, fn)
 }
 
 // RegisterTranslation 在默认验证器上注册翻译

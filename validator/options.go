@@ -1,7 +1,5 @@
 package validator
 
-import "github.com/go-playground/validator/v10"
-
 // Option 配置选项
 type Option func(*Validator)
 
@@ -31,7 +29,7 @@ func WithTranslations(translations map[string]string) Option {
 // WithCustomValidator 添加自定义验证器
 func WithCustomValidator(tag string, fn func(interface{}) bool) Option {
 	return func(v *Validator) {
-		_ = v.RegisterValidation(tag, func(fl validator.FieldLevel) bool {
+		_ = v.RegisterValidation(tag, func(fl FieldLevel) bool {
 			return fn(fl.Field().Interface())
 		})
 	}
