@@ -1,0 +1,196 @@
+# Event Module
+
+## Overview
+LazyGophers Utils event module provides a lightweight event-driven programming system with synchronous and asynchronous event handling. Designed for decoupled application architecture with automatic panic recovery and goroutine management.
+
+## Key Features
+- Synchronous and asynchronous event handling
+- Thread-safe event registration and emission
+- Automatic panic recovery for event handlers
+- Singleton default manager with custom manager support
+- Channel-based asynchronous processing
+- Zero-configuration setup with sensible defaults
+- Minimal memory footprint and high performance
+
+## Core Functions
+
+### Event Registration
+- `Register(eventName string, handler EventHandler)` - Register synchronous event handler
+- `RegisterAsync(eventName string, handler EventHandler)` - Register asynchronous event handler
+- `(m *Manager) Register(eventName string, handler EventHandler)` - Instance-specific registration
+- `(m *Manager) RegisterAsync(eventName string, handler EventHandler)` - Instance-specific async registration
+
+### Event Emission
+- `Emit(eventName string, args any)` - Emit event to all registered handlers
+- `(m *Manager) Emit(eventName string, args any)` - Emit event on specific manager instance
+
+### Manager Creation
+- `NewManager() *Manager` - Create new event manager instance
+- Default global manager available automatically
+
+## Data Types
+
+### Core Types
+- `EventHandler func(args any)` - Event handler function signature
+- `Manager` - Event manager with registration and emission capabilities
+- `eventItem` - Internal handler storage with sync/async flag
+
+### Handler Context
+- Event handlers receive `args any` parameter containing event data
+- No return value from handlers (fire-and-forget pattern)
+- Automatic panic recovery prevents handler crashes from affecting other handlers
+
+## Event Processing Model
+
+### Synchronous Handlers
+- Execute immediately in the same goroutine as `Emit()`
+- Block event emission until completion
+- Suitable for critical business logic and data validation
+- Direct error propagation through panics (with recovery)
+
+### Asynchronous Handlers
+- Execute in background goroutines via buffered channel
+- Non-blocking event emission
+- Suitable for logging, metrics, notifications
+- Panic recovery prevents goroutine leaks
+
+## Usage Examples
+
+```go
+// Basic event handling
+event.Register("user.created", func(args any) {
+    user := args.(*User)
+    log.Printf("User created: %s", user.Name)
+})
+
+// Asynchronous event handling
+event.RegisterAsync("email.send", func(args any) {
+    emailData := args.(EmailData)
+    sendEmailAsync(emailData) // Non-blocking operation
+})
+
+// Emit events
+user := &User{Name: "John", Email: "john@example.com"}
+event.Emit("user.created", user)
+
+emailData := EmailData{To: user.Email, Subject: "Welcome!"}
+event.Emit("email.send", emailData)
+
+// Custom event manager
+emailManager := event.NewManager()
+emailManager.Register("bounce", func(args any) {
+    // Handle email bounces
+})
+emailManager.Emit("bounce", bounceData)
+
+// Multiple handlers for same event
+event.Register("order.completed", func(args any) {
+    // Update inventory
+})
+event.RegisterAsync("order.completed", func(args any) {
+    // Send confirmation email
+})
+event.RegisterAsync("order.completed", func(args any) {
+    // Update analytics
+})
+
+order := &Order{ID: "12345", Amount: 99.99}
+event.Emit("order.completed", order) // All handlers triggered
+```
+
+## Advanced Usage Patterns
+
+```go
+// Event-driven state machine
+type OrderStateMachine struct {
+    manager *event.Manager
+}
+
+func (osm *OrderStateMachine) Initialize() {
+    osm.manager = event.NewManager()
+
+    // State transition handlers
+    osm.manager.Register("order.pending", osm.handlePending)
+    osm.manager.Register("order.processing", osm.handleProcessing)
+    osm.manager.Register("order.completed", osm.handleCompleted)
+    osm.manager.Register("order.cancelled", osm.handleCancelled)
+}
+
+func (osm *OrderStateMachine) ProcessOrder(order *Order) {
+    osm.manager.Emit("order.pending", order)
+}
+
+// Plugin system with events
+type PluginSystem struct {
+    plugins []Plugin
+}
+
+func (ps *PluginSystem) LoadPlugin(plugin Plugin) {
+    ps.plugins = append(ps.plugins, plugin)
+
+    // Register plugin event handlers
+    event.Register("plugin."+plugin.Name()+".activate", plugin.Activate)
+    event.RegisterAsync("plugin."+plugin.Name()+".background", plugin.BackgroundTask)
+}
+
+// Microservice event communication
+func SetupServiceEvents() {
+    // User service events
+    event.RegisterAsync("user.created", notifyUserService)
+    event.RegisterAsync("user.updated", syncUserCache)
+
+    // Order service events
+    event.Register("order.validate", validateOrderSync)
+    event.RegisterAsync("order.created", updateInventoryAsync)
+
+    // Payment service events
+    event.Register("payment.process", processPaymentSync)
+    event.RegisterAsync("payment.completed", sendReceiptAsync)
+}
+```
+
+## Performance Notes
+- Microsecond-level event emission for synchronous handlers
+- Buffered channel (capacity: 10) for asynchronous processing
+- Minimal memory allocation per event emission
+- RWMutex for optimal read performance during emission
+- Automatic goroutine management with panic recovery
+
+## Use Cases
+- Microservice event communication
+- Plugin and extension systems
+- State machine implementations
+- Audit logging and monitoring
+- Cache invalidation patterns
+- Notification systems
+- Workflow orchestration
+- Domain event handling in DDD applications
+
+## Thread Safety
+All operations are goroutine-safe:
+- Concurrent event registration from multiple goroutines
+- Concurrent event emission from multiple goroutines
+- Thread-safe handler storage with sync.RWMutex
+- Safe asynchronous handler execution with channel coordination
+
+## Error Handling
+- Automatic panic recovery in all event handlers
+- Failed handlers don't affect other handlers execution
+- Asynchronous handlers run with goroutine panic recovery
+- No error return values - uses panic recovery pattern
+- Integration with `runtime.CachePanic()` for error logging
+
+## Memory Management
+- Lightweight manager instances with minimal overhead
+- Efficient handler storage without memory leaks
+- Automatic cleanup of completed asynchronous operations
+- Bounded channel prevents memory growth under load
+- No handler cleanup required - garbage collected automatically
+
+## Architecture Benefits
+- Loose coupling between application components
+- Easy testing with isolated event managers
+- Scalable asynchronous processing
+- Clean separation of synchronous vs asynchronous concerns
+- Simple integration with existing codebases
+- Zero external dependencies

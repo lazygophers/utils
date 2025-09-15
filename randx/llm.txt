@@ -1,0 +1,124 @@
+# Randx Module
+
+## Overview
+LazyGophers Utils randx module provides high-performance secure random number generation utilities. Optimized for microsecond response times with advanced pooling and multiple generator strategies for different performance requirements.
+
+## Key Features
+- High-performance random number generation with sync.Pool optimization
+- Generic type support for slice operations (Choose, Shuffle, etc.)
+- Multiple performance tiers: Fast (pooled) and Ultra-fast (global locked)
+- Comprehensive numeric type support (int, float, uint variants)
+- Advanced algorithms: Fisher-Yates shuffle, weighted selection
+- Time-based random utilities with jitter support
+- Batch operations for reduced overhead
+
+## Core Functions
+
+### Generic Slice Operations
+- `Choose[T any]([]T) T` - Select random element from slice
+- `FastChoose[T any]([]T) T` - Ultra-fast version using global generator
+- `ChooseN[T any]([]T, int) []T` - Select N unique elements
+- `Shuffle[T any]([]T)` - Fisher-Yates shuffle in-place
+- `FastShuffle[T any]([]T)` - Ultra-fast shuffle variant
+- `WeightedChoose[T any]([]T, []float64) T` - Weighted random selection
+- `BatchChoose[T any]([]T, int) []T` - Batch element selection
+
+### Numeric Generation
+- `Intn(int) int` / `FastIntn(int) int` - Random integers
+- `IntnRange(min, max int) int` - Range-bound integers
+- `Int64n(int64) int64` / `Int64nRange(min, max int64) int64` - 64-bit integers
+- `Float64() float64` / `Float64Range(min, max float64) float64` - Floating point
+- `Float32() float32` / `Float32Range(min, max float32) float32` - 32-bit floats
+- `Uint32() uint32` / `Uint64() uint64` - Unsigned integers with ranges
+
+### Boolean Generation
+- `Bool() bool` - Random true/false
+- `Booln(float64) bool` - Probability-based boolean (0-100%)
+- `WeightedBool(float64) bool` - Weighted boolean (0.0-1.0)
+- `BatchBool(int) []bool` - Batch boolean generation
+- `BatchBooln(float64, int) []bool` - Batch probability booleans
+
+### Time Utilities
+- `TimeDuration4Sleep(...time.Duration) time.Duration` - Random sleep durations
+- `RandomDuration(min, max time.Duration) time.Duration` - Time range generation
+- `RandomTime(start, end time.Time) time.Time` - Random time points
+- `RandomTimeInDay(time.Time) time.Time` - Random time within day
+- `SleepRandom(min, max time.Duration)` - Random sleep execution
+- `Jitter(time.Duration, float64) time.Duration` - Add timing jitter
+
+### Batch Operations
+- `BatchIntn(n, count int) []int` - Batch integer generation
+- `BatchInt64n(n int64, count int) []int64` - Batch 64-bit integers
+- `BatchFloat64(count int) []float64` - Batch float generation
+- `BatchRandomDuration(min, max time.Duration, count int) []time.Duration` - Batch durations
+
+## Data Types
+- All standard Go numeric types (int, int64, uint32, uint64, float32, float64)
+- Generic slice support for any type T
+- `time.Duration` and `time.Time` for temporal operations
+- Boolean and probability-based types
+
+## Performance Architecture
+
+### Three-Tier Performance Model
+1. **Standard Functions**: Use sync.Pool for thread-safe performance
+2. **Fast Functions**: Global locked generator for maximum speed
+3. **Batch Functions**: Minimize pool overhead for bulk operations
+
+### Pool Management
+- `sync.Pool` for random generator instances
+- Fast seed generation avoiding system calls
+- Automatic generator lifecycle management
+
+## Usage Examples
+
+```go
+// Generic slice operations
+items := []string{"apple", "banana", "cherry"}
+chosen := randx.Choose(items)           // Random selection
+subset := randx.ChooseN(items, 2)       // 2 unique items
+randx.Shuffle(items)                    // In-place shuffle
+
+// Weighted selection
+weights := []float64{0.5, 0.3, 0.2}
+result := randx.WeightedChoose(items, weights)
+
+// Numeric generation
+num := randx.IntnRange(10, 50)          // Random 10-50
+prob := randx.Booln(75.0)               // 75% chance true
+duration := randx.RandomDuration(time.Second, time.Minute)
+
+// Batch operations for performance
+numbers := randx.BatchIntn(100, 1000)   // 1000 random numbers 0-99
+bools := randx.BatchBool(500)           // 500 random booleans
+
+// Time utilities with jitter
+baseDelay := time.Second * 5
+jitteredDelay := randx.Jitter(baseDelay, 20.0) // ±20% jitter
+randx.SleepRandom(time.Millisecond*100, time.Millisecond*500)
+```
+
+## Performance Notes
+- Microsecond response times for all operations
+- Zero allocation in critical paths using sync.Pool
+- Fisher-Yates algorithm for O(n) shuffle complexity
+- Optimized weight calculation for selection algorithms
+- Fast seed generation avoiding time.Now() overhead
+
+## Use Cases
+- Game development and simulations
+- Load testing and chaos engineering
+- A/B testing and feature flagging
+- Rate limiting with jitter
+- Database sharding and load balancing
+- Cryptographic nonces and salts
+- Performance testing data generation
+
+## Thread Safety
+All functions are goroutine-safe with different safety mechanisms:
+- Standard functions: sync.Pool for lock-free operation
+- Fast functions: Global mutex for controlled access
+- Batch functions: Pool acquisition for bulk safety
+
+## Security Notes
+Uses Go's crypto/rand for initial seeding ensuring cryptographic quality for initial entropy. Suitable for non-cryptographic random number generation with high performance requirements.

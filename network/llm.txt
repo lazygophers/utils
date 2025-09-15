@@ -1,0 +1,73 @@
+# Network Module
+
+## Overview
+LazyGophers Utils network module provides essential network utilities for IP detection, interface management, and HTTP header processing. Designed for microservice and web application environments where reliable network information extraction is critical.
+
+## Key Features
+- Network interface discovery and IP extraction
+- Real client IP detection from HTTP headers
+- Local/private IP classification
+- Support for IPv4 and IPv6 protocols
+- CloudFlare and proxy header processing
+- Fiber web framework integration utilities
+
+## Core Functions
+
+### IP Management
+- `GetListenIp(prev6 ...bool) string` - Auto-detect local IP for service binding
+- `GetInterfaceIpByName(name string, prev6 bool) string` - Get IP by interface name
+- `GetInterfaceIpByAddrs([]net.Addr, prev6 bool) string` - Extract IP from address list
+- `IsLocalIp(ip string) bool` - Check if IP is local/private/loopback
+
+### HTTP Header Processing
+- `RealIpFromHeader(http.Header) string` - Extract real client IP from headers
+
+## Data Types
+- Standard Go `net.IP`, `net.Addr`, `http.Header` types
+- IPv4/IPv6 address handling
+- Network interface abstraction
+
+## Usage Examples
+
+```go
+// Get local IP for service binding
+listenIP := network.GetListenIp() // IPv4 by default
+listenIPv6 := network.GetListenIp(true) // Prefer IPv6
+
+// Check if IP is local
+if network.IsLocalIp("192.168.1.1") {
+    // Handle local traffic
+}
+
+// Extract real client IP from HTTP request
+realIP := network.RealIpFromHeader(request.Header)
+```
+
+## Performance Notes
+- Optimized for microsecond response times
+- Minimal memory allocation in IP detection
+- Efficient header parsing with priority ordering
+- Thread-safe operations
+
+## Use Cases
+- Microservice IP auto-discovery
+- Load balancer real IP detection
+- Geo-location and rate limiting
+- Security and access control
+- Service mesh networking
+- HTTP proxy chain handling
+
+## Thread Safety
+All functions are goroutine-safe and can be called concurrently without external synchronization.
+
+## Header Priority Order
+Real IP detection checks headers in optimal order:
+1. Cf-Connecting-Ip (CloudFlare)
+2. Cf-Pseudo-Ipv4/Ipv6 (CloudFlare)
+3. Fastly-Client-Ip (Fastly CDN)
+4. True-Client-Ip (Akamai)
+5. X-Real-IP (Nginx)
+6. X-Client-IP (Apache)
+7. X-Original-Forwarded-For (Custom)
+8. X-Forwarded-For (Standard)
+9. X-Forwarded/Forwarded-For/Forwarded (Legacy)

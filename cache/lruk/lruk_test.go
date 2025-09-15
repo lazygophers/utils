@@ -23,22 +23,18 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestNewPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("Expected panic for zero capacity")
-		}
-	}()
-	New[string, int](0, 2)
+func TestNewError(t *testing.T) {
+	_, err := New[string, int](0, 2)
+	if err == nil {
+		t.Error("Expected error for zero capacity")
+	}
 }
 
-func TestNewPanicK(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("Expected panic for zero K")
-		}
-	}()
-	New[string, int](5, 0)
+func TestNewErrorK(t *testing.T) {
+	_, err := New[string, int](5, 0)
+	if err == nil {
+		t.Error("Expected error for zero K")
+	}
 }
 
 func TestPutAndGet(t *testing.T) {
@@ -53,7 +49,7 @@ func TestPutAndGet(t *testing.T) {
 	}
 
 	// First Get - should not be in cache yet (need K=2 accesses total)
-	value, ok := cache.Get("a")  // This is the 2nd access (Put was 1st)
+	value, ok := cache.Get("a") // This is the 2nd access (Put was 1st)
 	if !ok || value != 1 {
 		t.Errorf("Expected value 1 after K=2 accesses, got %d, ok=%t", value, ok)
 	}
@@ -66,7 +62,7 @@ func TestKAccessPromotion(t *testing.T) {
 	}
 
 	cache.Put("item", 1) // 1st access - in history
-	
+
 	stats := cache.Stats()
 	if stats.Size != 0 {
 		t.Errorf("Expected cache size 0 after 1 access, got %d", stats.Size)
@@ -76,14 +72,14 @@ func TestKAccessPromotion(t *testing.T) {
 	}
 
 	cache.Get("item") // 2nd access - still in history
-	
+
 	stats = cache.Stats()
 	if stats.Size != 0 {
 		t.Errorf("Expected cache size 0 after 2 accesses, got %d", stats.Size)
 	}
 
 	cache.Get("item") // 3rd access - should promote to cache
-	
+
 	stats = cache.Stats()
 	if stats.Size != 1 {
 		t.Errorf("Expected cache size 1 after K=3 accesses, got %d", stats.Size)
@@ -194,14 +190,14 @@ func TestContains(t *testing.T) {
 	}
 
 	cache.Put("a", 1)
-	
+
 	// Should not contain until promoted
 	if cache.Contains("a") {
 		t.Error("Expected 'a' to not be contained before promotion")
 	}
 
 	cache.Get("a") // Promote
-	
+
 	if !cache.Contains("a") {
 		t.Error("Expected 'a' to be contained after promotion")
 	}
@@ -241,11 +237,11 @@ func TestPeek(t *testing.T) {
 func TestClear(t *testing.T) {
 	evictCount := 0
 	cache, err := NewWithEvict[string, int](5, 2, func(key string, value int) {
+		evictCount++
+	})
 	if err != nil {
 		t.Fatalf("Failed to create cache: %v", err)
 	}
-		evictCount++
-	})
 
 	cache.Put("a", 1)
 	cache.Get("a") // Promote
@@ -371,7 +367,10 @@ func TestResize(t *testing.T) {
 	initialLen := cache.Len()
 
 	// Resize to smaller capacity
-	cache.Resize(5)
+	err = cache.Resize(5)
+	if err != nil {
+		t.Fatalf("Failed to resize cache: %v", err)
+	}
 
 	if cache.Cap() != 5 {
 		t.Errorf("Expected capacity 5 after resize, got %d", cache.Cap())
@@ -386,18 +385,16 @@ func TestResize(t *testing.T) {
 	}
 }
 
-func TestResizePanic(t *testing.T) {
+func TestResizeError(t *testing.T) {
 	cache, err := New[string, int](5, 2)
 	if err != nil {
 		t.Fatalf("Failed to create cache: %v", err)
 	}
 
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("Expected panic for zero capacity resize")
-		}
-	}()
-	cache.Resize(0)
+	err = cache.Resize(0)
+	if err == nil {
+		t.Error("Expected error for zero capacity resize")
+	}
 }
 
 func TestStats(t *testing.T) {
@@ -441,11 +438,11 @@ func TestAccessTimeTracking(t *testing.T) {
 
 	// Add item and access it multiple times
 	cache.Put("item", 1)
-	
+
 	// Sleep to ensure different timestamps
 	time.Sleep(1 * time.Millisecond)
 	cache.Get("item")
-	
+
 	time.Sleep(1 * time.Millisecond)
 	cache.Get("item") // Should be promoted now
 
@@ -530,12 +527,12 @@ func TestNewWithEvict(t *testing.T) {
 	evictedValues := []int{}
 
 	cache, err := NewWithEvict[string, int](2, 2, func(key string, value int) {
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
 		evictedKeys = append(evictedKeys, key)
 		evictedValues = append(evictedValues, value)
 	})
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 
 	// Add and promote items to fill cache
 	cache.Put("a", 1)
@@ -563,9 +560,9 @@ func TestMultipleKValues(t *testing.T) {
 	for _, k := range testCases {
 		t.Run(fmt.Sprintf("K=%d", k), func(t *testing.T) {
 			cache, err := New[string, int](10, k)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+			if err != nil {
+				t.Fatalf("Failed to create cache: %v", err)
+			}
 
 			cache.Put("item", 1) // This is the 1st access
 
@@ -593,7 +590,7 @@ func TestMultipleKValues(t *testing.T) {
 func BenchmarkPut(b *testing.B) {
 	cache, err := New[int, int](1000, 2)
 	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
+		b.Fatalf("Failed to create cache: %v", err)
 	}
 
 	b.ResetTimer()
@@ -605,7 +602,7 @@ func BenchmarkPut(b *testing.B) {
 func BenchmarkGet(b *testing.B) {
 	cache, err := New[int, int](1000, 2)
 	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
+		b.Fatalf("Failed to create cache: %v", err)
 	}
 
 	// Pre-populate and promote items
@@ -623,7 +620,7 @@ func BenchmarkGet(b *testing.B) {
 func BenchmarkMixed(b *testing.B) {
 	cache, err := New[int, int](1000, 2)
 	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
+		b.Fatalf("Failed to create cache: %v", err)
 	}
 
 	b.ResetTimer()
@@ -642,20 +639,20 @@ func TestPromoteToCacheAlreadyInCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create cache: %v", err)
 	}
-	
+
 	// Add and promote item
 	cache.Put("item", 1)
 	cache.Get("item") // Promote to cache
-	
+
 	// Verify item is in cache
 	if !cache.Contains("item") {
 		t.Error("Item should be promoted to cache")
 	}
-	
+
 	// Access again - this should hit the early return in promoteToCache
 	// since the item is already in cache
 	cache.Get("item") // This should trigger the already-in-cache branch
-	
+
 	// Item should still be accessible
 	value, ok := cache.Get("item")
 	if !ok || value != 1 {
@@ -668,13 +665,13 @@ func TestEvictFromEmptyCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create cache: %v", err)
 	}
-	
+
 	// Try to evict from empty cache - this should hit the return false branch
 	result := cache.evictFromCache()
 	if result {
 		t.Errorf("Expected evictFromCache to return false for empty cache")
 	}
-	
+
 	// Verify cache is still empty
 	if cache.Len() != 0 {
 		t.Errorf("Expected cache to remain empty, got length %d", cache.Len())
@@ -686,10 +683,10 @@ func TestRemoveEntryFromHistory(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create cache: %v", err)
 	}
-	
+
 	// Add item that will stay in history (not promoted)
 	cache.Put("hist_item", 1)
-	
+
 	// Verify item is not yet in cache (in history)
 	stats := cache.Stats()
 	if stats.HistorySize != 1 {
@@ -698,13 +695,13 @@ func TestRemoveEntryFromHistory(t *testing.T) {
 	if stats.Size != 0 {
 		t.Errorf("Expected 0 items in cache, got %d", stats.Size)
 	}
-	
+
 	// Remove the item from history - this should hit the else branch in removeEntry
 	_, ok := cache.Remove("hist_item")
 	if !ok {
 		t.Error("Expected to remove item from history")
 	}
-	
+
 	// Verify item is completely gone
 	stats = cache.Stats()
 	if stats.HistorySize != 0 {

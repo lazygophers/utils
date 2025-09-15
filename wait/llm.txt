@@ -1,0 +1,165 @@
+# wait - Timeout, Retry, and Rate Limiting Utilities
+
+The wait package provides utilities for controlling concurrent operations, implementing timeouts, retry mechanisms, and rate limiting using semaphore pools and wait groups.
+
+## Key Features
+- Named semaphore pools for concurrent operation control
+- Enhanced wait groups with timeout support
+- Asynchronous operation management with result handling
+- Built-in rate limiting capabilities
+- Thread-safe operations across all functions
+- Multiple pool management with atomic operations
+
+## Core Functions
+
+### Semaphore Pool Operations
+- Lock(key string, max int) - Acquire semaphore (creates pool if needed)
+- Unlock(key string) - Release semaphore
+- TryLock(key string, max int) bool - Non-blocking acquire attempt
+- LockWithTimeout(key string, max int, timeout time.Duration) bool - Acquire with timeout
+
+### Pool Management
+- NewPool(key string, max int) - Create named semaphore pool
+- GetPool(key string) *Pool - Retrieve existing pool
+- GetPoolDepth(key string) int - Get current pool usage
+- DestroyPool(key string) - Remove pool and release resources
+
+### Multiple Pool Operations
+- LockMultiple(keys []string, maxes []int) - Atomic multi-pool lock
+- UnlockMultiple(keys []string) - Unlock multiple pools
+- TryLockMultiple(keys []string, maxes []int) bool - Non-blocking multi-lock
+
+### Wait Group Operations
+- NewGroup() *Group - Create enhanced wait group
+- Group.Add(delta int) - Add to counter
+- Group.Done() - Decrement counter
+- Group.Wait() - Wait for completion
+- Group.WaitTimeout(timeout time.Duration) bool - Wait with timeout
+- Group.WaitContext(ctx context.Context) error - Context-aware wait
+
+### Async Operations
+- Async(fn func() (interface{}, error)) *AsyncResult - Execute asynchronously
+- AsyncWithContext(ctx context.Context, fn func() (interface{}, error)) *AsyncResult
+- AsyncResult.Get() (interface{}, error) - Get result (blocking)
+- AsyncResult.GetWithTimeout(timeout time.Duration) (interface{}, error) - Get with timeout
+- AsyncResult.IsReady() bool - Check if completed
+- AsyncResult.Cancel() - Cancel operation
+
+## Pool Type Methods
+- Pool.Lock() - Acquire semaphore
+- Pool.Unlock() - Release semaphore
+- Pool.TryLock() bool - Non-blocking acquire
+- Pool.LockWithTimeout(timeout time.Duration) bool - Timed acquire
+- Pool.Depth() int - Current usage
+- Pool.Cap() int - Maximum capacity
+
+## Usage Examples
+
+```go
+import "github.com/lazygophers/utils/wait"
+
+// Rate limiting HTTP requests
+poolName := "api_requests"
+maxConcurrent := 5
+
+for _, url := range urls {
+    go func(u string) {
+        wait.Lock(poolName, maxConcurrent)
+        defer wait.Unlock(poolName)
+
+        // Make HTTP request
+        resp, err := http.Get(u)
+        // Handle response...
+    }(url)
+}
+
+// Enhanced wait group with timeout
+group := wait.NewGroup()
+for i := 0; i < 5; i++ {
+    group.Add(1)
+    go func(id int) {
+        defer group.Done()
+        // Perform work...
+    }(i)
+}
+
+if group.WaitTimeout(5 * time.Second) {
+    fmt.Println("All tasks completed")
+} else {
+    fmt.Println("Timeout reached")
+}
+
+// Asynchronous operations
+operation := func() (interface{}, error) {
+    time.Sleep(2 * time.Second)
+    return "result", nil
+}
+
+asyncResult := wait.Async(operation)
+// Do other work...
+result, err := asyncResult.GetWithTimeout(5 * time.Second)
+
+// Database connection pool management
+wait.NewPool("db_connections", 10)
+if wait.LockWithTimeout("db_connections", 10, 5*time.Second) {
+    defer wait.Unlock("db_connections")
+    // Execute database query
+}
+
+// Multiple resource locking
+wait.LockMultiple([]string{"cpu_pool", "memory_pool"}, []int{2, 4})
+defer wait.UnlockMultiple([]string{"cpu_pool", "memory_pool"})
+// Use both CPU and memory intensive resources
+```
+
+## Implementation Details
+- Channel-based semaphores for efficient blocking/unblocking
+- Global pool map with read-write mutex protection
+- Lock-free pool depth checking where possible
+- Automatic pool creation on first use
+- Graceful handling of nil pools and edge cases
+
+## Performance Characteristics
+- O(1) semaphore acquire/release operations
+- Minimal memory overhead per pool
+- Efficient buffered channel implementation
+- Supports thousands of concurrent operations
+- Lock-free operations for read-heavy workloads
+
+## Use Cases
+- **Rate Limiting**: API request throttling, resource access control
+- **Resource Pools**: Database connections, worker threads, memory buffers
+- **Batch Processing**: Concurrent task processing with limits
+- **Service Protection**: Prevent resource exhaustion in microservices
+- **Background Workers**: Controlled parallel processing
+- **Circuit Breaking**: Combine with hystrix for fault tolerance
+
+## Error Handling
+The package uses panic-free design patterns with timeout-based operations:
+
+```go
+// Safe operations that won't panic
+if wait.TryLock("resource", 10) {
+    defer wait.Unlock("resource")
+    // Use resource
+} else {
+    // Handle failure to acquire
+}
+
+// Timeout-based operations
+if wait.LockWithTimeout("resource", 10, 5*time.Second) {
+    defer wait.Unlock("resource")
+    // Use resource
+} else {
+    // Handle timeout
+}
+```
+
+## Thread Safety
+All operations are goroutine-safe. Multiple goroutines can safely:
+- Access the same pools concurrently
+- Create pools with the same name
+- Query pool status
+- Lock/unlock operations
+
+This package is essential for applications requiring controlled concurrency and resource management.

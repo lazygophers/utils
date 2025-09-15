@@ -1,0 +1,196 @@
+# cache - High-Performance Cache Algorithms Collection
+
+The cache package provides a comprehensive collection of high-performance, thread-safe cache implementations using Go generics with consistent APIs across all algorithms.
+
+## Available Algorithms
+
+### Core Algorithms
+- **LRU** (`lru/`) - Least Recently Used (99.3% coverage)
+- **LFU** (`lfu/`) - Least Frequently Used with aging (98.5% coverage)
+- **MRU** (`mru/`) - Most Recently Used (97.7% coverage)
+- **SLRU** (`slru/`) - Segmented LRU with probationary/protected segments (97.8% coverage)
+
+### Advanced Algorithms
+- **TinyLFU** (`tinylfu/`) - Memory-efficient LFU using count-min sketch (97.5% coverage)
+- **Window-TinyLFU** (`wtinylfu/`) - LRU window + TinyLFU main cache (82.7% coverage)
+- **Adaptive LFU** (`alfu/`) - LFU with time-based frequency decay (96.0% coverage)
+- **LRU-K** (`lruk/`) - LRU-K tracking K most recent access times (97.6% coverage)
+
+### Specialized Algorithms
+- **FBR** (`fbr/`) - Frequency-Based Replacement with LRU ordering (99.2% coverage)
+- **ARC** (`arc/`) - Adaptive Replacement Cache
+- **Optimal** (`optimal/`) - Belady's optimal algorithm for benchmarking (94.8% coverage)
+
+## Common Interface
+
+```go
+type Cache[K comparable, V any] interface {
+    Get(key K) (value V, ok bool)
+    Put(key K, value V) (evicted bool)
+    Remove(key K) (value V, ok bool)
+    Contains(key K) bool
+    Peek(key K) (value V, ok bool)     // Get without affecting order
+    Clear()
+    Len() int
+    Cap() int
+    Keys() []K
+    Values() []V
+    Items() map[K]V
+    Resize(capacity int)
+}
+```
+
+## Key Features
+- **Type Safety**: Full Go generics support for compile-time safety
+- **Thread Safety**: All implementations are goroutine-safe with optimized locking
+- **High Performance**: Optimized data structures for microsecond operations
+- **Consistent API**: Uniform interface across all cache implementations
+- **Memory Efficient**: Careful memory management and resource cleanup
+- **Eviction Callbacks**: Optional callbacks for evicted items
+
+## Usage Examples
+
+```go
+import "github.com/lazygophers/utils/cache/lru"
+
+// Create LRU cache with capacity 1000
+cache := lru.New[string, int](1000)
+
+// Basic operations
+cache.Put("key1", 42)
+value, ok := cache.Get("key1")  // value=42, ok=true
+cache.Remove("key1")
+
+// With eviction callback
+cache := lru.NewWithEvict[string, int](1000, func(key string, value int) {
+    fmt.Printf("Evicted: %s = %d\n", key, value)
+})
+
+// Peek without affecting LRU order
+value, ok := cache.Peek("key1")
+
+// Bulk operations
+keys := cache.Keys()        // Get all keys
+values := cache.Values()    // Get all values
+items := cache.Items()      // Get key-value map
+```
+
+## Algorithm Selection Guide
+
+### General Purpose
+- **LRU**: Simple, predictable, good for most workloads
+- **Window-TinyLFU**: Best overall hit rates for mixed workloads
+
+### Frequency-Sensitive Workloads
+- **LFU**: When frequency matters more than recency
+- **TinyLFU**: Memory-efficient frequency tracking for large caches
+- **Adaptive LFU**: Dynamic workloads with changing patterns
+
+### Specialized Use Cases
+- **SLRU**: Scan-resistant workloads
+- **LRU-K**: Better than LRU for database buffer pools
+- **MRU**: Scenarios where recent items are less likely to be reused
+- **FBR**: Balanced frequency and recency considerations
+
+### Analysis and Benchmarking
+- **Optimal**: Theoretical maximum performance for comparison
+
+## Performance Characteristics
+
+| Algorithm      | Time Complexity | Space Overhead | Best Use Case           |
+|----------------|-----------------|----------------|-------------------------|
+| LRU            | O(1)            | Low            | General purpose         |
+| LFU            | O(log n)        | Medium         | Frequency-sensitive     |
+| TinyLFU        | O(1)            | Low            | Large caches            |
+| SLRU           | O(1)            | Low            | Scan-resistant          |
+| Window-TinyLFU | O(1)            | Low            | Mixed workloads         |
+| LRU-K          | O(K)            | Medium         | Database buffer pools   |
+| Adaptive LFU   | O(log n)        | Medium         | Dynamic workloads       |
+
+## Thread Safety
+All cache implementations provide:
+- Concurrent reads and writes
+- Lock-free operations where possible
+- Optimized mutex usage for thread contention
+- Safe iteration over cache contents
+
+## Memory Management
+- Automatic cleanup of evicted items
+- Efficient memory usage with minimal overhead
+- Resource cleanup on cache destruction
+- Configurable eviction callbacks for custom cleanup
+
+## Advanced Features
+
+### Eviction Callbacks
+```go
+cache := lru.NewWithEvict[string, *Resource](100, func(key string, resource *Resource) {
+    resource.Close()  // Custom cleanup
+})
+```
+
+### Resize Operations
+```go
+cache.Resize(2000)  // Change capacity dynamically
+```
+
+### Statistics and Monitoring
+```go
+// Available in some implementations
+stats := cache.Stats()
+fmt.Printf("Hit ratio: %.2f%%\n", stats.HitRatio())
+```
+
+## Benchmarking
+The package includes comprehensive benchmarks for:
+- Single-threaded performance
+- Multi-threaded contention
+- Memory usage patterns
+- Hit rate analysis
+- Cache warming scenarios
+
+## Use Cases
+- **Web Applications**: Page caches, session storage, API response caching
+- **Database Systems**: Buffer pools, query result caching
+- **Microservices**: Service discovery caches, configuration caches
+- **Gaming**: Game state caching, leaderboards
+- **Analytics**: Computed result caching, aggregation caches
+- **CDN**: Content caching with various eviction strategies
+
+## Integration Examples
+
+### HTTP Middleware
+```go
+cache := lru.New[string, []byte](1000)
+
+func cacheMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if data, ok := cache.Get(r.URL.Path); ok {
+            w.Write(data)
+            return
+        }
+        // Handle cache miss...
+    })
+}
+```
+
+### Database Query Cache
+```go
+type QueryCache struct {
+    cache *lru.Cache[string, QueryResult]
+}
+
+func (qc *QueryCache) Execute(query string) (QueryResult, error) {
+    if result, ok := qc.cache.Get(query); ok {
+        return result, nil
+    }
+
+    result, err := database.Execute(query)
+    if err == nil {
+        qc.cache.Put(query, result)
+    }
+    return result, err
+}
+```
+
+This package provides enterprise-grade caching solutions with extensive algorithm choices for optimizing application performance based on specific access patterns.

@@ -71,7 +71,9 @@ clean: ## Clean build artifacts
 	@echo "$(YELLOW)Cleaning build artifacts...$(NC)"
 	$(GOCLEAN)
 	rm -rf $(BUILD_DIR) $(DIST_DIR)
+	find . -name "*.bak*" -type f -delete
 	find . -name "*.test" -type f -delete
+	find . -name "cover*.html" -type f -delete
 	find . -name "*.out" -type f -delete
 	find . -name "*.prof" -type f -delete
 	@echo "$(GREEN)✅ Clean completed$(NC)"
