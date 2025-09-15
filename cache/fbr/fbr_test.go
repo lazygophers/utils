@@ -27,13 +27,11 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestNewPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("Expected panic for zero capacity")
-		}
-	}()
-	New[string, int](0)
+func TestNewError(t *testing.T) {
+	_, err := New[string, int](0)
+	if err == nil {
+		t.Error("Expected error for zero capacity")
+	}
 }
 
 func TestPutAndGet(t *testing.T) {
@@ -201,9 +199,12 @@ func TestPeek(t *testing.T) {
 
 func TestClear(t *testing.T) {
 	evictCount := 0
-	cache := NewWithEvict[string, int](5, func(key string, value int) {
+	cache, err := NewWithEvict[string, int](5, func(key string, value int) {
 		evictCount++
 	})
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -231,9 +232,9 @@ func TestKeys(t *testing.T) {
 		t.Fatalf("Failed to create cache: %v", err)
 	}
 
-	cache.Put("low", 1)     // frequency 1
-	cache.Put("medium", 2)  // frequency 1
-	cache.Put("high", 3)    // frequency 1
+	cache.Put("low", 1)    // frequency 1
+	cache.Put("medium", 2) // frequency 1
+	cache.Put("high", 3)   // frequency 1
 
 	// Create different frequencies
 	cache.Get("high")   // frequency 2
@@ -331,18 +332,16 @@ func TestResize(t *testing.T) {
 	}
 }
 
-func TestResizePanic(t *testing.T) {
+func TestResizeError(t *testing.T) {
 	cache, err := New[string, int](5)
 	if err != nil {
 		t.Fatalf("Failed to create cache: %v", err)
 	}
 
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("Expected panic for zero capacity resize")
-		}
-	}()
-	cache.Resize(0)
+	err = cache.Resize(0)
+	if err == nil {
+		t.Error("Expected error for zero capacity resize")
+	}
 }
 
 func TestStats(t *testing.T) {
@@ -387,7 +386,7 @@ func TestFrequencyDistribution(t *testing.T) {
 	cache.Put("twice", 2)
 	cache.Put("thrice", 3)
 
-	cache.Get("twice") // freq 2
+	cache.Get("twice")  // freq 2
 	cache.Get("thrice") // freq 2
 	cache.Get("thrice") // freq 3
 
@@ -509,10 +508,13 @@ func TestNewWithEvict(t *testing.T) {
 	evictedKeys := []string{}
 	evictedValues := []int{}
 
-	cache := NewWithEvict[string, int](2, func(key string, value int) {
+	cache, err := NewWithEvict[string, int](2, func(key string, value int) {
 		evictedKeys = append(evictedKeys, key)
 		evictedValues = append(evictedValues, value)
 	})
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -562,7 +564,7 @@ func TestEmptyFrequencyListHandling(t *testing.T) {
 func BenchmarkPut(b *testing.B) {
 	cache, err := New[int, int](1000)
 	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
+		b.Fatalf("Failed to create cache: %v", err)
 	}
 
 	b.ResetTimer()
@@ -574,7 +576,7 @@ func BenchmarkPut(b *testing.B) {
 func BenchmarkGet(b *testing.B) {
 	cache, err := New[int, int](1000)
 	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
+		b.Fatalf("Failed to create cache: %v", err)
 	}
 
 	for i := 0; i < 1000; i++ {
@@ -590,7 +592,7 @@ func BenchmarkGet(b *testing.B) {
 func BenchmarkMixed(b *testing.B) {
 	cache, err := New[int, int](1000)
 	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
+		b.Fatalf("Failed to create cache: %v", err)
 	}
 
 	b.ResetTimer()
@@ -609,19 +611,19 @@ func TestEvictLeastFrequentEdgeCase(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create cache: %v", err)
 	}
-	
+
 	// Test evictLeastFrequent on empty cache
 	// This should cover the return false case when no items can be evicted
 	result := cache.evictLeastFrequent()
 	if result {
 		t.Errorf("Expected evictLeastFrequent to return false for empty cache")
 	}
-	
+
 	// Also test with no evictable items due to empty frequency lists
 	// This edge case happens when all frequency lists are empty but the loop still runs
 	cache.Put("test", 1)
 	cache.Remove("test") // This leaves empty frequency lists but might not reset minFreq correctly
-	
+
 	// Now try eviction again - should return false as no items exist to evict
 	result = cache.evictLeastFrequent()
 	if result {

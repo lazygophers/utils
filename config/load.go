@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/lazygophers/log"
-	"github.com/lazygophers/utils"
 	"github.com/lazygophers/utils/json"
 	"github.com/lazygophers/utils/osx"
 	"github.com/lazygophers/utils/runtime"
+	"github.com/lazygophers/utils/validator"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/yosuke-furukawa/json5/encoding/json5"
 	"gopkg.in/ini.v1"
@@ -161,7 +161,7 @@ func LoadConfig(c any, paths ...string) (err error) {
 		return err
 	}
 
-	err = utils.Validate(c)
+	err = validator.Struct(c)
 	if err != nil {
 		log.Errorf("err:%v", err)
 		return err

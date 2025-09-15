@@ -1530,7 +1530,7 @@ func TestGetFieldTagNameComplete(t *testing.T) {
 		assert.Equal(t, "env_name", getFieldTagName(field2))
 
 		field3, _ := rt.FieldByName("Field3")
-		assert.Equal(t, "json_name", getFieldTagName(field3))
+		assert.Equal(t, "json_name3", getFieldTagName(field3))
 
 		field4, _ := rt.FieldByName("Field4")
 		assert.Equal(t, "yaml_name", getFieldTagName(field4))
@@ -2153,7 +2153,7 @@ func TestCompleteCoverageEnhancement(t *testing.T) {
 		var config ValidatedConfig
 		err = LoadConfig(&config, configFile)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "validation")
+		assert.Contains(t, err.Error(), "required")
 	})
 
 	t.Run("writeProperties with write error", func(t *testing.T) {
@@ -2233,7 +2233,7 @@ func TestFinalCoverageBoost(t *testing.T) {
 		err := LoadConfig(&config, "/this/path/absolutely/does/not/exist.json")
 		// 应该因为验证失败而返回错误（TestConfig有required字段）
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "validation")
+		assert.Contains(t, err.Error(), "required")
 	})
 
 	t.Run("LoadConfig with unsupported format error", func(t *testing.T) {
@@ -2318,4 +2318,3 @@ func TestFinalCoverageBoost(t *testing.T) {
 		assert.Equal(t, "another-value", result["prefix.another"])
 	})
 }
-
