@@ -7,7 +7,10 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	cache := New[string, int](5)
+	cache, err := New[string, int](5)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	if cache.Cap() != 5 {
 		t.Errorf("Expected capacity 5, got %d", cache.Cap())
 	}
@@ -23,7 +26,10 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewWithRatio(t *testing.T) {
-	cache := NewWithRatio[string, int](10, 0.3)
+	cache, err := NewWithRatio[string, int](10, 0.3)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	stats := cache.Stats()
 	if stats.ProbationaryCapacity != 3 || stats.ProtectedCapacity != 7 {
 		t.Errorf("Expected probationary=3, protected=7, got probationary=%d, protected=%d",
@@ -31,26 +37,25 @@ func TestNewWithRatio(t *testing.T) {
 	}
 }
 
-func TestNewWithRatioPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("Expected panic for invalid ratio")
-		}
-	}()
-	NewWithRatio[string, int](10, 1.5)
+func TestNewWithRatioError(t *testing.T) {
+	_, err := NewWithRatio[string, int](10, 1.5)
+	if err == nil {
+		t.Error("Expected error for invalid ratio")
+	}
 }
 
-func TestNewPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("Expected panic for zero capacity")
-		}
-	}()
-	New[string, int](0)
+func TestNewError(t *testing.T) {
+	_, err := New[string, int](0)
+	if err == nil {
+		t.Error("Expected error for zero capacity")
+	}
 }
 
 func TestPutAndGet(t *testing.T) {
-	cache := New[string, int](5)
+	cache, err := New[string, int](5)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// First access goes to probationary
 	evicted := cache.Put("a", 1)
@@ -72,7 +77,10 @@ func TestPutAndGet(t *testing.T) {
 }
 
 func TestSegmentation(t *testing.T) {
-	cache := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Add items to fill probationary
 	cache.Put("a", 1)
@@ -94,7 +102,10 @@ func TestSegmentation(t *testing.T) {
 }
 
 func TestEvictionFromProbationary(t *testing.T) {
-	cache := NewWithRatio[string, int](3, 0.67) // 2 probationary, 1 protected
+	cache, err := NewWithRatio[string, int](3, 0.67) // 2 probationary, 1 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Fill probationary
 	cache.Put("a", 1)
@@ -122,7 +133,10 @@ func TestEvictionFromProbationary(t *testing.T) {
 }
 
 func TestEvictionFromProtected(t *testing.T) {
-	cache := NewWithRatio[string, int](3, 0.33) // 1 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](3, 0.33) // 1 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Add and promote items to fill protected
 	cache.Put("a", 1)
@@ -147,7 +161,10 @@ func TestEvictionFromProtected(t *testing.T) {
 }
 
 func TestUpdateExisting(t *testing.T) {
-	cache := New[string, int](3)
+	cache, err := New[string, int](3)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	cache.Put("a", 1)
 	evicted := cache.Put("a", 10) // Update existing
@@ -162,7 +179,10 @@ func TestUpdateExisting(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	cache := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -184,7 +204,10 @@ func TestRemove(t *testing.T) {
 }
 
 func TestContains(t *testing.T) {
-	cache := New[string, int](3)
+	cache, err := New[string, int](3)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	cache.Put("a", 1)
 	
@@ -198,7 +221,10 @@ func TestContains(t *testing.T) {
 }
 
 func TestPeek(t *testing.T) {
-	cache := NewWithRatio[string, int](3, 0.33) // 1 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](3, 0.33) // 1 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	cache.Put("a", 1)
 	
@@ -222,9 +248,12 @@ func TestPeek(t *testing.T) {
 
 func TestClear(t *testing.T) {
 	evictCount := 0
-	cache := NewWithEvict[string, int](3, func(key string, value int) {
+	cache, err := NewWithEvict[string, int](3, func(key string, value int) {
 		evictCount++
 	})
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -242,7 +271,10 @@ func TestClear(t *testing.T) {
 }
 
 func TestKeys(t *testing.T) {
-	cache := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Add items to probationary
 	cache.Put("a", 1)
@@ -267,7 +299,10 @@ func TestKeys(t *testing.T) {
 }
 
 func TestValues(t *testing.T) {
-	cache := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -286,7 +321,10 @@ func TestValues(t *testing.T) {
 }
 
 func TestItems(t *testing.T) {
-	cache := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -303,7 +341,10 @@ func TestItems(t *testing.T) {
 }
 
 func TestResize(t *testing.T) {
-	cache := NewWithRatio[string, int](6, 0.5) // 3 probationary, 3 protected
+	cache, err := NewWithRatio[string, int](6, 0.5) // 3 probationary, 3 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Fill cache
 	cache.Put("a", 1)
@@ -314,7 +355,10 @@ func TestResize(t *testing.T) {
 	cache.Put("d", 4)
 	
 	// Resize to smaller capacity
-	cache.Resize(3)
+	err = cache.Resize(3)
+	if err != nil {
+		t.Fatalf("Failed to resize cache: %v", err)
+	}
 	
 	if cache.Cap() != 3 {
 		t.Errorf("Expected capacity 3 after resize, got %d", cache.Cap())
@@ -335,19 +379,23 @@ func TestResize(t *testing.T) {
 	}
 }
 
-func TestResizePanic(t *testing.T) {
-	cache := New[string, int](3)
+func TestResizeError(t *testing.T) {
+	cache, err := New[string, int](3)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("Expected panic for zero capacity resize")
-		}
-	}()
-	cache.Resize(0)
+	err = cache.Resize(0)
+	if err == nil {
+		t.Error("Expected error for zero capacity resize")
+	}
 }
 
 func TestStats(t *testing.T) {
-	cache := NewWithRatio[string, int](5, 0.4) // 2 probationary, 3 protected
+	cache, err := NewWithRatio[string, int](5, 0.4) // 2 probationary, 3 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -376,7 +424,10 @@ func TestStats(t *testing.T) {
 }
 
 func TestConcurrency(t *testing.T) {
-	cache := New[int, int](1000)
+	cache, err := New[int, int](1000)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	var wg sync.WaitGroup
 	numGoroutines := 10
@@ -410,10 +461,13 @@ func TestNewWithEvict(t *testing.T) {
 	evictedKeys := []string{}
 	evictedValues := []int{}
 	
-	cache := NewWithEvict[string, int](2, func(key string, value int) {
+	cache, err := NewWithEvict[string, int](2, func(key string, value int) {
 		evictedKeys = append(evictedKeys, key)
 		evictedValues = append(evictedValues, value)
 	})
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Fill probationary (capacity 2 -> probationary 1, protected 1)
 	cache.Put("a", 1)
@@ -428,7 +482,10 @@ func TestNewWithEvict(t *testing.T) {
 }
 
 func TestPromotionBehavior(t *testing.T) {
-	cache := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Add items to probationary
 	cache.Put("a", 1)
@@ -460,7 +517,10 @@ func TestPromotionBehavior(t *testing.T) {
 }
 
 func BenchmarkPut(b *testing.B) {
-	cache := New[int, int](1000)
+	cache, err := New[int, int](1000)
+	if err != nil {
+		b.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -469,7 +529,10 @@ func BenchmarkPut(b *testing.B) {
 }
 
 func BenchmarkGet(b *testing.B) {
-	cache := New[int, int](1000)
+	cache, err := New[int, int](1000)
+	if err != nil {
+		b.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	for i := 0; i < 1000; i++ {
 		cache.Put(i, i)
@@ -482,7 +545,10 @@ func BenchmarkGet(b *testing.B) {
 }
 
 func BenchmarkMixed(b *testing.B) {
-	cache := New[int, int](1000)
+	cache, err := New[int, int](1000)
+	if err != nil {
+		b.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -497,16 +563,17 @@ func BenchmarkMixed(b *testing.B) {
 
 func TestNewWithRatioEdgeCases(t *testing.T) {
 	// Test with ratio 0 (no probationary segment)
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("Expected panic for negative ratio")
-		}
-	}()
-	NewWithRatio[string, int](10, -0.1)
+	_, err := NewWithRatio[string, int](10, -0.1)
+	if err == nil {
+		t.Error("Expected error for negative ratio")
+	}
 }
 
 func TestNewWithRatioZero(t *testing.T) {
-	cache := NewWithRatio[string, int](10, 0.0)
+	cache, err := NewWithRatio[string, int](10, 0.0)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	stats := cache.Stats()
 	if stats.ProbationaryCapacity != 0 || stats.ProtectedCapacity != 10 {
 		t.Errorf("Expected probationary=0, protected=10, got probationary=%d, protected=%d",
@@ -516,7 +583,10 @@ func TestNewWithRatioZero(t *testing.T) {
 
 func TestEvictionEdgeCases(t *testing.T) {
 	// Test when probationary segment is empty during eviction
-	cache := NewWithRatio[string, int](3, 0.33) // 1 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](3, 0.33) // 1 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Fill and promote all to protected
 	cache.Put("a", 1)
@@ -535,14 +605,20 @@ func TestEvictionEdgeCases(t *testing.T) {
 }
 
 func TestResizeWithEmptySegments(t *testing.T) {
-	cache := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](4, 0.5) // 2 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Add items only to probationary
 	cache.Put("a", 1)
 	cache.Put("b", 2)
 	
 	// Resize to trigger segment adjustment
-	cache.Resize(3) // Should become 1 probationary, 2 protected
+	err = cache.Resize(3) // Should become 1 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to resize cache: %v", err)
+	}
 	
 	stats := cache.Stats()
 	if stats.ProbationaryCapacity != 1 || stats.ProtectedCapacity != 2 {
@@ -552,14 +628,20 @@ func TestResizeWithEmptySegments(t *testing.T) {
 }
 
 func TestResizeIncreaseCapacity(t *testing.T) {
-	cache := NewWithRatio[string, int](2, 0.5) // 1 probationary, 1 protected
+	cache, err := NewWithRatio[string, int](2, 0.5) // 1 probationary, 1 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	cache.Put("a", 1)
 	cache.Get("a") // promote to protected
 	cache.Put("b", 2) // in probationary
 	
 	// Increase capacity
-	cache.Resize(6) // Should become 1 probationary (6/5=1), 5 protected
+	err = cache.Resize(6) // Should become 1 probationary (6/5=1), 5 protected
+	if err != nil {
+		t.Fatalf("Failed to resize cache: %v", err)
+	}
 	
 	stats := cache.Stats()
 	if stats.Size != 2 {
@@ -571,7 +653,10 @@ func TestResizeIncreaseCapacity(t *testing.T) {
 }
 
 func TestItemsWithEmptyProtected(t *testing.T) {
-	cache := NewWithRatio[string, int](4, 1.0) // 4 probationary, 0 protected (edge case)
+	cache, err := NewWithRatio[string, int](4, 1.0) // 4 probationary, 0 protected (edge case)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -585,7 +670,10 @@ func TestItemsWithEmptyProtected(t *testing.T) {
 
 func TestNewWithRatioOne(t *testing.T) {
 	// Test with ratio 1.0 (all probationary)
-	cache := NewWithRatio[string, int](10, 1.0)
+	cache, err := NewWithRatio[string, int](10, 1.0)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	stats := cache.Stats()
 	if stats.ProbationaryCapacity != 10 || stats.ProtectedCapacity != 0 {
 		t.Errorf("Expected probationary=10, protected=0, got probationary=%d, protected=%d",
@@ -594,7 +682,10 @@ func TestNewWithRatioOne(t *testing.T) {
 }
 
 func TestResizeSegmentAdjustment(t *testing.T) {
-	cache := NewWithRatio[string, int](6, 0.5) // 3 probationary, 3 protected
+	cache, err := NewWithRatio[string, int](6, 0.5) // 3 probationary, 3 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Fill both segments
 	cache.Put("a", 1)
@@ -606,7 +697,10 @@ func TestResizeSegmentAdjustment(t *testing.T) {
 	// Now we have 1 in probationary ("c") and 2 in protected ("a", "b")
 	
 	// Resize to force segment rebalancing
-	cache.Resize(4) // Should become 1 probationary, 3 protected (but only 3 items total)
+	err = cache.Resize(4) // Should become 1 probationary, 3 protected (but only 3 items total)
+	if err != nil {
+		t.Fatalf("Failed to resize cache: %v", err)
+	}
 	
 	stats := cache.Stats()
 	if stats.Size != 3 {
@@ -616,7 +710,10 @@ func TestResizeSegmentAdjustment(t *testing.T) {
 
 func TestResizeProtectedOversize(t *testing.T) {
 	// Create cache where protected segment will be oversized after resize
-	cache := NewWithRatio[string, int](10, 0.2) // 2 probationary, 8 protected
+	cache, err := NewWithRatio[string, int](10, 0.2) // 2 probationary, 8 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Fill protected segment with many items
 	for i := 0; i < 5; i++ {
@@ -625,7 +722,10 @@ func TestResizeProtectedOversize(t *testing.T) {
 	}
 	
 	// Resize to smaller capacity where protected would be oversized
-	cache.Resize(3) // Should become 1 probationary, 2 protected
+	err = cache.Resize(3) // Should become 1 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to resize cache: %v", err)
+	}
 	
 	stats := cache.Stats()
 	if stats.ProtectedSize > stats.ProtectedCapacity {
@@ -638,7 +738,10 @@ func TestResizeProtectedOversize(t *testing.T) {
 
 func TestResizeEmptySegmentEviction(t *testing.T) {
 	// Test resize where probationary is empty but protected needs eviction
-	cache := NewWithRatio[string, int](3, 0.33) // 1 probationary, 2 protected
+	cache, err := NewWithRatio[string, int](3, 0.33) // 1 probationary, 2 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Fill and promote items to protected, leaving probationary empty
 	cache.Put("a", 1)
@@ -651,7 +754,10 @@ func TestResizeEmptySegmentEviction(t *testing.T) {
 	initialSize := stats.Size
 	
 	// Resize to smaller capacity to force eviction from protected only
-	cache.Resize(1) // 1 probationary, 0 protected -> all items should be evicted or moved
+	err = cache.Resize(1) // 1 probationary, 0 protected -> all items should be evicted or moved
+	if err != nil {
+		t.Fatalf("Failed to resize cache: %v", err)
+	}
 	
 	stats = cache.Stats()
 	if stats.Size > 1 {
@@ -666,7 +772,10 @@ func TestResizeEmptySegmentEviction(t *testing.T) {
 
 func TestNewWithRatioSmallCapacity(t *testing.T) {
 	// Test with very small capacity to trigger edge cases
-	cache := NewWithRatio[string, int](2, 0.1) // Should be 0 probationary, 2 protected, but minimum 1
+	cache, err := NewWithRatio[string, int](2, 0.1) // Should be 0 probationary, 2 protected, but minimum 1
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	stats := cache.Stats()
 	
 	// pSize should be at least 1 even with small ratio
@@ -677,7 +786,10 @@ func TestNewWithRatioSmallCapacity(t *testing.T) {
 
 func TestPutWhenZeroProbationary(t *testing.T) {
 	// Test Put method with zero probationary capacity (edge case)
-	cache := NewWithRatio[string, int](5, 0.0) // 0 probationary, 5 protected
+	cache, err := NewWithRatio[string, int](5, 0.0) // 0 probationary, 5 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// All items should go straight to protected with promotion
 	cache.Put("a", 1)
@@ -691,7 +803,10 @@ func TestPutWhenZeroProbationary(t *testing.T) {
 
 func TestResizeWithEmptyProtectedEviction(t *testing.T) {
 	// Create a scenario where resize tries to evict from empty protected segment
-	cache := NewWithRatio[string, int](4, 1.0) // 4 probationary, 0 protected
+	cache, err := NewWithRatio[string, int](4, 1.0) // 4 probationary, 0 protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Fill probationary segment
 	cache.Put("a", 1)
@@ -706,7 +821,10 @@ func TestResizeWithEmptyProtectedEviction(t *testing.T) {
 	}
 	
 	// Resize down to force eviction when protected is empty
-	cache.Resize(1) // This should trigger eviction from probationary since protected is empty
+	err = cache.Resize(1) // This should trigger eviction from probationary since protected is empty
+	if err != nil {
+		t.Fatalf("Failed to resize cache: %v", err)
+	}
 	
 	stats = cache.Stats()
 	if stats.Size > 1 {
@@ -714,19 +832,20 @@ func TestResizeWithEmptyProtectedEviction(t *testing.T) {
 	}
 }
 
-func TestNewWithRatioZeroCapacityPanic(t *testing.T) {
-	// Test the capacity <= 0 panic in NewWithRatio
-	defer func() {
-		if r := recover(); r == nil {
-			t.Error("Expected panic for zero capacity in NewWithRatio")
-		}
-	}()
-	NewWithRatio[string, int](0, 0.5)
+func TestNewWithRatioZeroCapacityError(t *testing.T) {
+	// Test the capacity <= 0 error in NewWithRatio
+	_, err := NewWithRatio[string, int](0, 0.5)
+	if err == nil {
+		t.Error("Expected error for zero capacity in NewWithRatio")
+	}
 }
 
 func TestPutExistingInProbationary(t *testing.T) {
 	// Test Put with existing key in probationary (else branch)
-	cache := New[string, int](3)
+	cache, err := New[string, int](3)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Add item to probationary
 	cache.Put("key", 1)
@@ -745,7 +864,10 @@ func TestPutExistingInProbationary(t *testing.T) {
 
 func TestItemsWithProbationaryEntries(t *testing.T) {
 	// Test Items method to include probationary entries
-	cache := NewWithRatio[string, int](4, 1.0) // All probationary
+	cache, err := NewWithRatio[string, int](4, 1.0) // All probationary
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Add items to probationary only
 	cache.Put("a", 1)
@@ -763,7 +885,10 @@ func TestItemsWithProbationaryEntries(t *testing.T) {
 
 func TestEvictFromProtectedEmpty(t *testing.T) {
 	// Test evictFromProtected when protected segment is empty
-	cache := NewWithRatio[string, int](2, 1.0) // All probationary, no protected
+	cache, err := NewWithRatio[string, int](2, 1.0) // All probationary, no protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Fill probationary
 	cache.Put("a", 1)
@@ -778,7 +903,10 @@ func TestEvictFromProtectedEmpty(t *testing.T) {
 
 func TestPutExistingInProtected(t *testing.T) {
 	// Test Put with existing key in protected segment (else branch)
-	cache := New[string, int](3)
+	cache, err := New[string, int](3)
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Add item and promote it to protected
 	cache.Put("key", 1)
@@ -804,7 +932,10 @@ func TestPutExistingInProtected(t *testing.T) {
 
 func TestItemsWithProbationaryOnly(t *testing.T) {
 	// Test Items method to specifically cover probationary segment iteration
-	cache := NewWithRatio[string, int](3, 1.0) // All probationary, no protected
+	cache, err := NewWithRatio[string, int](3, 1.0) // All probationary, no protected
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Add items to probationary only
 	cache.Put("prob1", 1)
@@ -834,7 +965,10 @@ func TestItemsWithProbationaryOnly(t *testing.T) {
 
 func TestItemsWithProtectedEntries(t *testing.T) {
 	// Test Items method to specifically cover protected segment iteration
-	cache := New[string, int](5) // Larger cache to avoid evictions
+	cache, err := New[string, int](5) // Larger cache to avoid evictions
+	if err != nil {
+		t.Fatalf("Failed to create cache: %v", err)
+	}
 	
 	// Add items to probationary then promote them
 	cache.Put("key1", 1)

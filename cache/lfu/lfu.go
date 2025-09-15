@@ -2,6 +2,7 @@ package lfu
 
 import (
 	"container/list"
+	"fmt"
 	"sync"
 )
 
@@ -24,9 +25,9 @@ type entry[K comparable, V any] struct {
 }
 
 // New creates a new LFU cache with the given capacity
-func New[K comparable, V any](capacity int) *Cache[K, V] {
+func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 	if capacity <= 0 {
-		panic("capacity must be positive")
+		return nil, fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
 	
 	return &Cache[K, V]{
@@ -34,14 +35,17 @@ func New[K comparable, V any](capacity int) *Cache[K, V] {
 		items:     make(map[K]*entry[K, V]),
 		freqLists: make(map[int]*list.List),
 		minFreq:   1,
-	}
+	}, nil
 }
 
 // NewWithEvict creates a new LFU cache with eviction callback
-func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) *Cache[K, V] {
-	cache := New[K, V](capacity)
+func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error) {
+	cache, err := New[K, V](capacity)
+	if err != nil {
+		return nil, err
+	}
 	cache.onEvict = onEvict
-	return cache
+	return cache, nil
 }
 
 // Get retrieves a value from the cache
@@ -197,9 +201,9 @@ func (c *Cache[K, V]) Items() map[K]V {
 }
 
 // Resize changes the capacity of the cache
-func (c *Cache[K, V]) Resize(capacity int) {
+func (c *Cache[K, V]) Resize(capacity int) error {
 	if capacity <= 0 {
-		panic("capacity must be positive")
+		return fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
 	
 	c.mu.Lock()
@@ -211,6 +215,7 @@ func (c *Cache[K, V]) Resize(capacity int) {
 	for len(c.items) > c.capacity {
 		c.evictLFU()
 	}
+	return nil
 }
 
 // GetFreq returns the frequency of a key

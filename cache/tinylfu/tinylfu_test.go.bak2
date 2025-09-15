@@ -907,47 +907,78 @@ func TestExactDemoteFromProtected(t *testing.T) {
 	}
 }
 
-func TestExactEvictFromProtected(t *testing.T) {
-	// Use small cache: capacity 4: window=1, main=3
-	cache, err := New[string, int](4)
+
+func TestNewWithEvict(t *testing.T) {
+	evictedKeys := []string{}
+	evictedValues := []int{}
+	
+	cache := NewWithEvict[string, int](2, func(key string, value int) {
+		evictedKeys = append(evictedKeys, key)
+		evictedValues = append(evictedValues, value)
+	})
+	
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	cache.Put("c", 3) // Should evict "a"
+	
+	if len(evictedKeys) != 1 || evictedKeys[0] != "a" {
+		t.Errorf("Expected evicted key 'a', got %v", evictedKeys)
+	}
+	if len(evictedValues) != 1 || evictedValues[0] != 1 {
+		t.Errorf("Expected evicted value 1, got %v", evictedValues)
+	}
+}
+
+func TestNewWithEvictError(t *testing.T) {
+	_, err := NewWithEvict[string, int](0, func(key string, value int) {})
+	if err == nil {
+		t.Error("Expected error for zero capacity")
+	}
+}
+
+func TestEmptySegmentOperations(t *testing.T) {
+	cache := New[string, int](10)
+	
+	// Test Keys with empty cache
+	keys := cache.Keys()
+	if len(keys) != 0 {
+		t.Errorf("Expected empty keys, got %v", keys)
+	}
+	
+	// Test Values with empty cache
+	values := cache.Values()
+	if len(values) != 0 {
+		t.Errorf("Expected empty values, got %v", values)
+	}
+	
+	// Test Items with empty cache
+	items := cache.Items()
+	if len(items) != 0 {
+		t.Errorf("Expected empty items, got %v", items)
+	}
+}
+
+func TestResizeEdgeCases(t *testing.T) {
+	cache := New[string, int](5)
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	
+	// Test resize error
+	err := cache.Resize(0)
+	if err == nil {
+		t.Error("Expected error for zero capacity resize")
+	}
+	
+	// Test resize to same capacity
+	err = cache.Resize(5)
 	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
+		t.Fatalf("Failed to resize to same capacity: %v", err)
 	}
 	
-	// Fill with items and promote to protected
-	cache.Put("w", 0)  // window
-	
-	// Add items to be admitted to probation (need doorkeeper first)
-	for i := 1; i <= 3; i++ {
-		cache.Put(fmt.Sprintf("p%d", i), i)
-	}
-	
-	// Add same items again to get them admitted to probation
-	for i := 1; i <= 3; i++ {
-		cache.Put(fmt.Sprintf("p%d", i), i*10)
-	}
-	
-	// Promote all items to protected
-	for i := 1; i <= 3; i++ {
-		cache.Get(fmt.Sprintf("p%d", i))
-	}
-	
-	stats := cache.Stats()
-	t.Logf("Before resize: Protected=%d, Probation=%d, Window=%d, Total=%d", 
-		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
-	
-	// Resize to smaller capacity 
-	err = cache.Resize(2)
+	// Test resize to larger capacity
+	err = cache.Resize(10)
 	if err != nil {
-		t.Fatalf("Failed to resize cache: %v", err)
-	}
-	
-	finalStats := cache.Stats()
-	t.Logf("After resize to 2: Protected=%d, Probation=%d, Window=%d, Total=%d", 
-		finalStats.ProtectedSize, finalStats.ProbationSize, finalStats.WindowSize, finalStats.Size)
-	
-	if finalStats.Size > 2 {
-		t.Errorf("Expected cache size <= 2 after resize, got %d", finalStats.Size)
+		t.Fatalf("Failed to resize to larger capacity: %v", err)
 	}
 }
 

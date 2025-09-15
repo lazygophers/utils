@@ -2,6 +2,7 @@ package slru
 
 import (
 	"container/list"
+	"fmt"
 	"sync"
 )
 
@@ -26,9 +27,9 @@ type entry[K comparable, V any] struct {
 }
 
 // New creates a new SLRU cache with the given capacity
-func New[K comparable, V any](capacity int) *Cache[K, V] {
+func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 	if capacity <= 0 {
-		panic("capacity must be positive")
+		return nil, fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
 
 	// Default: 20% probationary, 80% protected
@@ -45,16 +46,16 @@ func New[K comparable, V any](capacity int) *Cache[K, V] {
 		items:        make(map[K]*entry[K, V]),
 		pSize:        pSize,
 		protSize:     protSize,
-	}
+	}, nil
 }
 
 // NewWithRatio creates a new SLRU cache with custom probationary ratio (0.0-1.0)
-func NewWithRatio[K comparable, V any](capacity int, probationaryRatio float64) *Cache[K, V] {
+func NewWithRatio[K comparable, V any](capacity int, probationaryRatio float64) (*Cache[K, V], error) {
 	if capacity <= 0 {
-		panic("capacity must be positive")
+		return nil, fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
 	if probationaryRatio < 0 || probationaryRatio > 1 {
-		panic("probationary ratio must be between 0 and 1")
+		return nil, fmt.Errorf("probationary ratio must be between 0 and 1, got %f", probationaryRatio)
 	}
 
 	pSize := int(float64(capacity) * probationaryRatio)
@@ -70,14 +71,17 @@ func NewWithRatio[K comparable, V any](capacity int, probationaryRatio float64) 
 		items:        make(map[K]*entry[K, V]),
 		pSize:        pSize,
 		protSize:     protSize,
-	}
+	}, nil
 }
 
 // NewWithEvict creates a new SLRU cache with eviction callback
-func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) *Cache[K, V] {
-	cache := New[K, V](capacity)
+func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error) {
+	cache, err := New[K, V](capacity)
+	if err != nil {
+		return nil, err
+	}
 	cache.onEvict = onEvict
-	return cache
+	return cache, nil
 }
 
 // Get retrieves a value from the cache
@@ -266,9 +270,9 @@ func (c *Cache[K, V]) Items() map[K]V {
 }
 
 // Resize changes the capacity of the cache
-func (c *Cache[K, V]) Resize(capacity int) {
+func (c *Cache[K, V]) Resize(capacity int) error {
 	if capacity <= 0 {
-		panic("capacity must be positive")
+		return fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
 
 	c.mu.Lock()
@@ -308,6 +312,7 @@ func (c *Cache[K, V]) Resize(capacity int) {
 	}
 
 	_ = oldCapacity // Prevent unused variable warning
+	return nil
 }
 
 // promoteToProtected moves an entry from probationary to protected segment

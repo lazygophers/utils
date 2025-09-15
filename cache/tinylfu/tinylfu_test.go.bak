@@ -936,18 +936,18 @@ func TestExactEvictFromProtected(t *testing.T) {
 	t.Logf("Before resize: Protected=%d, Probation=%d, Window=%d, Total=%d", 
 		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize, stats.Size)
 	
-	// Resize to smaller capacity 
-	err = cache.Resize(2)
+	// Resize to very small capacity - should force eviction from protected
+	err = cache.Resize(1)
 	if err != nil {
 		t.Fatalf("Failed to resize cache: %v", err)
 	}
 	
 	finalStats := cache.Stats()
-	t.Logf("After resize to 2: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+	t.Logf("After resize to 1: Protected=%d, Probation=%d, Window=%d, Total=%d", 
 		finalStats.ProtectedSize, finalStats.ProbationSize, finalStats.WindowSize, finalStats.Size)
 	
-	if finalStats.Size > 2 {
-		t.Errorf("Expected cache size <= 2 after resize, got %d", finalStats.Size)
+	if finalStats.Size != 1 {
+		t.Errorf("Expected cache size = 1 after resize, got %d", finalStats.Size)
 	}
 }
 

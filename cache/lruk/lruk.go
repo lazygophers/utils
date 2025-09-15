@@ -2,6 +2,7 @@ package lruk
 
 import (
 	"container/list"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -27,12 +28,12 @@ type entry[K comparable, V any] struct {
 }
 
 // New creates a new LRU-K cache with the given capacity and K value
-func New[K comparable, V any](capacity, k int) *Cache[K, V] {
+func New[K comparable, V any](capacity, k int) (*Cache[K, V], error) {
 	if capacity <= 0 {
-		panic("capacity must be positive")
+		return nil, fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
 	if k <= 0 {
-		panic("k must be positive")
+		return nil, fmt.Errorf("k must be positive, got %d", k)
 	}
 
 	return &Cache[K, V]{
@@ -41,14 +42,17 @@ func New[K comparable, V any](capacity, k int) *Cache[K, V] {
 		items:    make(map[K]*entry[K, V]),
 		history:  list.New(),
 		cache:    list.New(),
-	}
+	}, nil
 }
 
 // NewWithEvict creates a new LRU-K cache with eviction callback
-func NewWithEvict[K comparable, V any](capacity, k int, onEvict func(K, V)) *Cache[K, V] {
-	cache := New[K, V](capacity, k)
+func NewWithEvict[K comparable, V any](capacity, k int, onEvict func(K, V)) (*Cache[K, V], error) {
+	cache, err := New[K, V](capacity, k)
+	if err != nil {
+		return nil, err
+	}
 	cache.onEvict = onEvict
-	return cache
+	return cache, nil
 }
 
 // Get retrieves a value from the cache
@@ -219,9 +223,9 @@ func (c *Cache[K, V]) Items() map[K]V {
 }
 
 // Resize changes the capacity of the cache
-func (c *Cache[K, V]) Resize(capacity int) {
+func (c *Cache[K, V]) Resize(capacity int) error {
 	if capacity <= 0 {
-		panic("capacity must be positive")
+		return fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
 
 	c.mu.Lock()
@@ -236,6 +240,7 @@ func (c *Cache[K, V]) Resize(capacity int) {
 	}
 
 	_ = oldCapacity // Prevent unused variable warning
+	return nil
 }
 
 // recordAccess records an access for an entry

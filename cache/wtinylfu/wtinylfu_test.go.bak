@@ -6,10 +6,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	cache, err := New[string, int](100)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](100)
 	if cache.Cap() != 100 {
 		t.Errorf("Expected capacity 100, got %d", cache.Cap())
 	}
@@ -38,10 +35,7 @@ func TestNewWithEvict(t *testing.T) {
 		evicted[key] = value
 	}
 	
-	cache, err := NewWithEvict[string, int](5, onEvict)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := NewWithEvict[string, int](5, onEvict)
 	
 	// Fill cache beyond capacity
 	for i := 0; i < 10; i++ {
@@ -54,10 +48,7 @@ func TestNewWithEvict(t *testing.T) {
 }
 
 func TestBasicOperations(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Test Put and Get
 	evicted := cache.Put("a", 1)
@@ -87,10 +78,7 @@ func TestBasicOperations(t *testing.T) {
 }
 
 func TestWindowBehavior(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	} // Window size = 1
+	cache := New[string, int](10) // Window size = 1
 	
 	// Fill window
 	cache.Put("a", 1)
@@ -115,10 +103,7 @@ func TestWindowBehavior(t *testing.T) {
 }
 
 func TestFrequencyBasedPromotion(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Add items to window and main cache
 	cache.Put("frequent", 1)
@@ -142,10 +127,7 @@ func TestFrequencyBasedPromotion(t *testing.T) {
 }
 
 func TestContainsAndPeek(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	cache.Put("a", 1)
 	
 	// Test Contains
@@ -164,10 +146,7 @@ func TestContainsAndPeek(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	cache.Put("a", 1)
 	cache.Put("b", 2)
 	
@@ -194,10 +173,7 @@ func TestClear(t *testing.T) {
 		evicted[key] = value
 	}
 	
-	cache, err := NewWithEvict[string, int](10, onEvict)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := NewWithEvict[string, int](10, onEvict)
 	cache.Put("a", 1)
 	cache.Put("b", 2)
 	
@@ -213,10 +189,7 @@ func TestClear(t *testing.T) {
 }
 
 func TestKeysAndValues(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	cache.Put("a", 1)
 	cache.Put("b", 2)
 	
@@ -238,10 +211,7 @@ func TestKeysAndValues(t *testing.T) {
 }
 
 func TestItems(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	cache.Put("a", 1)
 	cache.Put("b", 2)
 	
@@ -256,10 +226,7 @@ func TestItems(t *testing.T) {
 }
 
 func TestResize(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Fill cache
 	for i := 0; i < 8; i++ {
@@ -285,18 +252,12 @@ func TestResizePanic(t *testing.T) {
 		}
 	}()
 	
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	cache.Resize(0)
 }
 
 func TestSpaceManagement(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	} // Window=1, Main=9 (Protected=7, Probation=2)
+	cache := New[string, int](10) // Window=1, Main=9 (Protected=7, Probation=2)
 	
 	// Add items to fill different spaces
 	cache.Put("w1", 1) // Goes to window
@@ -327,10 +288,7 @@ func TestSpaceManagement(t *testing.T) {
 }
 
 func TestEvictionOrder(t *testing.T) {
-	cache, err := New[string, int](5)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	} // Small cache for easy testing
+	cache := New[string, int](5) // Small cache for easy testing
 	
 	// Fill cache
 	cache.Put("a", 1)
@@ -355,10 +313,7 @@ func TestEvictionOrder(t *testing.T) {
 }
 
 func TestStats(t *testing.T) {
-	cache, err := New[string, int](20)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](20)
 	
 	// Add some items
 	for i := 0; i < 10; i++ {
@@ -408,10 +363,7 @@ func TestStats(t *testing.T) {
 }
 
 func TestConcurrentAccess(t *testing.T) {
-	cache, err := New[int, int](100)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[int, int](100)
 	done := make(chan bool)
 	
 	// Start multiple goroutines
@@ -440,10 +392,7 @@ func TestConcurrentAccess(t *testing.T) {
 }
 
 func TestHashFunction(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Test that hash function works with different types
 	hash1 := cache.hash("test")
@@ -490,10 +439,7 @@ func TestCountMinSketch(t *testing.T) {
 
 func TestEdgeCases(t *testing.T) {
 	// Test very small cache
-	cache, err := New[string, int](2)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](2)
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -519,10 +465,7 @@ func TestEdgeCases(t *testing.T) {
 }
 
 func BenchmarkPut(b *testing.B) {
-	cache, err := New[int, int](1000)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[int, int](1000)
 	b.ResetTimer()
 	
 	for i := 0; i < b.N; i++ {
@@ -531,10 +474,7 @@ func BenchmarkPut(b *testing.B) {
 }
 
 func BenchmarkGet(b *testing.B) {
-	cache, err := New[int, int](1000)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[int, int](1000)
 	
 	// Pre-populate cache
 	for i := 0; i < 1000; i++ {
@@ -548,10 +488,7 @@ func BenchmarkGet(b *testing.B) {
 }
 
 func BenchmarkMixed(b *testing.B) {
-	cache, err := New[int, int](1000)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[int, int](1000)
 	b.ResetTimer()
 	
 	for i := 0; i < b.N; i++ {
@@ -564,10 +501,7 @@ func BenchmarkMixed(b *testing.B) {
 }
 
 func TestGetMissScenarios(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Test Get on empty cache
 	_, ok := cache.Get("nonexistent")
@@ -584,10 +518,7 @@ func TestGetMissScenarios(t *testing.T) {
 }
 
 func TestPeekMissScenarios(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Test Peek on empty cache
 	_, ok := cache.Peek("nonexistent")
@@ -604,10 +535,7 @@ func TestPeekMissScenarios(t *testing.T) {
 }
 
 func TestKeysValuesWithEmptySegments(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Test with empty cache
 	keys := cache.Keys()
@@ -636,10 +564,7 @@ func TestKeysValuesWithEmptySegments(t *testing.T) {
 
 func TestEvictFromProtectedScenario(t *testing.T) {
 	// Create a very small cache to force protected eviction
-	cache, err := New[string, int](4)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	} // Window=0 (1 item), Main=4 (Probation=1, Protected=3)
+	cache := New[string, int](4) // Window=0 (1 item), Main=4 (Probation=1, Protected=3)
 	
 	// Fill the cache to trigger complex eviction scenarios
 	for i := 0; i < 8; i++ {
@@ -672,10 +597,7 @@ func TestEvictFromProtectedScenario(t *testing.T) {
 
 func TestDemoteFromProtectedScenario(t *testing.T) {
 	// Create cache with specific sizing to trigger demotion
-	cache, err := New[string, int](6)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	} // Window=1 (1 item), Main=5 (Probation=1, Protected=4)
+	cache := New[string, int](6) // Window=1 (1 item), Main=5 (Probation=1, Protected=4)
 	
 	// Build up protected segment
 	protectedItems := []string{"p1", "p2", "p3", "p4"}
@@ -712,10 +634,7 @@ func TestDemoteFromProtectedScenario(t *testing.T) {
 }
 
 func TestResizeWithProtectedEviction(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Fill cache and build up protected segment
 	for i := 0; i < 10; i++ {
@@ -751,10 +670,7 @@ func TestResizeWithProtectedEviction(t *testing.T) {
 
 func TestComplexEvictionChain(t *testing.T) {
 	// Create cache with minimal capacity to force edge case evictions
-	cache, err := New[string, int](5)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	} // Window=1, Main=4 (Probation=1, Protected=3)
+	cache := New[string, int](5) // Window=1, Main=4 (Probation=1, Protected=3)
 	
 	// Create scenario where probation is empty but protected has items
 	// This should trigger evictFromProtected when probation segment is requested
@@ -795,10 +711,7 @@ func TestComplexEvictionChain(t *testing.T) {
 }
 
 func TestDemoteFromProtectedEdgeCase(t *testing.T) {
-	cache, err := New[string, int](8)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	} // Window=1, Main=7 (Probation=2, Protected=5)
+	cache := New[string, int](8) // Window=1, Main=7 (Probation=2, Protected=5)
 	
 	// Fill protected to capacity
 	for i := 0; i < 5; i++ {
@@ -839,10 +752,7 @@ func TestDemoteFromProtectedEdgeCase(t *testing.T) {
 }
 
 func TestResizeDownToMinimal(t *testing.T) {
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Fill cache
 	for i := 0; i < 10; i++ {
@@ -885,10 +795,7 @@ func TestResizeDownToMinimal(t *testing.T) {
 
 func TestKeysWithProbationSegment(t *testing.T) {
 	// Test Keys method to cover probation segment iteration
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Add items that will go to probation
 	cache.Put("prob1", 1)
@@ -902,10 +809,7 @@ func TestKeysWithProbationSegment(t *testing.T) {
 
 func TestValuesWithProbationSegment(t *testing.T) {
 	// Test Values method to cover probation segment iteration
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Add items that will go to probation
 	cache.Put("prob1", 1)
@@ -919,10 +823,7 @@ func TestValuesWithProbationSegment(t *testing.T) {
 
 func TestResizeEdgeCases(t *testing.T) {
 	// Test Resize with edge cases
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Add items
 	for i := 0; i < 5; i++ {
@@ -941,10 +842,7 @@ func TestResizeEdgeCases(t *testing.T) {
 
 func TestEvictFromEmptySegments(t *testing.T) {
 	// Test evict functions with empty segments
-	cache, err := New[string, int](5)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](5)
 	
 	// Force eviction from empty segments by calling internal methods
 	// This is to trigger specific uncovered branches
@@ -966,10 +864,7 @@ func TestEvictFromEmptySegments(t *testing.T) {
 
 func TestDemoteFromProtectedExtensive(t *testing.T) {
 	// Test demoteFromProtected with various scenarios
-	cache, err := New[string, int](10)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](10)
 	
 	// Fill cache completely to ensure segment transitions
 	for i := 0; i < 20; i++ {
@@ -993,10 +888,7 @@ func TestDemoteFromProtectedExtensive(t *testing.T) {
 
 func TestEvictWithComplexTransitions(t *testing.T) {
 	// Test evict with complex segment transitions
-	cache, err := New[string, int](8)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](8)
 	
 	// Create a scenario that will trigger all eviction branches
 	for i := 0; i < 25; i++ {

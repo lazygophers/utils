@@ -7,10 +7,7 @@ import (
 
 func TestNew(t *testing.T) {
 	// Test valid capacity
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	if cache.Cap() != 3 {
 		t.Errorf("Expected capacity 3, got %d", cache.Cap())
 	}
@@ -19,24 +16,23 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestNewError(t *testing.T) {
-	_, err := New[string, int](0)
-	if err == nil {
-		t.Error("Expected error for zero capacity")
-	}
+func TestNewPanic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Expected panic for zero capacity")
+		}
+	}()
+	New[string, int](0)
 }
 
 func TestNewWithEvict(t *testing.T) {
 	evictedKeys := []string{}
 	evictedValues := []int{}
 	
-	cache, err := NewWithEvict[string, int](2, func(key string, value int) {
+	cache := NewWithEvict[string, int](2, func(key string, value int) {
 		evictedKeys = append(evictedKeys, key)
 		evictedValues = append(evictedValues, value)
 	})
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -51,10 +47,7 @@ func TestNewWithEvict(t *testing.T) {
 }
 
 func TestPutAndGet(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	
 	// Test putting and getting values
 	evicted := cache.Put("a", 1)
@@ -75,10 +68,7 @@ func TestPutAndGet(t *testing.T) {
 }
 
 func TestPutUpdateExisting(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	
 	cache.Put("a", 1)
 	evicted := cache.Put("a", 2) // Update existing
@@ -93,10 +83,7 @@ func TestPutUpdateExisting(t *testing.T) {
 }
 
 func TestEviction(t *testing.T) {
-	cache, err := New[string, int](2)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](2)
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -122,10 +109,7 @@ func TestEviction(t *testing.T) {
 }
 
 func TestLRUOrder(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -151,10 +135,7 @@ func TestLRUOrder(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -183,10 +164,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestContains(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	
 	cache.Put("a", 1)
 	
@@ -200,10 +178,7 @@ func TestContains(t *testing.T) {
 }
 
 func TestPeek(t *testing.T) {
-	cache, err := New[string, int](2)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](2)
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -231,12 +206,9 @@ func TestPeek(t *testing.T) {
 
 func TestClear(t *testing.T) {
 	evictCount := 0
-	cache, err := NewWithEvict[string, int](3, func(key string, value int) {
+	cache := NewWithEvict[string, int](3, func(key string, value int) {
 		evictCount++
 	})
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -261,10 +233,7 @@ func TestClear(t *testing.T) {
 }
 
 func TestKeys(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	
 	cache.Put("c", 3)
 	cache.Put("a", 1)
@@ -288,10 +257,7 @@ func TestKeys(t *testing.T) {
 }
 
 func TestValues(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	
 	cache.Put("c", 3)
 	cache.Put("a", 1)
@@ -315,10 +281,7 @@ func TestValues(t *testing.T) {
 }
 
 func TestItems(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -339,20 +302,14 @@ func TestItems(t *testing.T) {
 }
 
 func TestResize(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
 	cache.Put("c", 3)
 	
 	// Resize to smaller capacity
-	err = cache.Resize(2)
-	if err != nil {
-		t.Fatalf("Failed to resize cache: %v", err)
-	}
+	cache.Resize(2)
 	
 	if cache.Cap() != 2 {
 		t.Errorf("Expected capacity 2 after resize, got %d", cache.Cap())
@@ -369,32 +326,25 @@ func TestResize(t *testing.T) {
 	}
 	
 	// Resize to larger capacity
-	err = cache.Resize(5)
-	if err != nil {
-		t.Fatalf("Failed to resize cache: %v", err)
-	}
+	cache.Resize(5)
 	if cache.Cap() != 5 {
 		t.Errorf("Expected capacity 5 after resize, got %d", cache.Cap())
 	}
 }
 
-func TestResizeError(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+func TestResizePanic(t *testing.T) {
+	cache := New[string, int](3)
 	
-	err = cache.Resize(0)
-	if err == nil {
-		t.Error("Expected error for zero capacity resize")
-	}
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("Expected panic for zero capacity resize")
+		}
+	}()
+	cache.Resize(0)
 }
 
 func TestStats(t *testing.T) {
-	cache, err := New[string, int](5)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](5)
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2)
@@ -409,10 +359,7 @@ func TestStats(t *testing.T) {
 }
 
 func TestConcurrency(t *testing.T) {
-	cache, err := New[int, int](1000)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[int, int](1000)
 	
 	// Test concurrent writes and reads
 	var wg sync.WaitGroup
@@ -445,10 +392,7 @@ func TestConcurrency(t *testing.T) {
 
 func TestEdgeCases(t *testing.T) {
 	// Test with capacity 1
-	cache, err := New[string, int](1)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](1)
 	
 	cache.Put("a", 1)
 	cache.Put("b", 2) // Should evict "a"
@@ -465,10 +409,7 @@ func TestEdgeCases(t *testing.T) {
 }
 
 func TestEmptyCache(t *testing.T) {
-	cache, err := New[string, int](3)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[string, int](3)
 	
 	// Test operations on empty cache
 	_, ok := cache.Get("non-existent")
@@ -507,10 +448,7 @@ func TestEmptyCache(t *testing.T) {
 }
 
 func BenchmarkPut(b *testing.B) {
-	cache, err := New[int, int](1000)
-	if err != nil {
-		b.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[int, int](1000)
 	
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -519,10 +457,7 @@ func BenchmarkPut(b *testing.B) {
 }
 
 func BenchmarkGet(b *testing.B) {
-	cache, err := New[int, int](1000)
-	if err != nil {
-		b.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[int, int](1000)
 	
 	// Pre-populate cache
 	for i := 0; i < 1000; i++ {
@@ -536,10 +471,7 @@ func BenchmarkGet(b *testing.B) {
 }
 
 func BenchmarkPutGet(b *testing.B) {
-	cache, err := New[int, int](1000)
-	if err != nil {
-		b.Fatalf("Failed to create cache: %v", err)
-	}
+	cache := New[int, int](1000)
 	
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

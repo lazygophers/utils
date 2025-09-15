@@ -1,6 +1,7 @@
 package optimal
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -23,9 +24,9 @@ type entry[K comparable, V any] struct {
 }
 
 // New creates a new Belady's Optimal cache with the given capacity
-func New[K comparable, V any](capacity int) *Cache[K, V] {
+func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 	if capacity <= 0 {
-		panic("capacity must be positive")
+		return nil, fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
 
 	return &Cache[K, V]{
@@ -33,22 +34,28 @@ func New[K comparable, V any](capacity int) *Cache[K, V] {
 		items:         make(map[K]*entry[K, V]),
 		accessPattern: make([]K, 0),
 		currentTime:   0,
-	}
+	}, nil
 }
 
 // NewWithPattern creates a new Belady's Optimal cache with a known access pattern
-func NewWithPattern[K comparable, V any](capacity int, pattern []K) *Cache[K, V] {
-	cache := New[K, V](capacity)
+func NewWithPattern[K comparable, V any](capacity int, pattern []K) (*Cache[K, V], error) {
+	cache, err := New[K, V](capacity)
+	if err != nil {
+		return nil, err
+	}
 	cache.accessPattern = make([]K, len(pattern))
 	copy(cache.accessPattern, pattern)
-	return cache
+	return cache, nil
 }
 
 // NewWithEvict creates a new Belady's Optimal cache with eviction callback
-func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) *Cache[K, V] {
-	cache := New[K, V](capacity)
+func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error) {
+	cache, err := New[K, V](capacity)
+	if err != nil {
+		return nil, err
+	}
 	cache.onEvict = onEvict
-	return cache
+	return cache, nil
 }
 
 // SetAccessPattern sets the future access pattern for optimal decisions
@@ -243,9 +250,9 @@ func (c *Cache[K, V]) Items() map[K]V {
 }
 
 // Resize changes the capacity of the cache
-func (c *Cache[K, V]) Resize(capacity int) {
+func (c *Cache[K, V]) Resize(capacity int) error {
 	if capacity <= 0 {
-		panic("capacity must be positive")
+		return fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
 
 	c.mu.Lock()
@@ -260,6 +267,7 @@ func (c *Cache[K, V]) Resize(capacity int) {
 	}
 
 	_ = oldCapacity // Prevent unused variable warning
+	return nil
 }
 
 // updateNextAccessTime finds the next access time for an entry
