@@ -3,15 +3,15 @@ package candy
 import (
 	"strings"
 
-	"golang.org/x/exp/constraints"
+	"cmp"
 )
 
 // Join 将有序类型的切片按指定分隔符连接成字符串
-// 该函数提供了通用的切片连接功能，支持所有实现了 constraints.Ordered 接口的类型
+// 该函数提供了通用的切片连接功能，支持所有实现了 cmp.Ordered 接口的类型
 // 包括整数、浮点数和字符串等基本类型
 //
 // 参数:
-//   - ss: 输入切片，类型为 []T，其中 T 必须实现 constraints.Ordered 接口
+//   - ss: 输入切片，类型为 []T，其中 T 必须实现 cmp.Ordered 接口
 //   - glue: 可选参数，指定连接分隔符，默认为 ","
 //
 // 返回:
@@ -26,7 +26,7 @@ import (
 //	words := []string{"Hello", "World", "Go"}
 //	result := Join(words, " ")
 //	// result 为 "Hello World Go"
-func Join[T constraints.Ordered](ss []T, glue ...string) string {
+func Join[T cmp.Ordered](ss []T, glue ...string) string {
 	// 设置默认分隔符
 	seq := ","
 	if len(glue) > 0 {

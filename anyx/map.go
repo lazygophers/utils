@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"golang.org/x/exp/constraints"
+	"cmp"
 )
 
 type ValueType int
@@ -375,7 +375,7 @@ func MapKeysNumber(m interface{}) []interface{} {
 	return result
 }
 
-func MapValues[K constraints.Ordered, V any](m map[K]V) []V {
+func MapValues[K cmp.Ordered, V any](m map[K]V) []V {
 	res := make([]V, 0, len(m))
 	for _, v := range m {
 		res = append(res, v)
@@ -455,7 +455,7 @@ func MapValuesFloat64(m interface{}) []float64 {
 	return result
 }
 
-func MergeMap[K constraints.Ordered, V any](source, target map[K]V) map[K]V {
+func MergeMap[K cmp.Ordered, V any](source, target map[K]V) map[K]V {
 	res := make(map[K]V, len(source))
 	
 	// Manual clone implementation
@@ -682,7 +682,7 @@ func KeyByInt32[M any](list []*M, fieldName string) map[int32]*M {
 	return m
 }
 
-func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
+func Slice2Map[M cmp.Ordered](list []M) map[M]bool {
 	m := make(map[M]bool, len(list))
 
 	for _, v := range list {

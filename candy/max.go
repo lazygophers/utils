@@ -1,6 +1,6 @@
 package candy
 
-import "golang.org/x/exp/constraints"
+import "cmp"
 
 // Max 返回切片中的最大值
 //
@@ -37,7 +37,7 @@ import "golang.org/x/exp/constraints"
 //	empty := []int{}
 //	result := Max(empty)
 //	// result = 0 (int类型的零值)
-func Max[T constraints.Ordered](ss []T) (max T) {
+func Max[T cmp.Ordered](ss []T) (max T) {
 	if len(ss) == 0 {
 		return
 	}

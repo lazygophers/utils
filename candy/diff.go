@@ -1,7 +1,7 @@
 package candy
 
 import (
-	"golang.org/x/exp/constraints"
+	"cmp"
 )
 
 // Package candy 提供常用的工具函数和语法糖
@@ -24,7 +24,7 @@ import (
 //	added, removed := Diff(ss, against)
 //	// added = [4]
 //	// removed = [1]
-func Diff[T constraints.Ordered](ss []T, against []T) (added, removed []T) {
+func Diff[T cmp.Ordered](ss []T, against []T) (added, removed []T) {
 	removed = Remove(ss, against)
 	added = Remove(against, ss)
 

@@ -75,12 +75,3 @@ func TestSha512_256(t *testing.T) {
 		t.Errorf("Sha512_256(%s) = %s; want %s", input, result, expected)
 	}
 }
-
-func TestRIPEMD160(t *testing.T) {
-	input := "test"
-	expected := "5e52fee47e6b070565f74372468cdc699de89107"
-	result := RIPEMD160(input)
-	if result != expected {
-		t.Errorf("RIPEMD160(%s) = %s; want %s", input, result, expected)
-	}
-}

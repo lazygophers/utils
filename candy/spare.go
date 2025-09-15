@@ -1,6 +1,6 @@
 package candy
 
-import "golang.org/x/exp/constraints"
+import "cmp"
 
 // Spare 返回在 against 中但不在 ss 中的元素
 // 该函数实现了集合差集操作，返回在 against 切片中存在但在 ss 切片中不存在的所有元素
@@ -18,7 +18,7 @@ import "golang.org/x/exp/constraints"
 //	ss := []int{1, 2, 3}
 //	against := []int{2, 3, 4, 5}
 //	result := Spare(ss, against) // 返回 [4, 5]
-func Spare[T constraints.Ordered](ss []T, against []T) (result []T) {
+func Spare[T cmp.Ordered](ss []T, against []T) (result []T) {
 	// 使用 make 初始化，确保返回空切片而非 nil
 	result = make([]T, 0)
 	set := make(map[T]struct{}, len(ss))
