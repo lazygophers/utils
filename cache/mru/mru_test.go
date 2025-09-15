@@ -285,3 +285,90 @@ func BenchmarkGet(b *testing.B) {
 		cache.Get(i % 1000)
 	}
 }
+
+func TestValues(t *testing.T) {
+	cache := New[string, int](3)
+	
+	// Test empty cache
+	values := cache.Values()
+	if len(values) != 0 {
+		t.Errorf("Expected empty values slice, got length %d", len(values))
+	}
+	
+	// Add items
+	cache.Put("c", 3)
+	cache.Put("a", 1) 
+	cache.Put("b", 2)
+	
+	values = cache.Values()
+	expectedValues := []int{2, 1, 3} // Most to least recently used
+	
+	if len(values) != len(expectedValues) {
+		t.Errorf("Expected %d values, got %d", len(expectedValues), len(values))
+	}
+	
+	for i, expectedValue := range expectedValues {
+		if i >= len(values) || values[i] != expectedValue {
+			t.Errorf("Expected value[%d] = %d, got %d", i, expectedValue, values[i])
+		}
+	}
+}
+
+func TestItems(t *testing.T) {
+	cache := New[string, int](3)
+	
+	// Test empty cache
+	items := cache.Items()
+	if len(items) != 0 {
+		t.Errorf("Expected empty items map, got length %d", len(items))
+	}
+	
+	// Add items
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	cache.Put("c", 3)
+	
+	items = cache.Items()
+	expectedItems := map[string]int{
+		"a": 1,
+		"b": 2,
+		"c": 3,
+	}
+	
+	if len(items) != len(expectedItems) {
+		t.Errorf("Expected %d items, got %d", len(expectedItems), len(items))
+	}
+	
+	for key, expectedValue := range expectedItems {
+		if value, exists := items[key]; !exists || value != expectedValue {
+			t.Errorf("Expected items[%s] = %d, got %d, exists=%t", key, expectedValue, value, exists)
+		}
+	}
+}
+
+func TestPutUpdate(t *testing.T) {
+	cache := New[string, int](3)
+	
+	// Add initial item
+	evicted := cache.Put("a", 1)
+	if evicted {
+		t.Error("Should not evict when cache is not full")
+	}
+	
+	// Update existing item
+	evicted = cache.Put("a", 10)
+	if evicted {
+		t.Error("Should not evict when updating existing item")
+	}
+	
+	// Verify the value was updated
+	value, ok := cache.Get("a")
+	if !ok || value != 10 {
+		t.Errorf("Expected updated value 10, got %d, ok=%t", value, ok)
+	}
+	
+	// Verify cache length didn't change
+	if cache.Len() != 1 {
+		t.Errorf("Expected length 1 after update, got %d", cache.Len())
+	}
+}

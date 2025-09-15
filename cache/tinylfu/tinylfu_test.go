@@ -763,3 +763,163 @@ func TestEmptySegmentEvictions(t *testing.T) {
 		t.Errorf("Expected to retrieve 'new' with value 2, got %d, ok=%t", value, ok)
 	}
 }
+
+// TestDemoteFromProtectedSpecific targets the exact conditions needed for demoteFromProtected
+func TestDemoteFromProtectedSpecific(t *testing.T) {
+	cache := New[string, int](5) // Tiny cache: window=1, main=4, protected capacity=3
+	
+	// Create high-frequency keys that will definitely be admitted
+	highFreqKeys := []string{"high1", "high2", "high3", "high4"}
+	
+	// Build very high frequency for these keys in the sketch
+	for _, key := range highFreqKeys {
+		for i := 0; i < 20; i++ {
+			cache.Put(key, 100)
+			cache.Get(key)
+		}
+	}
+	
+	// Create a low-frequency victim key  
+	cache.Put("victim", 1)
+	
+	// Clear cache to reset segments but keep frequency sketch
+	cache.Clear()
+	
+	// Re-add victim first (will go to probation due to doorkeeper after eviction)
+	cache.Put("victim", 1) 
+	cache.Put("evict", 999) // evict victim to doorkeeper
+	cache.Put("victim", 1)  // victim goes to probation due to doorkeeper
+	
+	// Add high frequency keys - they should be admitted over the victim
+	for i, key := range highFreqKeys[:3] {
+		cache.Put(key, i+100)
+		cache.Put("temp", 888) // evict to doorkeeper  
+		cache.Put(key, i+100)  // readmit to probation
+		cache.Get(key)         // promote to protected
+	}
+	
+	stats := cache.Stats()
+	t.Logf("Before final promotion: Protected=%d, Probation=%d, Window=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize)
+	
+	// Add final high-frequency key and promote - should trigger demoteFromProtected
+	cache.Put("high4", 400)
+	cache.Put("temp2", 777) // evict to doorkeeper
+	cache.Put("high4", 400) // readmit to probation
+	cache.Get("high4")      // promote to protected - should trigger demotion
+	
+	finalStats := cache.Stats()
+	t.Logf("After final promotion: Protected=%d, Probation=%d, Window=%d", 
+		finalStats.ProtectedSize, finalStats.ProbationSize, finalStats.WindowSize)
+	
+	// Verify cache is functional
+	if cache.Len() > cache.Cap() {
+		t.Errorf("Cache size %d exceeds capacity %d", cache.Len(), cache.Cap())
+	}
+}
+
+// TestEvictFromProbationDirect tests evictFromProbation by directly creating the conditions  
+func TestEvictFromProbationDirect(t *testing.T) {
+	cache := New[string, int](5) // Tiny cache: window=1, main=4, probation=1
+	
+	// Step 1: Fill probation to capacity (1 item) via doorkeeper admission
+	cache.Put("prob1", 1)
+	cache.Put("temp", 999) // evict prob1 to doorkeeper
+	cache.Put("prob1", 1)  // readmit to probation
+	
+	stats := cache.Stats()
+	t.Logf("After filling probation: Protected=%d, Probation=%d, Window=%d", 
+		stats.ProtectedSize, stats.ProbationSize, stats.WindowSize)
+	
+	// Step 2: Try to admit another item to probation - should call evictFromProbation
+	cache.Put("prob2", 2)
+	cache.Put("temp2", 888) // evict prob2 to doorkeeper
+	cache.Put("prob2", 2)   // readmit to probation - should trigger evictFromProbation
+	
+	// Verify cache is functional
+	if cache.Len() > cache.Cap() {
+		t.Errorf("Cache size %d exceeds capacity %d", cache.Len(), cache.Cap())
+	}
+}
+
+// TestEvictFromProtectedDirect tests evictFromProtected during resize
+func TestEvictFromProtectedDirect(t *testing.T) {
+	cache := New[string, int](10) // window=1, main=9, protected=7
+	
+	// Fill protected segment by going through doorkeeper process
+	for i := 1; i <= 8; i++ {
+		key := fmt.Sprintf("prot%d", i)
+		// Put in window first
+		cache.Put(key, i)
+		// Evict to doorkeeper
+		cache.Put("temp", 999)
+		// Readmit to probation
+		cache.Put(key, i)
+		// Promote to protected
+		cache.Get(key)
+	}
+	
+	initialStats := cache.Stats()
+	t.Logf("Before resize: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		initialStats.ProtectedSize, initialStats.ProbationSize, initialStats.WindowSize, cache.Len())
+	
+	// Resize to force evictions from protected (after window and probation are empty)
+	cache.Resize(3) // Force eviction from protected
+	
+	finalStats := cache.Stats()
+	t.Logf("After resize: Protected=%d, Probation=%d, Window=%d, Total=%d", 
+		finalStats.ProtectedSize, finalStats.ProbationSize, finalStats.WindowSize, cache.Len())
+	
+	// Verify constraints
+	if cache.Cap() != 3 {
+		t.Errorf("Expected capacity 3, got %d", cache.Cap())
+	}
+	if cache.Len() > 3 {
+		t.Errorf("Cache size %d exceeds capacity 3", cache.Len())
+	}
+}
+
+// TestComplexEvictionScenarios tests multiple eviction scenarios together
+func TestComplexEvictionScenarios(t *testing.T) {
+	cache := New[string, int](100)
+	
+	// Create a scenario that exercises all eviction paths
+	// 1. Fill protected segment
+	for i := 0; i < 80; i++ {
+		key := fmt.Sprintf("complex_prot_%d", i)
+		cache.Put(key, i)
+		cache.Put("temp", 999)
+		cache.Put(key, i)
+		cache.Get(key) // Promote to protected
+	}
+	
+	// 2. Fill probation segment  
+	for i := 0; i < 15; i++ {
+		key := fmt.Sprintf("complex_prob_%d", i)
+		cache.Put(key, i+100)
+		cache.Put("temp2", 888)
+		cache.Put(key, i+100) // Goes to probation
+	}
+	
+	// 3. Trigger all eviction types by continuing to add items
+	for i := 0; i < 10; i++ {
+		key := fmt.Sprintf("trigger_%d", i)
+		cache.Put(key, i+200)
+		cache.Put("temp3", 777)
+		cache.Put(key, i+200)
+		if i%2 == 0 {
+			cache.Get(key) // Some promote to protected, triggering demotion
+		}
+	}
+	
+	// Verify cache integrity
+	if cache.Len() > cache.Cap() {
+		t.Errorf("Cache size %d exceeds capacity %d", cache.Len(), cache.Cap())
+	}
+	
+	stats := cache.Stats()
+	totalItems := stats.WindowSize + stats.ProbationSize + stats.ProtectedSize
+	if totalItems != cache.Len() {
+		t.Errorf("Stats don't match actual cache size: stats=%d, len=%d", totalItems, cache.Len())
+	}
+}
