@@ -2,6 +2,8 @@ package utils
 
 import (
 	"database/sql/driver"
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -264,7 +266,11 @@ func TestValue(t *testing.T) {
 		{
 			name:  "value_nil",
 			input: nil,
-			// Special case: causes panic due to defaults.SetDefaults(nil)
+			validate: func(t *testing.T, value driver.Value) {
+				bytes, ok := value.([]byte)
+				require.True(t, ok)
+				assert.Equal(t, "null", string(bytes))
+			},
 		},
 		{
 			name:  "value_complex_struct",
@@ -289,20 +295,13 @@ func TestValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "value_nil" {
-				// Special case: nil input causes panic in defaults.SetDefaults
-				assert.Panics(t, func() {
-					Value(tt.input)
-				})
+			value, err := Value(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
 			} else {
-				value, err := Value(tt.input)
-				if tt.expectError {
-					assert.Error(t, err)
-				} else {
-					assert.NoError(t, err)
-					if tt.validate != nil {
-						tt.validate(t, value)
-					}
+				assert.NoError(t, err)
+				if tt.validate != nil {
+					tt.validate(t, value)
 				}
 			}
 		})
@@ -426,6 +425,184 @@ func TestValue_EdgeCases(t *testing.T) {
 	})
 }
 
+// TestScan_SpecialCases tests additional edge cases for comprehensive coverage
+func TestScan_SpecialCases(t *testing.T) {
+	t.Run("scan_empty_json_object", func(t *testing.T) {
+		var target TestStruct
+		err := Scan("{}", &target)
+		assert.NoError(t, err)
+		assert.Equal(t, "", target.Name)
+		assert.Equal(t, 0, target.Age)
+	})
+
+	t.Run("scan_empty_json_array", func(t *testing.T) {
+		var target []TestStruct
+		err := Scan("[]", &target)
+		assert.NoError(t, err)
+		assert.Len(t, target, 0)
+	})
+
+	t.Run("scan_whitespace_only", func(t *testing.T) {
+		var target TestStruct
+		err := Scan("   ", &target)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Syntax error")
+	})
+
+	t.Run("scan_json_null", func(t *testing.T) {
+		var target *TestStruct
+		err := Scan("null", &target)
+		assert.NoError(t, err)
+		assert.Nil(t, target)
+	})
+
+	t.Run("scan_malformed_array", func(t *testing.T) {
+		var target []TestStruct
+		err := Scan("[{\"name\":\"John\",\"age\":30", &target)
+		assert.Error(t, err)
+	})
+
+	t.Run("scan_nested_json_string", func(t *testing.T) {
+		var target map[string]interface{}
+		err := Scan(`{"data":"{\"inner\":\"value\"}"}`, &target)
+		assert.NoError(t, err)
+		assert.Equal(t, "{\"inner\":\"value\"}", target["data"])
+	})
+
+	t.Run("scan_large_number", func(t *testing.T) {
+		var target struct {
+			BigInt int64 `json:"big_int"`
+		}
+		err := Scan(`{"big_int":9223372036854775807}`, &target)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(9223372036854775807), target.BigInt)
+	})
+
+	t.Run("scan_unicode_characters", func(t *testing.T) {
+		var target struct {
+			Unicode string `json:"unicode"`
+		}
+		err := Scan(`{"unicode":"测试🚀"}`, &target)
+		assert.NoError(t, err)
+		assert.Equal(t, "测试🚀", target.Unicode)
+	})
+}
+
+// TestValue_SpecialCases tests additional edge cases for Value function
+func TestValue_SpecialCases(t *testing.T) {
+	t.Run("value_empty_struct", func(t *testing.T) {
+		input := struct{}{}
+		value, err := Value(input)
+		assert.NoError(t, err)
+		bytes, ok := value.([]byte)
+		require.True(t, ok)
+		assert.Equal(t, "{}", string(bytes))
+	})
+
+	t.Run("value_struct_with_tags", func(t *testing.T) {
+		input := struct {
+			Name string `json:"custom_name"`
+			Age  int    `json:"-"`
+		}{
+			Name: "Test",
+			Age:  30,
+		}
+		value, err := Value(input)
+		assert.NoError(t, err)
+		bytes, ok := value.([]byte)
+		require.True(t, ok)
+		jsonStr := string(bytes)
+		assert.Contains(t, jsonStr, `"custom_name":"Test"`)
+		assert.NotContains(t, jsonStr, "Age")
+	})
+
+	t.Run("value_pointer_to_struct", func(t *testing.T) {
+		input := &struct {
+			Data string `json:"data"`
+		}{
+			Data: "pointer test",
+		}
+		value, err := Value(input)
+		assert.NoError(t, err)
+		bytes, ok := value.([]byte)
+		require.True(t, ok)
+		assert.Contains(t, string(bytes), `"data":"pointer test"`)
+	})
+
+	t.Run("value_nested_pointers", func(t *testing.T) {
+		type Inner struct {
+			Value string `json:"value"`
+		}
+		type Outer struct {
+			Inner *Inner `json:"inner"`
+		}
+		input := &Outer{
+			Inner: &Inner{Value: "nested"},
+		}
+		value, err := Value(input)
+		assert.NoError(t, err)
+		bytes, ok := value.([]byte)
+		require.True(t, ok)
+		assert.Contains(t, string(bytes), `"inner":{"value":"nested"}`)
+	})
+
+	t.Run("value_float_precision", func(t *testing.T) {
+		input := struct {
+			Float32 float32 `json:"float32"`
+			Float64 float64 `json:"float64"`
+		}{
+			Float32: 3.14159,
+			Float64: 3.141592653589793,
+		}
+		value, err := Value(input)
+		assert.NoError(t, err)
+		bytes, ok := value.([]byte)
+		require.True(t, ok)
+		jsonStr := string(bytes)
+		assert.Contains(t, jsonStr, "float32")
+		assert.Contains(t, jsonStr, "float64")
+	})
+}
+
+// TestScanValue_ConcurrentAccess tests thread safety
+func TestScanValue_ConcurrentAccess(t *testing.T) {
+	const numGoroutines = 10
+	const numOperations = 100
+
+	var wg sync.WaitGroup
+	errCh := make(chan error, numGoroutines*numOperations*2)
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			for j := 0; j < numOperations; j++ {
+				// Test Scan
+				src := fmt.Sprintf(`{"name":"Goroutine_%d_%d","age":%d}`, id, j, j%100)
+				var target TestStruct
+				if err := Scan(src, &target); err != nil {
+					errCh <- fmt.Errorf("goroutine %d scan error: %v", id, err)
+					return
+				}
+
+				// Test Value
+				input := TestStruct{Name: fmt.Sprintf("Test_%d_%d", id, j), Age: j % 50}
+				if _, err := Value(input); err != nil {
+					errCh <- fmt.Errorf("goroutine %d value error: %v", id, err)
+					return
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	close(errCh)
+
+	for err := range errCh {
+		t.Errorf("Concurrent access error: %v", err)
+	}
+}
+
 // Benchmark tests for performance
 func BenchmarkScan(b *testing.B) {
 	src := `{"name":"John","age":30}`
@@ -439,5 +616,21 @@ func BenchmarkValue(b *testing.B) {
 	input := TestStruct{Name: "John", Age: 30}
 	for i := 0; i < b.N; i++ {
 		_, _ = Value(input)
+	}
+}
+
+func BenchmarkScanValue_RoundTrip(b *testing.B) {
+	original := ComplexStruct{
+		ID:    123,
+		Data:  TestStruct{Name: "Benchmark", Age: 25},
+		Items: []string{"a", "b", "c"},
+		Map:   map[string]int{"key1": 1, "key2": 2},
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		value, _ := Value(original)
+		var target ComplexStruct
+		_ = Scan(value, &target)
 	}
 }
