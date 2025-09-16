@@ -109,50 +109,7 @@ func TestSystemDetectionCompleteness(t *testing.T) {
 	})
 }
 
-// 性能测试
-func BenchmarkIsWindows(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		IsWindows()
-	}
-}
-
-func BenchmarkIsDarwin(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		IsDarwin()
-	}
-}
-
-func BenchmarkIsLinux(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		IsLinux()
-	}
-}
-
-// 测试函数调用的稳定性
-func TestSystemDetectionStability(t *testing.T) {
-	t.Run("multiple_calls_return_same_result", func(t *testing.T) {
-		// 多次调用应该返回相同结果
-		iterations := 1000
-
-		firstWindows := IsWindows()
-		firstDarwin := IsDarwin()
-		firstLinux := IsLinux()
-
-		for i := 0; i < iterations; i++ {
-			if IsWindows() != firstWindows {
-				t.Errorf("IsWindows() returned inconsistent result on iteration %d", i)
-			}
-			if IsDarwin() != firstDarwin {
-				t.Errorf("IsDarwin() returned inconsistent result on iteration %d", i)
-			}
-			if IsLinux() != firstLinux {
-				t.Errorf("IsLinux() returned inconsistent result on iteration %d", i)
-			}
-		}
-
-		t.Logf("All %d calls returned consistent results", iterations)
-	})
-}
+// Performance tests are now in runtime_test.go to avoid duplication
 
 // 并发测试
 func TestSystemDetectionConcurrency(t *testing.T) {
