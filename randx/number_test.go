@@ -1,8 +1,10 @@
 package randx
 
 import (
+	"math/rand"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestIntn(t *testing.T) {
@@ -626,7 +628,7 @@ func TestInternalFunctions(t *testing.T) {
 	t.Run("test_fast_seed_through_usage", func(t *testing.T) {
 		// 通过使用公共函数来间接测试generateSeed函数
 		// 虽然我们无法直接调用generateSeed，但它在内部被使用
-		
+
 		// 多次调用随机函数，确保内部的种子生成器工作正常
 		for i := 0; i < 100; i++ {
 			_ = Int() // 这会间接使用generateSeed相关的逻辑
@@ -657,26 +659,26 @@ func TestInternalFunctions(t *testing.T) {
 		if !v.IsValid() {
 			t.Fatalf("generateSeed function not found")
 		}
-		
+
 		// 调用generateSeed函数
 		results := v.Call(nil)
 		if len(results) != 1 {
 			t.Fatalf("Expected 1 return value, got %d", len(results))
 		}
-		
+
 		seed := results[0].Int()
 		// generateSeed应该返回一个非零值
 		if seed == 0 {
 			t.Logf("generateSeed returned 0, which is unlikely but possible")
 		}
-		
+
 		// 多次调用应该返回不同的值
 		var seeds []int64
 		for i := 0; i < 10; i++ {
 			results := v.Call(nil)
 			seeds = append(seeds, results[0].Int())
 		}
-		
+
 		// 检查是否有一些变化（不是所有值都相同）
 		allSame := true
 		for i := 1; i < len(seeds); i++ {
@@ -685,9 +687,215 @@ func TestInternalFunctions(t *testing.T) {
 				break
 			}
 		}
-		
+
 		if allSame {
 			t.Logf("All generateSeed calls returned the same value: %d", seeds[0])
+		}
+	})
+}
+
+// 原始实现的函数用于对比（性能低）
+func originalIntn(n int) int {
+	return rand.New(rand.NewSource(time.Now().UnixNano())).Intn(n)
+}
+
+func originalInt64() int64 {
+	return rand.New(rand.NewSource(time.Now().UnixNano())).Int63()
+}
+
+func originalFloat64() float64 {
+	return rand.New(rand.NewSource(time.Now().UnixNano())).Float64()
+}
+
+// 基准测试：随机整数生成
+func BenchmarkIntn(b *testing.B) {
+	b.Run("Original_Intn", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = originalIntn(100)
+		}
+	})
+
+	b.Run("Optimized_Intn", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Intn(100)
+		}
+	})
+
+	b.Run("Fast_Intn", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Intn(100)
+		}
+	})
+}
+
+// 基准测试：Int64生成
+func BenchmarkInt64(b *testing.B) {
+	b.Run("Original_Int64", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = originalInt64()
+		}
+	})
+
+	b.Run("Optimized_Int64", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Int64()
+		}
+	})
+
+	b.Run("Fast_Int64", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Int()
+		}
+	})
+}
+
+// 基准测试：Float64生成
+func BenchmarkFloat64(b *testing.B) {
+	b.Run("Original_Float64", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = originalFloat64()
+		}
+	})
+
+	b.Run("Optimized_Float64", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Float64()
+		}
+	})
+
+	b.Run("Fast_Float64", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Float64()
+		}
+	})
+}
+
+// 基准测试：范围随机数
+func BenchmarkRange(b *testing.B) {
+	b.Run("IntnRange", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = IntnRange(1, 100)
+		}
+	})
+
+	b.Run("Int64nRange", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Int64nRange(1, 100)
+		}
+	})
+
+	b.Run("Float64Range", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Float64Range(1.0, 100.0)
+		}
+	})
+}
+
+// 基准测试：批量操作
+func BenchmarkBatch(b *testing.B) {
+	b.Run("BatchIntn_Single", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Intn(100)
+		}
+	})
+
+	b.Run("BatchIntn_Batch10", func(b *testing.B) {
+		for i := 0; i < b.N; i += 10 {
+			_ = BatchIntn(100, 10)
+		}
+	})
+
+	b.Run("BatchInt64n_Single", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Int64n(100)
+		}
+	})
+
+	b.Run("BatchInt64n_Batch10", func(b *testing.B) {
+		for i := 0; i < b.N; i += 10 {
+			_ = BatchInt64n(100, 10)
+		}
+	})
+}
+
+// 基准测试：并发性能
+func BenchmarkConcurrent(b *testing.B) {
+	b.Run("Intn_Sequential", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Intn(100)
+		}
+	})
+
+	b.Run("Intn_Parallel", func(b *testing.B) {
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				_ = Intn(100)
+			}
+		})
+	})
+
+	b.Run("FastIntn_Sequential", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Intn(100)
+		}
+	})
+
+	b.Run("FastIntn_Parallel", func(b *testing.B) {
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				_ = Intn(100)
+			}
+		})
+	})
+}
+
+// 基准测试：内存分配
+func BenchmarkMemoryAllocation(b *testing.B) {
+	b.Run("Original_Memory", func(b *testing.B) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			_ = originalIntn(100)
+		}
+	})
+
+	b.Run("Optimized_Memory", func(b *testing.B) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			_ = Intn(100)
+		}
+	})
+
+	b.Run("Fast_Memory", func(b *testing.B) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			_ = Intn(100)
+		}
+	})
+}
+
+// 基准测试：高频调用场景
+func BenchmarkHighFrequency(b *testing.B) {
+	b.Run("MixedOperations_Original", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = originalIntn(100)
+			_ = originalFloat64()
+			_ = originalInt64()
+		}
+	})
+
+	b.Run("MixedOperations_Optimized", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Intn(100)
+			_ = Float64()
+			_ = Int64()
+		}
+	})
+
+	b.Run("MixedOperations_Fast", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Intn(100)
+			_ = Float64()
+			_ = Int()
 		}
 	})
 }

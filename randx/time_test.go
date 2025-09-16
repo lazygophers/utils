@@ -856,3 +856,24 @@ func TestJitter(t *testing.T) {
 		}
 	})
 }
+
+// 基准测试：时间相关函数
+func BenchmarkTime(b *testing.B) {
+	b.Run("TimeDuration4Sleep", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = TimeDuration4Sleep(time.Millisecond, time.Second)
+		}
+	})
+
+	b.Run("FastTimeDuration4Sleep", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = TimeDuration4Sleep(time.Millisecond, time.Second)
+		}
+	})
+
+	b.Run("RandomDuration", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = RandomDuration(time.Millisecond, time.Second)
+		}
+	})
+}
