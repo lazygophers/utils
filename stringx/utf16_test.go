@@ -359,3 +359,19 @@ func TestUtf16LenUnicodeCompliance(t *testing.T) {
 		})
 	}
 }
+
+// UTF-16 length benchmark from benchmark_test.go
+func BenchmarkUtf16Length(b *testing.B) {
+	testCases := []string{
+		"ASCII text",
+		"Unicode 测试",
+		"Emoji 😀😁😂",
+		"Mixed ASCII + Unicode 测试 + Emoji 😀",
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, tc := range testCases {
+			_ = Utf16Len(tc)
+		}
+	}
+}
