@@ -38,7 +38,7 @@ func Shuffle[T any](ss []T) []T {
 	}
 
 	for i := len(ss) - 1; i > 0; i-- {
-		j := randx.FastIntn(i + 1)
+		j := randx.Intn(i + 1)
 		ss[i], ss[j] = ss[j], ss[i]
 	}
 
