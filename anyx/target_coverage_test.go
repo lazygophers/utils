@@ -3,8 +3,9 @@ package anyx
 import (
 	"fmt"
 	"testing"
-	
+
 	"github.com/stretchr/testify/assert"
+	"github.com/lazygophers/utils/candy"
 )
 
 // TestNewMapWithAnyErrorHandling tests specific error paths in NewMapWithAny
@@ -111,7 +112,7 @@ func TestKeyByInvalidElementCases(t *testing.T) {
 			{ID: 3, Name: "also_valid"},
 		}
 		
-		result := KeyBy(slice, "ID")
+		result := candy.KeyBy(slice, "ID")
 		
 		// Verify that the result map contains only the valid elements
 		resultMap, ok := result.(map[int]*TestStruct)
@@ -135,7 +136,7 @@ func TestKeyByInvalidElementCases(t *testing.T) {
 		intValue := 42
 		slice := []interface{}{&intValue} // pointer to int, not struct
 		
-		KeyBy(slice, "field")
+		candy.KeyBy(slice, "field")
 	})
 	
 	t.Run("keybyuint64_invalid_element", func(t *testing.T) {
@@ -151,7 +152,7 @@ func TestKeyByInvalidElementCases(t *testing.T) {
 			{ID: 3, Name: "also_valid"},
 		}
 		
-		result := KeyByUint64(slice, "ID")
+		result := candy.KeyByUint64(slice, "ID")
 		assert.Len(t, result, 2)
 	})
 	
@@ -167,7 +168,7 @@ func TestKeyByInvalidElementCases(t *testing.T) {
 			{ID: 3, Name: "also_valid"},
 		}
 		
-		result := KeyByInt64(slice, "ID")
+		result := candy.KeyByInt64(slice, "ID")
 		assert.Len(t, result, 2)
 	})
 	
@@ -183,7 +184,7 @@ func TestKeyByInvalidElementCases(t *testing.T) {
 			{ID: "c", Name: "also_valid"},
 		}
 		
-		result := KeyByString(slice, "ID")
+		result := candy.KeyByString(slice, "ID")
 		assert.Len(t, result, 2)
 	})
 	
@@ -199,7 +200,7 @@ func TestKeyByInvalidElementCases(t *testing.T) {
 			{ID: 3, Name: "also_valid"},
 		}
 		
-		result := KeyByInt32(slice, "ID")
+		result := candy.KeyByInt32(slice, "ID")
 		assert.Len(t, result, 2)
 	})
 }
@@ -237,7 +238,7 @@ func TestKeyByRealElementNotStructPanics(t *testing.T) {
 		validSlice := []*TestStruct{{ID: 1}}
 		
 		// This should work normally and not trigger the panic
-		result := KeyBy(validSlice, "ID")
+		result := candy.KeyBy(validSlice, "ID")
 		t.Logf("KeyBy result: %v", result)
 	})
 }
@@ -256,7 +257,7 @@ func TestKeyByElementNotStructPanics(t *testing.T) {
 		// Create a slice of pointers to uint64 (not struct)
 		intValue := uint64(42)
 		slice := []*uint64{&intValue}
-		KeyByUint64(slice, "field")
+		candy.KeyByUint64(slice, "field")
 	})
 	
 	t.Run("keybyint64_element_not_struct", func(t *testing.T) {
@@ -270,7 +271,7 @@ func TestKeyByElementNotStructPanics(t *testing.T) {
 		
 		intValue := int64(42)
 		slice := []*int64{&intValue}
-		KeyByInt64(slice, "field")
+		candy.KeyByInt64(slice, "field")
 	})
 	
 	t.Run("keybystring_element_not_struct", func(t *testing.T) {
@@ -284,7 +285,7 @@ func TestKeyByElementNotStructPanics(t *testing.T) {
 		
 		strValue := "test"
 		slice := []*string{&strValue}
-		KeyByString(slice, "field")
+		candy.KeyByString(slice, "field")
 	})
 	
 	t.Run("keybyint32_element_not_struct", func(t *testing.T) {
@@ -298,6 +299,6 @@ func TestKeyByElementNotStructPanics(t *testing.T) {
 		
 		intValue := int32(42)
 		slice := []*int32{&intValue}
-		KeyByInt32(slice, "field")
+		candy.KeyByInt32(slice, "field")
 	})
 }
