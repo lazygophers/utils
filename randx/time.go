@@ -15,35 +15,25 @@ func TimeDuration4Sleep(s ...time.Duration) time.Duration {
 		end = s[0]
 	}
 
-	// 保持原始行为兼容性
-	r := getFastRand()
-	result := time.Duration(r.Int63n(int64(end-start))) + start
-	putFastRand(r)
-
-	return result
-}
-
-// FastTimeDuration4Sleep 使用全局生成器的超快版本
-func FastTimeDuration4Sleep(s ...time.Duration) time.Duration {
-	start, end := time.Second, time.Second*3
-	if len(s) > 1 {
-		start = s[0]
-		end = s[1]
-	} else if len(s) > 0 {
-		start = 0
-		end = s[0]
-	}
-
-	if start >= end {
-		return start
+	// 处理边界情况以避免hang，但在某些情况下保持panic行为
+	diff := end - start
+	if diff <= 0 {
+		if diff == 0 {
+			// start == end 的情况，返回该值（这原本会导致panic）
+			return start
+		} else {
+			// start > end 的情况，保持panic行为但避免hang
+			panic("invalid argument to TimeDuration4Sleep: start > end")
+		}
 	}
 
 	globalMu.Lock()
-	result := time.Duration(globalRand.Int63n(int64(end-start))) + start
+	result := time.Duration(globalRand.Int63n(int64(diff))) + start
 	globalMu.Unlock()
 
 	return result
 }
+
 
 // RandomDuration 在指定范围内生成随机时间间隔 [min, max]
 func RandomDuration(min, max time.Duration) time.Duration {
@@ -53,9 +43,9 @@ func RandomDuration(min, max time.Duration) time.Duration {
 		return min
 	}
 
-	r := getFastRand()
-	result := min + time.Duration(r.Int63n(int64(max-min+1)))
-	putFastRand(r)
+	globalMu.Lock()
+	result := min + time.Duration(globalRand.Int63n(int64(max-min+1)))
+	globalMu.Unlock()
 
 	return result
 }
@@ -69,9 +59,9 @@ func RandomTime(start, end time.Time) time.Time {
 	}
 
 	diff := end.Sub(start)
-	r := getFastRand()
-	randomDiff := time.Duration(r.Int63n(int64(diff)))
-	putFastRand(r)
+	globalMu.Lock()
+	randomDiff := time.Duration(globalRand.Int63n(int64(diff)))
+	globalMu.Unlock()
 
 	return start.Add(randomDiff)
 }
@@ -115,14 +105,12 @@ func BatchRandomDuration(min, max time.Duration, count int) []time.Duration {
 	}
 
 	results := make([]time.Duration, count)
-	r := getFastRand()
-
+	globalMu.Lock()
 	diff := int64(max - min + 1)
 	for i := 0; i < count; i++ {
-		results[i] = min + time.Duration(r.Int63n(diff))
+		results[i] = min + time.Duration(globalRand.Int63n(diff))
 	}
-
-	putFastRand(r)
+	globalMu.Unlock()
 	return results
 }
 

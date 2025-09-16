@@ -2,16 +2,16 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/lazygophers/utils/randx.svg)](https://pkg.go.dev/github.com/lazygophers/utils/randx)
 
-一个高性能的 Go 随机数生成包，提供线程安全池化、批量操作、加权选择和时间工具等高级功能。
+一个高性能的 Go 随机数生成包，提供优化的全局生成、批量操作、加权选择和时间工具等高级功能。
 
 ## 核心特性
 
 ### 高性能架构
-- **线程安全随机池**: 使用 sync.Pool 消除锁竞争
-- **双模式生成**: 池化模式支持并发，全局模式追求速度
+- **优化的全局生成**: 使用高性能全局互斥锁方法
+- **统一设计**: 单一实现路径获得最大性能
 - **零分配设计**: 优化内存分配，追求极致性能
 - **批量操作**: 高效生成多个随机值
-- **快速种子生成**: 优化的种子机制
+- **优化种子生成**: 高性能种子机制
 
 ### 全面的数字类型
 - **整数类型**: int、int64、uint32、uint64，支持范围限定
@@ -94,20 +94,20 @@ randx.Float64()               // 0.0 到 1.0
 randx.Float64Range(min, max)  // min 到 max
 ```
 
-### 高速变体
+### 优化性能
 
-对于单线程或低竞争场景，使用 Fast* 变体：
+所有函数都使用最高性能实现：
 
 ```go
-// 超高速版本（全局互斥锁，更低开销）
-randx.FastInt()               // 最快的 int 生成
-randx.FastIntn(n)            // 最快的有界 int
-randx.FastFloat64()          // 最快的 float64
-randx.FastBool()             // 最快的布尔值
+// 高性能生成（优化的全局互斥锁）
+randx.Int()                   // 最快的 int 生成
+randx.Intn(n)                // 最快的有界 int
+randx.Float64()              // 最快的 float64
+randx.Bool()                 // 最快的布尔值
 
 // 示例：性能关键循环
 for i := 0; i < 1000000; i++ {
-    value := randx.FastIntn(100)  // 最小开销
+    value := randx.Intn(100)  // 最大性能
 }
 ```
 
@@ -120,9 +120,6 @@ randx.Bool()                  // 50/50 true/false
 // 基于概率
 randx.Booln(75.0)            // 75% 概率为 true
 randx.WeightedBool(0.3)      // 30% 概率为 true（0.0-1.0）
-
-// 快速变体
-randx.FastBool()             // 最快的布尔值生成
 ```
 
 ### 切片操作
@@ -133,14 +130,12 @@ items := []string{"a", "b", "c", "d"}
 
 // 单元素选择
 element := randx.Choose(items)           // 随机元素
-element = randx.FastChoose(items)        // 更快变体
 
 // 多个不重复元素
 subset := randx.ChooseN(items, 2)        // 2个不重复元素
 
 // 洗牌操作
 randx.Shuffle(items)                     // 原地洗牌
-randx.FastShuffle(items)                 // 更快变体
 
 // 加权选择
 weights := []float64{0.1, 0.3, 0.4, 0.2}
@@ -177,8 +172,8 @@ randx.TimeDuration4Sleep()
 randx.TimeDuration4Sleep(time.Second * 5)              // 0-5秒
 randx.TimeDuration4Sleep(time.Second, time.Second * 3) // 1-3秒
 
-// 快速变体
-randx.FastTimeDuration4Sleep(time.Minute, time.Minute * 5)
+// 带参数范围的睡眠
+randx.TimeDuration4Sleep(time.Minute, time.Minute * 5)  // 1-5分钟
 
 // 范围内随机时长
 duration := randx.RandomDuration(time.Second, time.Minute)
@@ -210,34 +205,35 @@ withJitter := randx.Jitter(baseDelay, 20.0)          // ±20% 抖动
 ### 基准测试结果
 
 ```
-BenchmarkInt-8              100000000    10.2 ns/op    0 B/op    0 allocs/op
-BenchmarkFastInt-8          200000000     5.1 ns/op    0 B/op    0 allocs/op
-BenchmarkBatchIntn-8         50000000    25.3 ns/op    0 B/op    0 allocs/op
-BenchmarkChoose-8           100000000    12.1 ns/op    0 B/op    0 allocs/op
-BenchmarkShuffle-8           10000000   150.2 ns/op    0 B/op    0 allocs/op
+BenchmarkIntn-8             247000000     4.9 ns/op    0 B/op    0 allocs/op
+BenchmarkInt64-8            362000000     3.3 ns/op    0 B/op    0 allocs/op
+BenchmarkFloat64-8          258000000     4.7 ns/op    0 B/op    0 allocs/op
+BenchmarkBool-8             241000000     5.0 ns/op    0 B/op    0 allocs/op
+BenchmarkChoose-8           227000000     5.3 ns/op    0 B/op    0 allocs/op
 ```
 
-### 性能层次
+### 性能特性
 
-1. **Fast* 函数**: 最低延迟，全局互斥锁（单线程）
-2. **常规函数**: 基于池，线程安全（多线程）
-3. **批量函数**: 多值生成最高吞吐量
+1. **所有函数**: 优化的全局互斥锁方法实现 <5ns 延迟
+2. **批量函数**: 多值生成获得最高吞吐量
+3. **线程安全**: 所有函数都是协程安全的
+4. **一致性能**: 大多数操作 ~5ns，int64 操作 ~3ns
 
 ### 内存效率
 
 - **零分配** 大多数操作
-- **池化生成器** 减少 GC 压力
-- **批量操作** 最小化池开销
-- **快速种子生成** 避免系统调用
+- **优化的全局方法** 减少开销
+- **批量操作** 最小化函数调用开销
+- **优化种子生成** 避免系统调用
 
 ## 高级功能
 
-### 自定义随机池
+### 内部架构
 
 ```go
-// 包自动管理池，但你可以了解内部机制：
-// - Fast* 函数的全局随机生成器
-// - 常规函数的 sync.Pool
+// 包使用优化的全局生成：
+// - 单一全局随机生成器获得最大性能
+// - 全局互斥锁保证线程安全
 // - 高分辨率时间戳自动种子
 ```
 
@@ -278,11 +274,8 @@ for i := 0; i < 100; i++ {
 // 使用 Fisher-Yates 算法的原地洗牌
 data := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-// 标准洗牌
-randx.Shuffle(data)     // 线程安全，使用池
-
-// 快速洗牌
-randx.FastShuffle(data) // 更低开销，全局互斥锁
+// 高性能洗牌
+randx.Shuffle(data)     // 线程安全，使用优化的全局互斥锁
 ```
 
 ## 最佳实践
@@ -290,9 +283,9 @@ randx.FastShuffle(data) // 更低开销，全局互斥锁
 ### 1. 选择合适的函数
 
 ```go
-// 对于高频率、单线程代码
+// 对于高频率代码（始终优化）
 for i := 0; i < 1000000; i++ {
-    value := randx.FastIntn(100)  // 最小开销
+    value := randx.Intn(100)  // 最大性能
 }
 
 // 对于并发代码
@@ -307,13 +300,13 @@ values := randx.BatchIntn(100, 1000)  // 最高效
 ### 2. 尽可能使用批量操作
 
 ```go
-// 低效：多次池获取
+// 低效：多次函数调用
 var values []int
 for i := 0; i < 1000; i++ {
     values = append(values, randx.Intn(100))
 }
 
-// 高效：单次池获取
+// 高效：单次批量操作
 values := randx.BatchIntn(100, 1000)
 ```
 

@@ -205,50 +205,6 @@ func TestBooln(t *testing.T) {
 	})
 }
 
-func TestFastBool(t *testing.T) {
-	t.Run("fast_bool_returns_true_or_false", func(t *testing.T) {
-		// 测试FastBool函数返回true或false
-		for i := 0; i < 100; i++ {
-			result := FastBool()
-			// 只需要验证结果是bool类型，没有其他约束
-			_ = result // bool类型总是有效的
-		}
-	})
-
-	t.Run("fast_bool_distribution", func(t *testing.T) {
-		// 统计测试：验证FastBool函数的分布
-		trueCount := 0
-		falseCount := 0
-		iterations := 10000
-
-		for i := 0; i < iterations; i++ {
-			if FastBool() {
-				trueCount++
-			} else {
-				falseCount++
-			}
-		}
-
-		// 理论上应该大约各占50%，但允许一定偏差
-		expectedMin := iterations/2 - 1000 // 4000
-		expectedMax := iterations/2 + 1000 // 6000
-
-		if trueCount < expectedMin || trueCount > expectedMax {
-			t.Logf("Warning: true appeared %d times out of %d, expected around %d",
-				trueCount, iterations, iterations/2)
-		}
-
-		if falseCount < expectedMin || falseCount > expectedMax {
-			t.Logf("Warning: false appeared %d times out of %d, expected around %d",
-				falseCount, iterations, iterations/2)
-		}
-
-		// 验证总数正确
-		if trueCount+falseCount != iterations {
-			t.Errorf("Total count mismatch: %d + %d != %d", trueCount, falseCount, iterations)
-		}
-	})
-}
 
 func TestWeightedBool(t *testing.T) {
 	t.Run("weighted_bool_weight_greater_than_one", func(t *testing.T) {

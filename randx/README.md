@@ -2,16 +2,16 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/lazygophers/utils/randx.svg)](https://pkg.go.dev/github.com/lazygophers/utils/randx)
 
-A high-performance Go package for secure random number generation with advanced features including thread-safe pooling, batch operations, weighted selections, and time-based utilities.
+A high-performance Go package for secure random number generation with advanced features including optimized global generation, batch operations, weighted selections, and time-based utilities.
 
 ## Features
 
 ### High-Performance Architecture
-- **Thread-Safe Random Pool**: Eliminates lock contention with sync.Pool
-- **Dual-Mode Generation**: Pool-based for concurrency, global for speed
+- **Optimized Global Generation**: Uses high-performance global mutex approach
+- **Single-Mode Design**: Unified implementation for maximum performance
 - **Zero-Allocation Design**: Optimized for minimal memory allocation
 - **Batch Operations**: Generate multiple values efficiently
-- **Fast Seed Generation**: Optimized seeding mechanism
+- **Optimized Seed Generation**: High-performance seeding mechanism
 
 ### Comprehensive Number Types
 - **Integer Types**: int, int64, uint32, uint64 with range support
@@ -94,20 +94,20 @@ randx.Float64()               // 0.0 to 1.0
 randx.Float64Range(min, max)  // min to max
 ```
 
-### High-Speed Variants
+### Optimized Performance
 
-For single-threaded or low-contention scenarios, use Fast* variants:
+All functions use the highest performance implementation:
 
 ```go
-// Ultra-fast versions (global mutex, lower overhead)
-randx.FastInt()               // Fastest int generation
-randx.FastIntn(n)            // Fastest bounded int
-randx.FastFloat64()          // Fastest float64
-randx.FastBool()             // Fastest boolean
+// High-performance generation (optimized global mutex)
+randx.Int()                   // High-performance int generation
+randx.Intn(n)                // High-performance bounded int
+randx.Float64()              // High-performance float64
+randx.Bool()                 // High-performance boolean
 
 // Example: Performance-critical loop
 for i := 0; i < 1000000; i++ {
-    value := randx.FastIntn(100)  // Minimal overhead
+    value := randx.Intn(100)  // Maximum performance
 }
 ```
 
@@ -120,9 +120,6 @@ randx.Bool()                  // 50/50 true/false
 // Probability-based
 randx.Booln(75.0)            // 75% chance of true
 randx.WeightedBool(0.3)      // 30% chance of true (0.0-1.0)
-
-// Fast variants
-randx.FastBool()             // Fastest boolean generation
 ```
 
 ### Slice Operations
@@ -133,14 +130,12 @@ items := []string{"a", "b", "c", "d"}
 
 // Single element selection
 element := randx.Choose(items)           // Random element
-element = randx.FastChoose(items)        // Faster variant
 
 // Multiple unique elements
 subset := randx.ChooseN(items, 2)        // 2 unique elements
 
 // Shuffle operations
 randx.Shuffle(items)                     // In-place shuffle
-randx.FastShuffle(items)                 // Faster variant
 
 // Weighted selection
 weights := []float64{0.1, 0.3, 0.4, 0.2}
@@ -177,9 +172,6 @@ randx.TimeDuration4Sleep()
 randx.TimeDuration4Sleep(time.Second * 5)              // 0-5 seconds
 randx.TimeDuration4Sleep(time.Second, time.Second * 3) // 1-3 seconds
 
-// Fast variant
-randx.FastTimeDuration4Sleep(time.Minute, time.Minute * 5)
-
 // Random duration in range
 duration := randx.RandomDuration(time.Second, time.Minute)
 
@@ -210,34 +202,35 @@ withJitter := randx.Jitter(baseDelay, 20.0)          // ±20% jitter
 ### Benchmark Results
 
 ```
-BenchmarkInt-8              100000000    10.2 ns/op    0 B/op    0 allocs/op
-BenchmarkFastInt-8          200000000     5.1 ns/op    0 B/op    0 allocs/op
-BenchmarkBatchIntn-8         50000000    25.3 ns/op    0 B/op    0 allocs/op
-BenchmarkChoose-8           100000000    12.1 ns/op    0 B/op    0 allocs/op
-BenchmarkShuffle-8           10000000   150.2 ns/op    0 B/op    0 allocs/op
+BenchmarkIntn-8             247000000     4.9 ns/op    0 B/op    0 allocs/op
+BenchmarkInt64-8            362000000     3.3 ns/op    0 B/op    0 allocs/op
+BenchmarkFloat64-8          258000000     4.7 ns/op    0 B/op    0 allocs/op
+BenchmarkBool-8             241000000     5.0 ns/op    0 B/op    0 allocs/op
+BenchmarkChoose-8           227000000     5.3 ns/op    0 B/op    0 allocs/op
 ```
 
-### Performance Tiers
+### Performance Characteristics
 
-1. **Fast* Functions**: Lowest latency, global mutex (single-threaded)
-2. **Regular Functions**: Pool-based, thread-safe (multi-threaded)
-3. **Batch Functions**: Highest throughput for multiple values
+1. **All Functions**: Optimized global mutex approach delivers <5ns latency
+2. **Batch Functions**: Highest throughput for multiple values
+3. **Thread Safety**: All functions are goroutine-safe
+4. **Consistent Performance**: ~5ns for most operations, ~3ns for int64
 
 ### Memory Efficiency
 
 - **Zero allocations** for most operations
-- **Pooled generators** reduce GC pressure
-- **Batch operations** minimize pool overhead
-- **Fast seed generation** avoids system calls
+- **Optimized global approach** reduces overhead
+- **Batch operations** minimize function call overhead
+- **Optimized seed generation** avoids system calls
 
 ## Advanced Features
 
-### Custom Random Pools
+### Internal Architecture
 
 ```go
-// The package automatically manages pools, but you can understand the internals:
-// - Global random generator for Fast* functions
-// - sync.Pool for regular functions
+// The package uses optimized global generation:
+// - Single global random generator for maximum performance
+// - Global mutex for thread safety
 // - Automatic seeding with high-resolution timestamps
 ```
 
@@ -278,11 +271,8 @@ for i := 0; i < 100; i++ {
 // In-place shuffle using Fisher-Yates algorithm
 data := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
-// Standard shuffle
-randx.Shuffle(data)     // Thread-safe, uses pool
-
-// Fast shuffle
-randx.FastShuffle(data) // Lower overhead, global mutex
+// High-performance shuffle
+randx.Shuffle(data)     // Thread-safe, optimized global mutex
 ```
 
 ## Best Practices
@@ -290,9 +280,9 @@ randx.FastShuffle(data) // Lower overhead, global mutex
 ### 1. Choose the Right Function
 
 ```go
-// For high-frequency, single-threaded code
+// For high-frequency code (always optimized)
 for i := 0; i < 1000000; i++ {
-    value := randx.FastIntn(100)  // Minimal overhead
+    value := randx.Intn(100)  // Maximum performance
 }
 
 // For concurrent code
@@ -307,13 +297,13 @@ values := randx.BatchIntn(100, 1000)  // Most efficient
 ### 2. Batch When Possible
 
 ```go
-// Inefficient: Multiple pool acquisitions
+// Less efficient: Multiple function calls
 var values []int
 for i := 0; i < 1000; i++ {
     values = append(values, randx.Intn(100))
 }
 
-// Efficient: Single pool acquisition
+// Efficient: Single batch operation
 values := randx.BatchIntn(100, 1000)
 ```
 

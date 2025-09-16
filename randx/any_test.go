@@ -183,45 +183,6 @@ func TestChoose(t *testing.T) {
 	})
 }
 
-func TestFastChoose(t *testing.T) {
-	t.Run("fast_choose_from_empty_slice", func(t *testing.T) {
-		// 测试空切片的情况
-		var empty []int
-		result := FastChoose(empty)
-		if result != 0 { // int类型的零值
-			t.Errorf("Expected zero value (0), got %v", result)
-		}
-	})
-
-	t.Run("fast_choose_from_single_element", func(t *testing.T) {
-		// 测试单元素切片
-		single := []int{42}
-		result := FastChoose(single)
-		if result != 42 {
-			t.Errorf("Expected 42, got %v", result)
-		}
-	})
-
-	t.Run("fast_choose_from_multiple_elements", func(t *testing.T) {
-		// 测试多元素切片
-		numbers := []int{1, 2, 3, 4, 5}
-
-		// 多次测试确保结果在预期范围内
-		for i := 0; i < 100; i++ {
-			result := FastChoose(numbers)
-			found := false
-			for _, num := range numbers {
-				if result == num {
-					found = true
-					break
-				}
-			}
-			if !found {
-				t.Errorf("Result %v not found in source slice %v", result, numbers)
-			}
-		}
-	})
-}
 
 func TestChooseN(t *testing.T) {
 	t.Run("choose_n_from_empty_slice", func(t *testing.T) {
@@ -397,59 +358,6 @@ func TestShuffle(t *testing.T) {
 	})
 }
 
-func TestFastShuffle(t *testing.T) {
-	t.Run("fast_shuffle_empty_slice", func(t *testing.T) {
-		// 测试空切片
-		var empty []int
-		FastShuffle(empty)
-		
-		// 空切片应该保持为空
-		if len(empty) != 0 {
-			t.Errorf("Empty slice should remain empty, got length %d", len(empty))
-		}
-	})
-
-	t.Run("fast_shuffle_single_element", func(t *testing.T) {
-		// 测试单元素切片
-		single := []int{42}
-		original := make([]int, len(single))
-		copy(original, single)
-		
-		FastShuffle(single)
-		
-		if !reflect.DeepEqual(single, original) {
-			t.Errorf("Single element slice should remain unchanged")
-		}
-	})
-
-	t.Run("fast_shuffle_multiple_elements", func(t *testing.T) {
-		// 测试多元素切片
-		numbers := []int{1, 2, 3, 4, 5}
-		original := make([]int, len(numbers))
-		copy(original, numbers)
-		
-		FastShuffle(numbers)
-		
-		// 检查长度没有变化
-		if len(numbers) != len(original) {
-			t.Errorf("Length changed after shuffle: %d vs %d", len(numbers), len(original))
-		}
-
-		// 检查所有元素都还在
-		for _, orig := range original {
-			found := false
-			for _, num := range numbers {
-				if num == orig {
-					found = true
-					break
-				}
-			}
-			if !found {
-				t.Errorf("Original element %v not found after shuffle", orig)
-			}
-		}
-	})
-}
 
 func TestWeightedChoose(t *testing.T) {
 	t.Run("weighted_choose_empty_items", func(t *testing.T) {
@@ -623,7 +531,7 @@ func TestWeightedChoose(t *testing.T) {
 		// 使用非常小的权重值来增加浮点精度问题的可能性
 		items := []int{1, 2}
 		weights := []float64{1e-15, 1e-15}
-		
+
 		for i := 0; i < 10000; i++ {
 			result := WeightedChoose(items, weights)
 			found := false
@@ -635,6 +543,60 @@ func TestWeightedChoose(t *testing.T) {
 			}
 			if !found {
 				t.Errorf("WeightedChoose with tiny weights returned invalid result: %v", result)
+			}
+		}
+	})
+
+	t.Run("weighted_choose_precision_edge_case", func(t *testing.T) {
+		// 使用多种权重组合，增加触发边界情况的可能性
+		testCases := []struct {
+			items   []string
+			weights []float64
+		}{
+			// 浮点精度问题权重
+			{[]string{"a", "b", "c"}, []float64{0.1, 0.2, 0.7}},
+			{[]string{"x", "y", "z", "w"}, []float64{0.333333, 0.333333, 0.333333, 0.000001}},
+			{[]string{"p", "q", "r"}, []float64{1.0/3.0, 1.0/3.0, 1.0/3.0}},
+			// 很小的权重差异
+			{[]string{"m", "n"}, []float64{0.5000000000000001, 0.4999999999999999}},
+		}
+
+		totalTests := 100000
+		for _, tc := range testCases {
+			for i := 0; i < totalTests; i++ {
+				result := WeightedChoose(tc.items, tc.weights)
+
+				// 验证结果有效
+				found := false
+				for _, item := range tc.items {
+					if result == item {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Errorf("WeightedChoose returned invalid result: %v for case %v", result, tc)
+				}
+			}
+		}
+
+		// 尝试另一种方法：使用会导致totalWeight不精确的权重
+		items := []string{"alpha", "beta", "gamma"}
+		// 这些权重相加可能不完全等于1.0，由于浮点精度问题
+		weights := []float64{0.7, 0.2, 0.1}
+
+		for i := 0; i < 2000000; i++ {
+			result := WeightedChoose(items, weights)
+			// 只验证结果的有效性
+			found := false
+			for _, item := range items {
+				if result == item {
+					found = true
+					break
+				}
+			}
+			if !found {
+				t.Errorf("WeightedChoose returned invalid result: %v", result)
 			}
 		}
 	})
