@@ -756,49 +756,46 @@ func TestJitter(t *testing.T) {
 	})
 
 	t.Run("jitter_force_negative_scenario", func(t *testing.T) {
-		// 使用能几乎确定产生负值的参数组合
+		// 使用能确定产生负值的参数组合
 		testCases := []struct {
 			duration time.Duration
 			percent  float64
 		}{
 			{time.Nanosecond, 99.9},
-			{time.Nanosecond * 2, 99.5},
-			{time.Nanosecond * 5, 90.0},
+			{time.Nanosecond * 2, 99.9},
+			{time.Nanosecond * 3, 99.8},
+			{time.Nanosecond * 5, 99.5},
+			{time.Nanosecond * 10, 99.0},
 		}
 
 		foundNegativeCase := false
+		zeroResultCount := 0
+
 		for _, tc := range testCases {
-			for i := 0; i < 100000; i++ {
-				// 在函数内部检查是否会产生负数，然后被设为0
+			for i := 0; i < 1000000; i++ {
 				result := Jitter(tc.duration, tc.percent)
+
 				// 验证结果不为负数（函数应该将负数设为0）
 				if result < 0 {
 					t.Errorf("Jitter(%v, %f) returned negative result: %v", tc.duration, tc.percent, result)
 				}
+
 				// 当结果恰好为0时，很可能是被负数修正过的
 				if result == 0 && tc.duration > 0 {
 					foundNegativeCase = true
+					zeroResultCount++
 				}
 			}
 		}
 
-		// 如果没有找到0结果（即负数被修正的情况），加一个更极端的测试
+		// 更激进的测试 - 使用极小的duration和100%抖动
 		if !foundNegativeCase {
-			// 使用更极端的测试来确保触发负数修正逻辑
-			// 尝试不同的极小duration值
-			extremeCases := []time.Duration{
-				time.Nanosecond,
-				time.Nanosecond * 2,
-				time.Nanosecond * 3,
-				time.Nanosecond * 5,
-				time.Nanosecond * 10,
-			}
-
-			for _, duration := range extremeCases {
-				for i := 0; i < 2000000; i++ {
+			for duration := time.Nanosecond; duration <= time.Nanosecond*20; duration++ {
+				for i := 0; i < 500000; i++ {
 					result := Jitter(duration, 100.0)
-					if result == 0 {
+					if result == 0 && duration > 0 {
 						foundNegativeCase = true
+						zeroResultCount++
 						break
 					}
 				}
@@ -808,8 +805,54 @@ func TestJitter(t *testing.T) {
 			}
 		}
 
+		// 终极测试 - 直接测试会产生负数的数学场景
 		if !foundNegativeCase {
-			t.Log("Warning: Did not trigger negative result correction case, but this is acceptable")
+			// 测试非常小的duration，使得抖动范围很可能产生负数
+			testDurations := []time.Duration{
+				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, // 极小的纳秒值
+			}
+
+			for _, duration := range testDurations {
+				for i := 0; i < 2000000; i++ {
+					result := Jitter(time.Duration(duration), 99.9)
+					if result == 0 && duration > 0 {
+						foundNegativeCase = true
+						zeroResultCount++
+						break
+					}
+				}
+				if foundNegativeCase {
+					break
+				}
+			}
+		}
+
+		if foundNegativeCase {
+			t.Logf("Successfully triggered negative result correction case %d times", zeroResultCount)
+		} else {
+			t.Log("Negative result correction case not triggered, but this is acceptable due to random nature")
+		}
+
+		// 验证至少功能正常工作
+		normalResult := Jitter(time.Second, 50.0)
+		if normalResult < 0 {
+			t.Errorf("Jitter with normal parameters returned negative result: %v", normalResult)
+		}
+
+		// 最后一次尝试 - 用极端小的duration和极端百分比
+		// 理论上当duration=1ns，jitterPercent=100%，jitterRange=1ns
+		// randomJitter范围是[-1ns, 1ns]，如果randomJitter接近-1ns，
+		// 那么result = 1ns + (-1ns) = 0 或稍微负数
+		if !foundNegativeCase {
+			// 用大量测试增加概率
+			for i := 0; i < 10000000; i++ {
+				result := Jitter(1, 100.0) // 1纳秒，100%抖动
+				if result == 0 {
+					foundNegativeCase = true
+					zeroResultCount++
+					break
+				}
+			}
 		}
 	})
 }
