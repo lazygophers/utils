@@ -1250,3 +1250,200 @@ func TestArrayParseBoundaryCheck(t *testing.T) {
 		t.Errorf("Expected ArrayField to be %v, got %v", expectedEdge, etc.ArrayField)
 	}
 }
+
+// ===== CONSOLIDATED TESTS FROM internal_test.go =====
+// These tests were moved from internal_test.go to consolidate test files
+
+// 测试RegisterCustomDefault的初始化分支
+// Note: This test is adapted to work without direct access to private members
+func TestRegisterCustomDefaultInitBranch(t *testing.T) {
+	// 清除当前的自定义默认值以确保干净的测试环境
+	defaults.ClearCustomDefaults()
+
+	// 注册一个自定义默认值
+	defaults.RegisterCustomDefault("test_init", func() interface{} {
+		return "initialized"
+	})
+
+	// 创建测试结构体来验证注册是否生效
+	type InitBranchTest struct {
+		StringField string `default:"fallback"`
+	}
+
+	// 使用自定义选项来测试
+	opts := &defaults.Options{
+		CustomDefaults: map[string]defaults.DefaultFunc{
+			"test_init": func() interface{} {
+				return "initialized"
+			},
+		},
+	}
+
+	var ibt InitBranchTest
+	err := defaults.SetDefaultsWithOptions(&ibt, opts)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	// 验证全局注册的函数确实存在（通过再次使用它）
+	defaults.RegisterCustomDefault("string", func() interface{} {
+		return "global_test"
+	})
+
+	var ibt2 InitBranchTest
+	defaults.SetDefaults(&ibt2)
+	if ibt2.StringField != "global_test" {
+		t.Errorf("Expected StringField to be 'global_test', got '%s'", ibt2.StringField)
+	}
+
+	// 清理
+	defaults.ClearCustomDefaults()
+}
+
+// 测试SetDefaults的成功路径
+func TestSetDefaultsSuccessPath(t *testing.T) {
+	type SuccessTest struct {
+		Field string `default:"success"`
+	}
+
+	var st SuccessTest
+
+	// 这应该成功执行，不触发panic分支
+	defaults.SetDefaults(&st)
+
+	if st.Field != "success" {
+		t.Errorf("Expected Field to be 'success', got '%s'", st.Field)
+	}
+}
+
+// 测试SetDefaults函数的错误处理
+// Note: This is adapted to test error handling through public API
+func TestSetDefaultsErrorHandling(t *testing.T) {
+	type ErrorTest struct {
+		InvalidField int `default:"invalid_int_value"`
+	}
+
+	var et ErrorTest
+
+	// 使用ErrorModeReturn来测试错误处理
+	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
+	err := defaults.SetDefaultsWithOptions(&et, opts)
+	if err == nil {
+		t.Errorf("Expected error for invalid int value, got nil")
+	}
+
+	// 测试SetDefaults在出错时的panic行为
+	var et2 ErrorTest
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic from SetDefaults when encountering invalid value")
+		}
+	}()
+	defaults.SetDefaults(&et2) // 这应该panic
+}
+
+// 测试数组解析中的边界条件
+func TestArrayBoundaryConditions(t *testing.T) {
+	// 测试零长度数组
+	type ZeroArrayTest struct {
+		ZeroArray [0]string `default:"a,b,c"`
+	}
+
+	var zat ZeroArrayTest
+	defaults.SetDefaults(&zat)
+
+	// 零长度数组应该保持不变
+	expected := [0]string{}
+	if zat.ZeroArray != expected {
+		t.Errorf("Expected ZeroArray to remain empty, got %v", zat.ZeroArray)
+	}
+
+	// 测试小数组with更多值（验证截断行为）
+	type SmallArrayTest struct {
+		SmallArray [1]int `default:"100,200,300"`
+	}
+
+	var sat SmallArrayTest
+	defaults.SetDefaults(&sat)
+
+	// 应该只设置第一个元素
+	expectedSmall := [1]int{100}
+	if sat.SmallArray != expectedSmall {
+		t.Errorf("Expected SmallArray to be %v, got %v", expectedSmall, sat.SmallArray)
+	}
+
+	// 测试边界情况：空值
+	type EmptyValueArrayTest struct {
+		EmptyArray [2]string `default:",,"`
+	}
+
+	var evat EmptyValueArrayTest
+	defaults.SetDefaults(&evat)
+
+	// 应该设置为空字符串
+	expectedEmpty := [2]string{"", ""}
+	if evat.EmptyArray != expectedEmpty {
+		t.Errorf("Expected EmptyArray to be %v, got %v", expectedEmpty, evat.EmptyArray)
+	}
+}
+
+// 测试数组解析的特殊情况
+func TestArrayParsingSpecialCases(t *testing.T) {
+	// 测试包含空元素的数组解析
+	type SpecialArrayTest struct {
+		ArrayField [3]string `default:"first,,third"`
+	}
+
+	var sat SpecialArrayTest
+	defaults.SetDefaults(&sat)
+
+	expected := [3]string{"first", "", "third"}
+	if sat.ArrayField != expected {
+		t.Errorf("Expected ArrayField to be %v, got %v", expected, sat.ArrayField)
+	}
+
+	// 测试数组元素类型转换
+	type IntArrayTest struct {
+		IntArray [2]int `default:"42,84"`
+	}
+
+	var iat IntArrayTest
+	defaults.SetDefaults(&iat)
+
+	expectedInt := [2]int{42, 84}
+	if iat.IntArray != expectedInt {
+		t.Errorf("Expected IntArray to be %v, got %v", expectedInt, iat.IntArray)
+	}
+}
+
+// 测试边界条件的全面覆盖
+func TestComprehensiveBoundaryTests(t *testing.T) {
+	// 测试不同长度的数组与不同数量的默认值
+	type VariousArrayTest struct {
+		Array1  [0]int `default:"1,2,3"`        // 0长度数组，多个值
+		Array2  [1]int `default:"[10]"`         // 1长度数组，JSON格式
+		Array3  [2]int `default:"20,30,40"`     // 2长度数组，3个值
+		Array4  [3]int `default:"50,60"`        // 3长度数组，2个值
+		Array5  [5]int `default:""`             // 5长度数组，无默认值
+	}
+
+	var vat VariousArrayTest
+	defaults.SetDefaults(&vat)
+
+	// 验证结果
+	if vat.Array1 != [0]int{} {
+		t.Errorf("Expected Array1 to be empty, got %v", vat.Array1)
+	}
+	if vat.Array2 != [1]int{10} {
+		t.Errorf("Expected Array2 to be [10], got %v", vat.Array2)
+	}
+	if vat.Array3 != [2]int{20, 30} {
+		t.Errorf("Expected Array3 to be [20, 30], got %v", vat.Array3)
+	}
+	if vat.Array4 != [3]int{50, 60, 0} {
+		t.Errorf("Expected Array4 to be [50, 60, 0], got %v", vat.Array4)
+	}
+	if vat.Array5 != [5]int{0, 0, 0, 0, 0} {
+		t.Errorf("Expected Array5 to be zero value array, got %v", vat.Array5)
+	}
+}
