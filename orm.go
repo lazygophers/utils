@@ -51,6 +51,12 @@ func Scan(src interface{}, dst interface{}) (err error) {
 // Value 将结构体转换为数据库值
 func Value(m interface{}) (value driver.Value, err error) {
 	if m == nil {
+		return []byte("null"), nil
+	}
+
+	// Apply defaults only for non-nil structs and struct pointers
+	v := reflect.ValueOf(m)
+	if v.Kind() == reflect.Struct || (v.Kind() == reflect.Ptr && !v.IsNil() && v.Elem().Kind() == reflect.Struct) {
 		defaults.SetDefaults(m)
 	}
 
