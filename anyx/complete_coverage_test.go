@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/lazygophers/utils/candy"
 )
 
 // TestNewMapWithAnyErrorCases tests error paths in NewMapWithAny function
@@ -61,7 +62,7 @@ func TestKeyByErrorPaths(t *testing.T) {
 		}
 		
 		// This should skip the nil element and continue processing
-		result := KeyBy(slice, "ID")
+		result := candy.KeyBy(slice, "ID")
 		t.Logf("KeyBy with nil elements result: %v", result)
 	})
 	
@@ -83,8 +84,8 @@ func TestKeyByErrorPaths(t *testing.T) {
 		// This is tricky because we need an element that becomes non-struct after ptr deref
 		intPtr := 42
 		slice := []interface{}{&intPtr} // int pointer, not struct pointer
-		
-		KeyBy(slice, "nonexistent")
+
+		candy.KeyBy(slice, "nonexistent")
 	})
 	
 	t.Run("keyby_uint64_element_not_struct_panic", func(t *testing.T) {
@@ -107,8 +108,8 @@ func TestKeyByErrorPaths(t *testing.T) {
 		
 		validStruct := &TestStruct{ID: 1, Name: "test"}
 		slice := []*TestStruct{validStruct}
-		
-		KeyByUint64(slice, "ID")
+
+		candy.KeyByUint64(slice, "ID")
 	})
 	
 	t.Run("keyby_int64_element_not_struct_panic", func(t *testing.T) {
@@ -131,8 +132,8 @@ func TestKeyByErrorPaths(t *testing.T) {
 		
 		validStruct := &TestStruct{ID: 1, Name: "test"}
 		slice := []*TestStruct{validStruct}
-		
-		KeyByInt64(slice, "ID")
+
+		candy.KeyByInt64(slice, "ID")
 	})
 	
 	t.Run("keyby_string_element_not_struct_panic", func(t *testing.T) {
@@ -155,8 +156,8 @@ func TestKeyByErrorPaths(t *testing.T) {
 		
 		validStruct := &TestStruct{ID: "test", Name: "test"}
 		slice := []*TestStruct{validStruct}
-		
-		KeyByString(slice, "ID")
+
+		candy.KeyByString(slice, "ID")
 	})
 	
 	t.Run("keyby_int32_element_not_struct_panic", func(t *testing.T) {
@@ -179,8 +180,8 @@ func TestKeyByErrorPaths(t *testing.T) {
 		
 		validStruct := &TestStruct{ID: 1, Name: "test"}
 		slice := []*TestStruct{validStruct}
-		
-		KeyByInt32(slice, "ID")
+
+		candy.KeyByInt32(slice, "ID")
 	})
 }
 
@@ -301,7 +302,7 @@ func TestMissingCoverageScenarios(t *testing.T) {
 		
 		// Normal case should work
 		users := []*TestStruct{{ID: 1}, {ID: 2}}
-		result := KeyBy(users, "ID")
+		result := candy.KeyBy(users, "ID")
 		assert.NotNil(t, result)
 		
 		// The !elemStruct.IsValid() case is designed to handle edge cases 
@@ -316,7 +317,7 @@ func TestMissingCoverageScenarios(t *testing.T) {
 		}
 		
 		users := []*TestStruct{{ID: 1}}
-		result := KeyBy(users, "ID")
+		result := candy.KeyBy(users, "ID")
 		assert.NotNil(t, result)
 		
 		// The elemStruct.Kind() != reflect.Struct case is designed to catch
@@ -376,13 +377,13 @@ func TestAdditionalKeyByScenarios(t *testing.T) {
 		}
 		
 		// Test with empty slice to trigger len(list) == 0 condition
-		result := KeyByUint64([]*TestStruct{}, "ID")
+		result := candy.KeyByUint64([]*TestStruct{}, "ID")
 		assert.Equal(t, map[uint64]*TestStruct{}, result)
-		
+
 		// Test with populated slice
 		user1 := &TestStruct{ID: 1}
 		user2 := &TestStruct{ID: 2}
-		result = KeyByUint64([]*TestStruct{user1, user2}, "ID")
+		result = candy.KeyByUint64([]*TestStruct{user1, user2}, "ID")
 		assert.Equal(t, 2, len(result))
 		assert.Equal(t, user1, result[1])
 		assert.Equal(t, user2, result[2])

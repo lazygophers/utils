@@ -2,6 +2,8 @@ package anyx
 
 import (
 	"testing"
+
+	"github.com/lazygophers/utils/candy"
 )
 
 // TestKeyByPanicConditions tests the panic conditions in KeyBy functions
@@ -25,7 +27,7 @@ func TestKeyByPanicConditions(t *testing.T) {
 		// Create a slice with interface{} containing non-struct values
 		list := []interface{}{testStruct{ID: 1, Name: "test"}, "not a struct"}
 		// This should trigger the panic when processing the string element
-		_ = KeyBy(list, "ID")
+		_ = candy.KeyBy(list, "ID")
 	})
 
 	t.Run("KeyByUint64_element_not_struct_panic", func(t *testing.T) {
@@ -38,7 +40,7 @@ func TestKeyByPanicConditions(t *testing.T) {
 	t.Run("KeyByUint64_nil_pointer_coverage", func(t *testing.T) {
 		// Test with nil pointers in the slice to reach the continue branch
 		list := []*testStruct{{ID: 1, Name: "test"}, nil, {ID: 2, Name: "test2"}}
-		result := KeyByUint64(list, "ID")
+		result := candy.KeyByUint64(list, "ID")
 		if len(result) != 2 { // Should skip nil and process 2 valid elements
 			t.Errorf("Expected 2 elements, got %d", len(result))
 		}
@@ -50,7 +52,7 @@ func TestKeyByPanicConditions(t *testing.T) {
 			Name string
 		}
 		list := []*testStructInt64{{ID: 1, Name: "test"}, nil, {ID: 2, Name: "test2"}}
-		result := KeyByInt64(list, "ID")
+		result := candy.KeyByInt64(list, "ID")
 		if len(result) != 2 {
 			t.Errorf("Expected 2 elements, got %d", len(result))
 		}
@@ -62,7 +64,7 @@ func TestKeyByPanicConditions(t *testing.T) {
 			Name string
 		}
 		list := []*testStructString{{ID: "1", Name: "test"}, nil, {ID: "2", Name: "test2"}}
-		result := KeyByString(list, "ID")
+		result := candy.KeyByString(list, "ID")
 		if len(result) != 2 {
 			t.Errorf("Expected 2 elements, got %d", len(result))
 		}
@@ -74,7 +76,7 @@ func TestKeyByPanicConditions(t *testing.T) {
 			Name string
 		}
 		list := []*testStructInt32{{ID: 1, Name: "test"}, nil, {ID: 2, Name: "test2"}}
-		result := KeyByInt32(list, "ID")
+		result := candy.KeyByInt32(list, "ID")
 		if len(result) != 2 {
 			t.Errorf("Expected 2 elements, got %d", len(result))
 		}
