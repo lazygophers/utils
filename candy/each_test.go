@@ -23,8 +23,7 @@ func TestEach(t *testing.T) {
 		data := []int{1, 2, 3, 4, 5}
 		var result []int
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(int)
+		Each(data, func(item int) {
 			result = append(result, item*2)
 		})
 
@@ -38,8 +37,7 @@ func TestEach(t *testing.T) {
 		data := []string{"a", "b", "c"}
 		var result []string
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(string)
+		Each(data, func(item string) {
 			result = append(result, item+"x")
 		})
 
@@ -61,8 +59,7 @@ func TestEach(t *testing.T) {
 		}
 
 		var result []int
-		Each(data, func(index int, value interface{}) {
-			item := value.(TestItem)
+		Each(data, func(item TestItem) {
 			result = append(result, item.ID)
 		})
 
@@ -76,8 +73,7 @@ func TestEach(t *testing.T) {
 		data := []float64{1.1, 2.2, 3.3}
 		var sum float64
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(float64)
+		Each(data, func(item float64) {
 			sum += item
 		})
 
@@ -88,11 +84,10 @@ func TestEach(t *testing.T) {
 	t.Run("empty_slice", func(t *testing.T) {
 		t.Parallel()
 
-		data := []int{}
+		var data []int
 		var result []int
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(int)
+		Each(data, func(item int) {
 			result = append(result, item)
 		})
 
@@ -106,8 +101,7 @@ func TestEach(t *testing.T) {
 		var data []int
 		var result []int
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(int)
+		Each(data, func(item int) {
 			result = append(result, item)
 		})
 
@@ -121,8 +115,7 @@ func TestEach(t *testing.T) {
 		data := []int{42}
 		var result int
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(int)
+		Each(data, func(item int) {
 			result = item
 		})
 
@@ -136,7 +129,7 @@ func TestEach(t *testing.T) {
 		data := []int{1, 2, 3}
 		counter := 0
 
-		Each(data, func(index int, value interface{}) {
+		Each(data, func(item int) {
 			counter++
 		})
 
@@ -152,9 +145,8 @@ func TestEach(t *testing.T) {
 			{Name: "Bob", Age: 30},
 		}
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(TestPerson)
-			item.Age += 10
+		Each(data, func(item TestPerson) {
+			item.Age += 10 // This won't modify the original slice
 		})
 
 		// 注意：Each函数接收的是值拷贝，所以原始切片不会被修改
@@ -171,8 +163,7 @@ func TestEach(t *testing.T) {
 			{Name: "Bob", Age: 30},
 		}
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(*TestPerson)
+		Each(data, func(item *TestPerson) {
 			item.Age += 10
 		})
 
@@ -188,8 +179,7 @@ func TestEach(t *testing.T) {
 		var sum int
 		var product = 1
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(int)
+		Each(data, func(item int) {
 			sum += item
 			product *= item
 		})
@@ -206,8 +196,7 @@ func TestEach(t *testing.T) {
 		var result []int
 		var mu sync.Mutex
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(int)
+		Each(data, func(item int) {
 			mu.Lock()
 			result = append(result, item*2)
 			mu.Unlock()
@@ -216,78 +205,77 @@ func TestEach(t *testing.T) {
 		require.Equal(t, []int{2, 4, 6, 8, 10}, result, "Each在并发环境下应该安全工作")
 	})
 
-	// 测试数组
-	t.Run("array", func(t *testing.T) {
+	// 测试大切片的性能
+	t.Run("large_slice_performance", func(t *testing.T) {
 		t.Parallel()
 
-		data := [3]int{1, 2, 3}
-		var result []int
+		data := make([]int, 10000)
+		for i := range data {
+			data[i] = i
+		}
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(int)
+		var sum int
+		Each(data, func(item int) {
+			sum += item
+		})
+
+		expected := (len(data) - 1) * len(data) / 2 // sum of 0 to n-1
+		require.Equal(t, expected, sum, "Each应该正确处理大切片")
+	})
+
+	// 测试泛型类型安全
+	t.Run("generic_type_safety", func(t *testing.T) {
+		t.Parallel()
+
+		// 测试自定义类型
+		type MyInt int
+		data := []MyInt{1, 2, 3}
+		var result []MyInt
+
+		Each(data, func(item MyInt) {
 			result = append(result, item*2)
 		})
 
-		require.Equal(t, []int{2, 4, 6}, result, "Each应该对数组正常工作")
+		require.Equal(t, []MyInt{2, 4, 6}, result, "Each应该支持自定义类型")
 	})
 
-	// 测试map
-	t.Run("map_iteration", func(t *testing.T) {
+	// 测试interface{}切片
+	t.Run("interface_slice", func(t *testing.T) {
 		t.Parallel()
 
-		data := map[string]int{"a": 1, "b": 2, "c": 3}
-		var result []int
-		indexSet := make(map[int]bool)
+		data := []interface{}{1, "hello", 3.14}
+		var result []interface{}
 
-		Each(data, func(index int, value interface{}) {
-			item := value.(int)
-			result = append(result, item)
-			indexSet[index] = true
-		})
-
-		// map遍历顺序不确定，但应该包含所有值
-		assert.Len(t, result, 3)
-		assert.Contains(t, result, 1)
-		assert.Contains(t, result, 2)
-		assert.Contains(t, result, 3)
-
-		// 索引应该是0,1,2
-		assert.Equal(t, 3, len(indexSet))
-		assert.True(t, indexSet[0])
-		assert.True(t, indexSet[1])
-		assert.True(t, indexSet[2])
-	})
-
-	// 测试空map
-	t.Run("empty_map", func(t *testing.T) {
-		t.Parallel()
-
-		data := map[string]int{}
-		var result []int
-
-		Each(data, func(index int, value interface{}) {
-			item := value.(int)
+		Each(data, func(item interface{}) {
 			result = append(result, item)
 		})
 
-		require.Empty(t, result, "Each处理空map时不应该执行函数")
+		require.Equal(t, []interface{}{1, "hello", 3.14}, result, "Each应该支持interface{}切片")
 	})
 
-	// 测试非切片、数组、map类型应该panic
-	t.Run("unsupported_type_panic", func(t *testing.T) {
+	// 测试嵌套结构体
+	t.Run("nested_struct", func(t *testing.T) {
 		t.Parallel()
 
-		assert.Panics(t, func() {
-			Each("not a collection", func(index int, value interface{}) {})
-		}, "Each对不支持的类型应该panic")
+		type Address struct {
+			City string
+		}
+		type PersonWithAddress struct {
+			Name    string
+			Address Address
+		}
 
-		assert.Panics(t, func() {
-			Each(42, func(index int, value interface{}) {})
-		}, "Each对不支持的类型应该panic")
+		data := []PersonWithAddress{
+			{Name: "Alice", Address: Address{City: "Beijing"}},
+			{Name: "Bob", Address: Address{City: "Shanghai"}},
+		}
 
-		assert.Panics(t, func() {
-			Each(struct{}{}, func(index int, value interface{}) {})
-		}, "Each对不支持的类型应该panic")
+		var cities []string
+		Each(data, func(item PersonWithAddress) {
+			cities = append(cities, item.Address.City)
+		})
+
+		require.Equal(t, []string{"Beijing", "Shanghai"}, cities, "Each应该支持嵌套结构体")
 	})
 }
 
@@ -301,9 +289,40 @@ func BenchmarkEach(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		var sum int
-		Each(data, func(index int, value interface{}) {
-			item := value.(int)
+		Each(data, func(item int) {
 			sum += item
+		})
+	}
+}
+
+// BenchmarkEachString 测试Each函数处理字符串的性能
+func BenchmarkEachString(b *testing.B) {
+	data := make([]string, 1000)
+	for i := range data {
+		data[i] = "test"
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var result []string
+		Each(data, func(item string) {
+			result = append(result, item)
+		})
+	}
+}
+
+// BenchmarkEachStruct 测试Each函数处理结构体的性能
+func BenchmarkEachStruct(b *testing.B) {
+	data := make([]TestPerson, 1000)
+	for i := range data {
+		data[i] = TestPerson{Name: "Test", Age: i}
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		var sum int
+		Each(data, func(item TestPerson) {
+			sum += item.Age
 		})
 	}
 }
