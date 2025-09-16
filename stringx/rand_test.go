@@ -494,3 +494,28 @@ func TestEdgeCases(t *testing.T) {
 		}
 	})
 }
+
+// Additional benchmark tests for various length scenarios
+func BenchmarkRandomGeneration(b *testing.B) {
+	lengths := []int{10, 50, 100}
+
+	for _, length := range lengths {
+		b.Run("Letters_"+string(rune(length/10+'0')), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = RandLetters(length)
+			}
+		})
+
+		b.Run("Numbers_"+string(rune(length/10+'0')), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = RandNumbers(length)
+			}
+		})
+
+		b.Run("LetterNumbers_"+string(rune(length/10+'0')), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = RandLetterNumbers(length)
+			}
+		})
+	}
+}

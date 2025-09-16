@@ -786,3 +786,43 @@ func TestUnicodeEdgeCases(t *testing.T) {
 		}
 	})
 }
+
+// Unicode functions benchmarks
+func BenchmarkUnicodeClassification(b *testing.B) {
+	digitCases := []string{"123456789", "1234567890123456789012345678901234567890", "12345abc", ""}
+	letterCases := []string{"abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "HelloWorld", "测试字符串"}
+	mixedCases := []string{"abcdef", "abc123def", "hello world", "测试字符串123"}
+	upperCases := []string{"hello world", "Hello World", "HELLO WORLD", "测试字符串"}
+
+	b.Run("AllDigit", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			for _, tc := range digitCases {
+				_ = AllDigit(tc)
+			}
+		}
+	})
+
+	b.Run("HasDigit", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			for _, tc := range mixedCases {
+				_ = HasDigit(tc)
+			}
+		}
+	})
+
+	b.Run("AllLetter", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			for _, tc := range letterCases {
+				_ = AllLetter(tc)
+			}
+		}
+	})
+
+	b.Run("HasUpper", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			for _, tc := range upperCases {
+				_ = HasUpper(tc)
+			}
+		}
+	})
+}

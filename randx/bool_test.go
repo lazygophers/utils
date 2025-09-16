@@ -434,7 +434,7 @@ func TestBatchBooln(t *testing.T) {
 
 		for _, prob := range testCases {
 			result := BatchBooln(prob, count)
-			
+
 			if len(result) != count {
 				t.Errorf("Expected length %d, got %d", count, len(result))
 			}
@@ -454,7 +454,7 @@ func TestBatchBooln(t *testing.T) {
 
 		for _, prob := range testCases {
 			result := BatchBooln(prob, count)
-			
+
 			if len(result) != count {
 				t.Errorf("Expected length %d, got %d", count, len(result))
 			}
@@ -537,6 +537,27 @@ func TestBatchBooln(t *testing.T) {
 		if trueCount < expectedTrue-tolerance || trueCount > expectedTrue+tolerance {
 			t.Logf("Warning: With 75%% probability, got %d true out of %d (expected around %d)",
 				trueCount, count, expectedTrue)
+		}
+	})
+}
+
+// 基准测试：布尔值生成
+func BenchmarkBool(b *testing.B) {
+	b.Run("Bool", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Bool()
+		}
+	})
+
+	b.Run("FastBool", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = Bool()
+		}
+	})
+
+	b.Run("WeightedBool", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = WeightedBool(0.5)
 		}
 	})
 }

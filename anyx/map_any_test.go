@@ -1378,3 +1378,162 @@ func TestMapAny_Concurrent(t *testing.T) {
 	// Should have at least the original "counter" key plus some new ones
 	assert.Greater(t, count, 1)
 }
+
+// Additional coverage tests for edge cases and error paths
+func TestMapAny_GetMethodEdgeCases(t *testing.T) {
+	t.Run("nested path not found", func(t *testing.T) {
+		m := NewMap(map[string]interface{}{
+			"level1": map[string]interface{}{
+				"level2": "value",
+			},
+		})
+		m.EnableCut(".")
+
+		// Test path that doesn't exist in nested structure
+		result, exists := m.get("level1.nonexistent.field")
+		assert.False(t, exists)
+		assert.Nil(t, result)
+	})
+
+	t.Run("invalid nested map type", func(t *testing.T) {
+		m := NewMap(map[string]interface{}{
+			"level1": "not_a_map", // This is not a map, so nested access should fail
+		})
+		m.EnableCut(".")
+
+		// Test path that tries to access nested field on non-map value
+		result, exists := m.get("level1.field")
+		assert.False(t, exists)
+		assert.Nil(t, result)
+	})
+
+	t.Run("empty keys after split", func(t *testing.T) {
+		m := NewMap(map[string]interface{}{
+			"test": "value",
+		})
+		m.EnableCut(".")
+
+		// This should hit the len(keys) > 0 condition at the end
+		// by having an empty key after splitting
+		result, exists := m.get("test.")
+		assert.False(t, exists)
+		assert.Nil(t, result)
+	})
+
+	t.Run("disable cut path coverage", func(t *testing.T) {
+		m := NewMap(map[string]interface{}{
+			"nested": map[string]interface{}{
+				"level2": "nested_value",
+			},
+		})
+
+		// Test get without cut enabled to cover non-cut path
+		val, ok := m.get("nested.level2")
+		assert.False(t, ok)
+		assert.Nil(t, val)
+	})
+}
+
+func TestNewMapWithAny_EdgeCases(t *testing.T) {
+	t.Run("json marshal error with channel", func(t *testing.T) {
+		// Create a struct with a channel that can't be marshaled to JSON
+		type invalidStruct struct {
+			Ch chan int
+		}
+
+		input := invalidStruct{Ch: make(chan int)}
+		result, err := NewMapWithAny(input)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+	})
+
+	t.Run("complex struct success case", func(t *testing.T) {
+		// Test with a more complex struct to ensure proper coverage
+		type complexStruct struct {
+			Field1 string
+			Field2 int
+			Field3 map[string]interface{}
+			Field4 []string
+		}
+
+		input := complexStruct{
+			Field1: "test",
+			Field2: 42,
+			Field3: map[string]interface{}{"nested": "value"},
+			Field4: []string{"a", "b", "c"},
+		}
+
+		result, err := NewMapWithAny(input)
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+
+		// Check that the values are properly accessible
+		assert.Equal(t, "test", result.GetString("Field1"))
+		assert.Equal(t, 42, result.GetInt("Field2"))
+	})
+
+	t.Run("circular reference handling", func(t *testing.T) {
+		// Create a complex struct that might cause issues
+		complexStruct := map[string]interface{}{
+			"circular": nil,
+		}
+		// Create circular reference which might cause issues
+		complexStruct["circular"] = complexStruct
+
+		_, err := NewMapWithAny(complexStruct)
+		if err != nil {
+			t.Logf("NewMapWithAny correctly returned error for circular reference: %v", err)
+		} else {
+			t.Log("NewMapWithAny handled circular reference successfully")
+		}
+	})
+}
+
+func TestMapAny_ToMapJSONUnmarshalError(t *testing.T) {
+	t.Run("json unmarshal error in toMap default case", func(t *testing.T) {
+		mapAny := NewMap(nil)
+
+		// Test with a slice that marshals to JSON but doesn't unmarshal to a map
+		result := mapAny.toMap([]string{"not", "a", "map"})
+		assert.NotNil(t, result)
+		assert.False(t, result.Exists("any_key"))
+	})
+}
+
+func TestMapAny_ComplexScenarios(t *testing.T) {
+	t.Run("complex nested structure testing", func(t *testing.T) {
+		// Create complex nested structure to test various code paths
+		complexData := map[string]interface{}{
+			"simple":  "value",
+			"number":  42,
+			"boolean": true,
+			"null":    nil,
+			"array": []interface{}{
+				"item1",
+				map[string]interface{}{"nested": "in_array"},
+				42,
+			},
+			"nested": map[string]interface{}{
+				"level2": map[string]interface{}{
+					"level3": "deep_value",
+				},
+			},
+		}
+
+		m := NewMap(complexData)
+
+		// Test various getter methods to ensure full coverage
+		assert.Equal(t, "value", m.GetString("simple"))
+		assert.Equal(t, 42, m.GetInt("number"))
+		assert.True(t, m.GetBool("boolean"))
+		assert.NotNil(t, m.GetSlice("array"))
+		assert.NotNil(t, m.GetMap("nested"))
+
+		// Test with invalid types to cover error paths
+		assert.Equal(t, "42", m.GetString("number"))     // int to string
+		assert.Equal(t, 0, m.GetInt("simple"))           // string to int
+		assert.True(t, m.GetBool("simple"))              // string "value" to bool is true
+		assert.Equal(t, []interface{}{}, m.GetSlice("simple")) // string to slice returns empty slice
+		assert.False(t, m.GetMap("simple").Exists("any")) // string to map
+	})
+}

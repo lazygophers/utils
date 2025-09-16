@@ -4,6 +4,7 @@ import (
 	"crypto/elliptic"
 	"crypto/sha256"
 	"crypto/sha512"
+	"errors"
 	"math/big"
 	"strings"
 	"testing"
@@ -470,5 +471,195 @@ func TestECDSADifferentDataSizes(t *testing.T) {
 		if !ECDSAVerifySHA256(keyPair.PublicKey, data, r, s) {
 			t.Errorf("ECDSAVerifySHA256 failed for data size %d", size)
 		}
+	}
+}
+
+// ==== MERGED ECDSA TESTS FROM ecc_100_coverage_test.go ====
+
+// Mock failures for ECDSA dependency injection
+type FailingECDSAReader struct{}
+
+func (fr FailingECDSAReader) Read(p []byte) (n int, err error) {
+	return 0, errors.New("simulated random reader failure")
+}
+
+// TestECDSA_100PercentCoverage tests all error paths in ECDSA functions
+func TestECDSA_100PercentCoverage(t *testing.T) {
+	// Save original functions
+	originalECDSARandReader := ecdsaRandReader
+
+	// Restore original functions after test
+	defer func() {
+		ecdsaRandReader = originalECDSARandReader
+	}()
+
+	// Test 1: Trigger rand.Reader failure in ECDSA key generation
+	ecdsaRandReader = FailingECDSAReader{}
+
+	_, err := GenerateECDSAKey(elliptic.P256())
+	if err == nil {
+		t.Error("Expected rand.Reader error in GenerateECDSAKey")
+	}
+
+	_, err = GenerateECDSAP256Key()
+	if err == nil {
+		t.Error("Expected rand.Reader error in GenerateECDSAP256Key")
+	}
+
+	_, err = GenerateECDSAP384Key()
+	if err == nil {
+		t.Error("Expected rand.Reader error in GenerateECDSAP384Key")
+	}
+
+	_, err = GenerateECDSAP521Key()
+	if err == nil {
+		t.Error("Expected rand.Reader error in GenerateECDSAP521Key")
+	}
+
+	// Test 2: Trigger rand.Reader failure in ECDSA signing
+	// Generate a valid key first with original reader
+	ecdsaRandReader = originalECDSARandReader
+	keyPair, err := GenerateECDSAP256Key()
+	if err != nil {
+		t.Fatalf("Failed to generate test key: %v", err)
+	}
+
+	// Now set failing reader and test signing
+	ecdsaRandReader = FailingECDSAReader{}
+
+	_, _, err = ECDSASign(keyPair.PrivateKey, []byte("test"), sha256.New)
+	if err == nil {
+		t.Error("Expected rand.Reader error in ECDSASign")
+	}
+
+	_, _, err = ECDSASignSHA256(keyPair.PrivateKey, []byte("test"))
+	if err == nil {
+		t.Error("Expected rand.Reader error in ECDSASignSHA256")
+	}
+
+	_, _, err = ECDSASignSHA512(keyPair.PrivateKey, []byte("test"))
+	if err == nil {
+		t.Error("Expected rand.Reader error in ECDSASignSHA512")
+	}
+
+	// Restore readers
+	ecdsaRandReader = originalECDSARandReader
+}
+
+// TestECDSASpecificCoveragePaths tests ECDSA specific paths for 100% coverage
+func TestECDSASpecificCoveragePaths(t *testing.T) {
+	// Test successful PEM operations to trigger success paths
+	keyPair, err := GenerateECDSAP256Key()
+	if err != nil {
+		t.Fatalf("Failed to generate ECDSA key pair: %v", err)
+	}
+
+	// Test ECDSAPrivateKeyToPEM success path
+	privPEM, err := ECDSAPrivateKeyToPEM(keyPair.PrivateKey)
+	if err != nil {
+		t.Errorf("ECDSAPrivateKeyToPEM should succeed: %v", err)
+	}
+	if len(privPEM) == 0 {
+		t.Error("Private PEM should not be empty")
+	}
+
+	// Test ECDSAPublicKeyToPEM success path
+	pubPEM, err := ECDSAPublicKeyToPEM(keyPair.PublicKey)
+	if err != nil {
+		t.Errorf("ECDSAPublicKeyToPEM should succeed: %v", err)
+	}
+	if len(pubPEM) == 0 {
+		t.Error("Public PEM should not be empty")
+	}
+
+	// Test ECDSAPrivateKeyFromPEM success path
+	decodedPriv, err := ECDSAPrivateKeyFromPEM(privPEM)
+	if err != nil {
+		t.Errorf("ECDSAPrivateKeyFromPEM should succeed: %v", err)
+	}
+	if decodedPriv == nil {
+		t.Error("Decoded private key should not be nil")
+	}
+
+	// Test ECDSAPublicKeyFromPEM success path
+	decodedPub, err := ECDSAPublicKeyFromPEM(pubPEM)
+	if err != nil {
+		t.Errorf("ECDSAPublicKeyFromPEM should succeed: %v", err)
+	}
+	if decodedPub == nil {
+		t.Error("Decoded public key should not be nil")
+	}
+
+	// Test various error paths for signature parsing
+	_, _, err = ECDSASignatureFromBytes([]byte{})
+	if err == nil {
+		t.Error("Expected error for empty signature bytes")
+	}
+
+	// Test nil parameter errors
+	_, err = ECDSAPrivateKeyToPEM(nil)
+	if err == nil {
+		t.Error("Expected error for nil private key")
+	}
+
+	_, err = ECDSAPublicKeyToPEM(nil)
+	if err == nil {
+		t.Error("Expected error for nil public key")
+	}
+
+	_, _, err = ECDSASign(nil, []byte("test"), sha256.New)
+	if err == nil {
+		t.Error("Expected error for nil private key in sign")
+	}
+
+	_, _, err = ECDSASign(keyPair.PrivateKey, []byte("test"), nil)
+	if err == nil {
+		t.Error("Expected error for nil hash function")
+	}
+
+	if ECDSAVerify(nil, []byte("test"), big.NewInt(1), big.NewInt(1), sha256.New) {
+		t.Error("Should return false for nil public key")
+	}
+
+	if ECDSAVerify(keyPair.PublicKey, []byte("test"), nil, big.NewInt(1), sha256.New) {
+		t.Error("Should return false for nil r")
+	}
+
+	if ECDSAVerify(keyPair.PublicKey, []byte("test"), big.NewInt(1), nil, sha256.New) {
+		t.Error("Should return false for nil s")
+	}
+
+	if ECDSAVerify(keyPair.PublicKey, []byte("test"), big.NewInt(1), big.NewInt(1), nil) {
+		t.Error("Should return false for nil hash function")
+	}
+
+	_, err = ECDSASignatureToBytes(nil, big.NewInt(1))
+	if err == nil {
+		t.Error("Expected error for nil r")
+	}
+
+	_, err = ECDSASignatureToBytes(big.NewInt(1), nil)
+	if err == nil {
+		t.Error("Expected error for nil s")
+	}
+
+	_, err = ECDSAPrivateKeyFromPEM(nil)
+	if err == nil {
+		t.Error("Expected error for nil PEM data")
+	}
+
+	_, err = ECDSAPrivateKeyFromPEM([]byte(""))
+	if err == nil {
+		t.Error("Expected error for empty PEM data")
+	}
+
+	_, err = ECDSAPrivateKeyFromPEM([]byte("invalid pem"))
+	if err == nil {
+		t.Error("Expected error for invalid PEM data")
+	}
+
+	_, err = ECDSAPublicKeyFromPEM([]byte("invalid pem"))
+	if err == nil {
+		t.Error("Expected error for invalid PEM data")
 	}
 }
