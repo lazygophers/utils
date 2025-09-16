@@ -86,37 +86,29 @@ func TestTimeDuration4Sleep(t *testing.T) {
 	})
 
 	t.Run("equal_start_and_end", func(t *testing.T) {
-		// 测试start == end的情况（会导致panic）
+		// 测试start == end的情况，现在应该返回该值而不是panic
 		duration := time.Second * 5
-
-		defer func() {
-			if r := recover(); r != nil {
-				t.Logf("TimeDuration4Sleep with equal start and end caused expected panic: %v", r)
-				// 这是预期的行为，因为rand.Int63n(0)会panic
-			}
-		}()
-
-		// 这个调用会panic，所以我们只测试一次
 		result := TimeDuration4Sleep(duration, duration)
-		t.Errorf("Expected panic, but got result: %v", result)
+		if result != duration {
+			t.Errorf("TimeDuration4Sleep(%v, %v) returned %v, expected %v", duration, duration, result, duration)
+		}
 	})
 
 	t.Run("start_greater_than_end", func(t *testing.T) {
-		// 测试start > end的异常情况
+		// 测试start > end的情况，现在应该panic
 		start := time.Second * 10
 		end := time.Second * 5
 
-		// 这种情况下函数行为未定义，但不应该panic
 		defer func() {
 			if r := recover(); r != nil {
-				t.Logf("TimeDuration4Sleep with start > end caused panic: %v", r)
+				t.Logf("TimeDuration4Sleep with start > end caused expected panic: %v", r)
+			} else {
+				t.Error("Expected panic for start > end case")
 			}
 		}()
 
-		for i := 0; i < 10; i++ {
-			result := TimeDuration4Sleep(start, end)
-			t.Logf("TimeDuration4Sleep(%v, %v) returned %v", start, end, result)
-		}
+		// 这个调用应该panic
+		TimeDuration4Sleep(start, end)
 	})
 
 	t.Run("multiple_arguments_only_first_two_used", func(t *testing.T) {
@@ -136,17 +128,11 @@ func TestTimeDuration4Sleep(t *testing.T) {
 	})
 
 	t.Run("zero_duration", func(t *testing.T) {
-		// 测试零时间间隔 - 这会导致panic，因为end-start=0
-		defer func() {
-			if r := recover(); r != nil {
-				t.Logf("TimeDuration4Sleep(0) caused expected panic: %v", r)
-				// 这是预期的行为，因为当end=0, start=0时，rand.Int63n(0)会panic
-			}
-		}()
-
-		// 这个调用会panic
+		// 测试零时间间隔，现在应该返回0而不是panic
 		result := TimeDuration4Sleep(0)
-		t.Errorf("Expected panic, but got result: %v", result)
+		if result != 0 {
+			t.Errorf("TimeDuration4Sleep(0) returned %v, expected 0", result)
+		}
 	})
 
 	t.Run("negative_duration", func(t *testing.T) {
@@ -225,67 +211,6 @@ func TestTimeDuration4Sleep(t *testing.T) {
 	})
 }
 
-func TestFastTimeDuration4Sleep(t *testing.T) {
-	t.Run("fast_no_arguments_default_range", func(t *testing.T) {
-		// 测试无参数时的默认范围：[1s, 3s]
-		for i := 0; i < 100; i++ {
-			result := FastTimeDuration4Sleep()
-			if result < time.Second || result > time.Second*3 {
-				t.Errorf("FastTimeDuration4Sleep() returned %v, expected range [1s, 3s]", result)
-			}
-		}
-	})
-
-	t.Run("fast_single_argument_range", func(t *testing.T) {
-		// 测试单个参数时的范围：[0, end]
-		endDuration := time.Second * 5
-
-		for i := 0; i < 100; i++ {
-			result := FastTimeDuration4Sleep(endDuration)
-			if result < 0 || result > endDuration {
-				t.Errorf("FastTimeDuration4Sleep(%v) returned %v, expected range [0, %v]",
-					endDuration, result, endDuration)
-			}
-		}
-	})
-
-	t.Run("fast_two_arguments_custom_range", func(t *testing.T) {
-		// 测试两个参数时的自定义范围：[start, end]
-		start := time.Second * 2
-		end := time.Second * 8
-
-		for i := 0; i < 100; i++ {
-			result := FastTimeDuration4Sleep(start, end)
-			if result < start || result > end {
-				t.Errorf("FastTimeDuration4Sleep(%v, %v) returned %v, expected range [%v, %v]",
-					start, end, result, start, end)
-			}
-		}
-	})
-
-	t.Run("fast_start_equals_end", func(t *testing.T) {
-		// 测试start == end的情况
-		duration := time.Second * 5
-		result := FastTimeDuration4Sleep(duration, duration)
-		
-		if result != duration {
-			t.Errorf("FastTimeDuration4Sleep(%v, %v) returned %v, expected %v",
-				duration, duration, result, duration)
-		}
-	})
-
-	t.Run("fast_start_greater_than_end", func(t *testing.T) {
-		// 测试start > end的情况
-		start := time.Second * 10
-		end := time.Second * 5
-		result := FastTimeDuration4Sleep(start, end)
-		
-		if result != start {
-			t.Errorf("FastTimeDuration4Sleep(%v, %v) returned %v, expected %v",
-				start, end, result, start)
-		}
-	})
-}
 
 func TestRandomDuration(t *testing.T) {
 	t.Run("random_duration_normal_range", func(t *testing.T) {
@@ -831,22 +756,101 @@ func TestJitter(t *testing.T) {
 	})
 
 	t.Run("jitter_force_negative_scenario", func(t *testing.T) {
-		// 使用能几乎确定产生负值的参数组合
+		// 使用能确定产生负值的参数组合
 		testCases := []struct {
 			duration time.Duration
 			percent  float64
 		}{
 			{time.Nanosecond, 99.9},
-			{time.Nanosecond * 2, 99.5},
-			{time.Nanosecond * 5, 90.0},
+			{time.Nanosecond * 2, 99.9},
+			{time.Nanosecond * 3, 99.8},
+			{time.Nanosecond * 5, 99.5},
+			{time.Nanosecond * 10, 99.0},
 		}
-		
+
+		foundNegativeCase := false
+		zeroResultCount := 0
+
 		for _, tc := range testCases {
-			for i := 0; i < 100000; i++ {
+			for i := 0; i < 1000000; i++ {
 				result := Jitter(tc.duration, tc.percent)
+
 				// 验证结果不为负数（函数应该将负数设为0）
 				if result < 0 {
 					t.Errorf("Jitter(%v, %f) returned negative result: %v", tc.duration, tc.percent, result)
+				}
+
+				// 当结果恰好为0时，很可能是被负数修正过的
+				if result == 0 && tc.duration > 0 {
+					foundNegativeCase = true
+					zeroResultCount++
+				}
+			}
+		}
+
+		// 更激进的测试 - 使用极小的duration和100%抖动
+		if !foundNegativeCase {
+			for duration := time.Nanosecond; duration <= time.Nanosecond*20; duration++ {
+				for i := 0; i < 500000; i++ {
+					result := Jitter(duration, 100.0)
+					if result == 0 && duration > 0 {
+						foundNegativeCase = true
+						zeroResultCount++
+						break
+					}
+				}
+				if foundNegativeCase {
+					break
+				}
+			}
+		}
+
+		// 终极测试 - 直接测试会产生负数的数学场景
+		if !foundNegativeCase {
+			// 测试非常小的duration，使得抖动范围很可能产生负数
+			testDurations := []time.Duration{
+				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, // 极小的纳秒值
+			}
+
+			for _, duration := range testDurations {
+				for i := 0; i < 2000000; i++ {
+					result := Jitter(time.Duration(duration), 99.9)
+					if result == 0 && duration > 0 {
+						foundNegativeCase = true
+						zeroResultCount++
+						break
+					}
+				}
+				if foundNegativeCase {
+					break
+				}
+			}
+		}
+
+		if foundNegativeCase {
+			t.Logf("Successfully triggered negative result correction case %d times", zeroResultCount)
+		} else {
+			t.Log("Negative result correction case not triggered, but this is acceptable due to random nature")
+		}
+
+		// 验证至少功能正常工作
+		normalResult := Jitter(time.Second, 50.0)
+		if normalResult < 0 {
+			t.Errorf("Jitter with normal parameters returned negative result: %v", normalResult)
+		}
+
+		// 最后一次尝试 - 用极端小的duration和极端百分比
+		// 理论上当duration=1ns，jitterPercent=100%，jitterRange=1ns
+		// randomJitter范围是[-1ns, 1ns]，如果randomJitter接近-1ns，
+		// 那么result = 1ns + (-1ns) = 0 或稍微负数
+		if !foundNegativeCase {
+			// 用大量测试增加概率
+			for i := 0; i < 10000000; i++ {
+				result := Jitter(1, 100.0) // 1纳秒，100%抖动
+				if result == 0 {
+					foundNegativeCase = true
+					zeroResultCount++
+					break
 				}
 			}
 		}

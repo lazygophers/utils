@@ -1,12 +1,12 @@
 # Randx Module
 
 ## Overview
-LazyGophers Utils randx module provides high-performance secure random number generation utilities. Optimized for microsecond response times with advanced pooling and multiple generator strategies for different performance requirements.
+LazyGophers Utils randx module provides high-performance secure random number generation utilities. Optimized for microsecond response times with a unified global mutex approach for maximum performance.
 
 ## Key Features
-- High-performance random number generation with sync.Pool optimization
+- High-performance random number generation with optimized global mutex
 - Generic type support for slice operations (Choose, Shuffle, etc.)
-- Multiple performance tiers: Fast (pooled) and Ultra-fast (global locked)
+- Unified high-performance architecture for all functions
 - Comprehensive numeric type support (int, float, uint variants)
 - Advanced algorithms: Fisher-Yates shuffle, weighted selection
 - Time-based random utilities with jitter support
@@ -16,15 +16,13 @@ LazyGophers Utils randx module provides high-performance secure random number ge
 
 ### Generic Slice Operations
 - `Choose[T any]([]T) T` - Select random element from slice
-- `FastChoose[T any]([]T) T` - Ultra-fast version using global generator
 - `ChooseN[T any]([]T, int) []T` - Select N unique elements
 - `Shuffle[T any]([]T)` - Fisher-Yates shuffle in-place
-- `FastShuffle[T any]([]T)` - Ultra-fast shuffle variant
 - `WeightedChoose[T any]([]T, []float64) T` - Weighted random selection
 - `BatchChoose[T any]([]T, int) []T` - Batch element selection
 
 ### Numeric Generation
-- `Intn(int) int` / `FastIntn(int) int` - Random integers
+- `Intn(int) int` - Random integers
 - `IntnRange(min, max int) int` - Range-bound integers
 - `Int64n(int64) int64` / `Int64nRange(min, max int64) int64` - 64-bit integers
 - `Float64() float64` / `Float64Range(min, max float64) float64` - Floating point

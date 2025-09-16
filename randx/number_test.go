@@ -462,66 +462,7 @@ func TestInt64nEdgeCases(t *testing.T) {
 	})
 }
 
-func TestFastIntnEdgeCases(t *testing.T) {
-	t.Run("fast_intn_zero_and_negative", func(t *testing.T) {
-		// 测试n <= 0的情况
-		if result := FastIntn(0); result != 0 {
-			t.Errorf("FastIntn(0) returned %d, expected 0", result)
-		}
 
-		if result := FastIntn(-1); result != 0 {
-			t.Errorf("FastIntn(-1) returned %d, expected 0", result)
-		}
-
-		if result := FastIntn(-10); result != 0 {
-			t.Errorf("FastIntn(-10) returned %d, expected 0", result)
-		}
-	})
-
-	t.Run("fast_intn_one", func(t *testing.T) {
-		// 测试n = 1的情况
-		for i := 0; i < 10; i++ {
-			if result := FastIntn(1); result != 0 {
-				t.Errorf("FastIntn(1) returned %d, expected 0", result)
-			}
-		}
-	})
-
-	t.Run("fast_intn_normal", func(t *testing.T) {
-		// 测试正常情况
-		for i := 0; i < 100; i++ {
-			result := FastIntn(10)
-			if result < 0 || result >= 10 {
-				t.Errorf("FastIntn(10) returned %d, expected range [0, 10)", result)
-			}
-		}
-	})
-}
-
-func TestFastInt(t *testing.T) {
-	t.Run("fast_int_returns_non_negative", func(t *testing.T) {
-		// FastInt函数应该返回非负整数
-		for i := 0; i < 100; i++ {
-			result := FastInt()
-			if result < 0 {
-				t.Errorf("FastInt() returned negative value: %d", result)
-			}
-		}
-	})
-
-	t.Run("fast_int_variability", func(t *testing.T) {
-		// 验证返回值有变化
-		results := make(map[int]bool)
-		for i := 0; i < 1000; i++ {
-			results[FastInt()] = true
-		}
-
-		// 应该有相当多的不同值
-		if len(results) < 500 {
-			t.Logf("Warning: FastInt() generated only %d unique values in 1000 calls", len(results))
-		}
-	})
-}
 
 func TestBatchIntn(t *testing.T) {
 	t.Run("batch_intn_zero_or_negative_count", func(t *testing.T) {
@@ -683,50 +624,50 @@ func TestBatchFloat64(t *testing.T) {
 // 测试内部函数（虽然不被导出，但可以通过公共API间接测试）
 func TestInternalFunctions(t *testing.T) {
 	t.Run("test_fast_seed_through_usage", func(t *testing.T) {
-		// 通过使用公共函数来间接测试fastSeed函数
-		// 虽然我们无法直接调用fastSeed，但它在内部被使用
+		// 通过使用公共函数来间接测试generateSeed函数
+		// 虽然我们无法直接调用generateSeed，但它在内部被使用
 		
 		// 多次调用随机函数，确保内部的种子生成器工作正常
 		for i := 0; i < 100; i++ {
-			_ = Int() // 这会间接使用fastSeed相关的逻辑
+			_ = Int() // 这会间接使用generateSeed相关的逻辑
 		}
 	})
 
 	t.Run("test_global_rand_intn", func(t *testing.T) {
-		// 通过FastIntn来测试globalRandIntn函数
+		// 通过Intn来测试globalRandIntn函数
 		for i := 0; i < 100; i++ {
-			result := FastIntn(10)
+			result := Intn(10)
 			if result < 0 || result >= 10 {
-				t.Errorf("FastIntn(10) returned %d, expected range [0, 10)", result)
+				t.Errorf("Intn(10) returned %d, expected range [0, 10)", result)
 			}
 		}
 	})
 
 	t.Run("test_get_put_fast_rand", func(t *testing.T) {
-		// 通过任何使用getFastRand/putFastRand的函数来测试
+		// 通过任何使用getRand/putRand的函数来测试
 		// 这些函数在所有非Fast版本的函数中都被使用
 		for i := 0; i < 100; i++ {
-			_ = Int() // 这会调用getFastRand和putFastRand
+			_ = Int() // 这会调用getRand和putRand
 		}
 	})
 
 	t.Run("test_fast_seed_function", func(t *testing.T) {
-		// 使用反射直接调用fastSeed函数以获得100%覆盖率
-		v := reflect.ValueOf(fastSeed)
+		// 使用反射直接调用generateSeed函数以获得100%覆盖率
+		v := reflect.ValueOf(generateSeed)
 		if !v.IsValid() {
-			t.Fatalf("fastSeed function not found")
+			t.Fatalf("generateSeed function not found")
 		}
 		
-		// 调用fastSeed函数
+		// 调用generateSeed函数
 		results := v.Call(nil)
 		if len(results) != 1 {
 			t.Fatalf("Expected 1 return value, got %d", len(results))
 		}
 		
 		seed := results[0].Int()
-		// fastSeed应该返回一个非零值
+		// generateSeed应该返回一个非零值
 		if seed == 0 {
-			t.Logf("fastSeed returned 0, which is unlikely but possible")
+			t.Logf("generateSeed returned 0, which is unlikely but possible")
 		}
 		
 		// 多次调用应该返回不同的值
@@ -746,7 +687,7 @@ func TestInternalFunctions(t *testing.T) {
 		}
 		
 		if allSame {
-			t.Logf("All fastSeed calls returned the same value: %d", seeds[0])
+			t.Logf("All generateSeed calls returned the same value: %d", seeds[0])
 		}
 	})
 }

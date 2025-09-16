@@ -1,12 +1,7 @@
 package candy
 
-import (
-	"bytes"
-	"math"
-	"strings"
-)
-
 // ToBool 尝试将任意类型 (interface{}) 的输入值转换为布尔值 (bool)。
+// 此函数现在使用泛型实现，提供更好的性能和类型安全。
 //
 // 转换规则如下:
 //
@@ -45,52 +40,5 @@ import (
 //	candy.ToBool("hello") // true
 //	candy.ToBool(nil)     // false
 func ToBool(val interface{}) bool {
-	switch x := val.(type) {
-	case bool:
-		return x
-	case int:
-		return x != 0
-	case int8:
-		return x != 0
-	case int16:
-		return x != 0
-	case int32:
-		return x != 0
-	case int64:
-		return x != 0
-	case uint:
-		return x != 0
-	case uint8:
-		return x != 0
-	case uint16:
-		return x != 0
-	case uint32:
-		return x != 0
-	case uint64:
-		return x != 0
-	case float32:
-		return !math.IsNaN(float64(x)) && x != 0.0
-	case float64:
-		return !math.IsNaN(x) && x != 0.0
-	case string:
-		switch strings.ToLower(x) {
-		case "true", "1", "t", "y", "yes", "on":
-			return true
-		case "false", "0", "f", "n", "no", "off":
-			return false
-		default:
-			return strings.TrimSpace(x) != ""
-		}
-	case []byte:
-		switch string(bytes.ToLower(x)) {
-		case "true", "1", "t", "y", "yes", "on":
-			return true
-		case "false", "0", "f", "n", "no", "off":
-			return false
-		default:
-			return len(bytes.TrimSpace(x)) != 0
-		}
-	default:
-		return false
-	}
+	return ToBoolInterface(val)
 }

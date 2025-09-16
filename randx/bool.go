@@ -2,7 +2,10 @@ package randx
 
 // Bool 高性能版本，使用优化的随机数生成器
 func Bool() bool {
-	return FastIntn(2) == 0
+	globalMu.Lock()
+	result := globalRand.Intn(2) == 0
+	globalMu.Unlock()
+	return result
 }
 
 // Booln 高性能概率布尔值生成器
@@ -13,16 +16,12 @@ func Booln(n float64) bool {
 		return false
 	}
 
-	return FastFloat64()*100 < n
-}
-
-// FastBool 使用全局生成器的超快版本
-func FastBool() bool {
 	globalMu.Lock()
-	result := globalRand.Intn(2) == 0
+	result := globalRand.Float64()*100 < n
 	globalMu.Unlock()
 	return result
 }
+
 
 // WeightedBool 加权布尔值，weight为true的权重(0.0-1.0)
 func WeightedBool(weight float64) bool {
@@ -41,13 +40,11 @@ func BatchBool(count int) []bool {
 	}
 
 	results := make([]bool, count)
-	r := getFastRand()
-
+	globalMu.Lock()
 	for i := 0; i < count; i++ {
-		results[i] = r.Intn(2) == 0
+		results[i] = globalRand.Intn(2) == 0
 	}
-
-	putFastRand(r)
+	globalMu.Unlock()
 	return results
 }
 
@@ -68,12 +65,10 @@ func BatchBooln(n float64, count int) []bool {
 	}
 
 	results := make([]bool, count)
-	r := getFastRand()
-
+	globalMu.Lock()
 	for i := 0; i < count; i++ {
-		results[i] = r.Float64()*100 < n
+		results[i] = globalRand.Float64()*100 < n
 	}
-
-	putFastRand(r)
+	globalMu.Unlock()
 	return results
 }

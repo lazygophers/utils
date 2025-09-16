@@ -1,0 +1,705 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>randx: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/lazygophers/utils/randx/any.go (98.4%)</option>
+				
+				<option value="file1">github.com/lazygophers/utils/randx/bool.go (100.0%)</option>
+				
+				<option value="file2">github.com/lazygophers/utils/randx/number.go (100.0%)</option>
+				
+				<option value="file3">github.com/lazygophers/utils/randx/time.go (98.6%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package randx
+
+// Choose 高性能版本，使用优化的随机数生成器
+func Choose[T any](s []T) T <span class="cov8" title="1">{
+        if len(s) == 0 </span><span class="cov8" title="1">{
+                return *new(T)
+        }</span>
+
+        <span class="cov8" title="1">if len(s) == 1 </span><span class="cov8" title="1">{
+                return s[0]
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        idx := globalRand.Intn(len(s))
+        globalMu.Unlock()
+
+        return s[idx]</span>
+}
+
+
+// ChooseN 从切片中选择N个不重复的元素（高性能版本）
+func ChooseN[T any](s []T, n int) []T <span class="cov8" title="1">{
+        if len(s) == 0 || n &lt;= 0 </span><span class="cov8" title="1">{
+                return []T{}
+        }</span>
+
+        <span class="cov8" title="1">if n &gt;= len(s) </span><span class="cov8" title="1">{
+                // 返回所有元素的副本
+                result := make([]T, len(s))
+                copy(result, s)
+                return result
+        }</span>
+
+        // 使用Fisher-Yates洗牌算法选择前N个
+        <span class="cov8" title="1">sCopy := make([]T, len(s))
+        copy(sCopy, s)
+
+        globalMu.Lock()
+        for i := 0; i &lt; n; i++ </span><span class="cov8" title="1">{
+                j := i + globalRand.Intn(len(sCopy)-i)
+                sCopy[i], sCopy[j] = sCopy[j], sCopy[i]
+        }</span>
+        <span class="cov8" title="1">globalMu.Unlock()
+
+        return sCopy[:n]</span>
+}
+
+// Shuffle 随机打乱切片（高性能版本）
+func Shuffle[T any](s []T) <span class="cov8" title="1">{
+        if len(s) &lt;= 1 </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        defer globalMu.Unlock()
+
+        // Fisher-Yates 洗牌算法
+        for i := len(s) - 1; i &gt; 0; i-- </span><span class="cov8" title="1">{
+                j := globalRand.Intn(i + 1)
+                s[i], s[j] = s[j], s[i]
+        }</span>
+}
+
+
+// WeightedChoose 加权选择（权重数组对应元素选择概率）
+func WeightedChoose[T any](items []T, weights []float64) T <span class="cov8" title="1">{
+        if len(items) == 0 || len(items) != len(weights) </span><span class="cov8" title="1">{
+                return *new(T)
+        }</span>
+
+        <span class="cov8" title="1">if len(items) == 1 </span><span class="cov8" title="1">{
+                return items[0]
+        }</span>
+
+        // 计算权重总和
+        <span class="cov8" title="1">totalWeight := 0.0
+        for _, w := range weights </span><span class="cov8" title="1">{
+                totalWeight += w
+        }</span>
+
+        <span class="cov8" title="1">if totalWeight &lt;= 0 </span><span class="cov8" title="1">{
+                globalMu.Lock()
+                idx := globalRand.Intn(len(items))
+                globalMu.Unlock()
+                return items[idx]
+        }</span>
+
+        // 生成随机数
+        <span class="cov8" title="1">globalMu.Lock()
+        r := globalRand.Float64() * totalWeight
+        globalMu.Unlock()
+
+        // 找到对应的元素
+        accumWeight := 0.0
+        for i, weight := range weights </span><span class="cov8" title="1">{
+                accumWeight += weight
+                if r &lt;= accumWeight </span><span class="cov8" title="1">{
+                        return items[i]
+                }</span>
+        }
+
+        // 理论上不应该到达这里，但为安全起见
+        <span class="cov0" title="0">return items[len(items)-1]</span>
+}
+
+// BatchChoose 批量从切片中选择元素
+func BatchChoose[T any](s []T, count int) []T <span class="cov8" title="1">{
+        if len(s) == 0 || count &lt;= 0 </span><span class="cov8" title="1">{
+                return []T{}
+        }</span>
+
+        <span class="cov8" title="1">results := make([]T, count)
+
+        if len(s) == 1 </span><span class="cov8" title="1">{
+                for i := range results </span><span class="cov8" title="1">{
+                        results[i] = s[0]
+                }</span>
+                <span class="cov8" title="1">return results</span>
+        }
+
+        <span class="cov8" title="1">globalMu.Lock()
+        for i := 0; i &lt; count; i++ </span><span class="cov8" title="1">{
+                results[i] = s[globalRand.Intn(len(s))]
+        }</span>
+        <span class="cov8" title="1">globalMu.Unlock()
+        return results</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package randx
+
+// Bool 高性能版本，使用优化的随机数生成器
+func Bool() bool <span class="cov8" title="1">{
+        globalMu.Lock()
+        result := globalRand.Intn(2) == 0
+        globalMu.Unlock()
+        return result
+}</span>
+
+// Booln 高性能概率布尔值生成器
+func Booln(n float64) bool <span class="cov8" title="1">{
+        if n &gt;= 100 </span><span class="cov8" title="1">{
+                return true
+        }</span> else<span class="cov8" title="1"> if n &lt;= 0 </span><span class="cov8" title="1">{
+                return false
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        result := globalRand.Float64()*100 &lt; n
+        globalMu.Unlock()
+        return result</span>
+}
+
+
+// WeightedBool 加权布尔值，weight为true的权重(0.0-1.0)
+func WeightedBool(weight float64) bool <span class="cov8" title="1">{
+        if weight &gt;= 1.0 </span><span class="cov8" title="1">{
+                return true
+        }</span> else<span class="cov8" title="1"> if weight &lt;= 0.0 </span><span class="cov8" title="1">{
+                return false
+        }</span>
+        <span class="cov8" title="1">return Float64() &lt; weight</span>
+}
+
+// BatchBool 批量生成布尔值
+func BatchBool(count int) []bool <span class="cov8" title="1">{
+        if count &lt;= 0 </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">results := make([]bool, count)
+        globalMu.Lock()
+        for i := 0; i &lt; count; i++ </span><span class="cov8" title="1">{
+                results[i] = globalRand.Intn(2) == 0
+        }</span>
+        <span class="cov8" title="1">globalMu.Unlock()
+        return results</span>
+}
+
+// BatchBooln 批量生成概率布尔值
+func BatchBooln(n float64, count int) []bool <span class="cov8" title="1">{
+        if count &lt;= 0 </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">if n &gt;= 100 </span><span class="cov8" title="1">{
+                results := make([]bool, count)
+                for i := range results </span><span class="cov8" title="1">{
+                        results[i] = true
+                }</span>
+                <span class="cov8" title="1">return results</span>
+        } else<span class="cov8" title="1"> if n &lt;= 0 </span><span class="cov8" title="1">{
+                return make([]bool, count) // 默认为false
+        }</span>
+
+        <span class="cov8" title="1">results := make([]bool, count)
+        globalMu.Lock()
+        for i := 0; i &lt; count; i++ </span><span class="cov8" title="1">{
+                results[i] = globalRand.Float64()*100 &lt; n
+        }</span>
+        <span class="cov8" title="1">globalMu.Unlock()
+        return results</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package randx
+
+import (
+        "math/rand"
+        "sync"
+        "time"
+        "unsafe"
+)
+
+// 高性能随机数生成器
+var (
+        // 全局随机数生成器，使用最高性能实现
+        globalRand = rand.New(rand.NewSource(time.Now().UnixNano()))
+        globalMu   sync.Mutex
+
+        // 种子生成器，避免频繁调用time.Now()
+        seedCounter uint64 = uint64(time.Now().UnixNano())
+)
+
+// generateSeed 生成高性能种子，避免系统调用
+func generateSeed() int64 <span class="cov8" title="1">{
+        // 使用原子操作递增计数器，混合当前纳秒时间
+        counter := (*uint64)(unsafe.Pointer(&amp;seedCounter))
+        return int64(*counter&lt;&lt;8 | uint64(time.Now().UnixNano()&amp;0xFF))
+}</span>
+
+// globalRandIntn 使用全局随机数生成器
+func globalRandIntn(n int) int <span class="cov8" title="1">{
+        globalMu.Lock()
+        result := globalRand.Intn(n)
+        globalMu.Unlock()
+        return result
+}</span>
+
+// Intn 高性能版本
+func Intn(n int) int <span class="cov8" title="1">{
+        if n &lt;= 0 </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+        <span class="cov8" title="1">if n == 1 </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+        <span class="cov8" title="1">return globalRandIntn(n)</span>
+}
+
+// Int 高性能版本
+func Int() int <span class="cov8" title="1">{
+        globalMu.Lock()
+        result := globalRand.Int()
+        globalMu.Unlock()
+        return result
+}</span>
+
+// IntnRange 高性能范围随机数 [min, max]
+func IntnRange(min, max int) int <span class="cov8" title="1">{
+        if min &gt; max </span><span class="cov8" title="1">{
+                return 0
+        }</span> else<span class="cov8" title="1"> if min == max </span><span class="cov8" title="1">{
+                return min
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        result := min + globalRand.Intn(max-min+1)
+        globalMu.Unlock()
+        return result</span>
+}
+
+// Int64n 高性能版本
+func Int64n(n int64) int64 <span class="cov8" title="1">{
+        if n &lt;= 0 </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+        <span class="cov8" title="1">if n == 1 </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        result := globalRand.Int63n(n)
+        globalMu.Unlock()
+        return result</span>
+}
+
+// Int64 高性能版本
+func Int64() int64 <span class="cov8" title="1">{
+        globalMu.Lock()
+        result := globalRand.Int63()
+        globalMu.Unlock()
+        return result
+}</span>
+
+// Int64nRange 高性能范围随机数 [min, max]
+func Int64nRange(min, max int64) int64 <span class="cov8" title="1">{
+        if min &gt; max </span><span class="cov8" title="1">{
+                return 0
+        }</span> else<span class="cov8" title="1"> if min == max </span><span class="cov8" title="1">{
+                return min
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        result := min + globalRand.Int63n(max-min+1)
+        globalMu.Unlock()
+        return result</span>
+}
+
+// Float64 高性能版本
+func Float64() float64 <span class="cov8" title="1">{
+        globalMu.Lock()
+        result := globalRand.Float64()
+        globalMu.Unlock()
+        return result
+}</span>
+
+// Float64Range 高性能范围随机数 [min, max]
+func Float64Range(min, max float64) float64 <span class="cov8" title="1">{
+        if min &gt; max </span><span class="cov8" title="1">{
+                return 0
+        }</span> else<span class="cov8" title="1"> if min == max </span><span class="cov8" title="1">{
+                return min
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        result := min + globalRand.Float64()*(max-min)
+        globalMu.Unlock()
+        return result</span>
+}
+
+// Float32 高性能版本
+func Float32() float32 <span class="cov8" title="1">{
+        globalMu.Lock()
+        result := globalRand.Float32()
+        globalMu.Unlock()
+        return result
+}</span>
+
+// Float32Range 高性能范围随机数 [min, max]
+func Float32Range(min, max float32) float32 <span class="cov8" title="1">{
+        if min &gt; max </span><span class="cov8" title="1">{
+                return 0
+        }</span> else<span class="cov8" title="1"> if min == max </span><span class="cov8" title="1">{
+                return min
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        result := min + globalRand.Float32()*(max-min)
+        globalMu.Unlock()
+        return result</span>
+}
+
+// Uint32 高性能版本
+func Uint32() uint32 <span class="cov8" title="1">{
+        globalMu.Lock()
+        result := globalRand.Uint32()
+        globalMu.Unlock()
+        return result
+}</span>
+
+// Uint32Range 高性能范围随机数 [min, max]
+func Uint32Range(min, max uint32) uint32 <span class="cov8" title="1">{
+        if min &gt; max </span><span class="cov8" title="1">{
+                return 0
+        }</span> else<span class="cov8" title="1"> if min == max </span><span class="cov8" title="1">{
+                return min
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        result := min + globalRand.Uint32()%(max-min+1)
+        globalMu.Unlock()
+        return result</span>
+}
+
+// Uint64 高性能版本
+func Uint64() uint64 <span class="cov8" title="1">{
+        globalMu.Lock()
+        result := globalRand.Uint64()
+        globalMu.Unlock()
+        return result
+}</span>
+
+// Uint64Range 高性能范围随机数 [min, max]
+func Uint64Range(min, max uint64) uint64 <span class="cov8" title="1">{
+        if min &gt; max </span><span class="cov8" title="1">{
+                return 0
+        }</span> else<span class="cov8" title="1"> if min == max </span><span class="cov8" title="1">{
+                return min
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        result := min + globalRand.Uint64()%(max-min+1)
+        globalMu.Unlock()
+        return result</span>
+}
+
+
+// BatchIntn 批量生成随机数
+func BatchIntn(n int, count int) []int <span class="cov8" title="1">{
+        if count &lt;= 0 </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">results := make([]int, count)
+        globalMu.Lock()
+        for i := 0; i &lt; count; i++ </span><span class="cov8" title="1">{
+                results[i] = globalRand.Intn(n)
+        }</span>
+        <span class="cov8" title="1">globalMu.Unlock()
+        return results</span>
+}
+
+// BatchInt64n 批量生成int64随机数
+func BatchInt64n(n int64, count int) []int64 <span class="cov8" title="1">{
+        if count &lt;= 0 </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">results := make([]int64, count)
+        globalMu.Lock()
+        for i := 0; i &lt; count; i++ </span><span class="cov8" title="1">{
+                results[i] = globalRand.Int63n(n)
+        }</span>
+        <span class="cov8" title="1">globalMu.Unlock()
+        return results</span>
+}
+
+// BatchFloat64 批量生成float64随机数
+func BatchFloat64(count int) []float64 <span class="cov8" title="1">{
+        if count &lt;= 0 </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">results := make([]float64, count)
+        globalMu.Lock()
+        for i := 0; i &lt; count; i++ </span><span class="cov8" title="1">{
+                results[i] = globalRand.Float64()
+        }</span>
+        <span class="cov8" title="1">globalMu.Unlock()
+        return results</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package randx
+
+import (
+        "time"
+)
+
+// TimeDuration4Sleep 高性能版本，使用优化的随机数生成器
+func TimeDuration4Sleep(s ...time.Duration) time.Duration <span class="cov8" title="1">{
+        start, end := time.Second, time.Second*3
+        if len(s) &gt; 1 </span><span class="cov8" title="1">{
+                start = s[0]
+                end = s[1]
+        }</span> else<span class="cov8" title="1"> if len(s) &gt; 0 </span><span class="cov8" title="1">{
+                start = 0
+                end = s[0]
+        }</span>
+
+        // 处理边界情况以避免hang，但在某些情况下保持panic行为
+        <span class="cov8" title="1">diff := end - start
+        if diff &lt;= 0 </span><span class="cov8" title="1">{
+                if diff == 0 </span><span class="cov8" title="1">{
+                        // start == end 的情况，返回该值（这原本会导致panic）
+                        return start
+                }</span> else<span class="cov8" title="1"> {
+                        // start &gt; end 的情况，保持panic行为但避免hang
+                        panic("invalid argument to TimeDuration4Sleep: start &gt; end")</span>
+                }
+        }
+
+        <span class="cov8" title="1">globalMu.Lock()
+        result := time.Duration(globalRand.Int63n(int64(diff))) + start
+        globalMu.Unlock()
+
+        return result</span>
+}
+
+
+// RandomDuration 在指定范围内生成随机时间间隔 [min, max]
+func RandomDuration(min, max time.Duration) time.Duration <span class="cov8" title="1">{
+        if min &gt; max </span><span class="cov8" title="1">{
+                return min
+        }</span> else<span class="cov8" title="1"> if min == max </span><span class="cov8" title="1">{
+                return min
+        }</span>
+
+        <span class="cov8" title="1">globalMu.Lock()
+        result := min + time.Duration(globalRand.Int63n(int64(max-min+1)))
+        globalMu.Unlock()
+
+        return result</span>
+}
+
+// RandomTime 在指定时间范围内生成随机时间点
+func RandomTime(start, end time.Time) time.Time <span class="cov8" title="1">{
+        if start.After(end) </span><span class="cov8" title="1">{
+                return start
+        }</span> else<span class="cov8" title="1"> if start.Equal(end) </span><span class="cov8" title="1">{
+                return start
+        }</span>
+
+        <span class="cov8" title="1">diff := end.Sub(start)
+        globalMu.Lock()
+        randomDiff := time.Duration(globalRand.Int63n(int64(diff)))
+        globalMu.Unlock()
+
+        return start.Add(randomDiff)</span>
+}
+
+// RandomTimeInDay 在指定日期的一天内生成随机时间点
+func RandomTimeInDay(date time.Time) time.Time <span class="cov8" title="1">{
+        // 获取当天的开始时间
+        startOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+        // 当天结束时间（下一天的开始时间）
+        endOfDay := startOfDay.Add(24 * time.Hour)
+
+        return RandomTime(startOfDay, endOfDay)
+}</span>
+
+// RandomTimeInHour 在指定小时内生成随机时间点
+func RandomTimeInHour(baseTime time.Time, hour int) time.Time <span class="cov8" title="1">{
+        if hour &lt; 0 || hour &gt; 23 </span><span class="cov8" title="1">{
+                hour = baseTime.Hour()
+        }</span>
+
+        <span class="cov8" title="1">startOfHour := time.Date(baseTime.Year(), baseTime.Month(), baseTime.Day(), hour, 0, 0, 0, baseTime.Location())
+        endOfHour := startOfHour.Add(time.Hour)
+
+        return RandomTime(startOfHour, endOfHour)</span>
+}
+
+// BatchRandomDuration 批量生成随机时间间隔
+func BatchRandomDuration(min, max time.Duration, count int) []time.Duration <span class="cov8" title="1">{
+        if count &lt;= 0 </span><span class="cov8" title="1">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">if min &gt; max </span><span class="cov8" title="1">{
+                min, max = max, min
+        }</span> else<span class="cov8" title="1"> if min == max </span><span class="cov8" title="1">{
+                results := make([]time.Duration, count)
+                for i := range results </span><span class="cov8" title="1">{
+                        results[i] = min
+                }</span>
+                <span class="cov8" title="1">return results</span>
+        }
+
+        <span class="cov8" title="1">results := make([]time.Duration, count)
+        globalMu.Lock()
+        diff := int64(max - min + 1)
+        for i := 0; i &lt; count; i++ </span><span class="cov8" title="1">{
+                results[i] = min + time.Duration(globalRand.Int63n(diff))
+        }</span>
+        <span class="cov8" title="1">globalMu.Unlock()
+        return results</span>
+}
+
+// SleepRandom 随机睡眠指定范围的时间
+func SleepRandom(min, max time.Duration) <span class="cov8" title="1">{
+        duration := RandomDuration(min, max)
+        time.Sleep(duration)
+}</span>
+
+// SleepRandomMilliseconds 随机睡眠指定毫秒数范围
+func SleepRandomMilliseconds(minMs, maxMs int) <span class="cov8" title="1">{
+        min := time.Duration(minMs) * time.Millisecond
+        max := time.Duration(maxMs) * time.Millisecond
+        SleepRandom(min, max)
+}</span>
+
+// Jitter 为时间间隔添加抖动（±jitterPercent%的随机变化）
+func Jitter(duration time.Duration, jitterPercent float64) time.Duration <span class="cov8" title="1">{
+        if jitterPercent &lt;= 0 </span><span class="cov8" title="1">{
+                return duration
+        }</span>
+
+        <span class="cov8" title="1">if jitterPercent &gt; 100 </span><span class="cov8" title="1">{
+                jitterPercent = 100
+        }</span>
+
+        // 计算抖动范围
+        <span class="cov8" title="1">jitterRange := time.Duration(float64(duration) * jitterPercent / 100)
+
+        // 生成 [-jitterRange, +jitterRange] 的随机变化
+        randomJitter := RandomDuration(-jitterRange, jitterRange)
+
+        result := duration + randomJitter
+        if result &lt; 0 </span><span class="cov0" title="0">{
+                result = 0
+        }</span>
+
+        <span class="cov8" title="1">return result</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

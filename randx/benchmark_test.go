@@ -35,7 +35,7 @@ func BenchmarkIntn(b *testing.B) {
 
 	b.Run("Fast_Intn", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = FastIntn(100)
+			_ = Intn(100)
 		}
 	})
 }
@@ -56,7 +56,7 @@ func BenchmarkInt64(b *testing.B) {
 
 	b.Run("Fast_Int64", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = FastInt()
+			_ = Int()
 		}
 	})
 }
@@ -77,7 +77,7 @@ func BenchmarkFloat64(b *testing.B) {
 
 	b.Run("Fast_Float64", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = FastFloat64()
+			_ = Float64()
 		}
 	})
 }
@@ -113,7 +113,7 @@ func BenchmarkBool(b *testing.B) {
 
 	b.Run("FastBool", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = FastBool()
+			_ = Bool()
 		}
 	})
 
@@ -136,7 +136,7 @@ func BenchmarkChoose(b *testing.B) {
 
 	b.Run("FastChoose", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = FastChoose(slice)
+			_ = Choose(slice)
 		}
 	})
 }
@@ -151,7 +151,7 @@ func BenchmarkTime(b *testing.B) {
 
 	b.Run("FastTimeDuration4Sleep", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = FastTimeDuration4Sleep(time.Millisecond, time.Second)
+			_ = TimeDuration4Sleep(time.Millisecond, time.Second)
 		}
 	})
 
@@ -207,14 +207,14 @@ func BenchmarkConcurrent(b *testing.B) {
 
 	b.Run("FastIntn_Sequential", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = FastIntn(100)
+			_ = Intn(100)
 		}
 	})
 
 	b.Run("FastIntn_Parallel", func(b *testing.B) {
 		b.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
-				_ = FastIntn(100)
+				_ = Intn(100)
 			}
 		})
 	})
@@ -239,7 +239,7 @@ func BenchmarkMemoryAllocation(b *testing.B) {
 	b.Run("Fast_Memory", func(b *testing.B) {
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
-			_ = FastIntn(100)
+			_ = Intn(100)
 		}
 	})
 }
@@ -273,7 +273,7 @@ func BenchmarkComplexOperations(b *testing.B) {
 			b.StopTimer()
 			copy(testSlice, slice)
 			b.StartTimer()
-			FastShuffle(testSlice)
+			Shuffle(testSlice)
 		}
 	})
 
@@ -304,9 +304,9 @@ func BenchmarkHighFrequency(b *testing.B) {
 
 	b.Run("MixedOperations_Fast", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = FastIntn(100)
-			_ = FastFloat64()
-			_ = FastInt()
+			_ = Intn(100)
+			_ = Float64()
+			_ = Int()
 		}
 	})
 }
