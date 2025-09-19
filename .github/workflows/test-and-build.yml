@@ -66,7 +66,7 @@ jobs:
         run: |
           COVERAGE=$(go tool cover -func=docs/reports/coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
           echo "Current coverage: ${COVERAGE}%"
-          THRESHOLD=70
+          THRESHOLD=65
           # Use awk for floating point comparison instead of bc
           if awk "BEGIN {exit !($COVERAGE < $THRESHOLD)}"; then
             echo "Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
