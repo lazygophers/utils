@@ -326,13 +326,13 @@ test-coverage-local: ## Run test coverage locally and generate report
 coverage-badge: test-coverage ## Generate coverage badge information
 	@echo "$(GREEN)Generating coverage badge...$(NC)"
 	@COVERAGE=$$(go tool cover -func=coverage.out | grep total | awk '{print substr($$3, 1, length($$3)-1)}'); \
-	if (( $$(echo "$$COVERAGE >= 90" | bc -l) )); then \
+	if awk "BEGIN {exit !($$COVERAGE >= 90)}"; then \
 		COLOR="brightgreen"; \
-	elif (( $$(echo "$$COVERAGE >= 80" | bc -l) )); then \
+	elif awk "BEGIN {exit !($$COVERAGE >= 80)}"; then \
 		COLOR="green"; \
-	elif (( $$(echo "$$COVERAGE >= 70" | bc -l) )); then \
+	elif awk "BEGIN {exit !($$COVERAGE >= 70)}"; then \
 		COLOR="yellow"; \
-	elif (( $$(echo "$$COVERAGE >= 60" | bc -l) )); then \
+	elif awk "BEGIN {exit !($$COVERAGE >= 60)}"; then \
 		COLOR="orange"; \
 	else \
 		COLOR="red"; \

@@ -20,7 +20,7 @@ echo "📊 Total Coverage: ${COVERAGE}%"
 
 # Check if coverage meets threshold
 THRESHOLD=70
-if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+if awk "BEGIN {exit !($COVERAGE < $THRESHOLD)}"; then
     echo "❌ Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
     exit 1
 else
@@ -33,13 +33,13 @@ go tool cover -html=coverage.out -o coverage.html
 echo "📄 Coverage report saved to coverage.html"
 
 # Generate badge URL
-if (( $(echo "$COVERAGE >= 90" | bc -l) )); then
+if awk "BEGIN {exit !($COVERAGE >= 90)}"; then
     COLOR="brightgreen"
-elif (( $(echo "$COVERAGE >= 80" | bc -l) )); then
+elif awk "BEGIN {exit !($COVERAGE >= 80)}"; then
     COLOR="green"
-elif (( $(echo "$COVERAGE >= 70" | bc -l) )); then
+elif awk "BEGIN {exit !($COVERAGE >= 70)}"; then
     COLOR="yellow"
-elif (( $(echo "$COVERAGE >= 60" | bc -l) )); then
+elif awk "BEGIN {exit !($COVERAGE >= 60)}"; then
     COLOR="orange"
 else
     COLOR="red"
