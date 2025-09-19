@@ -4,11 +4,11 @@
 
 **🌍 Languages**: [English](README.md) • [中文](README_zh.md) • [繁體中文](README_zh-hant.md) • [Español](README_es.md) • [Français](README_fr.md) • [Русский](README_ru.md) • [العربية](README_ar.md)
 
-[![Build Status](https://github.com/lazygophers/utils/actions/workflows/test-and-build.yml/badge.svg)](https://github.com/lazygophers/utils/actions/workflows/test-and-build.yml)
+[![Build Status](https://github.com/lazygophers/utils/actions/workflows/test-coverage-quality-checks.yml/badge.svg)](https://github.com/lazygophers/utils/actions/workflows/test-coverage-quality-checks.yml)
 [![Go Version](https://img.shields.io/badge/Go-1.25+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/License-AGPL%20v3-green.svg)](LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/lazygophers/utils.svg)](https://pkg.go.dev/github.com/lazygophers/utils)
-[![Test Coverage](https://img.shields.io/badge/coverage-69.6%25-yellow)](https://github.com/lazygophers/utils/actions/workflows/test-and-build.yml)
+[![Test Coverage](https://img.shields.io/badge/coverage-69.6%25-yellow)](https://github.com/lazygophers/utils/actions/workflows/test-coverage-quality-checks.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/lazygophers/utils)](https://goreportcard.com/report/github.com/lazygophers/utils)
 [![GitHub releases](https://img.shields.io/github/release/lazygophers/utils.svg)](https://github.com/lazygophers/utils/releases)
 [![GoProxy.cn Downloads](https://goproxy.cn/stats/github.com/lazygophers/utils/badges/download-count.svg)](https://goproxy.cn/stats/github.com/lazygophers/utils)
