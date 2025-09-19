@@ -57,6 +57,11 @@ func validateIDCard18(idcard string) bool {
 
 // validateIDCardChecksum 验证身份证校验码
 func validateIDCardChecksum(idcard string) bool {
+	// 必须是18位身份证
+	if len(idcard) != 18 {
+		return false
+	}
+
 	// 身份证号码校验算法
 	weights := []int{7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2}
 	checkCodes := []string{"1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"}
