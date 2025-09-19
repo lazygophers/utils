@@ -3,13 +3,13 @@ package human
 // Bit units (base unit = 1 bit)
 const (
 	Bit  = 1
-	Kbit = 1000 * Bit // Network speeds typically use decimal
-	Mbit = 1000 * Kbit
-	Gbit = 1000 * Mbit
-	Tbit = 1000 * Gbit
-	Pbit = 1000 * Tbit
-	Ebit = 1000 * Pbit
-	Zbit = 1000 * Ebit
+	Kb = 1000 * Bit // Network speeds typically use decimal
+	Mb = 1000 * Kb
+	Gb = 1000 * Mb
+	Tb = 1000 * Gb
+	Pb = 1000 * Tb
+	Eb = 1000 * Pb
+	Zb = 1000 * Eb
 )
 
 // Byte units (base unit = 8 bits = 1 byte)

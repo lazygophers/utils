@@ -10,26 +10,18 @@ import (
 type Locale struct {
 	Language string
 	Region   string
-	
-	// 字节单位
-	ByteUnits     []string
-	SpeedUnits    []string
-	BitSpeedUnits []string
-	
-	// 时间单位
-	TimeUnits    TimeUnits
-	
-	// 相对时间表达
-	RelativeTime RelativeTimeStrings
-	
-	// 数字格式
-	NumberFormat NumberFormat
-	
-	// 其他常用词汇
-	Common       CommonStrings
+
+	ByteUnits     []string // 字节单位
+	SpeedUnits    []string // 速度单位
+	BitSpeedUnits []string // 比特速度单位
+
+	TimeUnits    TimeUnits              // 时间单位
+	RelativeTime RelativeTimeStrings    // 相对时间表达
+	NumberFormat NumberFormat          // 数字格式
+	Common       CommonStrings         // 常用词汇
 }
 
-// TimeUnits 时间单位表达
+// TimeUnits 时间单位
 type TimeUnits struct {
 	Nanosecond  string
 	Microsecond string
@@ -41,8 +33,8 @@ type TimeUnits struct {
 	Week        string
 	Month       string
 	Year        string
-	
-	// 复数形式（英文需要）
+
+	// 复数形式
 	Seconds     string
 	Minutes     string
 	Hours       string
@@ -55,38 +47,37 @@ type TimeUnits struct {
 // RelativeTimeStrings 相对时间表达
 type RelativeTimeStrings struct {
 	JustNow     string
-	SecondsAgo  string // %d 秒前
-	MinutesAgo  string // %d 分钟前
-	HoursAgo    string // %d 小时前
-	DaysAgo     string // %d 天前
-	WeeksAgo    string // %d 周前
-	MonthsAgo   string // %d 个月前
-	YearsAgo    string // %d 年前
-	
-	In          string // "在" (中文) 或 "in" (英文)
-	SecondsLater string // %d 秒后
-	MinutesLater string // %d 分钟后
-	HoursLater   string // %d 小时后
-	DaysLater    string // %d 天后
-	WeeksLater   string // %d 周后
-	MonthsLater  string // %d 个月后
-	YearsLater   string // %d 年后
+	SecondsAgo  string
+	MinutesAgo  string
+	HoursAgo    string
+	DaysAgo     string
+	WeeksAgo    string
+	MonthsAgo   string
+	YearsAgo    string
+
+	In           string
+	SecondsLater string
+	MinutesLater string
+	HoursLater   string
+	DaysLater    string
+	WeeksLater   string
+	MonthsLater  string
+	YearsLater   string
 }
 
-// NumberFormat 数字格式配置
+// NumberFormat 数字格式
 type NumberFormat struct {
 	DecimalSeparator  string   // 小数分隔符
 	ThousandSeparator string   // 千位分隔符
-	LargeNumberUnits  []string // 大数字单位：万、十万、百万...
+	LargeNumberUnits  []string // 大数字单位
 }
 
 // CommonStrings 常用字符串
 type CommonStrings struct {
-	And string // "和"、"and"
-	Or  string // "或"、"or"
+	And string
+	Or  string
 }
 
-// 全局地区管理器
 var (
 	locales = make(map[string]*Locale)
 	mu      sync.RWMutex

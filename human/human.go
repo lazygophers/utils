@@ -1,4 +1,3 @@
-// Package human 提供人类友好的数据格式化功能，支持多语言和多种数据类型
 package human
 
 import (
@@ -9,9 +8,11 @@ import (
 	"time"
 )
 
-// 全局配置
+// 全局默认配置变量
 var (
+	// defaultLocale 默认语言地区代码，用于格式化输出
 	defaultLocale    = "en"
+	// defaultPrecision 默认精度，表示小数点后保留的位数
 	defaultPrecision = 1
 )
 
@@ -30,37 +31,37 @@ func SetDefaultPrecision(precision int) {
 	defaultPrecision = precision
 }
 
-// ByteSize 格式化字节大小
+// ByteSize 格式化字节大小为人类友好形式
 func ByteSize(bytes int64, opts ...Option) string {
 	config := applyOptions(opts...)
 	return formatByteSize(bytes, config)
 }
 
-// Speed 格式化速度 (字节/秒)
+// Speed 格式化字节速度为人类友好形式
 func Speed(bytesPerSecond int64, opts ...Option) string {
 	config := applyOptions(opts...)
 	return formatSpeed(bytesPerSecond, config)
 }
 
-// BitSpeed 格式化比特速度 (bps, Kbps, Mbps等)
+// BitSpeed 格式化比特速度为人类友好形式，使用十进制换算
 func BitSpeed(bitsPerSecond int64, opts ...Option) string {
 	config := applyOptions(opts...)
 	return formatBitSpeed(bitsPerSecond, config)
 }
 
-// Duration 格式化持续时间
+// Duration 格式化时间间隔为人类友好形式
 func Duration(d time.Duration, opts ...Option) string {
 	config := applyOptions(opts...)
 	return formatDuration(d, config)
 }
 
-// RelativeTime 格式化相对时间
+// RelativeTime 格式化相对时间为人类友好形式
 func RelativeTime(t time.Time, opts ...Option) string {
 	config := applyOptions(opts...)
 	return formatRelativeTime(t, config)
 }
 
-// configToOptions 将新的Config转换为旧的Options结构 (兼容性)
+// configToOptions 配置结构转换，用于向后兼容
 func configToOptions(config Config) Options {
 	return Options{
 		Precision:  config.Precision,
@@ -70,16 +71,16 @@ func configToOptions(config Config) Options {
 	}
 }
 
-// Options 格式化选项 (保留用于内部兼容)
+// Options 格式化选项，向后兼容用
 type Options struct {
-	Precision  int    // 精度，小数点后位数
+	Precision  int    // 精度
 	Locale     string // 语言地区
-	Unit       string // 强制使用的单位
-	Compact    bool   // 紧凑显示模式
-	TimeFormat string // 时间格式："" (默认), "clock" (1:20格式)
+	Unit       string // 强制单位
+	Compact    bool   // 紧凑模式
+	TimeFormat string // 时间格式
 }
 
-// DefaultOptions 返回默认选项 (保留用于内部兼容)
+// DefaultOptions 返回默认选项
 func DefaultOptions() Options {
 	return Options{
 		Precision: 1,
@@ -88,15 +89,15 @@ func DefaultOptions() Options {
 	}
 }
 
-// Formatter 定义格式化接口 (保留用于内部使用)
+// Formatter 格式化器接口
 type Formatter interface {
 	Format(value interface{}) string
 	FormatWithOptions(value interface{}, options Options) string
 }
 
-// 兼容性函数 (用于测试)
+// 兼容性函数
 
-// BitSpeedWithOptions 兼容性函数
+// BitSpeedWithOptions 格式化比特速度，兼容旧版本
 func BitSpeedWithOptions(bitsPerSecond int64, opts Options) string {
 	config := Config{
 		Precision:  opts.Precision,
@@ -107,12 +108,12 @@ func BitSpeedWithOptions(bitsPerSecond int64, opts Options) string {
 	return formatBitSpeed(bitsPerSecond, config)
 }
 
-// ClockDuration 兼容性函数
+// ClockDuration 格式化时间为时钟格式
 func ClockDuration(d time.Duration) string {
 	return Duration(d, WithClockFormat())
 }
 
-// DurationWithOptions 兼容性函数
+// DurationWithOptions 格式化时间，兼容旧版本
 func DurationWithOptions(d time.Duration, opts Options) string {
 	config := Config{
 		Precision:  opts.Precision,
@@ -123,7 +124,7 @@ func DurationWithOptions(d time.Duration, opts Options) string {
 	return formatDuration(d, config)
 }
 
-// ByteSizeWithOptions 兼容性函数
+// ByteSizeWithOptions 格式化字节大小，兼容旧版本
 func ByteSizeWithOptions(bytes int64, opts Options) string {
 	config := Config{
 		Precision: opts.Precision,
@@ -133,9 +134,9 @@ func ByteSizeWithOptions(bytes int64, opts Options) string {
 	return formatByteSize(bytes, config)
 }
 
-// 直接格式化函数
+// 内部格式化函数
 
-// formatByteSize 格式化字节大小
+// formatByteSize 格式化字节大小，使用二进制换算 (1024)
 func formatByteSize(bytes int64, config Config) string {
 	if bytes == 0 {
 		return formatWithUnit(0, 0, config, "byte")
@@ -163,7 +164,7 @@ func formatByteSize(bytes int64, config Config) string {
 	return formatWithUnit(value, exp, config, "byte")
 }
 
-// formatSpeed 格式化字节速度
+// formatSpeed 格式化字节速度，使用二进制换算 (1024)
 func formatSpeed(bytesPerSecond int64, config Config) string {
 	if bytesPerSecond == 0 {
 		return formatWithUnit(0, 0, config, "speed")
@@ -191,7 +192,7 @@ func formatSpeed(bytesPerSecond int64, config Config) string {
 	return formatWithUnit(value, exp, config, "speed")
 }
 
-// formatBitSpeed 格式化比特速度
+// formatBitSpeed 格式化比特速度，使用十进制换算 (1000)
 func formatBitSpeed(bitsPerSecond int64, config Config) string {
 	if bitsPerSecond == 0 {
 		return formatWithUnit(0, 0, config, "bitspeed")
@@ -219,7 +220,7 @@ func formatBitSpeed(bitsPerSecond int64, config Config) string {
 	return formatWithUnit(value, exp, config, "bitspeed")
 }
 
-// formatWithUnit 使用指定单位格式化数值
+// formatWithUnit 格式化数值和单位
 func formatWithUnit(value float64, unitIndex int, config Config, unitType string) string {
 	locale, _ := GetLocaleConfig(config.Locale)
 	
@@ -263,7 +264,7 @@ func formatWithUnit(value float64, unitIndex int, config Config, unitType string
 
 // 工具函数
 
-// formatFloat 格式化浮点数，去除不必要的零
+// formatFloat 格式化浮点数，去除尾随零
 func formatFloat(f float64, precision int) string {
 	if precision < 0 {
 		precision = 0
@@ -280,7 +281,7 @@ func formatFloat(f float64, precision int) string {
 	return str
 }
 
-// formatDuration 格式化持续时间
+// formatDuration 格式化时间间隔
 func formatDuration(d time.Duration, config Config) string {
 	if d == 0 {
 		if config.TimeFormat == "clock" {
@@ -342,7 +343,7 @@ func formatDuration(d time.Duration, config Config) string {
 	return result
 }
 
-// formatClockTime 格式化为时钟格式 (H:MM 或 M:SS 或 H:MM:SS)
+// formatClockTime 格式化为时钟格式
 func formatClockTime(d time.Duration) string {
 	// 处理负数
 	negative := d < 0

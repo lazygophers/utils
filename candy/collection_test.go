@@ -644,6 +644,98 @@ func TestCollections(t *testing.T) {
 			// 测试内容将在这里添加
 		})
 
+		// Remove 函数测试
+		t.Run("Remove", func(t *testing.T) {
+			t.Run("basic int slices", func(t *testing.T) {
+				ss := []int{1, 2, 3, 4, 5}
+				toRemove := []int{2, 4, 6}
+				result := Remove(ss, toRemove)
+				expected := []int{1, 3, 5}
+				assert.Equal(t, expected, result)
+			})
+
+			t.Run("remove all elements", func(t *testing.T) {
+				ss := []int{1, 2, 3}
+				toRemove := []int{1, 2, 3}
+				result := Remove(ss, toRemove)
+				assert.Empty(t, result)
+			})
+
+			t.Run("remove no elements", func(t *testing.T) {
+				ss := []int{1, 2, 3}
+				toRemove := []int{4, 5, 6}
+				result := Remove(ss, toRemove)
+				assert.Equal(t, ss, result)
+			})
+
+			t.Run("empty source slice", func(t *testing.T) {
+				ss := []int{}
+				toRemove := []int{1, 2, 3}
+				result := Remove(ss, toRemove)
+				assert.Empty(t, result)
+			})
+
+			t.Run("empty remove slice", func(t *testing.T) {
+				ss := []int{1, 2, 3}
+				toRemove := []int{}
+				result := Remove(ss, toRemove)
+				assert.Equal(t, ss, result)
+			})
+
+			t.Run("both empty slices", func(t *testing.T) {
+				ss := []int{}
+				toRemove := []int{}
+				result := Remove(ss, toRemove)
+				assert.Empty(t, result)
+			})
+
+			t.Run("string slices", func(t *testing.T) {
+				ss := []string{"apple", "banana", "cherry", "date"}
+				toRemove := []string{"banana", "date", "elderberry"}
+				result := Remove(ss, toRemove)
+				expected := []string{"apple", "cherry"}
+				assert.Equal(t, expected, result)
+			})
+
+			t.Run("float64 slices", func(t *testing.T) {
+				ss := []float64{1.1, 2.2, 3.3, 4.4}
+				toRemove := []float64{2.2, 4.4, 5.5}
+				result := Remove(ss, toRemove)
+				expected := []float64{1.1, 3.3}
+				assert.Equal(t, expected, result)
+			})
+
+			t.Run("duplicates in source", func(t *testing.T) {
+				ss := []int{1, 2, 2, 3, 3, 3}
+				toRemove := []int{2, 3}
+				result := Remove(ss, toRemove)
+				expected := []int{1}
+				assert.Equal(t, expected, result)
+			})
+
+			t.Run("duplicates in remove list", func(t *testing.T) {
+				ss := []int{1, 2, 3, 4, 5}
+				toRemove := []int{2, 2, 4, 4}
+				result := Remove(ss, toRemove)
+				expected := []int{1, 3, 5}
+				assert.Equal(t, expected, result)
+			})
+
+			t.Run("single element removal", func(t *testing.T) {
+				ss := []int{1}
+				toRemove := []int{1}
+				result := Remove(ss, toRemove)
+				assert.Empty(t, result)
+			})
+
+			t.Run("single element no removal", func(t *testing.T) {
+				ss := []int{1}
+				toRemove := []int{2}
+				result := Remove(ss, toRemove)
+				assert.Equal(t, []int{1}, result)
+			})
+		})
+
 		// RemoveSlice 函数测试
 		t.Run("RemoveSlice", func(t *testing.T) {
 			// 测试内容将在这里添加
@@ -651,7 +743,109 @@ func TestCollections(t *testing.T) {
 
 		// Diff 函数测试
 		t.Run("Diff", func(t *testing.T) {
-			// 测试内容将在这里添加
+			t.Run("basic int slices", func(t *testing.T) {
+				ss := []int{1, 2, 3}
+				against := []int{2, 3, 4}
+				added, removed := Diff(ss, against)
+				assert.Equal(t, []int{4}, added)
+				assert.Equal(t, []int{1}, removed)
+			})
+
+			t.Run("identical slices", func(t *testing.T) {
+				ss := []int{1, 2, 3}
+				against := []int{1, 2, 3}
+				added, removed := Diff(ss, against)
+				assert.Empty(t, added)
+				assert.Empty(t, removed)
+			})
+
+			t.Run("completely different slices", func(t *testing.T) {
+				ss := []int{1, 2, 3}
+				against := []int{4, 5, 6}
+				added, removed := Diff(ss, against)
+				assert.Equal(t, []int{4, 5, 6}, added)
+				assert.Equal(t, []int{1, 2, 3}, removed)
+			})
+
+			t.Run("empty slices", func(t *testing.T) {
+				ss := []int{}
+				against := []int{}
+				added, removed := Diff(ss, against)
+				assert.Empty(t, added)
+				assert.Empty(t, removed)
+			})
+
+			t.Run("one empty slice", func(t *testing.T) {
+				ss := []int{1, 2, 3}
+				against := []int{}
+				added, removed := Diff(ss, against)
+				assert.Empty(t, added)
+				assert.Equal(t, []int{1, 2, 3}, removed)
+			})
+
+			t.Run("against empty slice", func(t *testing.T) {
+				ss := []int{}
+				against := []int{1, 2, 3}
+				added, removed := Diff(ss, against)
+				assert.Equal(t, []int{1, 2, 3}, added)
+				assert.Empty(t, removed)
+			})
+
+			t.Run("string slices", func(t *testing.T) {
+				ss := []string{"apple", "banana", "cherry"}
+				against := []string{"banana", "cherry", "date"}
+				added, removed := Diff(ss, against)
+				assert.Equal(t, []string{"date"}, added)
+				assert.Equal(t, []string{"apple"}, removed)
+			})
+
+			t.Run("float64 slices", func(t *testing.T) {
+				ss := []float64{1.1, 2.2, 3.3}
+				against := []float64{2.2, 3.3, 4.4}
+				added, removed := Diff(ss, against)
+				assert.Equal(t, []float64{4.4}, added)
+				assert.Equal(t, []float64{1.1}, removed)
+			})
+
+			t.Run("duplicates in slices", func(t *testing.T) {
+				ss := []int{1, 2, 2, 3}
+				against := []int{2, 3, 3, 4}
+				added, removed := Diff(ss, against)
+				assert.Equal(t, []int{4}, added)
+				assert.Equal(t, []int{1}, removed)
+			})
+
+			t.Run("subset relationship", func(t *testing.T) {
+				ss := []int{1, 2}
+				against := []int{1, 2, 3, 4}
+				added, removed := Diff(ss, against)
+				assert.Equal(t, []int{3, 4}, added)
+				assert.Empty(t, removed)
+			})
+
+			t.Run("superset relationship", func(t *testing.T) {
+				ss := []int{1, 2, 3, 4}
+				against := []int{1, 2}
+				added, removed := Diff(ss, against)
+				assert.Empty(t, added)
+				assert.Equal(t, []int{3, 4}, removed)
+			})
+
+			t.Run("single element difference", func(t *testing.T) {
+				ss := []int{1}
+				against := []int{2}
+				added, removed := Diff(ss, against)
+				assert.Equal(t, []int{2}, added)
+				assert.Equal(t, []int{1}, removed)
+			})
+
+			t.Run("byte slices", func(t *testing.T) {
+				ss := []byte{65, 66, 67} // A, B, C
+				against := []byte{66, 67, 68} // B, C, D
+				added, removed := Diff(ss, against)
+				assert.Equal(t, []byte{68}, added)
+				assert.Equal(t, []byte{65}, removed)
+			})
 		})
 
 		// DiffSlice 函数测试
