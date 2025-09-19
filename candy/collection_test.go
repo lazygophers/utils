@@ -580,12 +580,92 @@ func TestCollections(t *testing.T) {
 
 		// All 函数测试
 		t.Run("All", func(t *testing.T) {
-			// 测试内容将在这里添加
+			t.Run("all elements satisfy condition", func(t *testing.T) {
+				input := []int{2, 4, 6, 8, 10}
+				result := All(input, func(n int) bool { return n%2 == 0 })
+				assert.True(t, result)
+			})
+
+			t.Run("not all elements satisfy condition", func(t *testing.T) {
+				input := []int{2, 4, 5, 8, 10}
+				result := All(input, func(n int) bool { return n%2 == 0 })
+				assert.False(t, result)
+			})
+
+			t.Run("empty slice", func(t *testing.T) {
+				input := []int{}
+				result := All(input, func(n int) bool { return n > 0 })
+				assert.True(t, result) // vacuous truth
+			})
+
+			t.Run("single element true", func(t *testing.T) {
+				input := []int{2}
+				result := All(input, func(n int) bool { return n%2 == 0 })
+				assert.True(t, result)
+			})
+
+			t.Run("single element false", func(t *testing.T) {
+				input := []int{3}
+				result := All(input, func(n int) bool { return n%2 == 0 })
+				assert.False(t, result)
+			})
+
+			t.Run("strings all non-empty", func(t *testing.T) {
+				input := []string{"hello", "world", "test"}
+				result := All(input, func(s string) bool { return len(s) > 0 })
+				assert.True(t, result)
+			})
+
+			t.Run("strings with empty", func(t *testing.T) {
+				input := []string{"hello", "", "test"}
+				result := All(input, func(s string) bool { return len(s) > 0 })
+				assert.False(t, result)
+			})
 		})
 
 		// Any 函数测试
 		t.Run("Any", func(t *testing.T) {
-			// 测试内容将在这里添加
+			t.Run("some elements satisfy condition", func(t *testing.T) {
+				input := []int{1, 3, 4, 7, 9}
+				result := Any(input, func(n int) bool { return n%2 == 0 })
+				assert.True(t, result)
+			})
+
+			t.Run("no elements satisfy condition", func(t *testing.T) {
+				input := []int{1, 3, 5, 7, 9}
+				result := Any(input, func(n int) bool { return n%2 == 0 })
+				assert.False(t, result)
+			})
+
+			t.Run("empty slice", func(t *testing.T) {
+				input := []int{}
+				result := Any(input, func(n int) bool { return n > 0 })
+				assert.False(t, result)
+			})
+
+			t.Run("single element true", func(t *testing.T) {
+				input := []int{2}
+				result := Any(input, func(n int) bool { return n%2 == 0 })
+				assert.True(t, result)
+			})
+
+			t.Run("single element false", func(t *testing.T) {
+				input := []int{3}
+				result := Any(input, func(n int) bool { return n%2 == 0 })
+				assert.False(t, result)
+			})
+
+			t.Run("strings any empty", func(t *testing.T) {
+				input := []string{"hello", "world", ""}
+				result := Any(input, func(s string) bool { return len(s) == 0 })
+				assert.True(t, result)
+			})
+
+			t.Run("strings none empty", func(t *testing.T) {
+				input := []string{"hello", "world", "test"}
+				result := Any(input, func(s string) bool { return len(s) == 0 })
+				assert.False(t, result)
+			})
 		})
 
 		// Same 函数测试

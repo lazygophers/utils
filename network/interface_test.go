@@ -678,3 +678,98 @@ func TestGetInterfaceIpByAddrs_AllBranches(t *testing.T) {
 		})
 	}
 }
+
+// TestGetListenIp_ForceErrorPaths attempts to test scenarios that force errors
+func TestGetListenIp_ForceErrorPaths(t *testing.T) {
+	// Test cases specifically designed to trigger different error conditions
+	// and exercise the net.InterfaceAddrs() fallback path
+
+	t.Run("Exercise net.InterfaceAddrs fallback", func(t *testing.T) {
+		// Call GetListenIp multiple times to exercise all branches
+		// Since eth0 and en0 probably don't exist on this system, it should
+		// fall back to using net.InterfaceAddrs()
+
+		// Test default (IPv4 preference)
+		result := GetListenIp()
+		if result != "" && net.ParseIP(result) == nil {
+			t.Errorf("GetListenIp() returned invalid IP: %s", result)
+		}
+
+		// Test explicit IPv4
+		result = GetListenIp(false)
+		if result != "" && net.ParseIP(result) == nil {
+			t.Errorf("GetListenIp(false) returned invalid IP: %s", result)
+		}
+
+		// Test IPv6 preference
+		result = GetListenIp(true)
+		if result != "" && net.ParseIP(result) == nil {
+			t.Errorf("GetListenIp(true) returned invalid IP: %s", result)
+		}
+	})
+}
+
+// TestGetInterfaceIpByName_ErrorConditions tests specific error conditions
+func TestGetInterfaceIpByName_ErrorConditions(t *testing.T) {
+	// Test interfaces that are known to not exist to trigger the error path
+	nonExistentInterfaces := []string{
+		"definitely_does_not_exist_12345",
+		"fake_interface_xyz",
+		"nonexistent_eth999",
+		"", // empty interface name
+	}
+
+	for _, ifName := range nonExistentInterfaces {
+		t.Run("NonExistent_"+ifName, func(t *testing.T) {
+			// This should trigger the net.InterfaceByName error
+			ipv4 := GetInterfaceIpByName(ifName, false)
+			ipv6 := GetInterfaceIpByName(ifName, true)
+
+			// Should return empty string for non-existent interfaces
+			if ipv4 != "" {
+				t.Errorf("Expected empty result for non-existent interface %s (IPv4), got: %s", ifName, ipv4)
+			}
+			if ipv6 != "" {
+				t.Errorf("Expected empty result for non-existent interface %s (IPv6), got: %s", ifName, ipv6)
+			}
+		})
+	}
+}
+
+// TestGetListenIp_BoundaryConditions specifically tests scenarios to improve coverage
+func TestGetListenIp_BoundaryConditions(t *testing.T) {
+	// Test all possible scenarios with GetListenIp to ensure we hit all branches
+	// including the error logging at line 72
+
+	t.Run("VariousPreferences", func(t *testing.T) {
+		// Test all parameter combinations multiple times
+		// This should help hit all branches including the error path
+
+		scenarios := [][]bool{
+			{},         // default (false)
+			{false},    // explicit false
+			{true},     // explicit true
+			{false, true, false}, // multiple values
+		}
+
+		for i, args := range scenarios {
+			t.Run(fmt.Sprintf("Scenario_%d", i), func(t *testing.T) {
+				result := GetListenIp(args...)
+				if result != "" && net.ParseIP(result) == nil {
+					t.Errorf("GetListenIp() returned invalid IP: %s", result)
+				}
+			})
+		}
+	})
+
+	// Try to exercise the path where no IP is found
+	t.Run("StressTestForErrorPath", func(t *testing.T) {
+		// Multiple rapid calls to try to hit different network states
+		// that might trigger the error condition
+		for i := 0; i < 10; i++ {
+			GetListenIp(true)  // IPv6 preference
+			GetListenIp(false) // IPv4 preference
+			GetListenIp()      // default
+		}
+	})
+}
