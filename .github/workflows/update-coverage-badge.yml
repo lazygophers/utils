@@ -6,7 +6,8 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 permissions:
-  contents: write
+  contents: write  # Required for committing coverage updates
+  actions: read    # Required for downloading artifacts
 
 env:
   GO_VERSION: '1.25'
