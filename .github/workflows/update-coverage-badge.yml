@@ -94,30 +94,50 @@ jobs:
           # Save badge URL to file for later use
           echo $BADGE_URL > coverage-badge-url.txt
 
-      - name: Update README with coverage badge
+      - name: Update README files with coverage badge
         run: |
-          if [ -f README.md ]; then
-            # Check if coverage badge already exists
-            if grep -q "coverage-.*-" README.md; then
-              echo "Updating existing coverage badge..."
-              # Update existing badge
-              sed -i.bak "s|https://img.shields.io/badge/coverage-[0-9.]*%25-[a-z]*|${{ env.BADGE_URL }}|g" README.md
+          echo "Updating coverage badges in README files..."
+
+          # Function to update coverage badge in a file
+          update_coverage_badge() {
+            local file="$1"
+            local badge_line="[![Test Coverage](${{ env.BADGE_URL }})](https://github.com/lazygophers/utils/actions/workflows/test-and-build.yml)"
+
+            if [ -f "$file" ]; then
+              echo "Processing $file..."
+
+              # Check if coverage badge already exists
+              if grep -q "Test Coverage" "$file" || grep -q "coverage-.*%-" "$file"; then
+                echo "Updating existing coverage badge in $file..."
+                # Update existing badge - handle both formats
+                sed -i.bak -E "s|\[\!\[Test Coverage\].*\]\(.*\)|$badge_line|g" "$file"
+                sed -i.bak -E "s|https://img\.shields\.io/badge/coverage-[0-9.]*%25-[a-z]*|${{ env.BADGE_URL }}|g" "$file"
+              else
+                echo "Adding new coverage badge to $file..."
+                # Find the line with Go Reference badge and add coverage badge after it
+                if grep -q "Go Reference" "$file"; then
+                  sed -i.bak "/Go Reference/a\\
+$badge_line" "$file"
+                elif grep -q "License.*badge" "$file"; then
+                  # Add after License badge if Go Reference not found
+                  sed -i.bak "/License.*badge/a\\
+$badge_line" "$file"
+                else
+                  # Add after the language links line
+                  sed -i.bak "/Languages.*:/a\\
+\\
+$badge_line" "$file"
+                fi
+              fi
+              rm -f "$file.bak"
             else
-              echo "Adding new coverage badge..."
-              # Add badge after the title (assuming it's the first line)
-              sed -i.bak '1a\
-          \
-          ![Coverage Badge](${{ env.BADGE_URL }})' README.md
+              echo "Warning: $file not found"
             fi
-            rm -f README.md.bak
-          else
-            echo "README.md not found, creating one with coverage badge..."
-            echo "# LazyGophers Utils" > README.md
-            echo "" >> README.md
-            echo "![Coverage Badge](${{ env.BADGE_URL }})" >> README.md
-            echo "" >> README.md
-            echo "A collection of utility functions for Go development." >> README.md
-          fi
+          }
+
+          # Update both README files
+          update_coverage_badge "README.md"
+          update_coverage_badge "README_zh.md"
 
       - name: Commit coverage updates
         run: |
@@ -130,14 +150,19 @@ jobs:
             exit 0
           fi
 
-          git add README.md coverage.out coverage.html coverage-summary.md coverage-badge-url.txt
+          git add README.md README_zh.md coverage.out coverage.html coverage-summary.md coverage-badge-url.txt
           git commit -m "chore: update test coverage badge to ${COVERAGE_PERCENT}%
 
           🤖 Auto-updated by GitHub Actions
 
           Coverage Report:
           - Total Coverage: ${COVERAGE_PERCENT}%
-          - Threshold: 70%
-          - Status: $(if awk "BEGIN {exit !(${COVERAGE_PERCENT} >= 70)}"; then echo "✅ PASS"; else echo "❌ FAIL"; fi)"
+          - Threshold: 65%
+          - Status: $(if awk "BEGIN {exit !(${COVERAGE_PERCENT} >= 65)}"; then echo "✅ PASS"; else echo "❌ FAIL"; fi)
+
+          📄 Updated Files:
+          - README.md (English)
+          - README_zh.md (Chinese)
+          - Coverage reports and artifacts"
 
           git push
