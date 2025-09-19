@@ -11,7 +11,7 @@ permissions:
   security-events: write
 
 env:
-  GO_VERSION: '1.24'
+  GO_VERSION: '1.25'
 
 jobs:
   test:
@@ -20,12 +20,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
@@ -50,7 +50,7 @@ jobs:
         run: make test-coverage
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.6.0
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.out
           flags: unittests
@@ -75,10 +75,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
@@ -93,10 +93,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
