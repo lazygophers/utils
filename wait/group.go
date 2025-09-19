@@ -33,7 +33,12 @@ func (p *Worker) Wait() {
 // NewWorker 创建Worker实例
 // max: 最大并发goroutine数量
 func NewWorker(max int) *Worker {
-	c := make(chan func(), max) // 创建带缓冲的任务通道
+	// 对于零worker的特殊情况，使用缓冲大小为1的通道来避免死锁
+	bufferSize := max
+	if max == 0 {
+		bufferSize = 1
+	}
+	c := make(chan func(), bufferSize) // 创建带缓冲的任务通道
 
 	// 从全局对象池获取WaitGroup（减少内存分配，优化性能）
 	w := Wgp.Get().(*sync.WaitGroup)
