@@ -262,14 +262,6 @@ prepare: ## Prepare for commit (fmt, lint, test)
 	$(MAKE) test-coverage
 	@echo "$(GREEN)✅ Ready for commit$(NC)"
 
-# Release targets
-release: ## Prepare release
-	@echo "$(GREEN)Preparing release...$(NC)"
-	$(MAKE) clean
-	$(MAKE) deps
-	$(MAKE) check
-	$(MAKE) docs
-	@echo "$(GREEN)✅ Release preparation completed$(NC)"
 
 # Build for multiple platforms
 build-all: ## Build for all platforms
@@ -321,3 +313,52 @@ clean-all: clean ## Clean everything including Go cache
 	@echo "$(YELLOW)Cleaning Go cache...$(NC)"
 	$(GOCMD) clean -cache -testcache -modcache
 	@echo "$(GREEN)✅ Full clean completed$(NC)"
+
+# CI/CD targets
+validate-workflows: ## Validate GitHub Actions workflows
+	@echo "$(GREEN)Validating GitHub Actions workflows...$(NC)"
+	@./scripts/validate-workflows.sh
+
+test-coverage-local: ## Run test coverage locally and generate report
+	@echo "$(GREEN)Running local test coverage...$(NC)"
+	@./scripts/test-coverage.sh
+
+coverage-badge: test-coverage ## Generate coverage badge information
+	@echo "$(GREEN)Generating coverage badge...$(NC)"
+	@COVERAGE=$$(go tool cover -func=coverage.out | grep total | awk '{print substr($$3, 1, length($$3)-1)}'); \
+	if (( $$(echo "$$COVERAGE >= 90" | bc -l) )); then \
+		COLOR="brightgreen"; \
+	elif (( $$(echo "$$COVERAGE >= 80" | bc -l) )); then \
+		COLOR="green"; \
+	elif (( $$(echo "$$COVERAGE >= 70" | bc -l) )); then \
+		COLOR="yellow"; \
+	elif (( $$(echo "$$COVERAGE >= 60" | bc -l) )); then \
+		COLOR="orange"; \
+	else \
+		COLOR="red"; \
+	fi; \
+	BADGE_URL="https://img.shields.io/badge/coverage-$${COVERAGE}%25-$${COLOR}"; \
+	echo "Coverage: $${COVERAGE}%"; \
+	echo "Badge URL: $${BADGE_URL}"; \
+	echo "$${BADGE_URL}" > coverage-badge-url.txt
+
+pre-commit: ## Run all pre-commit checks
+	@echo "$(GREEN)Running pre-commit checks...$(NC)"
+	$(MAKE) fmt
+	$(MAKE) mod-tidy
+	$(MAKE) lint
+	$(MAKE) test-coverage
+	$(MAKE) validate-workflows
+	@echo "$(GREEN)✅ All pre-commit checks passed$(NC)"
+
+ci-local: ## Simulate GitHub Actions CI locally
+	@echo "$(GREEN)Simulating CI pipeline locally...$(NC)"
+	$(MAKE) clean
+	$(MAKE) mod-download
+	$(MAKE) fmt-check
+	$(MAKE) lint
+	$(MAKE) test-coverage
+	$(MAKE) security
+	$(MAKE) build
+	$(MAKE) validate-workflows
+	@echo "$(GREEN)✅ Local CI simulation completed$(NC)"

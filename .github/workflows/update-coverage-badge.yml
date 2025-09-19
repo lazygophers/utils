@@ -1,0 +1,141 @@
+name: Update Coverage Badge
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+
+env:
+  GO_VERSION: '1.24'
+
+jobs:
+  coverage:
+    name: Update Coverage Badge
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests with coverage
+        run: |
+          echo "Running tests with coverage..."
+          make test-coverage
+
+          # Get coverage percentage
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
+          echo "Coverage: ${COVERAGE}%"
+          echo "COVERAGE_PERCENT=${COVERAGE}" >> $GITHUB_ENV
+
+      - name: Generate coverage report
+        run: |
+          echo "Generating coverage report..."
+          go tool cover -html=coverage.out -o coverage.html
+
+          # Create coverage summary
+          echo "## Test Coverage Report" > coverage-summary.md
+          echo "" >> coverage-summary.md
+          echo "**Total Coverage:** ${COVERAGE_PERCENT}%" >> coverage-summary.md
+          echo "" >> coverage-summary.md
+          echo "### Coverage by Package" >> coverage-summary.md
+          echo "" >> coverage-summary.md
+          echo '```' >> coverage-summary.md
+          go tool cover -func=coverage.out >> coverage-summary.md
+          echo '```' >> coverage-summary.md
+
+      - name: Create coverage badge
+        run: |
+          COVERAGE=${{ env.COVERAGE_PERCENT }}
+          COLOR="red"
+
+          if (( $(echo "$COVERAGE >= 90" | bc -l) )); then
+            COLOR="brightgreen"
+          elif (( $(echo "$COVERAGE >= 80" | bc -l) )); then
+            COLOR="green"
+          elif (( $(echo "$COVERAGE >= 70" | bc -l) )); then
+            COLOR="yellow"
+          elif (( $(echo "$COVERAGE >= 60" | bc -l) )); then
+            COLOR="orange"
+          fi
+
+          echo "Badge color: $COLOR for coverage: $COVERAGE%"
+
+          # Create badge URL
+          BADGE_URL="https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR}"
+          echo "BADGE_URL=${BADGE_URL}" >> $GITHUB_ENV
+
+          # Save badge URL to file for later use
+          echo $BADGE_URL > coverage-badge-url.txt
+
+      - name: Update README with coverage badge
+        run: |
+          if [ -f README.md ]; then
+            # Check if coverage badge already exists
+            if grep -q "coverage-.*-" README.md; then
+              echo "Updating existing coverage badge..."
+              # Update existing badge
+              sed -i.bak "s|https://img.shields.io/badge/coverage-[0-9.]*%25-[a-z]*|${{ env.BADGE_URL }}|g" README.md
+            else
+              echo "Adding new coverage badge..."
+              # Add badge after the title (assuming it's the first line)
+              sed -i.bak '1a\
+          \
+          ![Coverage Badge](${{ env.BADGE_URL }})' README.md
+            fi
+            rm -f README.md.bak
+          else
+            echo "README.md not found, creating one with coverage badge..."
+            echo "# LazyGophers Utils" > README.md
+            echo "" >> README.md
+            echo "![Coverage Badge](${{ env.BADGE_URL }})" >> README.md
+            echo "" >> README.md
+            echo "A collection of utility functions for Go development." >> README.md
+          fi
+
+      - name: Commit coverage updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Check if there are any changes
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git add README.md coverage.out coverage.html coverage-summary.md coverage-badge-url.txt
+          git commit -m "chore: update test coverage badge to ${COVERAGE_PERCENT}%
+
+          🤖 Auto-updated by GitHub Actions
+
+          Coverage Report:
+          - Total Coverage: ${COVERAGE_PERCENT}%
+          - Threshold: 70%
+          - Status: $(if (( $(echo "${COVERAGE_PERCENT} >= 70" | bc -l) )); then echo "✅ PASS"; else echo "❌ FAIL"; fi)"
+
+          git push
