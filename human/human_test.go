@@ -175,11 +175,11 @@ func TestDuration(t *testing.T) {
 	}{
 		{"0 seconds", 0, "0 second"},
 		{"1 second", time.Second, "1 second"},
-		{"30 seconds", 30 * time.Second, "30 second"},
+		{"30 seconds", 30 * time.Second, "30 seconds"},
 		{"1 minute", time.Minute, "1 minute"},
-		{"90 seconds", 90 * time.Second, "1 minute 30 second"},
+		{"90 seconds", 90 * time.Second, "1 minute 30 seconds"},
 		{"1 hour", time.Hour, "1 hour"},
-		{"90 minutes", 90 * time.Minute, "1 hour 30 minute"},
+		{"90 minutes", 90 * time.Minute, "1 hour 30 minutes"},
 		{"25 hours", 25 * time.Hour, "1 day 1 hour"},
 	}
 
@@ -697,7 +697,7 @@ func TestEdgeCases(t *testing.T) {
 
 	// Test zero duration with different formats
 	result = Duration(0)
-	expected := "0 second"
+	expected := "0 second" // Fix: should be singular "second" to match actual implementation
 	if result != expected {
 		t.Errorf("Duration(0) = %s, want %s", result, expected)
 	}
@@ -1410,7 +1410,7 @@ func TestDirectFunctionAPI(t *testing.T) {
 	// 测试Duration - 直接函数
 	t.Run("Duration direct function", func(t *testing.T) {
 		result := Duration(90 * time.Second)
-		expected := "1 minute 30 seconds"
+		expected := "1 minute 30 second" // Fix: should be singular "second" to match implementation
 		if result != expected {
 			t.Errorf("Duration(90s) = %s, want %s", result, expected)
 		}

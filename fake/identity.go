@@ -384,16 +384,24 @@ func (f *Faker) CreditCardInfo() *CreditCard {
 // SafeCreditCardNumber 生成测试用的安全信用卡号码
 func (f *Faker) SafeCreditCardNumber() string {
 	f.incrementCallCount()
-	
+
 	// 使用测试卡号前缀，这些不是真实的信用卡号码
 	testPrefixes := []string{
-		"4000000000000", // Visa测试卡
-		"5555555555554", // MasterCard测试卡
-		"378282246310005", // American Express测试卡
-		"6011111111111117", // Discover测试卡
+		"4000000000000000", // Visa测试卡 (16位)
+		"5555555555554444", // MasterCard测试卡 (16位)
+		"378282246310005", // American Express测试卡 (15位)
+		"6011111111111117", // Discover测试卡 (16位)
 	}
-	
-	return randx.Choose(testPrefixes)[:16] // 截取前16位
+
+	chosen := randx.Choose(testPrefixes)
+	// 对于American Express (15位)，直接返回；对于其他卡，截取前16位
+	if len(chosen) == 15 {
+		return chosen
+	}
+	if len(chosen) >= 16 {
+		return chosen[:16]
+	}
+	return chosen
 }
 
 // 批量生成函数

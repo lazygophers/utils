@@ -2,377 +2,342 @@ package tinylfu
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-// TestMissingCoverageFunctions tests functions with low coverage
-func TestMissingCoverageFunctions(t *testing.T) {
+// TestMissingCoveragePaths targets the uncovered functions to improve overall coverage
+func TestMissingCoveragePaths(t *testing.T) {
+	t.Run("demoteFromProtected coverage", func(t *testing.T) {
+		// Create a cache with small capacity to trigger segment transitions
+		cache, err := New[string, int](10) // Total capacity of 10
+		require.NoError(t, err)
 
-	t.Run("NewWithEvict", func(t *testing.T) {
-		t.Run("with evict callback", func(t *testing.T) {
-			evicted := make(map[string]int)
-			evictCallback := func(key string, value int) {
-				evicted[key] = value
-			}
+		// Fill the window first (windowSize = 10% of total = 1)
+		// Then fill probation + protected to force demotion scenarios
 
-			cache, err := NewWithEvict[string, int](5, evictCallback)
-			if err != nil {
-				t.Fatalf("Failed to create cache: %v", err)
-			}
+		// Step 1: Fill window
+		cache.Put("w1", 1)
 
-			// Fill cache beyond capacity to trigger evictions
-			for i := 0; i < 10; i++ {
-				cache.Put(string(rune('a'+i)), i)
-			}
-
-			// Should have evicted some items
-			if len(evicted) == 0 {
-				t.Error("Expected some items to be evicted")
-			}
-		})
-
-		t.Run("with nil evict callback", func(t *testing.T) {
-			cache, err := NewWithEvict[string, int](5, nil)
-			if err != nil {
-				t.Fatalf("Failed to create cache: %v", err)
-			}
-
-			// Fill cache beyond capacity
-			for i := 0; i < 10; i++ {
-				cache.Put(string(rune('a'+i)), i)
-			}
-
-			// Should work without panicking
-			if cache.Len() > 5 {
-				t.Errorf("Cache size should not exceed capacity")
-			}
-		})
-
-		t.Run("invalid capacity", func(t *testing.T) {
-			_, err := NewWithEvict[string, int](0, nil)
-			if err == nil {
-				t.Error("Expected error for zero capacity")
-			}
-		})
-	})
-
-	t.Run("Keys", func(t *testing.T) {
-		cache, err := New[string, int](10)
-		if err != nil {
-			t.Fatalf("Failed to create cache: %v", err)
+		// Step 2: Add more items to push items through the segments
+		// These will go to window and potentially move to main cache
+		for i := 2; i <= 15; i++ {
+			cache.Put("key"+string(rune(i)), i*100)
 		}
 
-		// Test empty cache
+		// Step 3: Access items multiple times to promote them to protected
+		// which will eventually trigger demoteFromProtected when protected is full
+		for i := 0; i < 10; i++ {
+			for j := 10; j <= 15; j++ {
+				cache.Get("key" + string(rune(j)))
+			}
+		}
+
+		// Step 4: Add more items to force evictions and potentially trigger demotion
+		for i := 20; i <= 30; i++ {
+			cache.Put("newkey"+string(rune(i)), i*100)
+			// Access them to promote to protected and force demotion of existing items
+			cache.Get("newkey" + string(rune(i)))
+		}
+
+		// The above operations should have triggered demoteFromProtected
+		// at some point due to segment capacity constraints
+		assert.True(t, cache.Len() <= 10, "Cache should respect capacity limit")
+	})
+
+	t.Run("evictFromProtected coverage", func(t *testing.T) {
+		// Create a cache and force it into a state where evictFromProtected is called
+		cache, err := New[string, int](5) // Small capacity for easier testing
+		require.NoError(t, err)
+
+		// Fill up the cache completely
+		for i := 1; i <= 10; i++ {
+			cache.Put("item"+string(rune(i+48)), i) // Convert to char
+		}
+
+		// Access some items multiple times to promote them to protected
+		for i := 0; i < 5; i++ {
+			for j := 1; j <= 5; j++ {
+				cache.Get("item" + string(rune(j+48)))
+			}
+		}
+
+		// Now resize to a smaller capacity to force eviction from protected
+		err = cache.Resize(2)
+		require.NoError(t, err)
+
+		// This resize should have triggered evictFromProtected
+		assert.Equal(t, 2, cache.Cap(), "Cache capacity should be resized to 2")
+		assert.True(t, cache.Len() <= 2, "Cache length should not exceed new capacity")
+	})
+
+	t.Run("Keys method coverage", func(t *testing.T) {
+		cache, err := New[string, int](10)
+		require.NoError(t, err)
+
+		// Test Keys() with empty cache
 		keys := cache.Keys()
-		if len(keys) != 0 {
-			t.Errorf("Expected 0 keys, got %d", len(keys))
+		assert.Empty(t, keys, "Keys should be empty for empty cache")
+
+		// Add items to different segments and test Keys()
+		testData := map[string]int{
+			"key1": 100,
+			"key2": 200,
+			"key3": 300,
+			"key4": 400,
+			"key5": 500,
 		}
 
-		// Add items one by one and test keys
-		cache.Put("key1", 1)
+		for k, v := range testData {
+			cache.Put(k, v)
+		}
+
+		// Access some items to promote them through segments
+		cache.Get("key1")
+		cache.Get("key2")
+		cache.Get("key1") // Multiple accesses to promote to protected
+
 		keys = cache.Keys()
-		if len(keys) != 1 {
-			t.Errorf("Expected 1 key, got %d", len(keys))
-		}
+		assert.Greater(t, len(keys), 0, "Keys should not be empty")
 
-		cache.Put("key2", 2)
-		cache.Put("key3", 3)
-		keys = cache.Keys()
-
-		// Check that we have some keys (account for potential evictions)
-		if len(keys) == 0 {
-			t.Error("Expected some keys, got 0")
-		}
-
-		// Verify keys are valid
+		// Verify all keys are present
+		keySet := make(map[string]bool)
 		for _, key := range keys {
-			if key == "" {
-				t.Error("Found empty key")
+			keySet[key] = true
+		}
+
+		for key := range testData {
+			if cache.Contains(key) {
+				assert.True(t, keySet[key], "Key %s should be in keys list", key)
 			}
 		}
 	})
 
-	t.Run("Values", func(t *testing.T) {
+	t.Run("Values method coverage", func(t *testing.T) {
 		cache, err := New[string, int](10)
-		if err != nil {
-			t.Fatalf("Failed to create cache: %v", err)
-		}
+		require.NoError(t, err)
 
-		// Test empty cache
+		// Test Values() with empty cache
 		values := cache.Values()
-		if len(values) != 0 {
-			t.Errorf("Expected 0 values, got %d", len(values))
+		assert.Empty(t, values, "Values should be empty for empty cache")
+
+		// Add items to different segments
+		testData := map[string]int{
+			"a": 100,
+			"b": 200,
+			"c": 300,
 		}
 
-		// Add items and test values
-		cache.Put("key1", 100)
+		for k, v := range testData {
+			cache.Put(k, v)
+		}
+
 		values = cache.Values()
-		if len(values) != 1 {
-			t.Errorf("Expected 1 value, got %d", len(values))
-		}
+		assert.Greater(t, len(values), 0, "Values should not be empty")
 
-		cache.Put("key2", 200)
-		cache.Put("key3", 300)
-		values = cache.Values()
-
-		// Check that we have some values (account for potential evictions)
-		if len(values) == 0 {
-			t.Error("Expected some values, got 0")
-		}
-
-		// Verify values are valid
+		// Verify values are reasonable (exact values may vary due to eviction)
+		valueSet := make(map[int]bool)
 		for _, value := range values {
-			if value < 0 {
-				t.Error("Found negative value")
+			valueSet[value] = true
+		}
+
+		// At least some of our test values should be present
+		foundValues := 0
+		for _, expectedValue := range testData {
+			if valueSet[expectedValue] {
+				foundValues++
 			}
 		}
+		assert.Greater(t, foundValues, 0, "Should find at least some expected values")
 	})
 
-	t.Run("Items", func(t *testing.T) {
+	t.Run("Items method coverage", func(t *testing.T) {
 		cache, err := New[string, int](10)
-		if err != nil {
-			t.Fatalf("Failed to create cache: %v", err)
-		}
+		require.NoError(t, err)
 
-		// Test empty cache
+		// Test Items() with empty cache
 		items := cache.Items()
-		if len(items) != 0 {
-			t.Errorf("Expected 0 items, got %d", len(items))
+		assert.Empty(t, items, "Items should be empty for empty cache")
+
+		// Add items across different segments
+		testData := map[string]int{
+			"x": 10,
+			"y": 20,
+			"z": 30,
 		}
 
-		// Add one item and test
-		cache.Put("key1", 100)
+		for k, v := range testData {
+			cache.Put(k, v)
+		}
+
+		// Access to distribute across segments
+		cache.Get("x")
+		cache.Get("y")
+
 		items = cache.Items()
-		if len(items) != 1 {
-			t.Errorf("Expected 1 item, got %d", len(items))
-		}
+		assert.Greater(t, len(items), 0, "Items should not be empty")
 
-		// Add more items
-		cache.Put("key2", 200)
-		cache.Put("key3", 300)
-		items = cache.Items()
-
-		// Check that we have some items (account for potential evictions)
-		if len(items) == 0 {
-			t.Error("Expected some items, got 0")
-		}
-
-		// Verify items are valid
+		// Verify the structure of returned items
 		for key, value := range items {
-			if key == "" {
-				t.Error("Found empty key")
-			}
-			if value <= 0 {
-				t.Error("Found non-positive value")
-			}
+			assert.NotEmpty(t, key, "Item key should not be empty")
+			// Value can be any int, so just verify it's accessible
+			_ = value
 		}
 	})
 
-	t.Run("Resize", func(t *testing.T) {
+	t.Run("Resize method coverage", func(t *testing.T) {
 		cache, err := New[string, int](10)
-		if err != nil {
-			t.Fatalf("Failed to create cache: %v", err)
-		}
+		require.NoError(t, err)
 
-		// Fill cache
-		for i := 0; i < 8; i++ {
-			cache.Put(string(rune('a'+i)), i)
+		// Fill cache with items
+		for i := 1; i <= 8; i++ {
+			cache.Put("resize"+string(rune(i+48)), i*10)
 		}
 
 		originalLen := cache.Len()
+		assert.Greater(t, originalLen, 0, "Cache should have items before resize")
 
-		t.Run("resize larger", func(t *testing.T) {
-			cache.Resize(20)
-			if cache.Cap() != 20 {
-				t.Errorf("Expected capacity 20, got %d", cache.Cap())
-			}
-			// Items should be preserved
-			if cache.Len() != originalLen {
-				t.Errorf("Expected length %d after resize, got %d", originalLen, cache.Len())
-			}
-		})
+		// Test resize to larger capacity
+		err = cache.Resize(15)
+		require.NoError(t, err)
+		assert.Equal(t, 15, cache.Cap(), "Cache capacity should be increased")
 
-		t.Run("resize smaller", func(t *testing.T) {
-			cache.Resize(5)
-			if cache.Cap() != 5 {
-				t.Errorf("Expected capacity 5, got %d", cache.Cap())
-			}
-			// Some items might be evicted
-			if cache.Len() > 5 {
-				t.Errorf("Cache length should not exceed new capacity")
-			}
-		})
+		// Test resize to smaller capacity (should trigger evictions)
+		err = cache.Resize(3)
+		require.NoError(t, err)
+		assert.Equal(t, 3, cache.Cap(), "Cache capacity should be decreased")
+		assert.True(t, cache.Len() <= 3, "Cache length should respect new capacity")
 
-		t.Run("resize to zero", func(t *testing.T) {
-			cache.Resize(0)
-			// Should handle zero capacity gracefully
-			if cache.Cap() < 0 {
-				t.Error("Capacity should not be negative")
+		// Test resize to zero (error case)
+		err = cache.Resize(0)
+		assert.Error(t, err, "Resize to zero should return an error")
+
+		// Test resize to negative (error case)
+		err = cache.Resize(-1)
+		assert.Error(t, err, "Resize to negative should return an error")
+	})
+
+	t.Run("Complex segment interactions", func(t *testing.T) {
+		// This test aims to exercise multiple segment transitions to improve coverage
+		cache, err := New[string, int](8)
+		require.NoError(t, err)
+
+		// Phase 1: Fill window and push to main cache
+		phase1Keys := []string{"p1a", "p1b", "p1c", "p1d"}
+		for i, key := range phase1Keys {
+			cache.Put(key, (i+1)*100)
+		}
+
+		// Phase 2: Access pattern to promote items through segments
+		// Multiple accesses should move items from probation -> protected
+		for i := 0; i < 3; i++ {
+			for _, key := range phase1Keys {
+				cache.Get(key)
 			}
-		})
+		}
+
+		// Phase 3: Add more items to force evictions
+		phase2Keys := []string{"p2a", "p2b", "p2c", "p2d", "p2e"}
+		for i, key := range phase2Keys {
+			cache.Put(key, (i+10)*100)
+			// Immediate access to try to promote
+			cache.Get(key)
+		}
+
+		// Phase 4: Force protected segment to be full and trigger demotion
+		for i := 0; i < 5; i++ {
+			for _, key := range phase2Keys {
+				cache.Get(key)
+			}
+		}
+
+		// Phase 5: Add even more items to force various eviction paths
+		for i := 0; i < 10; i++ {
+			key := "final" + string(rune(i+65)) // A, B, C, etc.
+			cache.Put(key, i*1000)
+			cache.Get(key) // Try to promote immediately
+		}
+
+		// Verify cache is still within capacity and functioning
+		assert.True(t, cache.Len() <= 8, "Cache should respect capacity")
+		assert.Greater(t, cache.Len(), 0, "Cache should not be empty")
+
+		// Test that we can still perform basic operations
+		cache.Put("final_test", 9999)
+		value, exists := cache.Get("final_test")
+		if exists {
+			assert.Equal(t, 9999, value, "Should be able to retrieve recently added item")
+		}
 	})
 }
 
-// TestDemoteFromProtectedCoverage tests the demoteFromProtected function
-func TestDemoteFromProtectedCoverage(t *testing.T) {
-	cache, err := New[string, int](100)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
+// TestProtectedSegmentSpecific specifically targets protected segment operations
+func TestProtectedSegmentSpecific(t *testing.T) {
+	t.Run("Force demoteFromProtected execution", func(t *testing.T) {
+		// Create a cache with specific size ratios to force demotion
+		cache, err := New[int, string](10)
+		require.NoError(t, err)
 
-	// Fill window cache first to force items to move to main cache
-	for i := 0; i < 10; i++ {
-		cache.Put(string(rune('a'+i)), i)
-	}
-
-	// Access some items multiple times to get them into protected segment
-	for i := 0; i < 5; i++ {
-		for j := 0; j < 3; j++ {
-			cache.Get(string(rune('a' + i)))
+		// Fill the cache with items and promote many to protected
+		for i := 1; i <= 15; i++ {
+			cache.Put(i, "value"+string(rune(i+48)))
 		}
-	}
 
-	// Add more items to trigger demotion
-	for i := 10; i < 50; i++ {
-		cache.Put(string(rune('a'+i)), i)
-	}
-
-	// Add many more items to force protected segment to become full and trigger demotion
-	for i := 50; i < 120; i++ {
-		cache.Put(string(rune('a'+i)), i)
-		// Access some items to promote them to protected
-		if i%2 == 0 {
-			cache.Get(string(rune('a' + (i-20))))
-		}
-	}
-
-	// The demotion should have been triggered internally
-	stats := cache.Stats()
-	t.Logf("Cache stats: %+v", stats)
-}
-
-// TestEvictFromProtectedCoverage tests the evictFromProtected function
-func TestEvictFromProtectedCoverage(t *testing.T) {
-	cache, err := New[string, int](50)
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
-
-	// Fill cache to trigger evictions from protected segment
-	for i := 0; i < 60; i++ {
-		cache.Put(string(rune('a'+i)), i)
-	}
-
-	// Access items multiple times to promote them to protected
-	for i := 0; i < 30; i++ {
-		for j := 0; j < 3; j++ {
-			if _, ok := cache.Get(string(rune('a' + i))); ok {
-				// Access successful
+		// Access items multiple times to promote to protected
+		// The protected segment has limited capacity, so this should force demotion
+		for round := 0; round < 5; round++ {
+			for i := 10; i <= 15; i++ {
+				cache.Get(i)
 			}
 		}
-	}
 
-	// Add more items to force eviction from protected
-	for i := 60; i < 100; i++ {
-		cache.Put(string(rune('a'+i)), i)
-	}
-
-	// Continue adding items to force more evictions
-	for i := 100; i < 150; i++ {
-		cache.Put(string(rune('a'+i)), i)
-		// Promote some items to protected to fill it
-		if i%3 == 0 {
-			cache.Get(string(rune('a' + (i-50))))
+		// Add more items to force segment pressure
+		for i := 20; i <= 35; i++ {
+			cache.Put(i, "new"+string(rune(i+48)))
+			// Multiple accesses to force promotion and create pressure
+			for j := 0; j < 3; j++ {
+				cache.Get(i)
+			}
 		}
-	}
 
-	// The eviction should have been triggered internally
-	if cache.Len() > cache.Cap() {
-		t.Errorf("Cache length %d should not exceed capacity %d", cache.Len(), cache.Cap())
-	}
-}
-
-// TestComplexCacheOperations tests complex scenarios to trigger internal methods
-func TestComplexCacheOperations(t *testing.T) {
-	cache, err := NewWithEvict[string, int](20, func(key string, value int) {
-		t.Logf("Evicted: %s -> %d", key, value)
+		// At this point, demoteFromProtected should have been called
+		// due to protected segment capacity constraints
+		assert.True(t, cache.Len() <= 10, "Cache should maintain capacity constraints")
 	})
-	if err != nil {
-		t.Fatalf("Failed to create cache: %v", err)
-	}
 
-	// Complex access pattern to trigger different code paths
+	t.Run("Force evictFromProtected via capacity reduction", func(t *testing.T) {
+		cache, err := New[string, int](20)
+		require.NoError(t, err)
 
-	// Phase 1: Fill window
-	for i := 0; i < 5; i++ {
-		cache.Put(string(rune('A'+i)), i*100)
-	}
-
-	// Phase 2: Access items to move them to main cache
-	for i := 0; i < 5; i++ {
-		cache.Get(string(rune('A' + i)))
-	}
-
-	// Phase 3: Add more items to force window eviction
-	for i := 5; i < 15; i++ {
-		cache.Put(string(rune('A'+i)), i*100)
-	}
-
-	// Phase 4: Create access patterns to promote items to protected
-	for i := 0; i < 10; i++ {
-		for j := 0; j < 3; j++ {
-			cache.Get(string(rune('A' + i)))
+		// Fill cache and promote items to protected
+		keys := make([]string, 0, 15)
+		for i := 0; i < 15; i++ {
+			key := "protected" + string(rune(i+65))
+			keys = append(keys, key)
+			cache.Put(key, i*100)
 		}
-	}
 
-	// Phase 5: Add items to force probation eviction
-	for i := 15; i < 30; i++ {
-		cache.Put(string(rune('A'+i)), i*100)
-	}
-
-	// Phase 6: Force protected segment to be full and trigger demotion
-	for i := 30; i < 50; i++ {
-		cache.Put(string(rune('A'+i)), i*100)
-		// Access items to try to promote them to protected
-		if i%2 == 0 {
-			cache.Get(string(rune('A' + (i-20))))
+		// Heavily access these keys to promote them to protected segment
+		for round := 0; round < 10; round++ {
+			for _, key := range keys {
+				cache.Get(key)
+			}
 		}
-	}
 
-	// Phase 7: Continue operations to trigger eviction from protected
-	for i := 50; i < 80; i++ {
-		cache.Put(string(rune('A'+i)), i*100)
+		// Now drastically reduce capacity to force eviction from protected
+		err = cache.Resize(3)
+		require.NoError(t, err)
 
-		// Mix of operations
-		if i%3 == 0 {
-			cache.Get(string(rune('A' + (i-30))))
+		// This should have forced evictFromProtected to be called
+		assert.Equal(t, 3, cache.Cap(), "Capacity should be reduced")
+		assert.True(t, cache.Len() <= 3, "Length should not exceed new capacity")
+
+		// Verify cache still works after protected eviction
+		cache.Put("test_after_eviction", 999)
+		value, exists := cache.Get("test_after_eviction")
+		if exists {
+			assert.Equal(t, 999, value, "Cache should still work after evictions")
 		}
-		if i%4 == 0 {
-			cache.Remove(string(rune('A' + (i-40))))
-		}
-	}
-
-	// Verify cache integrity
-	if cache.Len() > cache.Cap() {
-		t.Errorf("Cache length %d exceeds capacity %d", cache.Len(), cache.Cap())
-	}
-
-	// Test all query methods
-	keys := cache.Keys()
-	values := cache.Values()
-	items := cache.Items()
-
-	if len(keys) != len(values) || len(keys) != len(items) {
-		t.Errorf("Inconsistent lengths: keys=%d, values=%d, items=%d", len(keys), len(values), len(items))
-	}
-
-	// Test resize during complex state
-	cache.Resize(10)
-	if cache.Cap() != 10 {
-		t.Errorf("Expected capacity 10 after resize, got %d", cache.Cap())
-	}
-
-	cache.Resize(30)
-	if cache.Cap() != 30 {
-		t.Errorf("Expected capacity 30 after resize, got %d", cache.Cap())
-	}
+	})
 }

@@ -33,7 +33,7 @@ LINT_TIMEOUT=10m
 
 # Test settings
 TEST_TIMEOUT=5m
-TEST_PACKAGES=$(shell $(GOCMD) list ./... | grep -v -E "(pgp|cryptox|human)")
+TEST_PACKAGES=$(shell $(GOCMD) list ./... | grep -v "human")
 
 # Colors for output
 RED=\033[0;31m
