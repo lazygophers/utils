@@ -19,7 +19,7 @@ env:
 jobs:
   ci:
     name: Continuous Integration
-    runs-on: ubuntu-latest
+    runs-on: lazy
 
     steps:
       # ===== SETUP PHASE =====
@@ -156,17 +156,13 @@ jobs:
                 echo "➕ Adding new coverage badge to $file..."
                 # Find the line with Go Reference badge and add coverage badge after it
                 if grep -q "Go Reference" "$file"; then
-                  sed -i.bak "/Go Reference/a\\
-$badge_line" "$file"
+                  sed -i.bak "/Go Reference/a\\${badge_line}" "$file"
                 elif grep -q "License.*badge" "$file"; then
                   # Add after License badge if Go Reference not found
-                  sed -i.bak "/License.*badge/a\\
-$badge_line" "$file"
+                  sed -i.bak "/License.*badge/a\\${badge_line}" "$file"
                 else
                   # Add after the language links line
-                  sed -i.bak "/Languages.*:/a\\
-\\
-$badge_line" "$file"
+                  sed -i.bak "/Languages.*:/a\\\\${badge_line}" "$file"
                 fi
               fi
               rm -f "$file.bak"
