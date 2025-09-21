@@ -68,7 +68,9 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: latest
-          args: --timeout=10m --issues-exit-code=1
+          args: --timeout=10m --issues-exit-code=1 --skip-config-verification
+          skip-pkg-cache: true
+          skip-build-cache: true
 
       # ===== SECURITY PHASE =====
       - name: Run security scan
