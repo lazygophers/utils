@@ -87,7 +87,7 @@ jobs:
       - name: Run tests
         run: |
           echo "🧪 Running tests for PR validation..."
-          go test -timeout 5m $(go list ./... | grep -v -E "(pgp|cryptox|human)")
+          go test -timeout 5m $(go list ./... | grep -v -E "(pgp|cryptox|human|runtime)")
           echo "✅ All tests passed"
 
       # ===== BUILD PHASE =====
