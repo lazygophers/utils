@@ -247,11 +247,60 @@ jobs:
           echo "✅ Security scan completed"
 
       # ===== TESTING PHASE =====
-      - name: Run tests
+      - name: Run tests with coverage
         run: |
-          echo "🧪 Running tests for PR validation..."
-          go test -timeout 5m $(go list ./... | grep -v -E "(pgp|cryptox|human|runtime)")
+          echo "🧪 Running tests with coverage for PR validation..."
+          mkdir -p docs/reports
+          go test -coverprofile=docs/reports/coverage.out -covermode=atomic -timeout 5m $(go list ./... | grep -v -E "(pgp|cryptox|human)")
+          go tool cover -html=docs/reports/coverage.out -o docs/reports/coverage.html
+
+          # Get coverage percentage
+          COVERAGE=$(go tool cover -func=docs/reports/coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
+          echo "📊 Coverage: ${COVERAGE}%"
+          echo "COVERAGE_PERCENT=${COVERAGE}" >> $GITHUB_ENV
           echo "✅ All tests passed"
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          file: ./docs/reports/coverage.out
+          flags: pr-tests
+          name: codecov-pr
+          token: ${{ secrets.CODECOV_TOKEN }}
+        continue-on-error: true
+
+      - name: Verify coverage meets threshold
+        run: |
+          COVERAGE=${{ env.COVERAGE_PERCENT }}
+          echo "📊 Current coverage: ${COVERAGE}%"
+          THRESHOLD=65
+          if awk "BEGIN {exit !($COVERAGE < $THRESHOLD)}"; then
+            echo "⚠️ Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
+            echo "This PR may reduce overall code coverage"
+          else
+            echo "✅ Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
+          fi
+
+      - name: Generate coverage report for PR
+        run: |
+          echo "📋 Generating coverage report for PR..."
+          echo "## 📊 Test Coverage Report" > pr-coverage-summary.md
+          echo "" >> pr-coverage-summary.md
+          echo "**Coverage for this PR:** ${{ env.COVERAGE_PERCENT }}%" >> pr-coverage-summary.md
+          echo "" >> pr-coverage-summary.md
+          echo "### Coverage by Package" >> pr-coverage-summary.md
+          echo "" >> pr-coverage-summary.md
+          echo '```' >> pr-coverage-summary.md
+          go tool cover -func=docs/reports/coverage.out >> pr-coverage-summary.md
+          echo '```' >> pr-coverage-summary.md
+          echo "" >> pr-coverage-summary.md
+          echo "### Coverage Threshold Check" >> pr-coverage-summary.md
+          THRESHOLD=65
+          if awk "BEGIN {exit !(${{ env.COVERAGE_PERCENT }} >= $THRESHOLD)}"; then
+            echo "✅ **Status**: Meets threshold ($THRESHOLD%)" >> pr-coverage-summary.md
+          else
+            echo "⚠️ **Status**: Below threshold ($THRESHOLD%)" >> pr-coverage-summary.md
+          fi
 
       # ===== BUILD PHASE =====
       - name: Build project
@@ -269,5 +318,14 @@ jobs:
           echo "✅ **Security Scan**: Passed" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Tests**: Passed" >> $GITHUB_STEP_SUMMARY
           echo "✅ **Build**: Passed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "**Coverage**: ${{ env.COVERAGE_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          THRESHOLD=65
+          if awk "BEGIN {exit !(${{ env.COVERAGE_PERCENT }} >= $THRESHOLD)}"; then
+            echo "**Status**: ✅ Meets threshold ($THRESHOLD%)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status**: ⚠️ Below threshold ($THRESHOLD%)" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🚀 **Status**: Ready for review and merge" >> $GITHUB_STEP_SUMMARY
