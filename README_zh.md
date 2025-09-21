@@ -1,49 +1,32 @@
 # LazyGophers Utils
 
-> 🚀 一个功能丰富、高性能的 Go 工具库，让 Go 开发更加高效
+> 🚀 专为现代开发工作流设计的强大模块化 Go 工具库
 
 **🌍 多语言**: [English](README.md) • [中文](README_zh.md) • [繁體中文](README_zh-hant.md) • [Español](README_es.md) • [Français](README_fr.md) • [Русский](README_ru.md) • [العربية](README_ar.md)
 
-[![Build Status](https://github.com/lazygophers/utils/actions/workflows/test-coverage-quality-checks.yml/badge.svg)](https://github.com/lazygophers/utils/actions/workflows/test-coverage-quality-checks.yml)
 [![Go Version](https://img.shields.io/badge/Go-1.25+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/License-AGPL%20v3-green.svg)](LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/lazygophers/utils.svg)](https://pkg.go.dev/github.com/lazygophers/utils)
-[![Test Coverage](https://img.shields.io/badge/coverage-69.6%25-yellow)](https://github.com/lazygophers/utils/actions/workflows/test-coverage-quality-checks.yml)
+[![Test Coverage](https://img.shields.io/badge/coverage-69.6%25-yellow)](https://github.com/lazygophers/utils/actions/workflows/coverage-update.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/lazygophers/utils)](https://goreportcard.com/report/github.com/lazygophers/utils)
-[![GitHub releases](https://img.shields.io/github/release/lazygophers/utils.svg)](https://github.com/lazygophers/utils/releases)
 [![GoProxy.cn Downloads](https://goproxy.cn/stats/github.com/lazygophers/utils/badges/download-count.svg)](https://goproxy.cn/stats/github.com/lazygophers/utils)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/lazygophers/utils)
 
-## 📋 目录
+---
 
--   [项目简介](#-项目简介)
--   [核心特性](#-核心特性)
--   [快速开始](#-快速开始)
--   [文档导航](#-文档导航)
--   [核心模块](#-核心模块)
--   [功能模块](#-功能模块)
--   [使用示例](#-使用示例)
--   [性能数据](#-性能数据)
--   [贡献指南](#-贡献指南)
--   [许可证](#-许可证)
--   [社区支持](#-社区支持)
+## 🎯 什么是 LazyGophers Utils？
 
-## 💡 项目简介
+LazyGophers Utils 是一个全面的 Go 工具库，为常见开发任务提供 **20+ 个专业模块**。采用现代 Go 开发实践构建，提供类型安全、高性能的解决方案，可无缝集成到任何 Go 项目中。
 
-LazyGophers Utils 是一个功能全面、性能优异的 Go 工具库，提供了 20+个专业模块，覆盖日常开发中的各种需求。采用模块化设计，按需引入，零依赖冲突。
+### ✨ 为什么选择 LazyGophers Utils？
 
-**设计理念**：简洁、高效、可靠
+- **🧩 模块化设计** - 按需导入，减少依赖
+- **⚡ 性能优先** - 针对速度和最小内存使用进行优化
+- **🛡️ 类型安全** - 利用 Go 泛型实现编译时安全
+- **🔒 生产就绪** - 协程安全，经过实战检验
+- **📖 开发友好** - 完整的文档和示例
 
-## ✨ 核心特性
-
-| 特性              | 说明          | 优势                 |
-| ----------------- | ------------- | -------------------- |
-| 🧩 **模块化设计** | 20+个独立模块 | 按需引入，减少体积   |
-| ⚡ **高性能优化** | 基准测试验证  | 微秒级响应，内存友好 |
-| 🛡️ **类型安全**   | 充分利用泛型  | 编译时错误检查       |
-| 🔒 **并发安全**   | 协程友好设计  | 生产环境可靠         |
-| 📚 **文档完备**   | 95%+ 文档覆盖 | 易学易用             |
-| 🧪 **测试充分**   | 85%+ 测试覆盖 | 质量保障             |
+---
 
 ## 🚀 快速开始
 
@@ -53,252 +36,132 @@ LazyGophers Utils 是一个功能全面、性能优异的 Go 工具库，提供�
 go get github.com/lazygophers/utils
 ```
 
-### 基础使用
+### 30秒示例
 
 ```go
 package main
 
 import (
+    "fmt"
     "github.com/lazygophers/utils"
     "github.com/lazygophers/utils/candy"
     "github.com/lazygophers/utils/xtime"
 )
 
 func main() {
-    // 错误处理
-    value := utils.Must(getValue())
+    // 简化错误处理
+    data := utils.Must(loadData()) // 出错时panic
 
-    // 类型转换
-    age := candy.ToInt("25")
+    // 轻松类型转换
+    userAge := candy.ToInt("25")
+    isActive := candy.ToBool("true")
 
-    // 时间处理
-    cal := xtime.NowCalendar()
-    fmt.Println(cal.String()) // 2023年08月15日 六月廿九 兔年 处暑
+    // 高级时间处理
+    calendar := xtime.NowCalendar()
+    fmt.Printf("今天: %s\n", calendar.String())
+    fmt.Printf("农历: %s\n", calendar.LunarDate())
+}
+
+func loadData() (string, error) {
+    return "Hello, World!", nil
 }
 ```
 
-## 📖 文档导航
+---
 
-### 📁 模块文档
+## 📦 模块概览
 
--   **核心模块**：[错误处理](must.go) | [数据库](orm.go) | [验证](validate.go)
--   **数据处理**：[candy](candy/) | [json](json/) | [stringx](stringx/)
--   **时间工具**：[xtime](xtime/) | [xtime996](xtime/xtime996/) | [xtime955](xtime/xtime955/)
--   **系统工具**：[config](config/) | [runtime](runtime/) | [osx](osx/)
--   **网络&安全**：[network](network/) | [cryptox](cryptox/) | [pgp](pgp/)
--   **并发&控制**：[routine](routine/) | [wait](wait/) | [hystrix](hystrix/)
+### 🔧 核心工具
 
-### 📋 快速参考
+| 模块 | 用途 | 核心函数 |
+|------|------|----------|
+| **[must.go](must.go)** | 错误断言 | `Must()`, `MustSuccess()`, `MustOk()` |
+| **[orm.go](orm.go)** | 数据库操作 | `Scan()`, `Value()` |
+| **[validate.go](validate.go)** | 数据验证 | `Validate()` |
 
--   [🔧 安装指南](#-快速开始)
--   [📝 使用示例](#-使用示例)
--   [📚 完整文档索引](docs/) - 全面的文档导航中心
--   [🎯 按场景查找模块](docs/#-快速查找) - 按使用场景快速定位
--   [🏗️ 架构设计文档](docs/architecture_zh.md) - 深入了解系统设计
+### 🍭 数据处理
 
-### 🌍 多语言 README
+| 模块 | 用途 | 特色 |
+|------|------|------|
+| **[candy/](candy/)** | 类型转换语法糖 | 零内存分配转换 |
+| **[json/](json/)** | 增强的JSON处理 | 更好的错误消息 |
+| **[stringx/](stringx/)** | 字符串工具 | Unicode感知操作 |
+| **[anyx/](anyx/)** | Interface{}助手 | 类型安全的any操作 |
 
--   [English](README_en.md) - English version
--   [繁體中文](README_zh-hant.md) - Traditional Chinese
--   [Español](README_es.md) - Spanish version
--   [Français](README_fr.md) - French version
--   [Русский](README_ru.md) - Russian version
--   [العربية](README_ar.md) - Arabic version
+### ⏰ 时间与调度
 
-## 🔧 核心模块
+| 模块 | 用途 | 特殊功能 |
+|------|------|----------|
+| **[xtime/](xtime/)** | 高级时间处理 | 🌙 农历系统, 🐲 生肖, 🌾 节气 |
+| **[xtime996/](xtime996/)** | 996工作制 | 工作时间计算 |
+| **[xtime955/](xtime955/)** | 955工作制 | 平衡作息支持 |
+| **[xtime007/](xtime007/)** | 24/7运营 | 全天候时间工具 |
 
-### 错误处理 (`must.go`)
+### 🔧 系统与配置
 
-```go
-// 断言操作成功，失败时 panic
-value := utils.Must(getValue())
+| 模块 | 用途 | 使用场景 |
+|------|------|----------|
+| **[config/](config/)** | 配置管理 | 支持JSON, YAML, TOML, INI, HCL |
+| **[runtime/](runtime/)** | 运行时信息 | 系统检测与诊断 |
+| **[osx/](osx/)** | 操作系统操作 | 文件和进程管理 |
+| **[app/](app/)** | 应用程序框架 | 生命周期管理 |
+| **[atexit/](atexit/)** | 优雅关闭 | 清理退出处理 |
 
-// 验证无错误
-utils.MustSuccess(doSomething())
+### 🌐 网络与安全
 
-// 验证布尔状态
-result := utils.MustOk(checkCondition())
-```
+| 模块 | 用途 | 功能 |
+|------|------|------|
+| **[network/](network/)** | HTTP工具 | 连接池，重试逻辑 |
+| **[cryptox/](cryptox/)** | 加密函数 | 哈希，加密，安全随机 |
+| **[pgp/](pgp/)** | PGP操作 | 邮件加密，文件签名 |
+| **[urlx/](urlx/)** | URL操作 | 解析，构建，验证 |
 
-### 数据库操作 (`orm.go`)
+### 🚀 并发与控制流
 
-```go
-type User struct {
-    Name string `json:"name"`
-    Age  int    `json:"age" default:"18"`
-}
+| 模块 | 用途 | 设计模式 |
+|------|------|----------|
+| **[routine/](routine/)** | 协程管理 | 工作池，任务调度 |
+| **[wait/](wait/)** | 流程控制 | 超时，重试，限流 |
+| **[hystrix/](hystrix/)** | 熔断器 | 容错，优雅降级 |
+| **[singledo/](singledo/)** | 单例执行 | 防止重复操作 |
+| **[event/](event/)** | 事件系统 | 发布订阅模式实现 |
 
-// 扫描数据库数据到结构体
-err := utils.Scan(dbData, &user)
+### 🧪 开发与测试
 
-// 结构体转数据库值
-value, err := utils.Value(user)
-```
+| 模块 | 用途 | 开发阶段 |
+|------|------|----------|
+| **[fake/](fake/)** | 测试数据生成 | 单元测试，集成测试 |
+| **[randx/](randx/)** | 随机工具 | 加密安全随机 |
+| **[defaults/](defaults/)** | 默认值 | 结构体初始化 |
+| **[pyroscope/](pyroscope/)** | 性能分析 | 生产监控 |
 
-### 数据验证 (`validate.go`)
+---
 
-```go
-type Config struct {
-    Email string `validate:"required,email"`
-    Port  int    `validate:"min=1,max=65535"`
-}
+## 💡 实际应用示例
 
-// 快速验证
-err := utils.Validate(&config)
-```
-
-## 📦 功能模块
-
-<details>
-<summary><strong>🍭 数据处理模块</strong></summary>
-
-| 模块                    | 功能           | 核心 API                               |
-| ----------------------- | -------------- | -------------------------------------- |
-| **[candy](candy/)**     | 类型转换语法糖 | `ToInt()`, `ToString()`, `ToBool()`    |
-| **[json](json/)**       | JSON 处理增强  | `Marshal()`, `Unmarshal()`, `Pretty()` |
-| **[stringx](stringx/)** | 字符串处理     | `IsEmpty()`, `Contains()`, `Split()`   |
-| **[anyx](anyx/)**       | Any 类型工具   | `IsNil()`, `Type()`, `Convert()`       |
-
-</details>
-
-<details>
-<summary><strong>⏰ 时间处理模块</strong></summary>
-
-| 模块                            | 功能           | 特色             |
-| ------------------------------- | -------------- | ---------------- |
-| **[xtime](xtime/)**             | 增强时间处理   | 农历、节气、生肖 |
-| **[xtime996](xtime/xtime996/)** | 996 工作制常量 | 工作时间计算     |
-| **[xtime955](xtime/xtime955/)** | 955 工作制常量 | 工作时间计算     |
-| **[xtime007](xtime/xtime007/)** | 007 工作制常量 | 全天候时间       |
-
-**xtime 特色功能**：
-
--   🗓️ 统一日历接口（公历+农历）
--   🌙 精确农历转换和节气计算
--   🐲 完整天干地支系统
--   🏮 传统节日自动检测
+### 配置管理
 
 ```go
-cal := xtime.NowCalendar()
-fmt.Println(cal.LunarDate())     // 农历二零二三年六月廿九
-fmt.Println(cal.Animal())        // 兔
-fmt.Println(cal.CurrentSolarTerm()) // 处暑
-```
-
-</details>
-
-<details>
-<summary><strong>🔧 系统工具模块</strong></summary>
-
-| 模块                    | 功能         | 用途               |
-| ----------------------- | ------------ | ------------------ |
-| **[config](config/)**   | 配置管理     | 多格式配置文件读取 |
-| **[runtime](runtime/)** | 运行时信息   | 系统信息获取       |
-| **[osx](osx/)**         | 操作系统增强 | 文件、进程操作     |
-| **[app](app/)**         | 应用框架     | 应用生命周期管理   |
-| **[atexit](atexit/)**   | 退出钩子     | 优雅关闭处理       |
-
-</details>
-
-<details>
-<summary><strong>🌐 网络&安全模块</strong></summary>
-
-| 模块                    | 功能     | 应用场景            |
-| ----------------------- | -------- | ------------------- |
-| **[network](network/)** | 网络操作 | HTTP 客户端、连接池 |
-| **[cryptox](cryptox/)** | 加密工具 | 哈希、加密、解密    |
-| **[pgp](pgp/)**         | PGP 加密 | 邮件加密、文件签名  |
-| **[urlx](urlx/)**       | URL 处理 | URL 解析、构建      |
-
-</details>
-
-<details>
-<summary><strong>🚀 并发&控制模块</strong></summary>
-
-| 模块                      | 功能     | 设计模式         |
-| ------------------------- | -------- | ---------------- |
-| **[routine](routine/)**   | 协程管理 | 协程池、任务调度 |
-| **[wait](wait/)**         | 等待控制 | 超时、重试、限流 |
-| **[hystrix](hystrix/)**   | 熔断器   | 容错、降级       |
-| **[singledo](singledo/)** | 单例模式 | 防重复执行       |
-| **[event](event/)**       | 事件驱动 | 发布订阅模式     |
-
-</details>
-
-<details>
-<summary><strong>🧪 开发&测试模块</strong></summary>
-
-| 模块                        | 功能       | 开发阶段       |
-| --------------------------- | ---------- | -------------- |
-| **[fake](fake/)**           | 假数据生成 | 测试数据生成   |
-| **[unit](unit/)**           | 测试辅助   | 单元测试工具   |
-| **[pyroscope](pyroscope/)** | 性能分析   | 生产监控       |
-| **[defaults](defaults/)**   | 默认值     | 配置初始化     |
-| **[randx](randx/)**         | 随机数     | 安全随机数生成 |
-
-</details>
-
-## 🎯 使用示例
-
-### 完整应用示例
-
-```go
-package main
-
-import (
-    "github.com/lazygophers/utils"
-    "github.com/lazygophers/utils/config"
-    "github.com/lazygophers/utils/candy"
-    "github.com/lazygophers/utils/xtime"
-)
-
 type AppConfig struct {
-    Port     int    `json:"port" default:"8080" validate:"min=1,max=65535"`
     Database string `json:"database" validate:"required"`
+    Port     int    `json:"port" default:"8080" validate:"min=1,max=65535"`
     Debug    bool   `json:"debug" default:"false"`
 }
 
 func main() {
-    // 1. 加载配置
     var cfg AppConfig
-    utils.MustSuccess(config.Load(&cfg, "config.json"))
 
-    // 2. 验证配置
+    // 从任何格式加载: JSON, YAML, TOML 等
+    utils.MustSuccess(config.Load(&cfg, "config.yaml"))
+
+    // 验证配置
     utils.MustSuccess(utils.Validate(&cfg))
 
-    // 3. 类型转换
-    portStr := candy.ToString(cfg.Port)
-
-    // 4. 时间处理
-    cal := xtime.NowCalendar()
-    log.Printf("应用启动: %s", cal.String())
-
-    // 5. 启动服务
-    startServer(cfg)
+    fmt.Printf("服务器启动在端口 %d\n", cfg.Port)
 }
 ```
 
-### 错误处理最佳实践
-
-```go
-// ✅ 推荐：使用 Must 系列函数
-func processData() string {
-    data := utils.Must(loadData())        // 加载失败时 panic
-    utils.MustSuccess(validateData(data)) // 验证失败时 panic
-    return utils.MustOk(transformData(data)) // 转换失败时 panic
-}
-
-// ✅ 推荐：批量错误处理
-func batchProcess() error {
-    return utils.MustSuccess(
-        doStep1(),
-        doStep2(),
-        doStep3(),
-    )
-}
-```
-
-### 数据库操作示例
+### 数据库操作
 
 ```go
 type User struct {
@@ -309,12 +172,12 @@ type User struct {
 }
 
 func SaveUser(db *sql.DB, user *User) error {
-    // 验证数据
+    // 验证结构体
     if err := utils.Validate(user); err != nil {
         return err
     }
 
-    // 转换为数据库值
+    // 转换为数据库格式
     data, err := utils.Value(user)
     if err != nil {
         return err
@@ -324,90 +187,173 @@ func SaveUser(db *sql.DB, user *User) error {
     _, err = db.Exec("INSERT INTO users (data) VALUES (?)", data)
     return err
 }
+```
 
-func GetUser(db *sql.DB, id int64) (*User, error) {
-    var data []byte
-    err := db.QueryRow("SELECT data FROM users WHERE id = ?", id).Scan(&data)
-    if err != nil {
-        return nil, err
+### 高级时间处理
+
+```go
+func timeExample() {
+    cal := xtime.NowCalendar()
+
+    // 公历
+    fmt.Printf("日期: %s\n", cal.Format("2006-01-02"))
+
+    // 中国农历
+    fmt.Printf("农历: %s\n", cal.LunarDate())          // 农历二零二三年六月廿九
+    fmt.Printf("生肖: %s\n", cal.Animal())            // 兔
+    fmt.Printf("节气: %s\n", cal.CurrentSolarTerm()) // 处暑
+
+    // 工作制计算
+    if xtime996.IsWorkTime(time.Now()) {
+        fmt.Println("该工作了！(996作息)")
     }
-
-    var user User
-    err = utils.Scan(data, &user)
-    return &user, err
 }
 ```
 
-## 📊 性能数据
+### 并发处理
 
-### 基准测试结果
+```go
+func processingExample() {
+    // 创建工作池
+    pool := routine.NewPool(10) // 10个工作者
+    defer pool.Close()
 
-| 操作             | 耗时       | 内存分配 | 对比标准库        |
-| ---------------- | ---------- | -------- | ----------------- |
-| `candy.ToInt()`  | 12.3 ns/op | 0 B/op   | **3.2x faster**   |
-| `json.Marshal()` | 156 ns/op  | 64 B/op  | **1.8x faster**   |
-| `xtime.Now()`    | 45.2 ns/op | 0 B/op   | **2.1x faster**   |
-| `utils.Must()`   | 2.1 ns/op  | 0 B/op   | **Zero overhead** |
+    // 提交带熔断保护的任务
+    for i := 0; i < 100; i++ {
+        taskID := i
+        pool.Submit(func() {
+            // 熔断器保护防止故障
+            result := hystrix.Do("process-task", func() (interface{}, error) {
+                return processTask(taskID)
+            })
 
-### 性能特点
+            fmt.Printf("任务 %d 结果: %v\n", taskID, result)
+        })
+    }
 
--   ⚡ **微秒级响应**：核心操作在微秒级完成
--   🧠 **内存友好**：使用 sync.Pool 减少 GC 压力
--   🔄 **零分配**：关键路径避免内存分配
--   🚀 **并发优化**：针对高并发场景优化
+    // 带超时的完成等待
+    wait.For(5*time.Second, func() bool {
+        return pool.Running() == 0
+    })
+}
+```
 
-> 📈 详细性能报告：[性能测试文档](docs/performance.md)
+---
 
-## 🤝 贡献指南
+## 🎨 设计哲学
 
-我们欢迎任何形式的贡献！
+### 错误处理策略
 
-### 贡献流程
+LazyGophers Utils 提倡 **快速失败** 方法提高开发效率：
 
-1. 🍴 Fork 项目
-2. 🌿 创建特性分支: `git checkout -b feature/amazing-feature`
-3. 📝 编写代码和测试
-4. 🧪 确保测试通过: `go test ./...`
-5. 📤 提交 PR
+```go
+// 传统Go错误处理
+data, err := risky.Operation()
+if err != nil {
+    return nil, fmt.Errorf("操作失败: %w", err)
+}
 
-### 开发规范
+// LazyGophers方法 - 更清洁，更快的开发
+data := utils.Must(risky.Operation()) // 出错时panic
+```
 
--   ✅ 遵循 [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
--   📖 所有公共 API 必须有 godoc 注释
--   🧪 新功能必须包含测试用例
--   📊 保持测试覆盖率 > 80%
--   🔄 保持向后兼容性
+### 泛型类型安全
 
-> 📋 详细规范：[贡献指南](CONTRIBUTING.md)
+现代Go泛型实现编译时安全：
+
+```go
+// 类型安全操作
+func process[T constraints.Ordered](items []T) T {
+    return candy.Max(items...) // 适用于任何有序类型
+}
+
+// 运行时安全
+value := utils.MustOk(getValue()) // 如果第二个返回值为false则panic
+```
+
+### 性能优化
+
+每个模块都经过基准测试和优化：
+
+- **零分配** 关键函数路径
+- **sync.Pool** 使用减少GC压力
+- **高效算法** 用于常见操作
+- **最小依赖** 减少二进制大小
+
+---
+
+## 📊 性能亮点
+
+| 操作 | 时间 | 内存 | 对比标准库 |
+|------|------|------|------------|
+| `candy.ToInt()` | 12.3 ns/op | 0 B/op | **快3.2倍** |
+| `json.Marshal()` | 156 ns/op | 64 B/op | **快1.8倍** |
+| `xtime.Now()` | 45.2 ns/op | 0 B/op | **快2.1倍** |
+| `utils.Must()` | 2.1 ns/op | 0 B/op | **零开销** |
+
+---
+
+## 🤝 参与贡献
+
+我们欢迎贡献！开始方法如下：
+
+### 快速贡献指南
+
+1. **Fork** 仓库
+2. **创建** 功能分支: `git checkout -b feature/amazing-feature`
+3. **编写** 代码和测试
+4. **确保** 测试通过: `go test ./...`
+5. **提交** pull request
+
+### 开发标准
+
+- ✅ 遵循 [Go代码审查评论](https://github.com/golang/go/wiki/CodeReviewComments)
+- 📖 所有公共API必须有godoc注释
+- 🧪 新功能需要全面的测试
+- 📊 保持高测试覆盖率
+- 🔄 保持向后兼容性
+
+### 构建和测试
+
+```bash
+# 运行测试
+make test
+
+# 运行覆盖率测试
+make test-coverage
+
+# 代码检查
+make lint
+
+# 格式化代码
+make fmt
+
+# 完整开发周期
+make check
+```
+
+---
 
 ## 📄 许可证
 
-本项目采用 GNU Affero General Public License v3.0 许可证。
+本项目采用 **GNU Affero General Public License v3.0** 许可证。
 
-查看 [LICENSE](LICENSE) 文件了解详情。
+详情请查看 [LICENSE](LICENSE) 文件。
 
-## 🌟 社区支持
+---
+
+## 🌟 社区与支持
 
 ### 获取帮助
 
--   📖 **文档**：[完整文档](docs/)
--   🐛 **Bug 报告**：[GitHub Issues](https://github.com/lazygophers/utils/issues)
--   💬 **讨论**：[GitHub Discussions](https://github.com/lazygophers/utils/discussions)
--   ❓ **问答**：[Stack Overflow](https://stackoverflow.com/questions/tagged/lazygophers-utils)
-
-### 项目统计
-
-| 指标            | 数值                                                                   | 说明             |
-| --------------- | ---------------------------------------------------------------------- | ---------------- |
-| 📦 模块数量     | 20+                                                                    | 涵盖各种常用功能 |
-| 🧪 测试覆盖率   | 85%+                                                                   | 高质量代码保障   |
-| 📝 文档完整度   | 95%+                                                                   | 详尽的使用说明   |
-| ⚡ 性能等级     | A+                                                                     | 经过基准测试优化 |
-| 🌟 GitHub Stars | ![GitHub stars](https://img.shields.io/github/stars/lazygophers/utils) | 社区认可度       |
+- 📖 **文档**: [完整API参考](https://pkg.go.dev/github.com/lazygophers/utils)
+- 🐛 **Bug报告**: [GitHub Issues](https://github.com/lazygophers/utils/issues)
+- 💬 **讨论**: [GitHub Discussions](https://github.com/lazygophers/utils/discussions)
+- ❓ **问题**: [Stack Overflow](https://stackoverflow.com/questions/tagged/lazygophers-utils)
 
 ### 致谢
 
-感谢所有贡献者的辛勤付出！
+感谢所有让这个项目成为可能的贡献者！
 
 [![Contributors](https://contrib.rocks/image?repo=lazygophers/utils)](https://github.com/lazygophers/utils/graphs/contributors)
 
@@ -415,8 +361,10 @@ func GetUser(db *sql.DB, id int64) (*User, error) {
 
 <div align="center">
 
-**如果这个项目对你有帮助，请给我们一个 ⭐ Star！**
+**⭐ 如果这个项目帮助您构建更好的Go应用程序，请给我们一个Star！**
 
-[🚀 开始使用](#-快速开始) • [📖 查看文档](docs/) • [🤝 加入社区](https://github.com/lazygophers/utils/discussions)
+[🚀 开始使用](#-快速开始) • [📖 浏览模块](#-模块概览) • [🤝 参与贡献](#-参与贡献)
+
+*由 LazyGophers 团队用 ❤️ 构建*
 
 </div>

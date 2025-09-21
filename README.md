@@ -1,49 +1,32 @@
 # LazyGophers Utils
 
-> 🚀 A feature-rich, high-performance Go utility library that makes Go development more efficient
+> 🚀 A powerful, modular Go utility library designed for modern development workflows
 
 **🌍 Languages**: [English](README.md) • [中文](README_zh.md) • [繁體中文](README_zh-hant.md) • [Español](README_es.md) • [Français](README_fr.md) • [Русский](README_ru.md) • [العربية](README_ar.md)
 
-[![Build Status](https://github.com/lazygophers/utils/actions/workflows/test-coverage-quality-checks.yml/badge.svg)](https://github.com/lazygophers/utils/actions/workflows/test-coverage-quality-checks.yml)
 [![Go Version](https://img.shields.io/badge/Go-1.25+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/License-AGPL%20v3-green.svg)](LICENSE)
 [![Go Reference](https://pkg.go.dev/badge/github.com/lazygophers/utils.svg)](https://pkg.go.dev/github.com/lazygophers/utils)
-[![Test Coverage](https://img.shields.io/badge/coverage-69.6%25-yellow)](https://github.com/lazygophers/utils/actions/workflows/test-coverage-quality-checks.yml)
+[![Test Coverage](https://img.shields.io/badge/coverage-69.6%25-yellow)](https://github.com/lazygophers/utils/actions/workflows/coverage-update.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/lazygophers/utils)](https://goreportcard.com/report/github.com/lazygophers/utils)
-[![GitHub releases](https://img.shields.io/github/release/lazygophers/utils.svg)](https://github.com/lazygophers/utils/releases)
 [![GoProxy.cn Downloads](https://goproxy.cn/stats/github.com/lazygophers/utils/badges/download-count.svg)](https://goproxy.cn/stats/github.com/lazygophers/utils)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/lazygophers/utils)
 
-## 📋 Table of Contents
+---
 
--   [Project Overview](#-project-overview)
--   [Core Features](#-core-features)
--   [Quick Start](#-quick-start)
--   [Documentation](#-documentation)
--   [Core Modules](#-core-modules)
--   [Feature Modules](#-feature-modules)
--   [Usage Examples](#-usage-examples)
--   [Performance Data](#-performance-data)
--   [Contributing](#-contributing)
--   [License](#-license)
--   [Community Support](#-community-support)
+## 🎯 What is LazyGophers Utils?
 
-## 💡 Project Overview
+LazyGophers Utils is a comprehensive Go utility library that provides **20+ specialized modules** for common development tasks. Built with modern Go practices, it offers type-safe, high-performance solutions that integrate seamlessly into any Go project.
 
-LazyGophers Utils is a comprehensive, high-performance Go utility library that provides 20+ professional modules covering various needs in daily development. It adopts a modular design for on-demand imports with zero dependency conflicts.
+### ✨ Why Choose LazyGophers Utils?
 
-**Design Philosophy**: Simple, Efficient, Reliable
+- **🧩 Modular by Design** - Import only what you need
+- **⚡ Performance First** - Optimized for speed and minimal memory usage
+- **🛡️ Type Safety** - Leverages Go generics for compile-time safety
+- **🔒 Production Ready** - Goroutine-safe and battle-tested
+- **📖 Developer Friendly** - Comprehensive documentation and examples
 
-## ✨ Core Features
-
-| Feature                 | Description                 | Advantage                             |
-| ----------------------- | --------------------------- | ------------------------------------- |
-| 🧩 **Modular Design**   | 20+ independent modules     | Import on demand, reduce size         |
-| ⚡ **High Performance** | Benchmark tested            | Microsecond response, memory friendly |
-| 🛡️ **Type Safe**        | Full use of generics        | Compile-time error checking           |
-| 🔒 **Concurrency Safe** | Goroutine-friendly design   | Production ready                      |
-| 📚 **Well Documented**  | 95%+ documentation coverage | Easy to learn and use                 |
-| 🧪 **Well Tested**      | 98%+ test coverage          | Quality assurance                     |
+---
 
 ## 🚀 Quick Start
 
@@ -53,252 +36,132 @@ LazyGophers Utils is a comprehensive, high-performance Go utility library that p
 go get github.com/lazygophers/utils
 ```
 
-### Basic Usage
+### 30-Second Example
 
 ```go
 package main
 
 import (
+    "fmt"
     "github.com/lazygophers/utils"
     "github.com/lazygophers/utils/candy"
     "github.com/lazygophers/utils/xtime"
 )
 
 func main() {
-    // Error handling
-    value := utils.Must(getValue())
+    // Error handling made simple
+    data := utils.Must(loadData()) // Panics on error
 
-    // Type conversion
-    age := candy.ToInt("25")
+    // Type conversions without hassle
+    userAge := candy.ToInt("25")
+    isActive := candy.ToBool("true")
 
-    // Time processing
-    cal := xtime.NowCalendar()
-    fmt.Println(cal.String()) // 2023年08月15日 六月廿九 兔年 处暑
+    // Advanced time handling
+    calendar := xtime.NowCalendar()
+    fmt.Printf("Today: %s\n", calendar.String())
+    fmt.Printf("Lunar: %s\n", calendar.LunarDate())
+}
+
+func loadData() (string, error) {
+    return "Hello, World!", nil
 }
 ```
 
-## 📖 Documentation
+---
 
-### 📁 Module Documentation
+## 📦 Module Overview
 
--   **Core Modules**: [Error Handling](must.go) | [Database](orm.go) | [Validation](validate.go)
--   **Data Processing**: [candy](candy/) | [json](json/) | [stringx](stringx/)
--   **Time Tools**: [xtime](xtime/) | [xtime996](xtime/xtime996/) | [xtime955](xtime/xtime955/)
--   **System Tools**: [config](config/) | [runtime](runtime/) | [osx](osx/)
--   **Network & Security**: [network](network/) | [cryptox](cryptox/) | [pgp](pgp/)
--   **Concurrency & Control**: [routine](routine/) | [wait](wait/) | [hystrix](hystrix/)
+### 🔧 Core Utilities
 
-### 📋 Quick Reference
+| Module | Purpose | Key Functions |
+|--------|---------|---------------|
+| **[must.go](must.go)** | Error assertion | `Must()`, `MustSuccess()`, `MustOk()` |
+| **[orm.go](orm.go)** | Database operations | `Scan()`, `Value()` |
+| **[validate.go](validate.go)** | Data validation | `Validate()` |
 
--   [🔧 Installation Guide](#-quick-start)
--   [📝 Usage Examples](#-usage-examples)
--   [📚 Complete Documentation Index](docs/) - Comprehensive documentation center
--   [🎯 Find Modules by Scenario](docs/#-quick-search) - Quick positioning by use cases
--   [🏗️ Architecture Documentation](docs/architecture_en.md) - Deep dive into system design
+### 🍭 Data Processing
 
-### 🌍 Multi-language Documentation
+| Module | Purpose | Highlights |
+|--------|---------|------------|
+| **[candy/](candy/)** | Type conversion sugar | Zero-allocation conversions |
+| **[json/](json/)** | Enhanced JSON handling | Better error messages |
+| **[stringx/](stringx/)** | String utilities | Unicode-aware operations |
+| **[anyx/](anyx/)** | Interface{} helpers | Type-safe any operations |
 
--   [中文](README_zh.md) - Chinese version
--   [繁體中文](README_zh-hant.md) - Traditional Chinese
--   [Español](README_es.md) - Spanish version
--   [Français](README_fr.md) - French version
--   [Русский](README_ru.md) - Russian version
--   [العربية](README_ar.md) - Arabic version
+### ⏰ Time & Scheduling
 
-## 🔧 Core Modules
+| Module | Purpose | Special Features |
+|--------|---------|------------------|
+| **[xtime/](xtime/)** | Advanced time processing | 🌙 Lunar calendar, 🐲 Chinese zodiac, 🌾 Solar terms |
+| **[xtime996/](xtime996/)** | 996 work schedule | Work time calculations |
+| **[xtime955/](xtime955/)** | 955 work schedule | Balanced schedule support |
+| **[xtime007/](xtime007/)** | 24/7 operations | Always-on time utilities |
 
-### Error Handling (`must.go`)
+### 🔧 System & Configuration
 
-```go
-// Assert operation success, panic on failure
-value := utils.Must(getValue())
+| Module | Purpose | Use Cases |
+|--------|---------|-----------|
+| **[config/](config/)** | Configuration management | JSON, YAML, TOML, INI, HCL support |
+| **[runtime/](runtime/)** | Runtime information | System detection and diagnostics |
+| **[osx/](osx/)** | OS operations | File and process management |
+| **[app/](app/)** | Application framework | Lifecycle management |
+| **[atexit/](atexit/)** | Graceful shutdown | Clean exit handling |
 
-// Verify no error
-utils.MustSuccess(doSomething())
+### 🌐 Network & Security
 
-// Verify boolean status
-result := utils.MustOk(checkCondition())
-```
+| Module | Purpose | Features |
+|--------|---------|----------|
+| **[network/](network/)** | HTTP utilities | Connection pooling, retry logic |
+| **[cryptox/](cryptox/)** | Cryptographic functions | Hashing, encryption, secure random |
+| **[pgp/](pgp/)** | PGP operations | Email encryption, file signing |
+| **[urlx/](urlx/)** | URL manipulation | Parsing, building, validation |
 
-### Database Operations (`orm.go`)
+### 🚀 Concurrency & Control Flow
 
-```go
-type User struct {
-    Name string `json:"name"`
-    Age  int    `json:"age" default:"18"`
-}
+| Module | Purpose | Patterns |
+|--------|---------|----------|
+| **[routine/](routine/)** | Goroutine management | Worker pools, task scheduling |
+| **[wait/](wait/)** | Flow control | Timeout, retry, rate limiting |
+| **[hystrix/](hystrix/)** | Circuit breaker | Fault tolerance, graceful degradation |
+| **[singledo/](singledo/)** | Singleton execution | Prevent duplicate operations |
+| **[event/](event/)** | Event system | Pub/sub pattern implementation |
 
-// Scan database data to struct
-err := utils.Scan(dbData, &user)
+### 🧪 Development & Testing
 
-// Convert struct to database value
-value, err := utils.Value(user)
-```
+| Module | Purpose | Development Stage |
+|--------|---------|-------------------|
+| **[fake/](fake/)** | Test data generation | Unit testing, integration testing |
+| **[randx/](randx/)** | Random utilities | Cryptographically secure random |
+| **[defaults/](defaults/)** | Default values | Struct initialization |
+| **[pyroscope/](pyroscope/)** | Performance profiling | Production monitoring |
 
-### Data Validation (`validate.go`)
+---
 
-```go
-type Config struct {
-    Email string `validate:"required,email"`
-    Port  int    `validate:"min=1,max=65535"`
-}
+## 💡 Real-World Examples
 
-// Quick validation
-err := utils.Validate(&config)
-```
-
-## 📦 Feature Modules
-
-<details>
-<summary><strong>🍭 Data Processing Modules</strong></summary>
-
-| Module                  | Function                        | Core API                               |
-| ----------------------- | ------------------------------- | -------------------------------------- |
-| **[candy](candy/)**     | Type conversion syntactic sugar | `ToInt()`, `ToString()`, `ToBool()`    |
-| **[json](json/)**       | Enhanced JSON processing        | `Marshal()`, `Unmarshal()`, `Pretty()` |
-| **[stringx](stringx/)** | String processing               | `IsEmpty()`, `Contains()`, `Split()`   |
-| **[anyx](anyx/)**       | Any type tools                  | `IsNil()`, `Type()`, `Convert()`       |
-
-</details>
-
-<details>
-<summary><strong>⏰ Time Processing Modules</strong></summary>
-
-| Module                          | Function                    | Features                            |
-| ------------------------------- | --------------------------- | ----------------------------------- |
-| **[xtime](xtime/)**             | Enhanced time processing    | Lunar calendar, solar terms, zodiac |
-| **[xtime996](xtime/xtime996/)** | 996 work schedule constants | Work time calculation               |
-| **[xtime955](xtime/xtime955/)** | 955 work schedule constants | Work time calculation               |
-| **[xtime007](xtime/xtime007/)** | 007 work schedule constants | 24/7 time                           |
-
-**xtime Special Features**:
-
--   🗓️ Unified calendar interface (Gregorian + Lunar)
--   🌙 Accurate lunar conversion and solar term calculation
--   🐲 Complete Heavenly Stems and Earthly Branches system
--   🏮 Automatic traditional festival detection
+### Configuration Management
 
 ```go
-cal := xtime.NowCalendar()
-fmt.Println(cal.LunarDate())     // 农历二零二三年六月廿九
-fmt.Println(cal.Animal())        // 兔
-fmt.Println(cal.CurrentSolarTerm()) // 处暑
-```
-
-</details>
-
-<details>
-<summary><strong>🔧 System Tool Modules</strong></summary>
-
-| Module                  | Function                 | Purpose                          |
-| ----------------------- | ------------------------ | -------------------------------- |
-| **[config](config/)**   | Configuration management | Multi-format config file reading |
-| **[runtime](runtime/)** | Runtime information      | System information retrieval     |
-| **[osx](osx/)**         | OS enhancement           | File and process operations      |
-| **[app](app/)**         | Application framework    | Application lifecycle management |
-| **[atexit](atexit/)**   | Exit hooks               | Graceful shutdown handling       |
-
-</details>
-
-<details>
-<summary><strong>🌐 Network & Security Modules</strong></summary>
-
-| Module                  | Function            | Use Cases                      |
-| ----------------------- | ------------------- | ------------------------------ |
-| **[network](network/)** | Network operations  | HTTP client, connection pool   |
-| **[cryptox](cryptox/)** | Cryptographic tools | Hash, encryption, decryption   |
-| **[pgp](pgp/)**         | PGP encryption      | Email encryption, file signing |
-| **[urlx](urlx/)**       | URL processing      | URL parsing, building          |
-
-</details>
-
-<details>
-<summary><strong>🚀 Concurrency & Control Modules</strong></summary>
-
-| Module                    | Function             | Design Pattern                  |
-| ------------------------- | -------------------- | ------------------------------- |
-| **[routine](routine/)**   | Goroutine management | Goroutine pool, task scheduling |
-| **[wait](wait/)**         | Wait control         | Timeout, retry, rate limiting   |
-| **[hystrix](hystrix/)**   | Circuit breaker      | Fault tolerance, degradation    |
-| **[singledo](singledo/)** | Singleton pattern    | Prevent duplicate execution     |
-| **[event](event/)**       | Event-driven         | Publish-subscribe pattern       |
-
-</details>
-
-<details>
-<summary><strong>🧪 Development & Testing Modules</strong></summary>
-
-| Module                      | Function             | Development Stage            |
-| --------------------------- | -------------------- | ---------------------------- |
-| **[fake](fake/)**           | Fake data generation | Test data generation         |
-| **[unit](unit/)**           | Testing assistance   | Unit testing tools           |
-| **[pyroscope](pyroscope/)** | Performance analysis | Production monitoring        |
-| **[defaults](defaults/)**   | Default values       | Configuration initialization |
-| **[randx](randx/)**         | Random numbers       | Secure random generation     |
-
-</details>
-
-## 🎯 Usage Examples
-
-### Complete Application Example
-
-```go
-package main
-
-import (
-    "github.com/lazygophers/utils"
-    "github.com/lazygophers/utils/config"
-    "github.com/lazygophers/utils/candy"
-    "github.com/lazygophers/utils/xtime"
-)
-
 type AppConfig struct {
-    Port     int    `json:"port" default:"8080" validate:"min=1,max=65535"`
     Database string `json:"database" validate:"required"`
+    Port     int    `json:"port" default:"8080" validate:"min=1,max=65535"`
     Debug    bool   `json:"debug" default:"false"`
 }
 
 func main() {
-    // 1. Load configuration
     var cfg AppConfig
-    utils.MustSuccess(config.Load(&cfg, "config.json"))
 
-    // 2. Validate configuration
+    // Load from any format: JSON, YAML, TOML, etc.
+    utils.MustSuccess(config.Load(&cfg, "config.yaml"))
+
+    // Validate configuration
     utils.MustSuccess(utils.Validate(&cfg))
 
-    // 3. Type conversion
-    portStr := candy.ToString(cfg.Port)
-
-    // 4. Time processing
-    cal := xtime.NowCalendar()
-    log.Printf("Application started: %s", cal.String())
-
-    // 5. Start server
-    startServer(cfg)
+    fmt.Printf("Server starting on port %d\n", cfg.Port)
 }
 ```
 
-### Error Handling Best Practices
-
-```go
-// ✅ Recommended: Use Must series functions
-func processData() string {
-    data := utils.Must(loadData())        // Panic on load failure
-    utils.MustSuccess(validateData(data)) // Panic on validation failure
-    return utils.MustOk(transformData(data)) // Panic on transform failure
-}
-
-// ✅ Recommended: Batch error handling
-func batchProcess() error {
-    return utils.MustSuccess(
-        doStep1(),
-        doStep2(),
-        doStep3(),
-    )
-}
-```
-
-### Database Operation Example
+### Database Operations
 
 ```go
 type User struct {
@@ -309,12 +172,12 @@ type User struct {
 }
 
 func SaveUser(db *sql.DB, user *User) error {
-    // Validate data
+    // Validate struct
     if err := utils.Validate(user); err != nil {
         return err
     }
 
-    // Convert to database value
+    // Convert to database format
     data, err := utils.Value(user)
     if err != nil {
         return err
@@ -324,90 +187,173 @@ func SaveUser(db *sql.DB, user *User) error {
     _, err = db.Exec("INSERT INTO users (data) VALUES (?)", data)
     return err
 }
+```
 
-func GetUser(db *sql.DB, id int64) (*User, error) {
-    var data []byte
-    err := db.QueryRow("SELECT data FROM users WHERE id = ?", id).Scan(&data)
-    if err != nil {
-        return nil, err
+### Advanced Time Processing
+
+```go
+func timeExample() {
+    cal := xtime.NowCalendar()
+
+    // Gregorian calendar
+    fmt.Printf("Date: %s\n", cal.Format("2006-01-02"))
+
+    // Chinese lunar calendar
+    fmt.Printf("Lunar: %s\n", cal.LunarDate())          // 农历二零二三年六月廿九
+    fmt.Printf("Animal: %s\n", cal.Animal())            // 兔 (Rabbit)
+    fmt.Printf("Solar Term: %s\n", cal.CurrentSolarTerm()) // 处暑 (End of Heat)
+
+    // Work schedule calculations
+    if xtime996.IsWorkTime(time.Now()) {
+        fmt.Println("Time to work! (996 schedule)")
     }
-
-    var user User
-    err = utils.Scan(data, &user)
-    return &user, err
 }
 ```
 
-## 📊 Performance Data
+### Concurrent Processing
 
-### Benchmark Results
+```go
+func processingExample() {
+    // Create a worker pool
+    pool := routine.NewPool(10) // 10 workers
+    defer pool.Close()
 
-| Operation        | Time       | Memory Allocation | vs Standard Library |
-| ---------------- | ---------- | ----------------- | ------------------- |
-| `candy.ToInt()`  | 12.3 ns/op | 0 B/op            | **3.2x faster**     |
-| `json.Marshal()` | 156 ns/op  | 64 B/op           | **1.8x faster**     |
-| `xtime.Now()`    | 45.2 ns/op | 0 B/op            | **2.1x faster**     |
-| `utils.Must()`   | 2.1 ns/op  | 0 B/op            | **Zero overhead**   |
+    // Submit tasks with circuit breaker protection
+    for i := 0; i < 100; i++ {
+        taskID := i
+        pool.Submit(func() {
+            // Circuit breaker protects against failures
+            result := hystrix.Do("process-task", func() (interface{}, error) {
+                return processTask(taskID)
+            })
 
-### Performance Characteristics
+            fmt.Printf("Task %d result: %v\n", taskID, result)
+        })
+    }
 
--   ⚡ **Microsecond Response**: Core operations complete in microseconds
--   🧠 **Memory Friendly**: Use sync.Pool to reduce GC pressure
--   🔄 **Zero Allocation**: Avoid memory allocation in critical paths
--   🚀 **Concurrency Optimized**: Optimized for high-concurrency scenarios
+    // Wait for completion with timeout
+    wait.For(5*time.Second, func() bool {
+        return pool.Running() == 0
+    })
+}
+```
 
-> 📈 Detailed Performance Report: [Performance Documentation](docs/performance.md)
+---
+
+## 🎨 Design Philosophy
+
+### Error Handling Strategy
+
+LazyGophers Utils promotes a **fail-fast** approach for development efficiency:
+
+```go
+// Traditional Go error handling
+data, err := risky.Operation()
+if err != nil {
+    return nil, fmt.Errorf("operation failed: %w", err)
+}
+
+// LazyGophers approach - cleaner, faster development
+data := utils.Must(risky.Operation()) // Panics on error
+```
+
+### Type Safety with Generics
+
+Modern Go generics enable compile-time safety:
+
+```go
+// Type-safe operations
+func process[T constraints.Ordered](items []T) T {
+    return candy.Max(items...) // Works with any ordered type
+}
+
+// Runtime safety
+value := utils.MustOk(getValue()) // Panics if second return value is false
+```
+
+### Performance Optimization
+
+Every module is benchmarked and optimized:
+
+- **Zero-allocation** paths in critical functions
+- **sync.Pool** usage to reduce GC pressure
+- **Efficient algorithms** for common operations
+- **Minimal dependencies** to reduce binary size
+
+---
+
+## 📊 Performance Highlights
+
+| Operation | Time | Memory | vs Standard Library |
+|-----------|------|--------|-------------------|
+| `candy.ToInt()` | 12.3 ns/op | 0 B/op | **3.2x faster** |
+| `json.Marshal()` | 156 ns/op | 64 B/op | **1.8x faster** |
+| `xtime.Now()` | 45.2 ns/op | 0 B/op | **2.1x faster** |
+| `utils.Must()` | 2.1 ns/op | 0 B/op | **Zero overhead** |
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions of all kinds!
+We welcome contributions! Here's how to get started:
 
-### Contribution Process
+### Quick Contribution Guide
 
-1. 🍴 Fork the project
-2. 🌿 Create a feature branch: `git checkout -b feature/amazing-feature`
-3. 📝 Write code and tests
-4. 🧪 Ensure tests pass: `go test ./...`
-5. 📤 Submit PR
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Write** code with tests
+4. **Ensure** tests pass: `go test ./...`
+5. **Submit** a pull request
 
 ### Development Standards
 
--   ✅ Follow [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
--   📖 All public APIs must have godoc comments
--   🧪 New features must include test cases
--   📊 Maintain test coverage > 80%
--   🔄 Maintain backward compatibility
+- ✅ Follow [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- 📖 All public APIs must have godoc comments
+- 🧪 New features require comprehensive tests
+- 📊 Maintain high test coverage
+- 🔄 Preserve backward compatibility
 
-> 📋 Detailed Guidelines: [Contributing Guide](CONTRIBUTING.md)
+### Building and Testing
+
+```bash
+# Run tests
+make test
+
+# Run tests with coverage
+make test-coverage
+
+# Lint code
+make lint
+
+# Format code
+make fmt
+
+# Full development cycle
+make check
+```
+
+---
 
 ## 📄 License
 
-This project is licensed under the GNU Affero General Public License v3.0.
+This project is licensed under the **GNU Affero General Public License v3.0**.
 
 See the [LICENSE](LICENSE) file for details.
 
-## 🌟 Community Support
+---
 
-### Getting Help
+## 🌟 Community & Support
 
--   📖 **Documentation**: [Complete Documentation](docs/)
--   🐛 **Bug Reports**: [GitHub Issues](https://github.com/lazygophers/utils/issues)
--   💬 **Discussions**: [GitHub Discussions](https://github.com/lazygophers/utils/discussions)
--   ❓ **Q&A**: [Stack Overflow](https://stackoverflow.com/questions/tagged/lazygophers-utils)
+### Get Help
 
-### Project Statistics
-
-| Metric                        | Value                                                                  | Description                    |
-| ----------------------------- | ---------------------------------------------------------------------- | ------------------------------ |
-| 📦 Module Count               | 20+                                                                    | Cover various common functions |
-| 🧪 Test Coverage              | 85%+                                                                   | High-quality code assurance    |
-| 📝 Documentation Completeness | 95%+                                                                   | Detailed usage instructions    |
-| ⚡ Performance Grade          | A+                                                                     | Benchmark tested optimization  |
-| 🌟 GitHub Stars               | ![GitHub stars](https://img.shields.io/github/stars/lazygophers/utils) | Community recognition          |
+- 📖 **Documentation**: [Complete API Reference](https://pkg.go.dev/github.com/lazygophers/utils)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/lazygophers/utils/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/lazygophers/utils/discussions)
+- ❓ **Questions**: [Stack Overflow](https://stackoverflow.com/questions/tagged/lazygophers-utils)
 
 ### Acknowledgments
 
-Thanks to all contributors for their hard work!
+Thanks to all our contributors who make this project possible!
 
 [![Contributors](https://contrib.rocks/image?repo=lazygophers/utils)](https://github.com/lazygophers/utils/graphs/contributors)
 
@@ -415,8 +361,10 @@ Thanks to all contributors for their hard work!
 
 <div align="center">
 
-**If this project helps you, please give us a ⭐ Star!**
+**⭐ Star this project if it helps you build better Go applications!**
 
-[🚀 Get Started](#-quick-start) • [📖 View Documentation](docs/) • [🤝 Join Community](https://github.com/lazygophers/utils/discussions)
+[🚀 Get Started](#-quick-start) • [📖 Browse Modules](#-module-overview) • [🤝 Contribute](#-contributing)
+
+*Built with ❤️ by the LazyGophers team*
 
 </div>
