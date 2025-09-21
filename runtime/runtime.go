@@ -1,7 +1,7 @@
 package runtime
 
 import (
-	"github.com/lazygophers/log"
+	"fmt"
 	"github.com/lazygophers/utils/app"
 	"os"
 	"path/filepath"
@@ -15,16 +15,17 @@ func CachePanic() {
 
 func CachePanicWithHandle(handle func(err interface{})) {
 	if err := recover(); err != nil {
-		log.Errorf("PROCESS PANIC: err %s", err)
+		// 使用标准错误输出，避免日志系统的递归调用
+		fmt.Fprintf(os.Stderr, "PROCESS PANIC: err %v\n", err)
 		st := debug.Stack()
 		if len(st) > 0 {
-			log.Errorf("dump stack (%s):", err)
+			fmt.Fprintf(os.Stderr, "dump stack (%v):\n", err)
 			lines := strings.Split(string(st), "\n")
 			for _, line := range lines {
-				log.Error("  ", line)
+				fmt.Fprintf(os.Stderr, "  %s\n", line)
 			}
 		} else {
-			log.Errorf("stack is empty (%s)", err)
+			fmt.Fprintf(os.Stderr, "stack is empty (%v)\n", err)
 		}
 		if handle != nil {
 			handle(err)
@@ -36,10 +37,10 @@ func CachePanicWithHandle(handle func(err interface{})) {
 func PrintStack() {
 	st := debug.Stack()
 	if len(st) > 0 {
-		log.Error("dump stack:")
-		log.Error(string(st))
+		// 使用标准错误输出，避免日志系统的递归调用
+		fmt.Fprintf(os.Stderr, "dump stack:\n%s\n", string(st))
 	} else {
-		log.Error("stack is empty")
+		fmt.Fprintf(os.Stderr, "stack is empty\n")
 	}
 }
 
