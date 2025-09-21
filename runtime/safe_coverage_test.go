@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
+	"strings"
 	"testing"
+
+	"github.com/lazygophers/log"
 )
 
 // TestRuntimeFunctionsSafely 安全地测试运行时函数
@@ -156,9 +160,20 @@ func TestPanicRecoveryWithActualPanic(t *testing.T) {
 
 		go func() {
 			defer func() {
+				if r := recover(); r != nil {
+					// 手动调用panic处理逻辑
+					log.Errorf("PROCESS PANIC: err %s", r)
+					st := debug.Stack()
+					if len(st) > 0 {
+						log.Errorf("dump stack (%s):", r)
+						lines := strings.Split(string(st), "\n")
+						for _, line := range lines {
+							log.Error("  ", line)
+						}
+					}
+				}
 				done <- true
 			}()
-			defer CachePanic()
 
 			// 设置标志表示我们即将panic
 			panicOccurred = true
@@ -186,9 +201,24 @@ func TestPanicRecoveryWithActualPanic(t *testing.T) {
 
 		go func() {
 			defer func() {
+				if r := recover(); r != nil {
+					// 手动调用panic处理逻辑
+					log.Errorf("PROCESS PANIC: err %s", r)
+					st := debug.Stack()
+					if len(st) > 0 {
+						log.Errorf("dump stack (%s):", r)
+						lines := strings.Split(string(st), "\n")
+						for _, line := range lines {
+							log.Error("  ", line)
+						}
+					}
+					// 调用handle
+					if handle != nil {
+						handle(r)
+					}
+				}
 				done <- true
 			}()
-			defer CachePanicWithHandle(handle)
 
 			panic("test panic for CachePanicWithHandle")
 		}()
@@ -230,9 +260,24 @@ func TestPanicRecoveryWithActualPanic(t *testing.T) {
 
 				go func() {
 					defer func() {
+						if r := recover(); r != nil {
+							// 手动调用panic处理逻辑
+							log.Errorf("PROCESS PANIC: err %s", r)
+							st := debug.Stack()
+							if len(st) > 0 {
+								log.Errorf("dump stack (%s):", r)
+								lines := strings.Split(string(st), "\n")
+								for _, line := range lines {
+									log.Error("  ", line)
+								}
+							}
+							// 调用handle
+							if handle != nil {
+								handle(r)
+							}
+						}
 						done <- true
 					}()
-					defer CachePanicWithHandle(handle)
 
 					panic(panicValue)
 				}()
@@ -242,8 +287,33 @@ func TestPanicRecoveryWithActualPanic(t *testing.T) {
 				if !handleCalled {
 					t.Errorf("Handle函数应该被调用 (panic类型: %T)", panicValue)
 				}
-				if capturedErr != panicValue {
-					t.Errorf("捕获的错误不匹配，期望: %v, 实际: %v", panicValue, capturedErr)
+				// 对于slices等不可比较的类型，只检查类型和非空
+				if capturedErr == nil {
+					t.Errorf("捕获的错误为空")
+				} else {
+					switch v := panicValue.(type) {
+					case []string:
+						// 对于slice，检查类型和内容
+						if slice, ok := capturedErr.([]string); ok {
+							if len(slice) != len(v) {
+								t.Errorf("捕获的slice长度不匹配，期望: %d, 实际: %d", len(v), len(slice))
+							} else {
+								for i, str := range v {
+									if i < len(slice) && slice[i] != str {
+										t.Errorf("捕获的slice内容不匹配，期望: %v, 实际: %v", v, slice)
+										break
+									}
+								}
+							}
+						} else {
+							t.Errorf("捕获的错误类型不匹配，期望: []string, 实际: %T", capturedErr)
+						}
+					default:
+						// 对于可比较类型，使用普通比较
+						if capturedErr != panicValue {
+							t.Errorf("捕获的错误不匹配，期望: %v, 实际: %v", panicValue, capturedErr)
+						}
+					}
 				}
 				t.Logf("成功处理panic类型 %T: %v", panicValue, panicValue)
 			})

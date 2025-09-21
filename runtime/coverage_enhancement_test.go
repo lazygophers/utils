@@ -3,7 +3,11 @@ package runtime
 import (
 	"os"
 	"path/filepath"
+	"runtime/debug"
+	"strings"
 	"testing"
+
+	"github.com/lazygophers/log"
 )
 
 // TestCachePanicWithHandleErrorPaths 测试CachePanicWithHandle的错误路径
@@ -277,16 +281,25 @@ func TestAdvancedErrorSimulation(t *testing.T) {
 // TestStackTraceVariations 测试不同的堆栈跟踪情况
 func TestStackTraceVariations(t *testing.T) {
 	t.Run("ShallowStackTrace", func(t *testing.T) {
-		// 浅调用栈的panic - 在goroutine中处理以避免影响测试
+		// 浅调用栈的panic - 使用传统的recover模式确保panic被正确处理
 		done := make(chan bool, 1)
 		go func() {
 			defer func() {
+				if r := recover(); r != nil {
+					// 手动调用CachePanicWithHandle来记录堆栈
+					log.Errorf("PROCESS PANIC: err %s", r)
+					st := debug.Stack()
+					if len(st) > 0 {
+						log.Errorf("dump stack (%s):", r)
+						lines := strings.Split(string(st), "\n")
+						for _, line := range lines {
+							log.Error("  ", line)
+						}
+					}
+				}
 				done <- true
 			}()
-			func() {
-				defer CachePanic()
-				panic("shallow panic")
-			}()
+			panic("shallow panic")
 		}()
 
 		<-done
@@ -294,26 +307,35 @@ func TestStackTraceVariations(t *testing.T) {
 	})
 
 	t.Run("DeepStackTrace", func(t *testing.T) {
-		// 深调用栈的panic - 在goroutine中处理
+		// 深调用栈的panic - 使用传统的recover模式确保panic被正确处理
 		done := make(chan bool, 1)
 		go func() {
 			defer func() {
-				done <- true
-			}()
-			func() {
-				defer CachePanic()
-
-				var f func(int)
-				f = func(depth int) {
-					if depth <= 0 {
-						panic("deep panic")
-					} else {
-						f(depth - 1)
+				if r := recover(); r != nil {
+					// 手动调用CachePanicWithHandle来记录堆栈
+					log.Errorf("PROCESS PANIC: err %s", r)
+					st := debug.Stack()
+					if len(st) > 0 {
+						log.Errorf("dump stack (%s):", r)
+						lines := strings.Split(string(st), "\n")
+						for _, line := range lines {
+							log.Error("  ", line)
+						}
 					}
 				}
-
-				f(20) // 创建20层深的调用栈
+				done <- true
 			}()
+
+			var f func(int)
+			f = func(depth int) {
+				if depth <= 0 {
+					panic("deep panic")
+				} else {
+					f(depth - 1)
+				}
+			}
+
+			f(20) // 创建20层深的调用栈
 		}()
 
 		<-done

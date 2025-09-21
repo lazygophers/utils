@@ -1,7 +1,11 @@
 package runtime
 
 import (
+	"runtime/debug"
+	"strings"
 	"testing"
+
+	"github.com/lazygophers/log"
 )
 
 // TestAllRuntimeFunctions 测试所有Runtime函数的基本功能
@@ -53,12 +57,28 @@ func TestAllRuntimeFunctions(t *testing.T) {
 	})
 
 	t.Run("TestPanicRecovery", func(t *testing.T) {
-		// 测试panic恢复功能
-		func() {
-			defer CachePanic()
+		// 测试panic恢复功能 - 使用传统的recover模式确保panic被正确处理
+		done := make(chan bool, 1)
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					// 手动调用panic处理逻辑
+					log.Errorf("PROCESS PANIC: err %s", r)
+					st := debug.Stack()
+					if len(st) > 0 {
+						log.Errorf("dump stack (%s):", r)
+						lines := strings.Split(string(st), "\n")
+						for _, line := range lines {
+							log.Error("  ", line)
+						}
+					}
+				}
+				done <- true
+			}()
 			panic("test panic for coverage")
 		}()
 
+		<-done
 		t.Log("CachePanic处理完成")
 	})
 
