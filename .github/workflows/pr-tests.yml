@@ -78,7 +78,7 @@ jobs:
             gosec -fmt=text ./...
           else
             echo "⚠️ gosec not installed, installing..."
-            go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+            go install github.com/securego/gosec/v2/cmd/gosec@latest
             gosec -fmt=text ./...
           fi
           echo "✅ Security scan completed"
