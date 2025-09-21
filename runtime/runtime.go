@@ -15,17 +15,28 @@ func CachePanic() {
 
 func CachePanicWithHandle(handle func(err interface{})) {
 	if err := recover(); err != nil {
-		// 使用标准错误输出，避免日志系统的递归调用
-		fmt.Fprintf(os.Stderr, "PROCESS PANIC: err %v\n", err)
+		// 使用最基础的系统调用避免栈溢出
+		os.Stderr.WriteString("PROCESS PANIC: err ")
+		os.Stderr.WriteString(fmt.Sprintf("%v", err))
+		os.Stderr.WriteString("\n")
+
 		st := debug.Stack()
 		if len(st) > 0 {
-			fmt.Fprintf(os.Stderr, "dump stack (%v):\n", err)
+			os.Stderr.WriteString("dump stack (")
+			os.Stderr.WriteString(fmt.Sprintf("%v", err))
+			os.Stderr.WriteString("):\n")
+
+			// 分块处理栈跟踪信息，添加缩进
 			lines := strings.Split(string(st), "\n")
 			for _, line := range lines {
-				fmt.Fprintf(os.Stderr, "  %s\n", line)
+				os.Stderr.WriteString("  ")
+				os.Stderr.WriteString(line)
+				os.Stderr.WriteString("\n")
 			}
 		} else {
-			fmt.Fprintf(os.Stderr, "stack is empty (%v)\n", err)
+			os.Stderr.WriteString("stack is empty (")
+			os.Stderr.WriteString(fmt.Sprintf("%v", err))
+			os.Stderr.WriteString(")\n")
 		}
 		if handle != nil {
 			handle(err)
@@ -37,10 +48,20 @@ func CachePanicWithHandle(handle func(err interface{})) {
 func PrintStack() {
 	st := debug.Stack()
 	if len(st) > 0 {
-		// 使用标准错误输出，避免日志系统的递归调用
-		fmt.Fprintf(os.Stderr, "dump stack:\n%s\n", string(st))
+		// 使用最基础的系统调用避免栈溢出
+		os.Stderr.WriteString("dump stack:\n")
+		// 分块写入大的栈跟踪信息
+		const chunkSize = 1024
+		for i := 0; i < len(st); i += chunkSize {
+			end := i + chunkSize
+			if end > len(st) {
+				end = len(st)
+			}
+			os.Stderr.Write(st[i:end])
+		}
+		os.Stderr.WriteString("\n")
 	} else {
-		fmt.Fprintf(os.Stderr, "stack is empty\n")
+		os.Stderr.WriteString("stack is empty\n")
 	}
 }
 
