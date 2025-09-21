@@ -27,11 +27,125 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Go
+      # ===== PERSISTENT GO ENVIRONMENT =====
+      - name: Setup persistent Go environment
+        id: go-setup
+        run: |
+          echo "🔍 Setting up persistent Go environment..."
+          GO_VERSION="${{ env.GO_VERSION }}"
+
+          # Check if this is a self-hosted runner
+          if [ "${{ runner.name }}" = "lazy" ] || [ "${{ contains(runner.labels, 'self-hosted') }}" = "true" ]; then
+            echo "🏠 Self-hosted runner: Using persistent Go installation"
+
+            # Persistent Go installation directory
+            GO_INSTALL_DIR="/tmp/action/go"
+            GO_ROOT="${GO_INSTALL_DIR}/go${GO_VERSION}"
+
+            # Check if Go version is already installed
+            if [ -d "$GO_ROOT" ] && [ -x "$GO_ROOT/bin/go" ]; then
+              INSTALLED_VERSION=$($GO_ROOT/bin/go version | awk '{print $3}' | sed 's/go//')
+              if [ "$INSTALLED_VERSION" = "$GO_VERSION" ]; then
+                echo "✅ Go $GO_VERSION already installed at $GO_ROOT"
+                echo "use_existing_go=true" >> $GITHUB_OUTPUT
+              else
+                echo "⚠️ Different Go version found ($INSTALLED_VERSION), will reinstall"
+                echo "use_existing_go=false" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "📦 Go $GO_VERSION not found, will install"
+              echo "use_existing_go=false" >> $GITHUB_OUTPUT
+            fi
+
+            echo "go_root=$GO_ROOT" >> $GITHUB_OUTPUT
+            echo "go_install_dir=$GO_INSTALL_DIR" >> $GITHUB_OUTPUT
+            echo "is_self_hosted=true" >> $GITHUB_OUTPUT
+          else
+            echo "☁️ GitHub-hosted runner: Using standard setup-go action"
+            echo "use_existing_go=false" >> $GITHUB_OUTPUT
+            echo "is_self_hosted=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install Go (self-hosted, if needed)
+        if: steps.go-setup.outputs.is_self_hosted == 'true' && steps.go-setup.outputs.use_existing_go == 'false'
+        run: |
+          echo "📥 Installing Go ${{ env.GO_VERSION }} for persistent use..."
+          GO_VERSION="${{ env.GO_VERSION }}"
+          GO_INSTALL_DIR="${{ steps.go-setup.outputs.go_install_dir }}"
+          GO_ROOT="${{ steps.go-setup.outputs.go_root }}"
+
+          # Create installation directory
+          mkdir -p "$GO_INSTALL_DIR"
+
+          # Determine architecture
+          ARCH=$(uname -m)
+          case $ARCH in
+            x86_64) GO_ARCH="amd64" ;;
+            aarch64|arm64) GO_ARCH="arm64" ;;
+            *) echo "❌ Unsupported architecture: $ARCH"; exit 1 ;;
+          esac
+
+          # Determine OS
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+
+          # Download and install Go
+          GO_TARBALL="go${GO_VERSION}.${OS}-${GO_ARCH}.tar.gz"
+          GO_URL="https://go.dev/dl/${GO_TARBALL}"
+
+          echo "🌐 Downloading: $GO_URL"
+          cd "$GO_INSTALL_DIR"
+
+          # Download with retry mechanism
+          for i in {1..3}; do
+            if curl -fsSL -o "$GO_TARBALL" "$GO_URL"; then
+              echo "✅ Download successful on attempt $i"
+              break
+            else
+              echo "⚠️ Download failed on attempt $i"
+              if [ $i -eq 3 ]; then
+                echo "❌ Failed to download Go after 3 attempts"
+                exit 1
+              fi
+              sleep 5
+            fi
+          done
+
+          # Extract Go
+          echo "📦 Extracting Go..."
+          rm -rf go  # Remove any existing Go directory
+          tar -xzf "$GO_TARBALL"
+          rm "$GO_TARBALL"
+
+          # Move to versioned directory
+          mv go "go${GO_VERSION}"
+
+          echo "✅ Go $GO_VERSION installed successfully at $GO_ROOT"
+
+      - name: Configure Go environment (self-hosted)
+        if: steps.go-setup.outputs.is_self_hosted == 'true'
+        run: |
+          GO_ROOT="${{ steps.go-setup.outputs.go_root }}"
+          echo "🔧 Configuring Go environment..."
+
+          # Set Go environment variables
+          echo "GOROOT=$GO_ROOT" >> $GITHUB_ENV
+          echo "PATH=$GO_ROOT/bin:$PATH" >> $GITHUB_ENV
+
+          # Verify installation
+          echo "🔍 Verifying Go installation..."
+          $GO_ROOT/bin/go version
+
+          echo "✅ Go environment configured:"
+          echo "  - GOROOT: $GO_ROOT"
+          echo "  - Version: $($GO_ROOT/bin/go version)"
+
+      - name: Set up Go (GitHub-hosted runners)
+        if: steps.go-setup.outputs.is_self_hosted == 'false'
         uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
+          cache: false  # Disable to avoid network issues
 
       # ===== SMART CACHE STRATEGY =====
       - name: Detect runner type and set cache strategy
