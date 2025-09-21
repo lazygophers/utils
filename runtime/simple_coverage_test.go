@@ -242,83 +242,88 @@ func TestRuntimeCoverageImprovement(t *testing.T) {
 
 // TestEdgeCasesForBetterCoverage tests edge cases to improve coverage
 func TestEdgeCasesForBetterCoverage(t *testing.T) {
-	t.Run("MultipleStackSizes", func(t *testing.T) {
-		// Test with various stack sizes to cover different code paths
-		originalMaxStack := 0 // We can't easily get the original value
+	// Test with various stack sizes to cover different code paths
+	stackSizes := []int{1024, 2048, 4096, 8192, 16384, 32768}
+	for _, size := range stackSizes {
+		debug.SetMaxStack(size)
+		PrintStack()
 
-		stackSizes := []int{1024, 2048, 4096, 8192, 16384, 32768}
-		for _, size := range stackSizes {
-			debug.SetMaxStack(size)
-			PrintStack()
-
-			// Test with panic
-			func() {
-				defer func() {
-					if r := recover(); r != nil {
-						PrintStack()
-					}
-				}()
-				panic("stack size test")
-			}()
-		}
-
-		// Restore a reasonable stack size
-		debug.SetMaxStack(8192)
-		_ = originalMaxStack // Avoid unused variable
-	})
-
-	t.Run("RepeatedPanicHandling", func(t *testing.T) {
-		// Test repeated panic handling to ensure robustness
-		for i := 0; i < 20; i++ {
-			func() {
-				defer CachePanicWithHandle(func(err interface{}) {
-					// Just handle the panic
-				})
-				panic(i)
-			}()
-		}
-	})
-
-	t.Run("EmptyStackTest", func(t *testing.T) {
-		// Try to trigger empty stack scenario with small stack size instead of 0
-		// Using 0 can cause unpredictable runtime behavior including hangs
-		debug.SetMaxStack(1) // Very small stack size instead of 0
+		// Test with panic
 		func() {
 			defer func() {
-				debug.SetMaxStack(8192) // Ensure reset happens
+				if r := recover(); r != nil {
+					PrintStack()
+				}
 			}()
-			defer CachePanicWithHandle(func(err interface{}) {
-				// This should trigger the small stack branch
-			})
-			panic("small stack attempt")
+			panic("stack size test")
 		}()
+	}
 
-		// Also test PrintStack with small stack
-		debug.SetMaxStack(1)
-		PrintStack() // This should hit the small stack branch
+	// Test repeated panic handling to ensure robustness
+	for i := 0; i < 20; i++ {
+		func() {
+			defer CachePanicWithHandle(func(err interface{}) {
+				// Just handle the panic
+			})
+			panic(i)
+		}()
+	}
 
-		// Reset to reasonable size
-		debug.SetMaxStack(8192)
-	})
+	// Try to trigger small stack scenario
+	// Using very small stack size instead of 0 to avoid unpredictable behavior
+	debug.SetMaxStack(1) // Very small stack size
+	func() {
+		defer func() {
+			debug.SetMaxStack(8192) // Ensure reset happens
+		}()
+		defer CachePanicWithHandle(func(err interface{}) {
+			// This should trigger the small stack branch
+		})
+		panic("small stack attempt")
+	}()
 
-	t.Run("ErrorPathTesting", func(t *testing.T) {
-		// These tests try to trigger error conditions to improve coverage
-		// Most error paths are difficult to trigger in a real environment,
-		// but we can try to hit edge cases
+	// Also test PrintStack with small stack
+	debug.SetMaxStack(1)
+	PrintStack() // This should hit the small stack branch
 
-		// Test repeated calls to ensure stability
-		for i := 0; i < 5; i++ {
-			ExecDir()
-			ExecFile()
-			Pwd()
-		}
+	// Reset to reasonable size
+	debug.SetMaxStack(8192)
 
-		// Save current directory to test edge cases
-		originalDir, _ := os.Getwd()
-		defer os.Chdir(originalDir)
+	// Test repeated calls to ensure stability
+	for i := 0; i < 5; i++ {
+		ExecDir()
+		ExecFile()
+		Pwd()
+	}
 
-		// Try changing to root directory
-		if err := os.Chdir("/"); err == nil {
+	// Save current directory to test edge cases
+	originalDir, _ := os.Getwd()
+	defer os.Chdir(originalDir)
+
+	// Try changing to root directory
+	if err := os.Chdir("/"); err == nil {
+		pwd := Pwd()
+		assert.NotEmpty(t, pwd)
+
+		execDir := ExecDir()
+		assert.NotEmpty(t, execDir)
+
+		execFile := ExecFile()
+		assert.NotEmpty(t, execFile)
+	}
+
+	// Test with different working directories
+	original, _ := os.Getwd()
+	defer os.Chdir(original)
+
+	// Test with various directories
+	testDirs := []string{
+		os.TempDir(),
+		"/",
+	}
+
+	for _, dir := range testDirs {
+		if err := os.Chdir(dir); err == nil {
 			pwd := Pwd()
 			assert.NotEmpty(t, pwd)
 
@@ -328,30 +333,5 @@ func TestEdgeCasesForBetterCoverage(t *testing.T) {
 			execFile := ExecFile()
 			assert.NotEmpty(t, execFile)
 		}
-	})
-
-	t.Run("DifferentWorkingDirectories", func(t *testing.T) {
-		// Test with different working directories
-		original, _ := os.Getwd()
-		defer os.Chdir(original)
-
-		// Test with various directories
-		testDirs := []string{
-			os.TempDir(),
-			"/",
-		}
-
-		for _, dir := range testDirs {
-			if err := os.Chdir(dir); err == nil {
-				pwd := Pwd()
-				assert.NotEmpty(t, pwd)
-
-				execDir := ExecDir()
-				assert.NotEmpty(t, execDir)
-
-				execFile := ExecFile()
-				assert.NotEmpty(t, execFile)
-			}
-		}
-	})
+	}
 }
