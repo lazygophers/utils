@@ -413,7 +413,7 @@ func TestReadPublicKeyErrors(t *testing.T) {
 		{
 			name:      "无效的armor格式",
 			publicKey: "-----BEGIN INVALID-----\ninvalid content\n-----END INVALID-----",
-			wantError: "无效的公钥类型",
+			wantError: "解码公钥armor失败",
 		},
 		{
 			name:      "不完整的armor",
@@ -461,7 +461,7 @@ func TestReadPrivateKeyErrors(t *testing.T) {
 			name:       "无效的armor类型",
 			privateKey: "-----BEGIN INVALID-----\ninvalid content\n-----END INVALID-----",
 			passphrase: "",
-			wantError:  "无效的私钥类型",
+			wantError:  "解码私钥armor失败",
 		},
 		{
 			name: "无效的私钥数据",
