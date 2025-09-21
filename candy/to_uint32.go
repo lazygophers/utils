@@ -51,14 +51,14 @@ func ToUint32(val interface{}) uint32 {
 		return uint32(x)
 	case string:
 		// 字符串解析为 uint32
-		val, err := strconv.ParseUint(x, 10, 64)
+		val, err := strconv.ParseUint(x, 10, 32)
 		if err != nil {
 			return 0
 		}
 		return uint32(val)
 	case []byte:
 		// 字节数组转换为字符串后解析为 uint32
-		val, err := strconv.ParseUint(string(x), 10, 64)
+		val, err := strconv.ParseUint(string(x), 10, 32)
 		if err != nil {
 			return 0
 		}

@@ -75,7 +75,7 @@ func ToUint16(val interface{}) uint16 {
 		return uint16(x)
 	case string:
 		// 字符串解析为无符号整数
-		val, err := strconv.ParseUint(x, 10, 64)
+		val, err := strconv.ParseUint(x, 10, 16)
 		if err != nil {
 			// 解析失败返回 0
 			return 0
@@ -83,7 +83,7 @@ func ToUint16(val interface{}) uint16 {
 		return uint16(val)
 	case []byte:
 		// 字节切片转换为字符串后解析
-		val, err := strconv.ParseUint(string(x), 10, 64)
+		val, err := strconv.ParseUint(string(x), 10, 16)
 		if err != nil {
 			// 解析失败返回 0
 			return 0
