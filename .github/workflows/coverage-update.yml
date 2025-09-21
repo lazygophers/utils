@@ -147,27 +147,11 @@ jobs:
           check-latest: true
           cache: false  # Disable to avoid network issues
 
-      # ===== SMART CACHE STRATEGY =====
-      - name: Detect runner type and set cache strategy
-        id: cache-strategy
-        run: |
-          echo "🔍 Detecting runner type..."
-          # Check if this is a self-hosted runner
-          if [ "${{ runner.name }}" = "lazy" ] || [ "${{ contains(runner.labels, 'self-hosted') }}" = "true" ]; then
-            echo "🏠 Self-hosted runner detected: ${{ runner.name }}"
-            echo "use_local_cache=true" >> $GITHUB_OUTPUT
-            echo "cache_base_path=/tmp/action" >> $GITHUB_OUTPUT
-          else
-            echo "☁️ GitHub-hosted runner detected"
-            echo "use_local_cache=false" >> $GITHUB_OUTPUT
-            echo "cache_base_path=" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Setup local cache directories (self-hosted)
-        if: steps.cache-strategy.outputs.use_local_cache == 'true'
+      # ===== LOCAL CACHE CONFIGURATION =====
+      - name: Setup local cache directories
         run: |
           echo "📁 Setting up local cache directories..."
-          LOCAL_CACHE_BASE="${{ steps.cache-strategy.outputs.cache_base_path }}"
+          LOCAL_CACHE_BASE="/tmp/action"
           GO_CACHE_DIR="${LOCAL_CACHE_BASE}/go-build"
           GO_MOD_CACHE_DIR="${LOCAL_CACHE_BASE}/go-mod"
 
@@ -181,30 +165,6 @@ jobs:
           echo "✅ Local cache configured:"
           echo "  - GOCACHE: $GO_CACHE_DIR"
           echo "  - GOMODCACHE: $GO_MOD_CACHE_DIR"
-
-      - name: GitHub Actions cache (GitHub-hosted runners)
-        if: steps.cache-strategy.outputs.use_local_cache == 'false'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: Cache status report
-        run: |
-          echo "📊 Cache Configuration Summary:"
-          if [ "${{ steps.cache-strategy.outputs.use_local_cache }}" = "true" ]; then
-            echo "  - Strategy: 🏠 Local filesystem cache"
-            echo "  - Base Path: ${{ steps.cache-strategy.outputs.cache_base_path }}"
-            echo "  - GOCACHE: $GOCACHE"
-            echo "  - GOMODCACHE: $GOMODCACHE"
-          else
-            echo "  - Strategy: ☁️ GitHub Actions cache"
-            echo "  - Cache Key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}"
-          fi
 
       - name: Download and verify dependencies
         run: |
