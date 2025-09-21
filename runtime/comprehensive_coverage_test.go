@@ -1,15 +1,11 @@
 package runtime
 
 import (
-	"context"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"runtime/debug"
 	"sync"
-	"syscall"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -31,36 +27,8 @@ func TestComprehensiveCoverage(t *testing.T) {
 		}
 	})
 
-	// Test signal handling with controlled environment
-	t.Run("SignalHandling", func(t *testing.T) {
-		// Create a custom signal channel to avoid interfering with global state
-		sigCh := make(chan os.Signal, 1)
-		signal.Notify(sigCh, syscall.SIGTERM)
-
-		// Send signal to ourselves in a goroutine
-		go func() {
-			time.Sleep(10 * time.Millisecond)
-			process, err := os.FindProcess(os.Getpid())
-			if err == nil {
-				process.Signal(syscall.SIGTERM)
-			}
-		}()
-
-		// Wait for signal with timeout
-		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
-		defer cancel()
-
-		select {
-		case sig := <-sigCh:
-			t.Logf("Received signal: %v", sig)
-		case <-ctx.Done():
-			t.Log("Signal test timed out (expected on some systems)")
-		}
-
-		// Clean up signal handling
-		signal.Stop(sigCh)
-		close(sigCh)
-	})
+	// Note: Removed SignalHandling test as sending real signals to the test process
+	// can cause unpredictable behavior and interfere with test execution
 
 	// Test all runtime functions with error path coverage
 	t.Run("RuntimeFunctionsErrorPaths", func(t *testing.T) {
