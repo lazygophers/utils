@@ -1053,7 +1053,7 @@ func TestToInt32(t *testing.T) {
 
 	t.Run("string values", func(t *testing.T) {
 		assert.Equal(t, int32(42), ToInt32("42"))
-		assert.Equal(t, int32(0), ToInt32("-42")) // negative strings not supported
+		assert.Equal(t, int32(-42), ToInt32("-42")) // negative strings now supported
 		assert.Equal(t, int32(0), ToInt32("0"))
 	})
 
@@ -1065,7 +1065,7 @@ func TestToInt32(t *testing.T) {
 
 	t.Run("byte slice values", func(t *testing.T) {
 		assert.Equal(t, int32(42), ToInt32([]byte("42")))
-		assert.Equal(t, int32(0), ToInt32([]byte("-42"))) // negative strings not supported
+		assert.Equal(t, int32(-42), ToInt32([]byte("-42"))) // negative strings now supported
 	})
 
 	t.Run("unsupported types", func(t *testing.T) {
@@ -1101,14 +1101,14 @@ func TestToInt16(t *testing.T) {
 
 	t.Run("string values", func(t *testing.T) {
 		assert.Equal(t, int16(42), ToInt16("42"))
-		assert.Equal(t, int16(0), ToInt16("-42")) // negative strings not supported due to ParseUint
+		assert.Equal(t, int16(-42), ToInt16("-42")) // negative strings now supported
 		assert.Equal(t, int16(0), ToInt16(""))
 		assert.Equal(t, int16(0), ToInt16("3.14"))
 	})
 
 	t.Run("byte slice values", func(t *testing.T) {
 		assert.Equal(t, int16(42), ToInt16([]byte("42")))
-		assert.Equal(t, int16(0), ToInt16([]byte("-42"))) // negative not supported
+		assert.Equal(t, int16(-42), ToInt16([]byte("-42"))) // negative now supported
 		assert.Equal(t, int16(0), ToInt16([]byte("")))
 		assert.Equal(t, int16(0), ToInt16([]byte("invalid")))
 	})
@@ -1147,14 +1147,14 @@ func TestToInt8(t *testing.T) {
 
 	t.Run("string values", func(t *testing.T) {
 		assert.Equal(t, int8(42), ToInt8("42"))
-		assert.Equal(t, int8(0), ToInt8("-42")) // negative strings not supported due to ParseUint
+		assert.Equal(t, int8(-42), ToInt8("-42")) // negative strings now supported
 		assert.Equal(t, int8(0), ToInt8(""))
 		assert.Equal(t, int8(0), ToInt8("3.14"))
 	})
 
 	t.Run("byte slice values", func(t *testing.T) {
 		assert.Equal(t, int8(42), ToInt8([]byte("42")))
-		assert.Equal(t, int8(0), ToInt8([]byte("-42"))) // negative not supported
+		assert.Equal(t, int8(-42), ToInt8([]byte("-42"))) // negative now supported
 		assert.Equal(t, int8(0), ToInt8([]byte("")))
 		assert.Equal(t, int8(0), ToInt8([]byte("invalid")))
 	})
