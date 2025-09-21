@@ -1,7 +1,7 @@
 package runtime
 
 import (
-	"github.com/lazygophers/log"
+	"fmt"
 	"github.com/lazygophers/utils/app"
 	"os"
 	"path/filepath"
@@ -15,16 +15,28 @@ func CachePanic() {
 
 func CachePanicWithHandle(handle func(err interface{})) {
 	if err := recover(); err != nil {
-		log.Errorf("PROCESS PANIC: err %s", err)
+		// 使用最基础的系统调用避免栈溢出
+		os.Stderr.WriteString("PROCESS PANIC: err ")
+		os.Stderr.WriteString(fmt.Sprintf("%v", err))
+		os.Stderr.WriteString("\n")
+
 		st := debug.Stack()
 		if len(st) > 0 {
-			log.Errorf("dump stack (%s):", err)
+			os.Stderr.WriteString("dump stack (")
+			os.Stderr.WriteString(fmt.Sprintf("%v", err))
+			os.Stderr.WriteString("):\n")
+
+			// 分块处理栈跟踪信息，添加缩进
 			lines := strings.Split(string(st), "\n")
 			for _, line := range lines {
-				log.Error("  ", line)
+				os.Stderr.WriteString("  ")
+				os.Stderr.WriteString(line)
+				os.Stderr.WriteString("\n")
 			}
 		} else {
-			log.Errorf("stack is empty (%s)", err)
+			os.Stderr.WriteString("stack is empty (")
+			os.Stderr.WriteString(fmt.Sprintf("%v", err))
+			os.Stderr.WriteString(")\n")
 		}
 		if handle != nil {
 			handle(err)
@@ -36,10 +48,20 @@ func CachePanicWithHandle(handle func(err interface{})) {
 func PrintStack() {
 	st := debug.Stack()
 	if len(st) > 0 {
-		log.Error("dump stack:")
-		log.Error(string(st))
+		// 使用最基础的系统调用避免栈溢出
+		os.Stderr.WriteString("dump stack:\n")
+		// 分块写入大的栈跟踪信息
+		const chunkSize = 1024
+		for i := 0; i < len(st); i += chunkSize {
+			end := i + chunkSize
+			if end > len(st) {
+				end = len(st)
+			}
+			os.Stderr.Write(st[i:end])
+		}
+		os.Stderr.WriteString("\n")
 	} else {
-		log.Error("stack is empty")
+		os.Stderr.WriteString("stack is empty\n")
 	}
 }
 
