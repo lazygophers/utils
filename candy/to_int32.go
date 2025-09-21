@@ -43,13 +43,13 @@ func ToInt32(val interface{}) int32 {
 	case float64:
 		return int32(x)
 	case string:
-		val, err := strconv.ParseUint(x, 10, 64)
+		val, err := strconv.ParseInt(x, 10, 32)
 		if err != nil {
 			return 0
 		}
 		return int32(val)
 	case []byte:
-		val, err := strconv.ParseUint(string(x), 10, 64)
+		val, err := strconv.ParseInt(string(x), 10, 32)
 		if err != nil {
 			return 0
 		}

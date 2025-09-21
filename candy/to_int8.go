@@ -43,13 +43,13 @@ func ToInt8(val interface{}) int8 {
 	case float64:
 		return int8(x)
 	case string:
-		val, err := strconv.ParseUint(x, 10, 64)
+		val, err := strconv.ParseInt(x, 10, 8)
 		if err != nil {
 			return 0
 		}
 		return int8(val)
 	case []byte:
-		val, err := strconv.ParseUint(string(x), 10, 64)
+		val, err := strconv.ParseInt(string(x), 10, 8)
 		if err != nil {
 			return 0
 		}

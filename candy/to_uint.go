@@ -43,7 +43,7 @@ func ToUint(val interface{}) uint {
 	case string:
 		// 字符串解析为 uint，使用十进制格式
 		// 解析失败时返回 0
-		val, err := strconv.ParseUint(x, 10, 64)
+		val, err := strconv.ParseUint(x, 10, 0)
 		if err != nil {
 			return 0
 		}
@@ -51,7 +51,7 @@ func ToUint(val interface{}) uint {
 	case []byte:
 		// 字节切片转换为字符串后再解析为 uint
 		// 解析失败时返回 0
-		val, err := strconv.ParseUint(string(x), 10, 64)
+		val, err := strconv.ParseUint(string(x), 10, 0)
 		if err != nil {
 			return 0
 		}
