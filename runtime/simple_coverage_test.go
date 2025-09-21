@@ -16,7 +16,7 @@ func TestRuntimeCoverageImprovement(t *testing.T) {
 		PrintStack()
 
 		// Test with different stack sizes to cover both stack branches
-		debug.SetMaxStack(0)  // This should trigger empty stack
+		debug.SetMaxStack(1)  // Very small stack instead of 0
 		PrintStack()
 
 		debug.SetMaxStack(8192)
@@ -83,16 +83,16 @@ func TestRuntimeCoverageImprovement(t *testing.T) {
 		}()
 		assert.True(t, structPanicHandled)
 
-		// Test with empty stack scenario by setting stack to 0
+		// Test with small stack scenario by setting stack to very small value
 		func() {
-			debug.SetMaxStack(0)
+			debug.SetMaxStack(1)
 			defer func() {
 				debug.SetMaxStack(8192) // Reset
 			}()
 			defer CachePanicWithHandle(func(err interface{}) {
-				// This should trigger the empty stack branch
+				// This should trigger the small stack branch
 			})
-			panic("empty stack test")
+			panic("small stack test")
 		}()
 	})
 
@@ -280,18 +280,22 @@ func TestEdgeCasesForBetterCoverage(t *testing.T) {
 	})
 
 	t.Run("EmptyStackTest", func(t *testing.T) {
-		// Try to trigger empty stack scenario (difficult but worth trying)
-		debug.SetMaxStack(0) // Might cause empty stack
+		// Try to trigger empty stack scenario with small stack size instead of 0
+		// Using 0 can cause unpredictable runtime behavior including hangs
+		debug.SetMaxStack(1) // Very small stack size instead of 0
 		func() {
+			defer func() {
+				debug.SetMaxStack(8192) // Ensure reset happens
+			}()
 			defer CachePanicWithHandle(func(err interface{}) {
-				// This should trigger the empty stack branch
+				// This should trigger the small stack branch
 			})
-			panic("empty stack attempt")
+			panic("small stack attempt")
 		}()
 
-		// Also test PrintStack with empty stack
-		debug.SetMaxStack(0)
-		PrintStack() // This should hit the empty stack branch
+		// Also test PrintStack with small stack
+		debug.SetMaxStack(1)
+		PrintStack() // This should hit the small stack branch
 
 		// Reset to reasonable size
 		debug.SetMaxStack(8192)
