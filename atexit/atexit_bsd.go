@@ -1,4 +1,4 @@
-//go:build !linux && !android && !windows && !darwin && !ios && !freebsd && !openbsd && !netbsd && !dragonfly && !solaris && !illumos && !aix && !js && !plan9 && !wasip1
+//go:build freebsd || openbsd || netbsd || dragonfly
 
 package atexit
 
@@ -15,18 +15,20 @@ var (
 	signalOnce  sync.Once
 )
 
-// initSignalHandler initializes signal handler for Unix-like systems
-// 初始化信号处理 - 类Unix系统
+// initSignalHandler initializes signal handler for BSD systems
+// 初始化信号处理 - BSD系统
 func initSignalHandler() {
 	signalOnce.Do(func() {
 		c := make(chan os.Signal, 1)
-		// Monitor common termination signals for Unix-like systems
-		// This is a fallback for any future or uncommon Unix-like platforms
-		// 监听类Unix系统的通用终止信号
-		// 这是针对任何未来或不常见的类Unix平台的后备实现
+		// Monitor standard termination signals for BSD systems
+		// BSD systems support full Unix signal set
+		// 监听 BSD 系统的标准终止信号
+		// BSD 系统支持完整的 Unix 信号集
 		signal.Notify(c,
 			os.Interrupt,    // Covers SIGINT / 覆盖 SIGINT
 			syscall.SIGTERM, // Termination request / 终止请求
+			syscall.SIGHUP,  // Hangup - terminal disconnected / 终端断开
+			syscall.SIGQUIT, // Quit with core dump / 退出并转储核心
 		)
 
 		go func() {
@@ -58,8 +60,8 @@ func executeCallbacks() {
 					// Catch panics from callbacks to prevent affecting other callbacks
 					// 捕获回调函数中的panic，避免影响其他回调的执行
 					if r := recover(); r != nil {
-						// Generic system error handling
-						// 通用系统的错误处理
+						// BSD system error handling
+						// BSD系统的错误处理
 					}
 				}()
 				cb()

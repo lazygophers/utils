@@ -1,331 +1,375 @@
-# AtExit - Graceful Shutdown Handling
+# atexit - Graceful Shutdown Handler
 
-A cross-platform Go package that provides graceful application shutdown handling through signal interception and callback registration. The `atexit` package ensures your application can perform cleanup operations before termination.
+[English](#english) | [简体中文](#简体中文)
 
-## Features
+---
 
-- **Cross-Platform**: Optimized implementations for Linux, macOS, Windows, and generic Unix systems
-- **Signal Handling**: Automatic interception of common termination signals (SIGINT, SIGTERM, SIGHUP, SIGQUIT)
-- **Callback Registration**: Register multiple cleanup functions to execute on shutdown
-- **Panic Recovery**: Built-in panic recovery to prevent one callback from affecting others
-- **Thread-Safe**: Concurrent registration and execution of callbacks
-- **Zero Dependencies**: No external dependencies beyond Go standard library
+## English
 
-## Installation
+### Overview
+
+The `atexit` package provides a cross-platform mechanism to register callback functions that are executed when a program exits. It ensures graceful shutdown handling across all Go-supported operating systems and architectures.
+
+### Platform Support
+
+This package supports **all platforms** listed by `go tool dist list`:
+
+#### Signal-Based Platforms
+- **Linux** (including Android) - Uses `gomonkey` to hook `os.Exit`
+- **Darwin/macOS** (including iOS) - Handles SIGINT, SIGTERM, SIGHUP, SIGQUIT
+- **Windows** - Handles SIGINT, SIGTERM, os.Interrupt
+- **BSD Family** (FreeBSD, OpenBSD, NetBSD, DragonFly BSD) - Extended Unix signal handling
+- **Solaris** (including illumos) - Standard Unix signals
+- **AIX** - Standard Unix signals
+- **Other Unix-like systems** - Fallback with SIGINT, SIGTERM
+
+#### Non-Signal Platforms
+- **Plan9** - Requires explicit `Exit()` call
+- **js/wasm** - Requires explicit `Exit()` call
+- **wasip1/wasm** - Requires explicit `Exit()` call
+
+### Features
+
+- ✅ Cross-platform compatibility
+- ✅ Thread-safe callback registration
+- ✅ Panic recovery in callbacks
+- ✅ Callbacks executed in registration order
+- ✅ Graceful exit with code 0 after signal handling
+- ✅ Zero dependencies (except gomonkey on Linux/Android)
+- ✅ Support for all Go architectures (amd64, arm64, 386, arm, ppc64, riscv64, s390x, mips, loong64, etc.)
+
+### Installation
 
 ```bash
 go get github.com/lazygophers/utils/atexit
 ```
 
-## Quick Start
+### Usage
+
+#### Basic Example
 
 ```go
 package main
 
 import (
     "fmt"
-    "log"
-    "os"
-    "time"
-
     "github.com/lazygophers/utils/atexit"
 )
 
 func main() {
-    // Register cleanup functions
+    // Register cleanup callback
     atexit.Register(func() {
-        fmt.Println("Closing database connections...")
-        // db.Close()
+        fmt.Println("Cleaning up resources...")
     })
 
-    atexit.Register(func() {
-        fmt.Println("Saving application state...")
-        // saveState()
-    })
-
-    // Simulate application work
+    // Your application code
     fmt.Println("Application running...")
-    time.Sleep(30 * time.Second)
-    fmt.Println("Application finished")
+
+    // Program exits normally or via signal
 }
 ```
 
-## API Reference
+#### Multiple Callbacks
 
-### Functions
+```go
+atexit.Register(func() {
+    fmt.Println("Closing database connection...")
+})
+
+atexit.Register(func() {
+    fmt.Println("Flushing logs...")
+})
+
+atexit.Register(func() {
+    fmt.Println("Sending final metrics...")
+})
+```
+
+#### For Plan9, js/wasm, wasip1/wasm
+
+On platforms without signal support, use `atexit.Exit()`:
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/lazygophers/utils/atexit"
+)
+
+func main() {
+    atexit.Register(func() {
+        fmt.Println("Cleanup executed")
+    })
+
+    // Use atexit.Exit instead of os.Exit
+    atexit.Exit(0)  // Executes callbacks before exiting
+}
+```
+
+### API
 
 #### `Register(callback func())`
 
-Registers a callback function to be executed when the application receives a termination signal.
+Registers a callback function to be called when the program exits.
 
-**Parameters:**
-- `callback func()`: The function to execute on shutdown. If nil, the call is ignored.
+- **Parameters**: `callback` - Function to execute on exit
+- **Returns**: None
+- **Notes**:
+  - Nil callbacks are ignored
+  - Callbacks are executed in registration order
+  - Panics in callbacks are recovered
 
-**Example:**
-```go
-atexit.Register(func() {
-    log.Println("Cleanup completed")
-})
+#### `Exit(code int)` (Plan9, js/wasm, wasip1/wasm only)
+
+Executes all registered callbacks and then exits with the given code.
+
+- **Parameters**: `code` - Exit code (0 for success, non-zero for error)
+- **Returns**: Does not return
+- **Notes**: Only available on non-signal platforms
+
+### Platform-Specific Behavior
+
+| Platform | Signal Handling | Exit Hook | Notes |
+|----------|----------------|-----------|-------|
+| Linux/Android | ✅ | ✅ gomonkey | Hooks `os.Exit` for comprehensive coverage |
+| Darwin/macOS/iOS | ✅ | ❌ | Handles SIGINT, SIGTERM, SIGHUP, SIGQUIT |
+| Windows | ✅ | ❌ | Handles SIGINT, SIGTERM, os.Interrupt |
+| BSD (FreeBSD, OpenBSD, NetBSD, DragonFly) | ✅ | ❌ | Extended signal support |
+| Solaris/illumos | ✅ | ❌ | Standard Unix signals |
+| AIX | ✅ | ❌ | Standard Unix signals |
+| Plan9 | ❌ | ❌ | Use `atexit.Exit()` |
+| js/wasm | ❌ | ❌ | Use `atexit.Exit()` |
+| wasip1/wasm | ❌ | ❌ | Use `atexit.Exit()` |
+
+### Architecture Support
+
+Tested and supported on all Go architectures:
+- **x86**: 386, amd64
+- **ARM**: arm, arm64
+- **PowerPC**: ppc64, ppc64le
+- **RISC-V**: riscv64
+- **MIPS**: mips, mipsle, mips64, mips64le
+- **LoongArch**: loong64
+- **s390x**: IBM Z architecture
+- **wasm**: WebAssembly
+
+### Exit Behavior
+
+**Signal-based platforms** (Linux, macOS, Windows, BSD, etc.):
+- When a termination signal is received (SIGINT, SIGTERM, SIGHUP, etc.), all registered callbacks are executed
+- After callbacks complete, the program exits with **code 0** (graceful shutdown)
+- This ensures clean shutdown is considered successful
+
+**Non-signal platforms** (Plan9, js/wasm, wasip1/wasm):
+- Use `atexit.Exit(code)` to execute callbacks before exiting
+- The provided exit code is used as-is
+
+### Best Practices
+
+1. **Register Early**: Register callbacks early in `main()` to ensure they're set up before potential exits
+2. **Keep Callbacks Short**: Exit callbacks should complete quickly
+3. **Handle Errors Gracefully**: Callbacks should handle their own errors
+4. **Avoid Blocking**: Don't use blocking operations in callbacks
+5. **Platform Awareness**: Use `atexit.Exit()` on Plan9 and WASM platforms
+6. **Exit Code**: Signal-triggered shutdowns exit with code 0, indicating graceful termination
+
+### Testing
+
+```bash
+# Run tests on current platform
+go test -v
+
+# Cross-compile for specific platform
+GOOS=linux GOARCH=amd64 go build
+GOOS=windows GOARCH=amd64 go build
+GOOS=js GOARCH=wasm go build
 ```
 
-**Behavior:**
-- Callbacks are executed in the order they were registered
-- Each callback runs in its own protected goroutine with panic recovery
-- Signal handling is initialized on the first call to Register()
-- Thread-safe for concurrent registration
+---
 
-## Platform-Specific Behavior
+## 简体中文
 
-### Linux (`atexit_linux.go`)
-- Handles: `SIGINT`, `SIGTERM`, `SIGQUIT`, `SIGHUP`
-- Optimized for Linux signal handling
-- Uses Linux-specific signal handling optimizations
+### 概述
 
-### macOS (`atexit_darwin.go`)
-- Handles: `SIGINT`, `SIGTERM`, `SIGQUIT`, `SIGHUP`
-- Supports additional Unix signals
-- Can integrate with system logging
+`atexit` 包提供了一个跨平台机制，用于注册程序退出时执行的回调函数。它确保在所有 Go 支持的操作系统和架构上实现优雅的关闭处理。
 
-### Windows (`atexit_windows.go`)
-- Handles Windows-specific termination events
-- Console control events (Ctrl+C, Ctrl+Break)
-- System shutdown events
-- Service stop requests
+### 平台支持
 
-### Generic Unix (`atexit.go`)
-- Handles: `SIGINT`, `SIGTERM`
-- Fallback implementation for other Unix systems
-- Basic signal handling with panic recovery
+本包支持 `go tool dist list` 列出的**所有平台**：
 
-## Usage Examples
+#### 基于信号的平台
+- **Linux**（包括 Android）- 使用 `gomonkey` 钩住 `os.Exit`
+- **Darwin/macOS**（包括 iOS）- 处理 SIGINT、SIGTERM、SIGHUP、SIGQUIT
+- **Windows** - 处理 SIGINT、SIGTERM、os.Interrupt
+- **BSD 家族**（FreeBSD、OpenBSD、NetBSD、DragonFly BSD）- 扩展 Unix 信号处理
+- **Solaris**（包括 illumos）- 标准 Unix 信号
+- **AIX** - 标准 Unix 信号
+- **其他类 Unix 系统** - 使用 SIGINT、SIGTERM 的后备实现
 
-### Database Cleanup
+#### 非信号平台
+- **Plan9** - 需要显式调用 `Exit()`
+- **js/wasm** - 需要显式调用 `Exit()`
+- **wasip1/wasm** - 需要显式调用 `Exit()`
+
+### 特性
+
+- ✅ 跨平台兼容性
+- ✅ 线程安全的回调注册
+- ✅ 回调中的 panic 恢复
+- ✅ 按注册顺序执行回调
+- ✅ 信号处理后以退出码 0 优雅退出
+- ✅ 零依赖（Linux/Android 上除 gomonkey 外）
+- ✅ 支持所有 Go 架构（amd64、arm64、386、arm、ppc64、riscv64、s390x、mips、loong64 等）
+
+### 安装
+
+```bash
+go get github.com/lazygophers/utils/atexit
+```
+
+### 使用方法
+
+#### 基本示例
 
 ```go
 package main
 
 import (
-    "database/sql"
-    "log"
-
+    "fmt"
     "github.com/lazygophers/utils/atexit"
-    _ "github.com/lib/pq"
 )
 
 func main() {
-    db, err := sql.Open("postgres", "connection_string")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Register database cleanup
+    // 注册清理回调
     atexit.Register(func() {
-        log.Println("Closing database connection...")
-        if err := db.Close(); err != nil {
-            log.Printf("Error closing database: %v", err)
-        }
+        fmt.Println("正在清理资源...")
     })
 
-    // Your application logic here
-    runApplication(db)
+    // 应用程序代码
+    fmt.Println("应用程序正在运行...")
+
+    // 程序正常退出或通过信号退出
 }
 ```
 
-### HTTP Server Graceful Shutdown
+#### 多个回调
+
+```go
+atexit.Register(func() {
+    fmt.Println("正在关闭数据库连接...")
+})
+
+atexit.Register(func() {
+    fmt.Println("正在刷新日志...")
+})
+
+atexit.Register(func() {
+    fmt.Println("正在发送最终指标...")
+})
+```
+
+#### 对于 Plan9、js/wasm、wasip1/wasm
+
+在不支持信号的平台上，使用 `atexit.Exit()`：
 
 ```go
 package main
 
 import (
-    "context"
-    "log"
-    "net/http"
-    "time"
-
+    "fmt"
     "github.com/lazygophers/utils/atexit"
 )
 
 func main() {
-    server := &http.Server{
-        Addr:    ":8080",
-        Handler: http.DefaultServeMux,
-    }
-
-    // Register server shutdown
     atexit.Register(func() {
-        log.Println("Shutting down HTTP server...")
-        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-        defer cancel()
-
-        if err := server.Shutdown(ctx); err != nil {
-            log.Printf("Server shutdown error: %v", err)
-        }
+        fmt.Println("清理已执行")
     })
 
-    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        w.Write([]byte("Hello, World!"))
-    })
-
-    log.Println("Server starting on :8080")
-    log.Fatal(server.ListenAndServe())
+    // 使用 atexit.Exit 而不是 os.Exit
+    atexit.Exit(0)  // 在退出前执行回调
 }
 ```
 
-### Multiple Resource Cleanup
+### API
 
-```go
-package main
+#### `Register(callback func())`
 
-import (
-    "log"
-    "os"
+注册程序退出时要调用的回调函数。
 
-    "github.com/lazygophers/utils/atexit"
-)
+- **参数**：`callback` - 退出时执行的函数
+- **返回值**：无
+- **注意事项**：
+  - 忽略 nil 回调
+  - 按注册顺序执行回调
+  - 恢复回调中的 panic
 
-func main() {
-    // Open files
-    logFile, err := os.Create("app.log")
-    if err != nil {
-        log.Fatal(err)
-    }
+#### `Exit(code int)`（仅 Plan9、js/wasm、wasip1/wasm）
 
-    configFile, err := os.Open("config.json")
-    if err != nil {
-        log.Fatal(err)
-    }
+执行所有注册的回调，然后以给定代码退出。
 
-    // Register cleanup for each resource
-    atexit.Register(func() {
-        log.Println("Closing log file...")
-        logFile.Close()
-    })
+- **参数**：`code` - 退出代码（0 表示成功，非零表示错误）
+- **返回值**：不返回
+- **注意事项**：仅在非信号平台上可用
 
-    atexit.Register(func() {
-        log.Println("Closing config file...")
-        configFile.Close()
-    })
+### 平台特定行为
 
-    atexit.Register(func() {
-        log.Println("Performing final cleanup...")
-        os.Remove("temp.lock")
-    })
+| 平台 | 信号处理 | 退出钩子 | 备注 |
+|------|---------|---------|------|
+| Linux/Android | ✅ | ✅ gomonkey | 钩住 `os.Exit` 以实现全面覆盖 |
+| Darwin/macOS/iOS | ✅ | ❌ | 处理 SIGINT、SIGTERM、SIGHUP、SIGQUIT |
+| Windows | ✅ | ❌ | 处理 SIGINT、SIGTERM、os.Interrupt |
+| BSD（FreeBSD、OpenBSD、NetBSD、DragonFly）| ✅ | ❌ | 扩展信号支持 |
+| Solaris/illumos | ✅ | ❌ | 标准 Unix 信号 |
+| AIX | ✅ | ❌ | 标准 Unix 信号 |
+| Plan9 | ❌ | ❌ | 使用 `atexit.Exit()` |
+| js/wasm | ❌ | ❌ | 使用 `atexit.Exit()` |
+| wasip1/wasm | ❌ | ❌ | 使用 `atexit.Exit()` |
 
-    // Application logic
-    runApplication()
-}
+### 架构支持
+
+在所有 Go 架构上测试并支持：
+- **x86**：386、amd64
+- **ARM**：arm、arm64
+- **PowerPC**：ppc64、ppc64le
+- **RISC-V**：riscv64
+- **MIPS**：mips、mipsle、mips64、mips64le
+- **LoongArch**：loong64
+- **s390x**：IBM Z 架构
+- **wasm**：WebAssembly
+
+### 退出行为
+
+**基于信号的平台**（Linux、macOS、Windows、BSD 等）：
+- 当收到终止信号（SIGINT、SIGTERM、SIGHUP 等）时，执行所有注册的回调
+- 回调完成后，程序以**退出码 0** 退出（优雅关闭）
+- 这确保了干净的关闭被视为成功
+
+**非信号平台**（Plan9、js/wasm、wasip1/wasm）：
+- 使用 `atexit.Exit(code)` 在退出前执行回调
+- 使用提供的退出码
+
+### 最佳实践
+
+1. **早期注册**：在 `main()` 中尽早注册回调，以确保在潜在退出之前设置好
+2. **保持回调简短**：退出回调应快速完成
+3. **优雅处理错误**：回调应处理自己的错误
+4. **避免阻塞**：不要在回调中使用阻塞操作
+5. **平台意识**：在 Plan9 和 WASM 平台上使用 `atexit.Exit()`
+6. **退出码**：信号触发的关闭以退出码 0 退出，表示优雅终止
+
+### 测试
+
+```bash
+# 在当前平台上运行测试
+go test -v
+
+# 为特定平台交叉编译
+GOOS=linux GOARCH=amd64 go build
+GOOS=windows GOARCH=amd64 go build
+GOOS=js GOARCH=wasm go build
 ```
 
-## Best Practices
+### 许可证
 
-### 1. Register Early
-Register your cleanup callbacks as early as possible in your application lifecycle:
-
-```go
-func main() {
-    // Register cleanup immediately after resource creation
-    db := setupDatabase()
-    atexit.Register(func() { db.Close() })
-
-    cache := setupCache()
-    atexit.Register(func() { cache.Shutdown() })
-
-    // Continue with application logic
-}
-```
-
-### 2. Handle Errors Gracefully
-Cleanup functions should handle errors without panicking:
-
-```go
-atexit.Register(func() {
-    if err := resource.Close(); err != nil {
-        log.Printf("Warning: Failed to close resource: %v", err)
-        // Don't panic - other callbacks need to run
-    }
-})
-```
-
-### 3. Timeout Long-Running Operations
-Set timeouts for potentially long-running cleanup operations:
-
-```go
-atexit.Register(func() {
-    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-    defer cancel()
-
-    if err := server.Shutdown(ctx); err != nil {
-        log.Printf("Server shutdown timeout: %v", err)
-    }
-})
-```
-
-### 4. Order Dependencies
-Register callbacks in reverse dependency order (last dependency first):
-
-```go
-func main() {
-    cache := setupCache()
-    db := setupDatabase()
-    server := setupServer(db, cache)
-
-    // Register in reverse order of dependencies
-    atexit.Register(func() { server.Shutdown() })  // Depends on db and cache
-    atexit.Register(func() { cache.Close() })      // Independent
-    atexit.Register(func() { db.Close() })         // Independent
-}
-```
-
-## Signal Handling Details
-
-### Supported Signals
-
-| Platform | SIGINT | SIGTERM | SIGQUIT | SIGHUP | Windows Events |
-|----------|--------|---------|---------|--------|----------------|
-| Linux    | ✓      | ✓       | ✓       | ✓      | -              |
-| macOS    | ✓      | ✓       | ✓       | ✓      | -              |
-| Windows  | -      | -       | -       | -      | ✓              |
-| Generic  | ✓      | ✓       | -       | -      | -              |
-
-### Signal Sources
-
-- **SIGINT**: Interrupt from keyboard (Ctrl+C)
-- **SIGTERM**: Termination request
-- **SIGQUIT**: Quit from keyboard (Ctrl+\)
-- **SIGHUP**: Hangup detected on controlling terminal
-- **Windows**: Console control events, system shutdown
-
-## Performance Considerations
-
-- **Low Overhead**: Signal handling is initialized only once
-- **Concurrent Safe**: Uses RWMutex for thread-safe callback management
-- **Panic Recovery**: Each callback runs in a protected environment
-- **Memory Efficient**: Minimal memory footprint for signal handling
-
-## Thread Safety
-
-The atexit package is fully thread-safe:
-
-- **Registration**: Multiple goroutines can safely register callbacks concurrently
-- **Execution**: Callbacks are executed sequentially but each in its own protected scope
-- **Signal Handling**: Signal handlers are initialized once using `sync.Once`
-
-## Limitations
-
-1. **One-Time Execution**: Callbacks are executed only once per application shutdown
-2. **No Cancellation**: Once registered, callbacks cannot be unregistered
-3. **Sequential Execution**: Callbacks run sequentially, not in parallel
-4. **Platform Differences**: Signal handling varies between operating systems
-
-## Contributing
-
-Contributions are welcome! Please ensure:
-
-1. Cross-platform compatibility
-2. Thread safety
-3. Comprehensive tests
-4. Documentation updates
-
-## License
-
-This package is part of the LazyGophers Utils library and follows the same licensing terms.
+本项目是 LazyGophers Utils 库的一部分。
