@@ -151,7 +151,7 @@ func deepCopyValue(v1, v2 reflect.Value) {
 //
 // @param src 源对象，待拷贝的数据。
 // @param dst 目标对象的指针，用于接收拷贝后的数据。
-func DeepCopy[M any](src, dst M) {
+func DeepCopy(src, dst any) {
 	v1 := reflect.ValueOf(src)
 	v2 := reflect.ValueOf(dst)
 	deepCopyValue(v1, v2)
