@@ -241,7 +241,10 @@ func TestToCamel(t *testing.T) {
 	}{
 		{"", ""},
 		{"simple", "Simple"},
+		{"   simple", "Simple"},
 		{"simple_test", "SimpleTest"},
+		{"simpleTest", "SimpleTest"},
+		{"AILoad", "AILoad"},
 		{"my-variable-name", "MyVariableName"},
 		{"http.connection", "HttpConnection"},
 		{"xml/parser", "XmlParser"},
@@ -269,6 +272,7 @@ func TestToSlash(t *testing.T) {
 		{"", ""},
 		{"simple", "simple"},
 		{"SimpleTest", "simple/test"},
+		{"simpleTest", "simple/test"},
 		{"HTTPSConnection", "h/t/t/p/s/connection"},
 		{"XMLHttpParser", "x/m/l/http/parser"},
 		{"iPhone15Pro", "i/phone/15/pro"},
@@ -294,6 +298,7 @@ func TestToDot(t *testing.T) {
 		{"", ""},
 		{"simple", "simple"},
 		{"SimpleTest", "simple.test"},
+		{"simpleTest", "simple.test"},
 		{"HTTPSConnection", "h.t.t.p.s.connection"},
 		{"XMLHttpParser", "x.m.l.http.parser"},
 		{"iPhone15Pro", "i.phone.15.pro"},
@@ -740,7 +745,7 @@ func TestCamel2SnakeUnicode(t *testing.T) {
 		{
 			name:     "unicode_uppercase",
 			input:    "ÜberTest",
-			expected: "\xfcber_test",  // This is the actual UTF-8 encoding
+			expected: "\xfcber_test", // This is the actual UTF-8 encoding
 		},
 	}
 
@@ -1004,11 +1009,11 @@ func TestToSmallCamelElseBranch(t *testing.T) {
 		// Create input that triggers the else branch (lines 332-334)
 		// This happens when upper=true but the character is not a letter
 		testCases := []string{
-			"test_123_case",     // numbers after underscores
-			"test_!@#_case",     // symbols after underscores
-			"test___case",       // multiple underscores
-			"test_$%^_case",     // special characters
-			"test_1a2b_case",    // mixed numbers and letters
+			"test_123_case",  // numbers after underscores
+			"test_!@#_case",  // symbols after underscores
+			"test___case",    // multiple underscores
+			"test_$%^_case",  // special characters
+			"test_1a2b_case", // mixed numbers and letters
 		}
 
 		for _, input := range testCases {
@@ -1025,11 +1030,11 @@ func TestToSmallCamelElseBranch(t *testing.T) {
 	t.Run("edge_case_characters", func(t *testing.T) {
 		// Test with various non-letter characters that should trigger the else branch
 		edgeCases := []string{
-			"a_1b",           // number after underscore
-			"a_@b",           // symbol after underscore
-			"test_8_value",   // number in middle
-			"x_#_y",          // symbol in middle
-			"start_9end",     // number at word boundary
+			"a_1b",         // number after underscore
+			"a_@b",         // symbol after underscore
+			"test_8_value", // number in middle
+			"x_#_y",        // symbol in middle
+			"start_9end",   // number at word boundary
 		}
 
 		for _, input := range edgeCases {

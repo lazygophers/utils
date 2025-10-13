@@ -195,7 +195,8 @@ func ToCamel(s string) string {
 	prevWasNumber := false
 	for _, v := range s {
 		if unicode.IsLetter(v) || unicode.IsNumber(v) {
-			if upper || (prevWasNumber && unicode.IsLetter(v)) {
+			// If the current character is already uppercase, treat it as a word boundary
+			if upper || unicode.IsUpper(v) || (prevWasNumber && unicode.IsLetter(v)) {
 				if unicode.IsLetter(v) {
 					b.WriteRune(unicode.ToUpper(v))
 				} else {
