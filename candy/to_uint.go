@@ -8,13 +8,11 @@ import "strconv"
 func ToUint(val interface{}) uint {
 	switch x := val.(type) {
 	case bool:
-		// 布尔值转换：true -> 1，false -> 0
 		if x {
 			return 1
 		}
 		return 0
 	case int:
-		// 有符号整数直接转换为 uint
 		return uint(x)
 	case int8:
 		return uint(x)
@@ -25,7 +23,6 @@ func ToUint(val interface{}) uint {
 	case int64:
 		return uint(x)
 	case uint:
-		// 无符号整数直接返回
 		return x
 	case uint8:
 		return uint(x)
@@ -36,28 +33,240 @@ func ToUint(val interface{}) uint {
 	case uint64:
 		return uint(x)
 	case float32:
-		// 浮点数转换为 uint，会截断小数部分
 		return uint(x)
 	case float64:
 		return uint(x)
 	case string:
-		// 字符串解析为 uint，使用十进制格式
-		// 解析失败时返回 0
 		val, err := strconv.ParseUint(x, 10, 0)
 		if err != nil {
 			return 0
 		}
 		return uint(val)
 	case []byte:
-		// 字节切片转换为字符串后再解析为 uint
-		// 解析失败时返回 0
 		val, err := strconv.ParseUint(string(x), 10, 0)
 		if err != nil {
 			return 0
 		}
 		return uint(val)
 	default:
-		// 不支持的类型返回 0
+		return 0
+	}
+}
+
+// ToUint8 将任意类型的值转换为 uint8 类型
+// 支持的类型包括：bool、所有整数类型、浮点数、字符串、字节切片
+// 对于不支持的类型或转换失败的情况，返回 0
+func ToUint8(val interface{}) uint8 {
+	switch x := val.(type) {
+	case bool:
+		if x {
+			return 1
+		}
+		return 0
+	case int:
+		return uint8(x)
+	case int8:
+		return uint8(x)
+	case int16:
+		return uint8(x)
+	case int32:
+		return uint8(x)
+	case int64:
+		return uint8(x)
+	case uint:
+		return uint8(x)
+	case uint8:
+		return x
+	case uint16:
+		return uint8(x)
+	case uint32:
+		return uint8(x)
+	case uint64:
+		return uint8(x)
+	case float32:
+		return uint8(x)
+	case float64:
+		return uint8(x)
+	case string:
+		val, err := strconv.ParseUint(x, 10, 8)
+		if err != nil {
+			return 0
+		}
+		return uint8(val)
+	case []byte:
+		val, err := strconv.ParseUint(string(x), 10, 8)
+		if err != nil {
+			return 0
+		}
+		return uint8(val)
+	default:
+		return 0
+	}
+}
+
+// ToUint16 将各种类型的值转换为 uint16 类型
+//
+// 支持的输入类型：
+//   - bool: true 转换为 1，false 转换为 0
+//   - 整数类型 (int, int8, int16, int32, int64): 直接转换
+//   - 无符号整数 (uint, uint8, uint16, uint32, uint64): 直接转换
+//   - 浮点数 (float32, float64): 截断小数部分后转换
+//   - string: 使用 strconv.ParseUint 解析十进制字符串，失败返回 0
+//   - []byte: 转换为字符串后解析，失败返回 0
+//   - 其他类型: 返回 0
+func ToUint16(val interface{}) uint16 {
+	switch x := val.(type) {
+	case bool:
+		if x {
+			return 1
+		}
+		return 0
+	case int:
+		return uint16(x)
+	case int8:
+		return uint16(x)
+	case int16:
+		return uint16(x)
+	case int32:
+		return uint16(x)
+	case int64:
+		return uint16(x)
+	case uint:
+		return uint16(x)
+	case uint8:
+		return uint16(x)
+	case uint16:
+		return x
+	case uint32:
+		return uint16(x)
+	case uint64:
+		return uint16(x)
+	case float32:
+		return uint16(x)
+	case float64:
+		return uint16(x)
+	case string:
+		val, err := strconv.ParseUint(x, 10, 16)
+		if err != nil {
+			return 0
+		}
+		return uint16(val)
+	case []byte:
+		val, err := strconv.ParseUint(string(x), 10, 16)
+		if err != nil {
+			return 0
+		}
+		return uint16(val)
+	default:
+		return 0
+	}
+}
+
+// ToUint32 将任意类型转换为 uint32 类型
+// 支持的类型包括：bool、所有整数类型、浮点数、字符串、字节数组
+// 转换失败时返回 0
+func ToUint32(val interface{}) uint32 {
+	switch x := val.(type) {
+	case bool:
+		if x {
+			return 1
+		}
+		return 0
+	case int:
+		return uint32(x)
+	case int8:
+		return uint32(x)
+	case int16:
+		return uint32(x)
+	case int32:
+		return uint32(x)
+	case int64:
+		return uint32(x)
+	case uint:
+		return uint32(x)
+	case uint8:
+		return uint32(x)
+	case uint16:
+		return uint32(x)
+	case uint32:
+		return x
+	case uint64:
+		return uint32(x)
+	case float32:
+		return uint32(x)
+	case float64:
+		return uint32(x)
+	case string:
+		val, err := strconv.ParseUint(x, 10, 32)
+		if err != nil {
+			return 0
+		}
+		return uint32(val)
+	case []byte:
+		val, err := strconv.ParseUint(string(x), 10, 32)
+		if err != nil {
+			return 0
+		}
+		return uint32(val)
+	default:
+		return 0
+	}
+}
+
+// ToUint64 将各种类型的值转换为 uint64 类型
+//
+// 支持的输入类型：
+//   - bool: true 转换为 1，false 转换为 0
+//   - 整数类型 (int, int8, int16, int32, int64): 直接转换
+//   - 无符号整数 (uint, uint8, uint16, uint32, uint64): 直接转换
+//   - 浮点数 (float32, float64): 截断小数部分后转换
+//   - string: 使用 strconv.ParseUint 解析十进制字符串，失败返回 0
+//   - []byte: 转换为字符串后解析，失败返回 0
+//   - 其他类型: 返回 0
+func ToUint64(val interface{}) uint64 {
+	switch x := val.(type) {
+	case bool:
+		if x {
+			return 1
+		}
+		return 0
+	case int:
+		return uint64(x)
+	case int8:
+		return uint64(x)
+	case int16:
+		return uint64(x)
+	case int32:
+		return uint64(x)
+	case int64:
+		return uint64(x)
+	case uint:
+		return uint64(x)
+	case uint8:
+		return uint64(x)
+	case uint16:
+		return uint64(x)
+	case uint32:
+		return uint64(x)
+	case uint64:
+		return x
+	case float32:
+		return uint64(x)
+	case float64:
+		return uint64(x)
+	case string:
+		val, err := strconv.ParseUint(x, 10, 64)
+		if err != nil {
+			return 0
+		}
+		return val
+	case []byte:
+		val, err := strconv.ParseUint(string(x), 10, 64)
+		if err != nil {
+			return 0
+		}
+		return val
+	default:
 		return 0
 	}
 }
