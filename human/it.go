@@ -2,14 +2,14 @@ package human
 
 // Bit units (base unit = 1 bit)
 const (
-	Bit  = 1
-	Kb = 1000 * Bit // Network speeds typically use decimal
-	Mb = 1000 * Kb
-	Gb = 1000 * Mb
-	Tb = 1000 * Gb
-	Pb = 1000 * Tb
-	Eb = 1000 * Pb
-	Zb = 1000 * Eb
+	Bit = 1
+	Kb  = 1000 * Bit // Network speeds typically use decimal
+	Mb  = 1000 * Kb
+	Gb  = 1000 * Mb
+	Tb  = 1000 * Gb
+	Pb  = 1000 * Tb
+	Eb  = 1000 * Pb
+	Zb  = 1000 * Eb
 )
 
 // Byte units (base unit = 8 bits = 1 byte)

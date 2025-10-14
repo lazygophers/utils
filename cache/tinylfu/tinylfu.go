@@ -10,18 +10,18 @@ import (
 
 // Cache represents a TinyLFU cache with Count-Min Sketch for frequency estimation
 type Cache[K comparable, V any] struct {
-	capacity    int
-	windowSize  int
-	mainSize    int
-	window      *list.List                   // Window LRU for new entries
-	probation   *list.List                   // Probation LRU for demoted entries
-	protected   *list.List                   // Protected LRU for promoted entries
-	items       map[K]*entry[K, V]
-	sketch      *CountMinSketch              // Frequency estimation
-	doorkeeper  map[K]struct{}               // Bloom filter substitute
-	admissions  int                          // Admission count for sketch reset
-	mu          sync.RWMutex
-	onEvict     func(K, V)
+	capacity   int
+	windowSize int
+	mainSize   int
+	window     *list.List // Window LRU for new entries
+	probation  *list.List // Probation LRU for demoted entries
+	protected  *list.List // Protected LRU for promoted entries
+	items      map[K]*entry[K, V]
+	sketch     *CountMinSketch // Frequency estimation
+	doorkeeper map[K]struct{}  // Bloom filter substitute
+	admissions int             // Admission count for sketch reset
+	mu         sync.RWMutex
+	onEvict    func(K, V)
 }
 
 // entry represents a cache entry
@@ -34,9 +34,9 @@ type entry[K comparable, V any] struct {
 
 // CountMinSketch implements frequency estimation
 type CountMinSketch struct {
-	counters [4][]uint8   // 4 hash functions, each with counters
-	width    int          // number of counters per hash function
-	size     int          // total items added
+	counters [4][]uint8 // 4 hash functions, each with counters
+	width    int        // number of counters per hash function
+	size     int        // total items added
 }
 
 // NewCountMinSketch creates a new Count-Min Sketch
@@ -46,15 +46,15 @@ func NewCountMinSketch(capacity int) *CountMinSketch {
 	if width < 64 {
 		width = 64
 	}
-	
+
 	cms := &CountMinSketch{
 		width: width,
 	}
-	
+
 	for i := range cms.counters {
 		cms.counters[i] = make([]uint8, width)
 	}
-	
+
 	return cms
 }
 
@@ -71,7 +71,7 @@ func keyToBytes[K comparable](key K) []byte {
 	// This is a simple approach - in practice, you might want more sophisticated
 	// key serialization depending on the key type
 	h := fnv.New64a()
-	
+
 	// Use type assertion or reflection to handle different key types
 	switch k := any(key).(type) {
 	case string:
@@ -149,17 +149,17 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 	// - 99% main cache split between probation and protected
 	windowSize := int(math.Max(1, float64(capacity)*0.01))
 	mainSize := capacity - windowSize
-	
+
 	return &Cache[K, V]{
-		capacity:    capacity,
-		windowSize:  windowSize,
-		mainSize:    mainSize,
-		window:      list.New(),
-		probation:   list.New(),
-		protected:   list.New(),
-		items:       make(map[K]*entry[K, V]),
-		sketch:      NewCountMinSketch(capacity),
-		doorkeeper:  make(map[K]struct{}),
+		capacity:   capacity,
+		windowSize: windowSize,
+		mainSize:   mainSize,
+		window:     list.New(),
+		probation:  list.New(),
+		protected:  list.New(),
+		items:      make(map[K]*entry[K, V]),
+		sketch:     NewCountMinSketch(capacity),
+		doorkeeper: make(map[K]struct{}),
 	}, nil
 }
 
@@ -182,7 +182,7 @@ func (c *Cache[K, V]) Get(key K) (value V, ok bool) {
 		// Record access in frequency sketch
 		keyBytes := keyToBytes(key)
 		c.sketch.Add(keyBytes)
-		
+
 		// Move based on current segment
 		if entry.segment == c.window {
 			// Move to front of window
@@ -194,7 +194,7 @@ func (c *Cache[K, V]) Get(key K) (value V, ok bool) {
 			// Move to front of protected
 			c.protected.MoveToFront(entry.element)
 		}
-		
+
 		return entry.value, true
 	}
 
@@ -214,7 +214,7 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 	if entry, exists := c.items[key]; exists {
 		// Update existing entry
 		entry.value = value
-		
+
 		if entry.segment == c.window {
 			c.window.MoveToFront(entry.element)
 		} else if entry.segment == c.probation {
@@ -316,13 +316,13 @@ func (c *Cache[K, V]) Clear() {
 		}
 		delete(c.items, k)
 	}
-	
+
 	c.window.Init()
 	c.probation.Init()
 	c.protected.Init()
 	c.sketch.Reset()
 	c.admissions = 0
-	
+
 	for k := range c.doorkeeper {
 		delete(c.doorkeeper, k)
 	}
@@ -417,11 +417,11 @@ func (c *Cache[K, V]) Resize(capacity int) error {
 
 	oldCapacity := c.capacity
 	c.capacity = capacity
-	
+
 	// Recalculate segment sizes
 	windowSize := int(math.Max(1, float64(capacity)*0.01))
 	mainSize := capacity - windowSize
-	
+
 	c.windowSize = windowSize
 	c.mainSize = mainSize
 
@@ -469,16 +469,16 @@ func (c *Cache[K, V]) demoteFromProtected() {
 	element := c.protected.Back()
 	if element != nil {
 		entry := element.Value.(*entry[K, V])
-		
+
 		// Remove from protected
 		c.protected.Remove(entry.element)
-		
+
 		// Check if probation is full
 		probationCapacity := c.mainSize - int(float64(c.mainSize)*0.8)
 		if c.probation.Len() >= probationCapacity {
 			c.evictFromProbation()
 		}
-		
+
 		// Add to probation
 		entry.element = c.probation.PushFront(entry)
 		entry.segment = c.probation
@@ -490,18 +490,18 @@ func (c *Cache[K, V]) evictFromWindow() bool {
 	element := c.window.Back()
 	if element != nil {
 		entry := element.Value.(*entry[K, V])
-		
+
 		// Check admission policy using TinyLFU
 		if c.shouldAdmitToMain(entry.key) {
 			// Admit to probation segment of main cache
 			c.window.Remove(entry.element)
-			
+
 			// Check if probation is full
 			probationCapacity := c.mainSize - int(float64(c.mainSize)*0.8)
 			if c.probation.Len() >= probationCapacity {
 				c.evictFromProbation()
 			}
-			
+
 			entry.element = c.probation.PushFront(entry)
 			entry.segment = c.probation
 		} else {
@@ -538,17 +538,17 @@ func (c *Cache[K, V]) evictFromProtected() bool {
 // shouldAdmitToMain determines if an entry from window should be admitted to main cache
 func (c *Cache[K, V]) shouldAdmitToMain(key K) bool {
 	keyBytes := keyToBytes(key)
-	
+
 	// Check doorkeeper (Bloom filter substitute)
 	if _, exists := c.doorkeeper[key]; !exists {
 		// First time seeing this key, add to doorkeeper but don't admit
 		c.doorkeeper[key] = struct{}{}
 		return false
 	}
-	
+
 	// Key has been seen before, check frequency against victim
 	candidateFreq := c.sketch.EstimateCount(keyBytes)
-	
+
 	// Find victim from probation (would be evicted)
 	if c.probation.Len() > 0 {
 		victimElement := c.probation.Back()
@@ -556,12 +556,12 @@ func (c *Cache[K, V]) shouldAdmitToMain(key K) bool {
 			victimEntry := victimElement.Value.(*entry[K, V])
 			victimKeyBytes := keyToBytes(victimEntry.key)
 			victimFreq := c.sketch.EstimateCount(victimKeyBytes)
-			
+
 			// Admit if candidate frequency is higher than victim
 			return candidateFreq > victimFreq
 		}
 	}
-	
+
 	// If no victim, admit by default
 	return true
 }
@@ -582,27 +582,27 @@ func (c *Cache[K, V]) Stats() Stats {
 	defer c.mu.RUnlock()
 
 	return Stats{
-		Size:            c.window.Len() + c.probation.Len() + c.protected.Len(),
-		Capacity:        c.capacity,
-		WindowSize:      c.window.Len(),
-		ProbationSize:   c.probation.Len(),
-		ProtectedSize:   c.protected.Len(),
-		WindowCapacity:  c.windowSize,
-		MainCapacity:    c.mainSize,
-		SketchSize:      c.sketch.Size(),
-		DoorkeeperSize:  len(c.doorkeeper),
+		Size:           c.window.Len() + c.probation.Len() + c.protected.Len(),
+		Capacity:       c.capacity,
+		WindowSize:     c.window.Len(),
+		ProbationSize:  c.probation.Len(),
+		ProtectedSize:  c.protected.Len(),
+		WindowCapacity: c.windowSize,
+		MainCapacity:   c.mainSize,
+		SketchSize:     c.sketch.Size(),
+		DoorkeeperSize: len(c.doorkeeper),
 	}
 }
 
 // Stats represents cache statistics
 type Stats struct {
-	Size            int // actual cache size
-	Capacity        int // maximum cache capacity
-	WindowSize      int // current window segment size
-	ProbationSize   int // current probation segment size  
-	ProtectedSize   int // current protected segment size
-	WindowCapacity  int // window segment capacity
-	MainCapacity    int // main cache capacity (probation + protected)
-	SketchSize      int // frequency sketch size
-	DoorkeeperSize  int // doorkeeper (bloom filter) size
+	Size           int // actual cache size
+	Capacity       int // maximum cache capacity
+	WindowSize     int // current window segment size
+	ProbationSize  int // current probation segment size
+	ProtectedSize  int // current protected segment size
+	WindowCapacity int // window segment capacity
+	MainCapacity   int // main cache capacity (probation + protected)
+	SketchSize     int // frequency sketch size
+	DoorkeeperSize int // doorkeeper (bloom filter) size
 }

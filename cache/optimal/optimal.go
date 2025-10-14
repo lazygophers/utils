@@ -10,17 +10,17 @@ import (
 type Cache[K comparable, V any] struct {
 	capacity      int
 	items         map[K]*entry[K, V]
-	accessPattern []K           // Future access pattern (for simulation)
-	currentTime   int           // Current position in access pattern
+	accessPattern []K // Future access pattern (for simulation)
+	currentTime   int // Current position in access pattern
 	mu            sync.RWMutex
 	onEvict       func(K, V)
 }
 
 // entry represents a cache entry
 type entry[K comparable, V any] struct {
-	key          K
-	value        V
-	nextAccess   int // Next access time in the pattern (-1 if no future access)
+	key        K
+	value      V
+	nextAccess int // Next access time in the pattern (-1 if no future access)
 }
 
 // New creates a new Belady's Optimal cache with the given capacity
@@ -62,11 +62,11 @@ func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache
 func (c *Cache[K, V]) SetAccessPattern(pattern []K) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	c.accessPattern = make([]K, len(pattern))
 	copy(c.accessPattern, pattern)
 	c.currentTime = 0
-	
+
 	// Update next access times for all current entries
 	c.updateAllNextAccessTimes()
 }
@@ -78,7 +78,7 @@ func (c *Cache[K, V]) Get(key K) (value V, ok bool) {
 
 	// Advance time (this simulates the access)
 	c.currentTime++
-	
+
 	if entry, exists := c.items[key]; exists {
 		// Update next access time for this entry
 		c.updateNextAccessTime(entry)
@@ -129,12 +129,12 @@ func (c *Cache[K, V]) Remove(key K) (value V, ok bool) {
 	if entry, exists := c.items[key]; exists {
 		value = entry.value
 		delete(c.items, key)
-		
+
 		// Call eviction callback
 		if c.onEvict != nil {
 			c.onEvict(key, value)
 		}
-		
+
 		return value, true
 	}
 
@@ -188,7 +188,7 @@ func (c *Cache[K, V]) Clear() {
 		}
 		delete(c.items, k)
 	}
-	
+
 	c.currentTime = 0
 }
 
@@ -198,13 +198,13 @@ func (c *Cache[K, V]) Keys() []K {
 	defer c.mu.RUnlock()
 
 	keys := make([]K, 0, len(c.items))
-	
+
 	// Collect all entries
 	entries := make([]*entry[K, V], 0, len(c.items))
 	for _, entry := range c.items {
 		entries = append(entries, entry)
 	}
-	
+
 	// Sort by next access time (farthest first for eviction order)
 	for i := 0; i < len(entries); i++ {
 		for j := i + 1; j < len(entries); j++ {
@@ -213,7 +213,7 @@ func (c *Cache[K, V]) Keys() []K {
 			}
 		}
 	}
-	
+
 	for _, entry := range entries {
 		keys = append(keys, entry.key)
 	}
@@ -273,7 +273,7 @@ func (c *Cache[K, V]) Resize(capacity int) error {
 // updateNextAccessTime finds the next access time for an entry
 func (c *Cache[K, V]) updateNextAccessTime(entry *entry[K, V]) {
 	entry.nextAccess = -1 // Default: no future access
-	
+
 	// Search for next occurrence of this key in the access pattern
 	for i := c.currentTime; i < len(c.accessPattern); i++ {
 		if c.accessPattern[i] == entry.key {
@@ -308,7 +308,7 @@ func (c *Cache[K, V]) evictOptimal() bool {
 			victimEntry = entry
 			break
 		}
-		
+
 		if entry.nextAccess > farthestAccess {
 			farthestAccess = entry.nextAccess
 			victimKey = key
@@ -360,7 +360,7 @@ func (c *Cache[K, V]) Simulate(operations []Operation[K, V]) Stats {
 			} else {
 				misses++
 			}
-			
+
 		case OpPut:
 			if _, exists := c.items[op.Key]; !exists {
 				if len(c.items) >= c.capacity {
@@ -385,7 +385,7 @@ func (c *Cache[K, V]) Simulate(operations []Operation[K, V]) Stats {
 		Hits:      hits,
 		Misses:    misses,
 		Evictions: evictions,
-		HitRate:   float64(hits) / float64(hits + misses),
+		HitRate:   float64(hits) / float64(hits+misses),
 	}
 }
 

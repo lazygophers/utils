@@ -12,13 +12,13 @@ import (
 type Language string
 
 const (
-	LanguageEnglish           Language = "en"
-	LanguageChineseSimplified Language = "zh-CN"
+	LanguageEnglish            Language = "en"
+	LanguageChineseSimplified  Language = "zh-CN"
 	LanguageChineseTraditional Language = "zh-TW"
-	LanguageFrench            Language = "fr"
-	LanguageRussian           Language = "ru"
-	LanguagePortuguese        Language = "pt"
-	LanguageSpanish           Language = "es"
+	LanguageFrench             Language = "fr"
+	LanguageRussian            Language = "ru"
+	LanguagePortuguese         Language = "pt"
+	LanguageSpanish            Language = "es"
 )
 
 // Gender 性别类型
@@ -33,21 +33,21 @@ const (
 type Country string
 
 const (
-	CountryChina      Country = "CN"
-	CountryUS         Country = "US"
-	CountryUK         Country = "UK"
-	CountryFrance     Country = "FR"
-	CountryGermany    Country = "DE"
-	CountryJapan      Country = "JP"
-	CountryKorea      Country = "KR"
-	CountryRussia     Country = "RU"
-	CountryBrazil     Country = "BR"
-	CountrySpain      Country = "ES"
-	CountryPortugal   Country = "PT"
-	CountryItaly      Country = "IT"
-	CountryCanada     Country = "CA"
-	CountryAustralia  Country = "AU"
-	CountryIndia      Country = "IN"
+	CountryChina     Country = "CN"
+	CountryUS        Country = "US"
+	CountryUK        Country = "UK"
+	CountryFrance    Country = "FR"
+	CountryGermany   Country = "DE"
+	CountryJapan     Country = "JP"
+	CountryKorea     Country = "KR"
+	CountryRussia    Country = "RU"
+	CountryBrazil    Country = "BR"
+	CountrySpain     Country = "ES"
+	CountryPortugal  Country = "PT"
+	CountryItaly     Country = "IT"
+	CountryCanada    Country = "CA"
+	CountryAustralia Country = "AU"
+	CountryIndia     Country = "IN"
 )
 
 // Faker 假数据生成器结构体
@@ -56,11 +56,11 @@ type Faker struct {
 	country  Country
 	gender   Gender
 	seed     int64
-	
+
 	// 数据缓存
 	dataMu sync.RWMutex
 	data   map[string]interface{}
-	
+
 	// 性能统计
 	stats struct {
 		sync.RWMutex
@@ -68,7 +68,7 @@ type Faker struct {
 		cacheHits     int64
 		generatedData int64
 	}
-	
+
 	// 高性能优化数据
 	fastData *FastData
 }
@@ -113,11 +113,11 @@ func New(opts ...FakerOption) *Faker {
 		seed:     time.Now().UnixNano(),
 		data:     make(map[string]interface{}),
 	}
-	
+
 	for _, opt := range opts {
 		opt(f)
 	}
-	
+
 	return f
 }
 
@@ -204,7 +204,6 @@ func ClearDefaultCache() {
 	getDefaultFaker().ClearCache()
 }
 
-
 // 性能统计方法
 func (f *Faker) incrementCallCount() {
 	f.stats.Lock()
@@ -228,7 +227,7 @@ func (f *Faker) incrementGeneratedData() {
 func (f *Faker) Stats() map[string]int64 {
 	f.stats.RLock()
 	defer f.stats.RUnlock()
-	
+
 	return map[string]int64{
 		"call_count":     f.stats.callCount,
 		"cache_hits":     f.stats.cacheHits,
@@ -240,7 +239,7 @@ func (f *Faker) Stats() map[string]int64 {
 func (f *Faker) ClearCache() {
 	f.dataMu.Lock()
 	defer f.dataMu.Unlock()
-	
+
 	for k := range f.data {
 		delete(f.data, k)
 	}
@@ -250,7 +249,7 @@ func (f *Faker) ClearCache() {
 func (f *Faker) getCachedData(key string) (interface{}, bool) {
 	f.dataMu.RLock()
 	defer f.dataMu.RUnlock()
-	
+
 	data, exists := f.data[key]
 	if exists {
 		f.incrementCacheHit()
@@ -261,7 +260,7 @@ func (f *Faker) getCachedData(key string) (interface{}, bool) {
 func (f *Faker) setCachedData(key string, data interface{}) {
 	f.dataMu.Lock()
 	defer f.dataMu.Unlock()
-	
+
 	f.data[key] = data
 }
 
@@ -276,7 +275,7 @@ func (f *Faker) validateLanguage(lang Language) bool {
 		LanguagePortuguese,
 		LanguageSpanish,
 	}
-	
+
 	for _, supported := range supportedLanguages {
 		if lang == supported {
 			return true
@@ -292,7 +291,7 @@ func (f *Faker) validateCountry(country Country) bool {
 		CountryJapan, CountryKorea, CountryRussia, CountryBrazil, CountrySpain,
 		CountryPortugal, CountryItaly, CountryCanada, CountryAustralia, CountryIndia,
 	}
-	
+
 	for _, supported := range supportedCountries {
 		if country == supported {
 			return true
@@ -335,7 +334,7 @@ const (
 // WithContext 创建带上下文的假数据生成器
 func WithContext(ctx context.Context, opts ...FakerOption) *Faker {
 	f := New(opts...)
-	
+
 	// 从上下文中读取配置
 	if lang, ok := ctx.Value(contextKeyLanguage).(Language); ok {
 		f.language = lang
@@ -346,7 +345,7 @@ func WithContext(ctx context.Context, opts ...FakerOption) *Faker {
 	if gender, ok := ctx.Value(contextKeyGender).(Gender); ok {
 		f.gender = gender
 	}
-	
+
 	return f
 }
 
@@ -400,7 +399,6 @@ func (f *Faker) Clone() *Faker {
 		data:     make(map[string]interface{}),
 	}
 }
-
 
 // UserAgent 生成用户代理字符串
 func (f *Faker) UserAgent() string {

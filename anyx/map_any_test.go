@@ -1530,10 +1530,10 @@ func TestMapAny_ComplexScenarios(t *testing.T) {
 		assert.NotNil(t, m.GetMap("nested"))
 
 		// Test with invalid types to cover error paths
-		assert.Equal(t, "42", m.GetString("number"))     // int to string
-		assert.Equal(t, 0, m.GetInt("simple"))           // string to int
-		assert.True(t, m.GetBool("simple"))              // string "value" to bool is true
+		assert.Equal(t, "42", m.GetString("number"))           // int to string
+		assert.Equal(t, 0, m.GetInt("simple"))                 // string to int
+		assert.True(t, m.GetBool("simple"))                    // string "value" to bool is true
 		assert.Equal(t, []interface{}{}, m.GetSlice("simple")) // string to slice returns empty slice
-		assert.False(t, m.GetMap("simple").Exists("any")) // string to map
+		assert.False(t, m.GetMap("simple").Exists("any"))      // string to map
 	})
 }

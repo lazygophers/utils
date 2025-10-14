@@ -37,7 +37,7 @@ func New(opts ...Option) (*Validator, error) {
 
 	// 设置字段名称解析函数
 	v.updateFieldNameFunc()
-	
+
 	// 注册默认验证规则
 	if err := v.registerDefaultValidators(); err != nil {
 		return nil, fmt.Errorf("failed to register default validators: %w", err)
@@ -215,7 +215,7 @@ func (v *Validator) jsonFieldNameFunc(field reflect.StructField) string {
 			return parts[0]
 		}
 	}
-	
+
 	// 回退到字段名
 	return field.Name
 }

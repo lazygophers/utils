@@ -990,11 +990,11 @@ func TestRSASignatureIntegrity(t *testing.T) {
 	}
 
 	testMessages := [][]byte{
-		[]byte(""),                                    // Empty message
-		[]byte("A"),                                   // Single character
-		[]byte("Hello, World!"),                       // Short message
+		[]byte(""),              // Empty message
+		[]byte("A"),             // Single character
+		[]byte("Hello, World!"), // Short message
 		[]byte("This is a longer message for testing RSA signature integrity with various message lengths."), // Long message
-		bytes.Repeat([]byte("X"), 1000),               // Very long message
+		bytes.Repeat([]byte("X"), 1000), // Very long message
 	}
 
 	for i, message := range testMessages {

@@ -1420,11 +1420,11 @@ func TestArrayParsingSpecialCases(t *testing.T) {
 func TestComprehensiveBoundaryTests(t *testing.T) {
 	// 测试不同长度的数组与不同数量的默认值
 	type VariousArrayTest struct {
-		Array1  [0]int `default:"1,2,3"`        // 0长度数组，多个值
-		Array2  [1]int `default:"[10]"`         // 1长度数组，JSON格式
-		Array3  [2]int `default:"20,30,40"`     // 2长度数组，3个值
-		Array4  [3]int `default:"50,60"`        // 3长度数组，2个值
-		Array5  [5]int `default:""`             // 5长度数组，无默认值
+		Array1 [0]int `default:"1,2,3"`    // 0长度数组，多个值
+		Array2 [1]int `default:"[10]"`     // 1长度数组，JSON格式
+		Array3 [2]int `default:"20,30,40"` // 2长度数组，3个值
+		Array4 [3]int `default:"50,60"`    // 3长度数组，2个值
+		Array5 [5]int `default:""`         // 5长度数组，无默认值
 	}
 
 	var vat VariousArrayTest

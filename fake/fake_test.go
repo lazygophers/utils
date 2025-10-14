@@ -327,8 +327,8 @@ func TestBatchGeneration(t *testing.T) {
 
 // TestGlobalFunctionsSanity 验证全局函数的正常性
 func TestGlobalFunctionsSanity(t *testing.T) {
-	globalTests := []struct{
-		name string
+	globalTests := []struct {
+		name  string
 		value string
 	}{
 		{"Name", Name()},

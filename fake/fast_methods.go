@@ -13,10 +13,10 @@ func (f *Faker) fastName() string {
 	if f.fastData == nil {
 		f.initFastData()
 	}
-	
+
 	// 选择名字和姓氏
 	var firstName, lastName string
-	
+
 	f.fastData.mu.Lock()
 	switch f.gender {
 	case GenderMale:
@@ -35,12 +35,12 @@ func (f *Faker) fastName() string {
 			firstName = f.fastData.femaleNames[f.fastData.rng.Intn(len(f.fastData.femaleNames))]
 		}
 	}
-	
+
 	if len(f.fastData.surnames) > 0 {
 		lastName = f.fastData.surnames[f.fastData.rng.Intn(len(f.fastData.surnames))]
 	}
 	f.fastData.mu.Unlock()
-	
+
 	// 高效字符串拼接
 	switch f.language {
 	case LanguageChineseSimplified, LanguageChineseTraditional:
@@ -71,11 +71,11 @@ func (f *Faker) initFastData() {
 	if f.fastData != nil && f.fastData.initialized {
 		return
 	}
-	
+
 	f.fastData = &FastData{
 		rng: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
-	
+
 	// 根据语言加载优化数据
 	switch f.language {
 	case LanguageChineseSimplified:
@@ -105,7 +105,7 @@ func (f *Faker) initFastData() {
 			"Hernandez", "Lopez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee",
 		}
 	}
-	
+
 	f.fastData.initialized = true
 }
 
@@ -120,16 +120,16 @@ func (f *Faker) fastBatchNames(count int) []string {
 	if f.fastData == nil {
 		f.initFastData()
 	}
-	
+
 	names := make([]string, count)
-	
+
 	// 预生成随机索引减少锁竞争
 	f.fastData.mu.Lock()
 	maleIndices := make([]int, count)
 	femaleIndices := make([]int, count)
 	surnameIndices := make([]int, count)
 	genderFlags := make([]bool, count)
-	
+
 	for i := 0; i < count; i++ {
 		if len(f.fastData.maleNames) > 0 {
 			maleIndices[i] = f.fastData.rng.Intn(len(f.fastData.maleNames))
@@ -143,13 +143,13 @@ func (f *Faker) fastBatchNames(count int) []string {
 		genderFlags[i] = f.fastData.rng.Float32() < 0.5
 	}
 	f.fastData.mu.Unlock()
-	
+
 	// 无锁生成
 	for i := 0; i < count; i++ {
 		f.incrementCallCount()
-		
+
 		var firstName, lastName string
-		
+
 		switch f.gender {
 		case GenderMale:
 			if len(f.fastData.maleNames) > 0 {
@@ -166,11 +166,11 @@ func (f *Faker) fastBatchNames(count int) []string {
 				firstName = f.fastData.femaleNames[femaleIndices[i]]
 			}
 		}
-		
+
 		if len(f.fastData.surnames) > 0 {
 			lastName = f.fastData.surnames[surnameIndices[i]]
 		}
-		
+
 		// 高效拼接
 		switch f.language {
 		case LanguageChineseSimplified, LanguageChineseTraditional:
@@ -184,6 +184,6 @@ func (f *Faker) fastBatchNames(count int) []string {
 			names[i] = *(*string)(unsafe.Pointer(&bytes))
 		}
 	}
-	
+
 	return names
 }

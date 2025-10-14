@@ -9,20 +9,20 @@ func TestInterfaceAddrsErrorSpecific(t *testing.T) {
 	// These interfaces exist on the system but might have address retrieval issues
 	// Based on ifconfig output, these are the interfaces that might cause problems
 	problematicInterfaces := []string{
-		"gif0",    // Generic tunnel interface - might have addr issues
-		"stf0",    // 6to4 tunnel interface - might have addr issues
-		"pktap0",  // Packet tap interface - often problematic
-		"anpi0",   // Apple network interface - might have addr issues
-		"anpi1",   // Apple network interface - might have addr issues
-		"utun0",   // Tunnel interface - might have addr issues
-		"utun1",   // Tunnel interface - might have addr issues
-		"utun2",   // Tunnel interface - might have addr issues
-		"utun3",   // Tunnel interface - might have addr issues
-		"utun5",   // Tunnel interface - might have addr issues
-		"utun6",   // Tunnel interface - might have addr issues
-		"ap1",     // Apple wireless interface - might have addr issues
-		"awdl0",   // Apple wireless direct link - might have addr issues
-		"llw0",    // Low latency wireless - might have addr issues
+		"gif0",   // Generic tunnel interface - might have addr issues
+		"stf0",   // 6to4 tunnel interface - might have addr issues
+		"pktap0", // Packet tap interface - often problematic
+		"anpi0",  // Apple network interface - might have addr issues
+		"anpi1",  // Apple network interface - might have addr issues
+		"utun0",  // Tunnel interface - might have addr issues
+		"utun1",  // Tunnel interface - might have addr issues
+		"utun2",  // Tunnel interface - might have addr issues
+		"utun3",  // Tunnel interface - might have addr issues
+		"utun5",  // Tunnel interface - might have addr issues
+		"utun6",  // Tunnel interface - might have addr issues
+		"ap1",    // Apple wireless interface - might have addr issues
+		"awdl0",  // Apple wireless direct link - might have addr issues
+		"llw0",   // Low latency wireless - might have addr issues
 	}
 
 	t.Run("TestProblematicInterfaces", func(t *testing.T) {

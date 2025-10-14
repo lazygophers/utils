@@ -464,8 +464,6 @@ func TestInt64nEdgeCases(t *testing.T) {
 	})
 }
 
-
-
 func TestBatchIntn(t *testing.T) {
 	t.Run("batch_intn_zero_or_negative_count", func(t *testing.T) {
 		// 测试count <= 0

@@ -52,7 +52,7 @@ func TestDeepCopy(t *testing.T) {
 		src := []int{1, 2, 3, 4, 5}
 		var dst []int
 		DeepCopy(src, &dst)
-		
+
 		if len(dst) != len(src) {
 			t.Errorf("DeepCopy slice length mismatch: got %d, want %d", len(dst), len(src))
 		}
@@ -61,7 +61,7 @@ func TestDeepCopy(t *testing.T) {
 				t.Errorf("DeepCopy slice[%d] = %d, want %d", i, dst[i], src[i])
 			}
 		}
-		
+
 		// Verify independence
 		src[0] = 999
 		if dst[0] == 999 {
@@ -82,7 +82,7 @@ func TestDeepCopy(t *testing.T) {
 		src := map[string]int{"a": 1, "b": 2, "c": 3}
 		var dst map[string]int
 		DeepCopy(src, &dst)
-		
+
 		if len(dst) != len(src) {
 			t.Errorf("DeepCopy map length mismatch: got %d, want %d", len(dst), len(src))
 		}
@@ -91,7 +91,7 @@ func TestDeepCopy(t *testing.T) {
 				t.Errorf("DeepCopy map[%s] = %d, want %d", k, dst[k], v)
 			}
 		}
-		
+
 		// Verify independence
 		src["a"] = 999
 		if dst["a"] == 999 {
@@ -116,7 +116,7 @@ func TestDeepCopy(t *testing.T) {
 		src := Person{Name: "Alice", Age: 30}
 		var dst Person
 		DeepCopy(src, &dst)
-		
+
 		if dst.Name != "Alice" || dst.Age != 30 {
 			t.Errorf("DeepCopy struct failed: got %+v, want {Alice 30}", dst)
 		}
@@ -133,7 +133,7 @@ func TestDeepCopy(t *testing.T) {
 		src := Person{Name: "Bob", Address: Address{City: "NYC"}}
 		var dst Person
 		DeepCopy(src, &dst)
-		
+
 		if dst.Name != "Bob" || dst.Address.City != "NYC" {
 			t.Errorf("DeepCopy nested struct failed: got %+v", dst)
 		}
@@ -144,11 +144,11 @@ func TestDeepCopy(t *testing.T) {
 		src := &val
 		var dst *int
 		DeepCopy(src, &dst)
-		
+
 		if dst == nil || *dst != 42 {
 			t.Errorf("DeepCopy pointer failed")
 		}
-		
+
 		// Verify independence
 		*src = 999
 		if *dst == 999 {
@@ -169,7 +169,7 @@ func TestDeepCopy(t *testing.T) {
 		src := [3]int{1, 2, 3}
 		var dst [3]int
 		DeepCopy(src, &dst)
-		
+
 		for i := range src {
 			if dst[i] != src[i] {
 				t.Errorf("DeepCopy array[%d] = %d, want %d", i, dst[i], src[i])
@@ -185,7 +185,7 @@ func TestDeepCopy(t *testing.T) {
 		src := Container{Value: 42}
 		var dst Container
 		DeepCopy(src, &dst)
-		
+
 		if dst.Value != 42 {
 			t.Errorf("DeepCopy interface failed: got %v, want 42", dst.Value)
 		}
@@ -211,7 +211,7 @@ func TestDeepCopy(t *testing.T) {
 		src := []Item{{1, "a"}, {2, "b"}}
 		var dst []Item
 		DeepCopy(src, &dst)
-		
+
 		if len(dst) != 2 || dst[0].ID != 1 || dst[1].Name != "b" {
 			t.Errorf("DeepCopy slice of structs failed: got %+v", dst)
 		}
@@ -221,7 +221,7 @@ func TestDeepCopy(t *testing.T) {
 		src := map[string][]int{"a": {1, 2}, "b": {3, 4}}
 		var dst map[string][]int
 		DeepCopy(src, &dst)
-		
+
 		if len(dst) != 2 || len(dst["a"]) != 2 || dst["b"][1] != 4 {
 			t.Errorf("DeepCopy map of slices failed: got %+v", dst)
 		}
@@ -252,7 +252,7 @@ func TestDeepEqual(t *testing.T) {
 		a := []int{1, 2, 3}
 		b := []int{1, 2, 3}
 		c := []int{1, 2, 4}
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual equal slices should be true")
 		}
@@ -270,7 +270,7 @@ func TestDeepEqual(t *testing.T) {
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual nil slices should be true")
 		}
-		
+
 		c := []int{}
 		if DeepEqual(a, c) {
 			t.Errorf("DeepEqual nil vs empty slice should be false")
@@ -281,7 +281,7 @@ func TestDeepEqual(t *testing.T) {
 		a := map[string]int{"a": 1, "b": 2}
 		b := map[string]int{"a": 1, "b": 2}
 		c := map[string]int{"a": 1, "b": 3}
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual equal maps should be true")
 		}
@@ -296,7 +296,7 @@ func TestDeepEqual(t *testing.T) {
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual nil maps should be true")
 		}
-		
+
 		c := map[string]int{}
 		if DeepEqual(a, c) {
 			t.Errorf("DeepEqual nil vs empty map should be false")
@@ -311,7 +311,7 @@ func TestDeepEqual(t *testing.T) {
 		a := Person{"Alice", 30}
 		b := Person{"Alice", 30}
 		c := Person{"Bob", 30}
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual equal structs should be true")
 		}
@@ -325,11 +325,11 @@ func TestDeepEqual(t *testing.T) {
 		val2 := 42
 		a := &val1
 		b := &val2
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual pointers to equal values should be true")
 		}
-		
+
 		val3 := 43
 		c := &val3
 		if DeepEqual(a, c) {
@@ -343,7 +343,7 @@ func TestDeepEqual(t *testing.T) {
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual nil pointers should be true")
 		}
-		
+
 		val := 42
 		c := &val
 		if DeepEqual(a, c) {
@@ -355,7 +355,7 @@ func TestDeepEqual(t *testing.T) {
 		a := [3]int{1, 2, 3}
 		b := [3]int{1, 2, 3}
 		c := [3]int{1, 2, 4}
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual equal arrays should be true")
 		}
@@ -371,7 +371,7 @@ func TestDeepEqual(t *testing.T) {
 		a := Container{Value: 42}
 		b := Container{Value: 42}
 		c := Container{Value: 43}
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual equal interfaces should be true")
 		}
@@ -411,7 +411,7 @@ func TestTypedSliceCopy(t *testing.T) {
 	t.Run("copy basic type slice", func(t *testing.T) {
 		src := []int{1, 2, 3, 4, 5}
 		dst := TypedSliceCopy(src)
-		
+
 		if len(dst) != len(src) {
 			t.Errorf("TypedSliceCopy length mismatch")
 		}
@@ -420,7 +420,7 @@ func TestTypedSliceCopy(t *testing.T) {
 				t.Errorf("TypedSliceCopy[%d] = %d, want %d", i, dst[i], src[i])
 			}
 		}
-		
+
 		// Verify independence
 		src[0] = 999
 		if dst[0] == 999 {
@@ -451,7 +451,7 @@ func TestTypedSliceCopy(t *testing.T) {
 		}
 		src := []Item{{1, "a"}, {2, "b"}}
 		dst := TypedSliceCopy(src)
-		
+
 		if len(dst) != 2 || dst[0].ID != 1 || dst[1].Name != "b" {
 			t.Errorf("TypedSliceCopy struct slice failed")
 		}
@@ -460,7 +460,7 @@ func TestTypedSliceCopy(t *testing.T) {
 	t.Run("copy string slice", func(t *testing.T) {
 		src := []string{"a", "b", "c"}
 		dst := TypedSliceCopy(src)
-		
+
 		for i := range src {
 			if dst[i] != src[i] {
 				t.Errorf("TypedSliceCopy string[%d] mismatch", i)
@@ -474,7 +474,7 @@ func TestTypedMapCopy(t *testing.T) {
 	t.Run("copy basic type map", func(t *testing.T) {
 		src := map[string]int{"a": 1, "b": 2, "c": 3}
 		dst := TypedMapCopy(src)
-		
+
 		if len(dst) != len(src) {
 			t.Errorf("TypedMapCopy length mismatch")
 		}
@@ -483,7 +483,7 @@ func TestTypedMapCopy(t *testing.T) {
 				t.Errorf("TypedMapCopy[%s] = %d, want %d", k, dst[k], v)
 			}
 		}
-		
+
 		// Verify independence
 		src["a"] = 999
 		if dst["a"] == 999 {
@@ -513,7 +513,7 @@ func TestTypedMapCopy(t *testing.T) {
 		}
 		src := map[string]Item{"a": {1}, "b": {2}}
 		dst := TypedMapCopy(src)
-		
+
 		if len(dst) != 2 || dst["a"].ID != 1 {
 			t.Errorf("TypedMapCopy struct value map failed")
 		}
@@ -717,7 +717,7 @@ func TestCloneSlice(t *testing.T) {
 	t.Run("clone int slice", func(t *testing.T) {
 		src := []int{1, 2, 3, 4, 5}
 		dst := CloneSlice(src)
-		
+
 		if len(dst) != len(src) {
 			t.Errorf("CloneSlice length mismatch")
 		}
@@ -726,7 +726,7 @@ func TestCloneSlice(t *testing.T) {
 				t.Errorf("CloneSlice[%d] mismatch", i)
 			}
 		}
-		
+
 		// Verify independence
 		src[0] = 999
 		if dst[0] == 999 {
@@ -748,7 +748,7 @@ func TestCloneMap(t *testing.T) {
 	t.Run("clone map", func(t *testing.T) {
 		src := map[string]int{"a": 1, "b": 2}
 		dst := CloneMap(src)
-		
+
 		if len(dst) != len(src) {
 			t.Errorf("CloneMap length mismatch")
 		}
@@ -757,7 +757,7 @@ func TestCloneMap(t *testing.T) {
 				t.Errorf("CloneMap[%s] mismatch", k)
 			}
 		}
-		
+
 		// Verify independence
 		src["a"] = 999
 		if dst["a"] == 999 {
@@ -891,7 +891,7 @@ func TestDeepCopyEdgeCases(t *testing.T) {
 		src := &ptr
 		var dst **int
 		DeepCopy(src, &dst)
-		
+
 		if dst == nil || *dst == nil || **dst != 42 {
 			t.Errorf("DeepCopy nested pointers failed")
 		}
@@ -905,7 +905,7 @@ func TestDeepCopyEdgeCases(t *testing.T) {
 		src := Private{Public: "test", private: 42}
 		var dst Private
 		DeepCopy(src, &dst)
-		
+
 		if dst.Public != "test" {
 			t.Errorf("DeepCopy struct with unexported fields failed")
 		}
@@ -932,7 +932,7 @@ func TestDeepCopyEdgeCases(t *testing.T) {
 		}
 		var dst Container
 		DeepCopy(src, &dst)
-		
+
 		if dst.Data["int"] != 42 {
 			t.Errorf("DeepCopy map with interface values failed")
 		}
@@ -943,7 +943,7 @@ func TestDeepCopyEdgeCases(t *testing.T) {
 		src := []*int{&val1, &val2, nil}
 		var dst []*int
 		DeepCopy(src, &dst)
-		
+
 		if len(dst) != 3 || *dst[0] != 1 || *dst[1] != 2 || dst[2] != nil {
 			t.Errorf("DeepCopy slice with pointer elements failed")
 		}
@@ -967,7 +967,7 @@ func TestDeepEqualEdgeCases(t *testing.T) {
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual slices with nil elements should be true")
 		}
-		
+
 		val := 1
 		c := []*int{&val, nil}
 		if DeepEqual(a, c) {
@@ -1003,7 +1003,7 @@ func TestDeepEqualEdgeCases(t *testing.T) {
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual structs with nil interface fields should be true")
 		}
-		
+
 		c := Container{Value: 42}
 		if DeepEqual(a, c) {
 			t.Errorf("DeepEqual nil vs non-nil interface should be false")
@@ -1020,7 +1020,7 @@ func TestDeepEqualEdgeCases(t *testing.T) {
 		type Outer struct {
 			Middles map[string]*Middle
 		}
-		
+
 		a := Outer{
 			Middles: map[string]*Middle{
 				"m1": {Inners: []*Inner{{1}, {2}}},
@@ -1031,7 +1031,7 @@ func TestDeepEqualEdgeCases(t *testing.T) {
 				"m1": {Inners: []*Inner{{1}, {2}}},
 			},
 		}
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual complex nested structures should be true")
 		}
@@ -1068,11 +1068,11 @@ func TestDeepCopyComplexScenarios(t *testing.T) {
 		}
 		var dst map[string]map[string][]int
 		DeepCopy(src, &dst)
-		
+
 		if len(dst) != 2 || len(dst["outer1"]) != 2 {
 			t.Errorf("DeepCopy multi-level nested map failed")
 		}
-		
+
 		// Verify independence
 		src["outer1"]["inner1"][0] = 999
 		if dst["outer1"]["inner1"][0] == 999 {
@@ -1084,11 +1084,11 @@ func TestDeepCopyComplexScenarios(t *testing.T) {
 		src := [][]int{{1, 2}, {3, 4}, {5, 6}}
 		var dst [][]int
 		DeepCopy(src, &dst)
-		
+
 		if len(dst) != 3 || len(dst[0]) != 2 {
 			t.Errorf("DeepCopy slice of slices failed")
 		}
-		
+
 		// Verify independence
 		src[0][0] = 999
 		if dst[0][0] == 999 {
@@ -1103,7 +1103,7 @@ func TestDeepCopyComplexScenarios(t *testing.T) {
 		src := [3]Point{{1, 2}, {3, 4}, {5, 6}}
 		var dst [3]Point
 		DeepCopy(src, &dst)
-		
+
 		if dst[0].X != 1 || dst[2].Y != 6 {
 			t.Errorf("DeepCopy array of structs failed")
 		}
@@ -1122,7 +1122,7 @@ func TestDeepEqualComplexScenarios(t *testing.T) {
 		type Level1 struct {
 			L2 map[string]*Level2
 		}
-		
+
 		a := Level1{
 			L2: map[string]*Level2{
 				"key": {L3: &Level3{Value: 42}},
@@ -1133,11 +1133,11 @@ func TestDeepEqualComplexScenarios(t *testing.T) {
 				"key": {L3: &Level3{Value: 42}},
 			},
 		}
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual multi-level nested structures should be true")
 		}
-		
+
 		c := Level1{
 			L2: map[string]*Level2{
 				"key": {L3: &Level3{Value: 43}},
@@ -1152,7 +1152,7 @@ func TestDeepEqualComplexScenarios(t *testing.T) {
 		a := [2][3]int{{1, 2, 3}, {4, 5, 6}}
 		b := [2][3]int{{1, 2, 3}, {4, 5, 6}}
 		c := [2][3]int{{1, 2, 3}, {4, 5, 7}}
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual arrays of arrays should be true")
 		}
@@ -1166,7 +1166,7 @@ func TestDeepEqualComplexScenarios(t *testing.T) {
 		arr2 := [2]int{1, 2}
 		a := []*[2]int{&arr1}
 		b := []*[2]int{&arr2}
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual slices of pointers to arrays should be true")
 		}
@@ -1177,13 +1177,13 @@ func TestDeepEqualComplexScenarios(t *testing.T) {
 			Fn   func()
 			Data int
 		}
-		
+
 		fn1 := func() {}
 		fn2 := func() {}
-		
+
 		a := Container{Fn: fn1, Data: 42}
 		b := Container{Fn: fn2, Data: 42}
-		
+
 		// Functions are not comparable, but struct comparison should handle it
 		// This tests the panic recovery path in deepValueEqual
 		result := DeepEqual(a, b)
@@ -1196,10 +1196,10 @@ func TestDeepEqualComplexScenarios(t *testing.T) {
 			Ch   chan int
 			Data int
 		}
-		
+
 		a := Container{Ch: make(chan int), Data: 42}
 		b := Container{Ch: make(chan int), Data: 42}
-		
+
 		// Channels are comparable by identity
 		result := DeepEqual(a, b)
 		if result {
@@ -1211,11 +1211,11 @@ func TestDeepEqualComplexScenarios(t *testing.T) {
 		type Container struct {
 			Ch chan int
 		}
-		
+
 		ch := make(chan int)
 		a := Container{Ch: ch}
 		b := Container{Ch: ch}
-		
+
 		if !DeepEqual(a, b) {
 			t.Errorf("DeepEqual same channel reference should be true")
 		}

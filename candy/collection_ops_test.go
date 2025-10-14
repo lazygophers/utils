@@ -8,10 +8,10 @@ import (
 // TestAll 测试 All 函数
 func TestAll(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []int
+		name      string
+		input     []int
 		predicate func(int) bool
-		want     bool
+		want      bool
 	}{
 		{
 			name:      "empty slice returns true",
@@ -418,14 +418,14 @@ func TestShuffle(t *testing.T) {
 		input := []int{1, 2, 3, 4, 5}
 		original := make([]int, len(input))
 		copy(original, input)
-		
+
 		result := Shuffle(input)
-		
+
 		// Verify it's the same slice reference
 		if &result[0] != &input[0] {
 			t.Errorf("Shuffle() should return same slice reference")
 		}
-		
+
 		// Verify all elements are still present
 		counts := make(map[int]int)
 		for _, v := range result {

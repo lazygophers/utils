@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lazygophers/utils/pgp"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
+	"github.com/lazygophers/utils/pgp"
 )
 
 func TestGenerateKeyPair(t *testing.T) {
@@ -501,11 +501,11 @@ func TestReadKeyPairErrors(t *testing.T) {
 	}
 
 	tests := []struct {
-		name        string
-		publicKey   string
-		privateKey  string
-		passphrase  string
-		wantError   string
+		name       string
+		publicKey  string
+		privateKey string
+		passphrase string
+		wantError  string
 	}{
 		{
 			name:       "无效的公钥",
@@ -555,7 +555,7 @@ func TestReadKeyPairErrors(t *testing.T) {
 // TestEncryptWithEmptyEntities 测试空实体列表加密
 func TestEncryptWithEmptyEntities(t *testing.T) {
 	testData := []byte("测试数据")
-	
+
 	_, err := pgp.EncryptWithEntities(testData, nil)
 	if err == nil {
 		t.Fatal("期望返回错误但没有")
@@ -568,7 +568,7 @@ func TestEncryptWithEmptyEntities(t *testing.T) {
 // TestDecryptWithEmptyEntities 测试空实体列表解密
 func TestDecryptWithEmptyEntities(t *testing.T) {
 	testData := []byte("测试数据")
-	
+
 	_, err := pgp.DecryptWithEntities(testData, nil)
 	if err == nil {
 		t.Fatal("期望返回错误但没有")
@@ -605,7 +605,7 @@ func TestDecryptInvalidData(t *testing.T) {
 // TestEncryptTextErrors 测试文本加密错误情况
 func TestEncryptTextErrors(t *testing.T) {
 	testData := []byte("测试数据")
-	
+
 	// 测试无效公钥
 	_, err := pgp.EncryptText(testData, "invalid public key")
 	if err == nil {
@@ -616,7 +616,7 @@ func TestEncryptTextErrors(t *testing.T) {
 	}
 }
 
-// TestDecryptTextErrors 测试文本解密错误情况  
+// TestDecryptTextErrors 测试文本解密错误情况
 func TestDecryptTextErrors(t *testing.T) {
 	// 生成密钥对
 	opts := &pgp.GenerateOptions{
@@ -755,7 +755,7 @@ func TestLargeDataEncryption(t *testing.T) {
 func TestEmptyDataEncryption(t *testing.T) {
 	// 生成密钥对
 	opts := &pgp.GenerateOptions{
-		Name:      "测试用户", 
+		Name:      "测试用户",
 		Email:     "test@example.com",
 		KeyLength: 1024,
 	}
@@ -790,41 +790,41 @@ func TestEmptyDataEncryption(t *testing.T) {
 // TestSerializationErrors 测试序列化错误路径
 func TestSerializationErrors(t *testing.T) {
 	// 测试创建具体对象来覆盖更多error条件
-	
+
 	// 测试用不同长度的密钥
 	largeSizeOpts := &pgp.GenerateOptions{
 		Name:      "测试用户",
-		Email:     "test@example.com", 
+		Email:     "test@example.com",
 		KeyLength: 4096, // 更大的密钥，可能在某些情况下触发错误
 		Hash:      crypto.SHA256,
 		Cipher:    packet.CipherAES256,
 	}
-	
+
 	keyPair, err := pgp.GenerateKeyPair(largeSizeOpts)
 	if err != nil {
 		t.Fatalf("生成大密钥对失败: %v", err)
 	}
-	
+
 	if keyPair == nil {
 		t.Fatal("密钥对不能为空")
 	}
-	
+
 	// 验证大密钥能正常工作
 	testData := []byte("测试大密钥")
 	encryptedData, err := pgp.Encrypt(testData, keyPair.PublicKey)
 	if err != nil {
 		t.Fatalf("大密钥加密失败: %v", err)
 	}
-	
+
 	decryptedData, err := pgp.Decrypt(encryptedData, keyPair.PrivateKey, "")
 	if err != nil {
 		t.Fatalf("大密钥解密失败: %v", err)
 	}
-	
+
 	if !bytes.Equal(testData, decryptedData) {
 		t.Fatalf("大密钥加密解密数据不匹配")
 	}
-	
+
 	t.Log("大密钥测试成功")
 }
 
@@ -872,7 +872,7 @@ Version: GnuPG v1
 	if !strings.Contains(err.Error(), "读取私钥环失败") {
 		t.Logf("期望'读取私钥环失败'，得到: %v", err)
 	}
-	
+
 	t.Log("空实体列表错误处理测试成功")
 }
 
@@ -933,7 +933,7 @@ func TestPrivateKeyDecryption(t *testing.T) {
 	// 生成密钥对
 	opts := &pgp.GenerateOptions{
 		Name:      "测试用户",
-		Email:     "test@example.com", 
+		Email:     "test@example.com",
 		KeyLength: 1024,
 	}
 	keyPair, err := pgp.GenerateKeyPair(opts)
@@ -968,7 +968,7 @@ func TestPrivateKeyDecryption(t *testing.T) {
 func TestDifferentCipherOptions(t *testing.T) {
 	ciphers := []packet.CipherFunction{
 		packet.CipherAES128,
-		packet.CipherAES192, 
+		packet.CipherAES192,
 		packet.CipherAES256,
 		packet.Cipher3DES,
 	}

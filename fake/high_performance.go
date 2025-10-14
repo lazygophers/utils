@@ -15,23 +15,23 @@ type HighPerformanceFaker struct {
 	language Language
 	country  Country
 	gender   Gender
-	
+
 	// 高性能随机数生成器 - 使用本地实例避免全局锁
 	rng *rand.Rand
 	mu  sync.Mutex // 保护随机数生成器
-	
+
 	// 预加载的高频数据
 	maleFirstNames   []string
 	femaleFirstNames []string
 	lastNames        []string
 	emailDomains     []string
-	
+
 	// 性能统计 - 原子操作
 	callCount int64
-	
+
 	// 对象池减少分配
 	builderPool *sync.Pool
-	
+
 	// 预计算的权重表（用于更好的随机分布）
 	firstNameWeights []int
 	lastNameWeights  []int
@@ -50,7 +50,7 @@ func NewHighPerformance(opts ...FakerOption) *HighPerformanceFaker {
 			},
 		},
 	}
-	
+
 	// 应用选项
 	for _, opt := range opts {
 		fakeCopy := &Faker{
@@ -63,11 +63,11 @@ func NewHighPerformance(opts ...FakerOption) *HighPerformanceFaker {
 		hf.country = fakeCopy.country
 		hf.gender = fakeCopy.gender
 	}
-	
+
 	// 预加载数据
 	hf.loadHighFrequencyData()
 	hf.computeWeights()
-	
+
 	return hf
 }
 
@@ -98,7 +98,7 @@ func (hf *HighPerformanceFaker) loadHighFrequencyData() {
 			"@qq.com", "@163.com", "@139.com", "@126.com", "@sohu.com", "@sina.com", "@foxmail.com",
 			"@yeah.net", "@hotmail.com", "@gmail.com", "@outlook.com",
 		}
-		
+
 	default: // English and others
 		hf.maleFirstNames = []string{
 			"James", "Robert", "John", "Michael", "William", "David", "Richard", "Joseph", "Thomas", "Christopher",
@@ -133,7 +133,7 @@ func (hf *HighPerformanceFaker) computeWeights() {
 	// 创建权重表，让常见名字更频繁，但不会过度集中
 	hf.firstNameWeights = make([]int, len(hf.maleFirstNames)+len(hf.femaleFirstNames))
 	hf.lastNameWeights = make([]int, len(hf.lastNames))
-	
+
 	// 为名字分配权重（前面的权重更高，但差异不会太大）
 	totalFirstNames := len(hf.maleFirstNames) + len(hf.femaleFirstNames)
 	for i := 0; i < totalFirstNames; i++ {
@@ -144,7 +144,7 @@ func (hf *HighPerformanceFaker) computeWeights() {
 		}
 		hf.firstNameWeights[i] = weight
 	}
-	
+
 	// 为姓氏分配权重
 	for i := 0; i < len(hf.lastNames); i++ {
 		weight := 5 - (i*4)/len(hf.lastNames)
@@ -161,11 +161,11 @@ func (hf *HighPerformanceFaker) weightedRandom(weights []int) int {
 	for _, w := range weights {
 		totalWeight += w
 	}
-	
+
 	hf.mu.Lock()
 	r := hf.rng.Intn(totalWeight)
 	hf.mu.Unlock()
-	
+
 	currentWeight := 0
 	for i, w := range weights {
 		currentWeight += w
@@ -179,7 +179,7 @@ func (hf *HighPerformanceFaker) weightedRandom(weights []int) int {
 // FastName 高性能姓名生成
 func (hf *HighPerformanceFaker) FastName() string {
 	atomic.AddInt64(&hf.callCount, 1)
-	
+
 	// 选择名字
 	var firstName string
 	switch hf.gender {
@@ -190,7 +190,7 @@ func (hf *HighPerformanceFaker) FastName() string {
 		}
 	case GenderFemale:
 		if len(hf.femaleFirstNames) > 0 {
-			idx := hf.weightedRandom(hf.firstNameWeights[len(hf.maleFirstNames):len(hf.maleFirstNames)+len(hf.femaleFirstNames)])
+			idx := hf.weightedRandom(hf.firstNameWeights[len(hf.maleFirstNames) : len(hf.maleFirstNames)+len(hf.femaleFirstNames)])
 			firstName = hf.femaleFirstNames[idx]
 		}
 	default:
@@ -198,30 +198,30 @@ func (hf *HighPerformanceFaker) FastName() string {
 		hf.mu.Lock()
 		isMale := hf.rng.Float32() < 0.5
 		hf.mu.Unlock()
-		
+
 		if isMale && len(hf.maleFirstNames) > 0 {
 			idx := hf.weightedRandom(hf.firstNameWeights[:len(hf.maleFirstNames)])
 			firstName = hf.maleFirstNames[idx]
 		} else if len(hf.femaleFirstNames) > 0 {
-			idx := hf.weightedRandom(hf.firstNameWeights[len(hf.maleFirstNames):len(hf.maleFirstNames)+len(hf.femaleFirstNames)])
+			idx := hf.weightedRandom(hf.firstNameWeights[len(hf.maleFirstNames) : len(hf.maleFirstNames)+len(hf.femaleFirstNames)])
 			firstName = hf.femaleFirstNames[idx]
 		}
 	}
-	
+
 	// 选择姓氏
 	var lastName string
 	if len(hf.lastNames) > 0 {
 		idx := hf.weightedRandom(hf.lastNameWeights)
 		lastName = hf.lastNames[idx]
 	}
-	
+
 	// 组合姓名
 	builder := hf.builderPool.Get().(*strings.Builder)
 	defer func() {
 		builder.Reset()
 		hf.builderPool.Put(builder)
 	}()
-	
+
 	switch hf.language {
 	case LanguageChineseSimplified, LanguageChineseTraditional:
 		// 中文：姓+名
@@ -235,24 +235,24 @@ func (hf *HighPerformanceFaker) FastName() string {
 		builder.WriteByte(' ')
 		builder.WriteString(lastName)
 	}
-	
+
 	return builder.String()
 }
 
 // BatchFastNames 批量生成姓名
 func (hf *HighPerformanceFaker) BatchFastNames(count int) []string {
 	names := make([]string, count)
-	
+
 	// 重用一个builder
 	builder := hf.builderPool.Get().(*strings.Builder)
 	defer func() {
 		builder.Reset()
 		hf.builderPool.Put(builder)
 	}()
-	
+
 	for i := 0; i < count; i++ {
 		atomic.AddInt64(&hf.callCount, 1)
-		
+
 		// 选择名字（简化逻辑提高性能）
 		var firstName string
 		if hf.gender == GenderMale && len(hf.maleFirstNames) > 0 {
@@ -273,7 +273,7 @@ func (hf *HighPerformanceFaker) BatchFastNames(count int) []string {
 			}
 			hf.mu.Unlock()
 		}
-		
+
 		// 选择姓氏
 		var lastName string
 		if len(hf.lastNames) > 0 {
@@ -282,7 +282,7 @@ func (hf *HighPerformanceFaker) BatchFastNames(count int) []string {
 			lastName = hf.lastNames[idx]
 			hf.mu.Unlock()
 		}
-		
+
 		// 组合姓名
 		builder.Reset()
 		switch hf.language {
@@ -296,26 +296,26 @@ func (hf *HighPerformanceFaker) BatchFastNames(count int) []string {
 			builder.WriteByte(' ')
 			builder.WriteString(lastName)
 		}
-		
+
 		names[i] = builder.String()
 	}
-	
+
 	return names
 }
 
 // FastEmail 高性能邮箱生成
 func (hf *HighPerformanceFaker) FastEmail() string {
 	atomic.AddInt64(&hf.callCount, 1)
-	
+
 	// 生成用户名（基于姓名）
 	name := hf.FastName()
-	
+
 	builder := hf.builderPool.Get().(*strings.Builder)
 	defer func() {
 		builder.Reset()
 		hf.builderPool.Put(builder)
 	}()
-	
+
 	// 转换为邮箱用户名
 	switch hf.language {
 	case LanguageChineseSimplified, LanguageChineseTraditional:
@@ -323,7 +323,7 @@ func (hf *HighPerformanceFaker) FastEmail() string {
 		hf.mu.Lock()
 		usernum := hf.rng.Intn(10000)
 		hf.mu.Unlock()
-		
+
 		builder.WriteString(strings.ToLower(name))
 		if usernum > 0 {
 			builder.WriteString(fmt.Sprintf("%d", usernum))
@@ -335,7 +335,7 @@ func (hf *HighPerformanceFaker) FastEmail() string {
 			builder.WriteString(strings.ToLower(parts[0]))
 			builder.WriteByte('.')
 			builder.WriteString(strings.ToLower(parts[1]))
-			
+
 			// 有时添加数字
 			hf.mu.Lock()
 			if hf.rng.Float32() < 0.3 {
@@ -347,7 +347,7 @@ func (hf *HighPerformanceFaker) FastEmail() string {
 			builder.WriteString(strings.ToLower(name))
 		}
 	}
-	
+
 	// 添加域名
 	if len(hf.emailDomains) > 0 {
 		hf.mu.Lock()
@@ -355,7 +355,7 @@ func (hf *HighPerformanceFaker) FastEmail() string {
 		hf.mu.Unlock()
 		builder.WriteString(domain)
 	}
-	
+
 	return builder.String()
 }
 

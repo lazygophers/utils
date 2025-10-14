@@ -12,20 +12,20 @@ func TestInterfaceFailureSimulation(t *testing.T) {
 	t.Run("SystemLevelInterfaceTests", func(t *testing.T) {
 		// Test with interfaces that might be in transitional states
 		potentiallyProblematicInterfaces := []string{
-			"gif0",    // Generic tunnel interface
-			"stf0",    // 6to4 tunnel interface
-			"pktap0",  // Packet tap interface
-			"utun0",   // VPN tunnel interfaces
+			"gif0",   // Generic tunnel interface
+			"stf0",   // 6to4 tunnel interface
+			"pktap0", // Packet tap interface
+			"utun0",  // VPN tunnel interfaces
 			"utun1",
 			"utun2",
 			"utun3",
 			"utun5",
 			"utun6",
-			"anpi0",   // Apple network interface
+			"anpi0", // Apple network interface
 			"anpi1",
-			"ap1",     // Apple wireless
-			"awdl0",   // Apple wireless direct link
-			"llw0",    // Low latency wireless
+			"ap1",   // Apple wireless
+			"awdl0", // Apple wireless direct link
+			"llw0",  // Low latency wireless
 		}
 
 		// Test rapidly to potentially catch interfaces in transitional states
@@ -158,9 +158,9 @@ func TestErrorConditionForcing(t *testing.T) {
 
 		// Try with interfaces that are known to exist but might have issues
 		problematicInterfaces := []string{
-			"gif0",    // Generic tunnel - might have addr retrieval issues
-			"stf0",    // 6to4 tunnel - might have addr retrieval issues
-			"pktap0",  // Packet tap - known to be problematic
+			"gif0",   // Generic tunnel - might have addr retrieval issues
+			"stf0",   // 6to4 tunnel - might have addr retrieval issues
+			"pktap0", // Packet tap - known to be problematic
 		}
 
 		// Multiple rapid attempts might catch an interface in a bad state
@@ -264,11 +264,11 @@ func TestBoundaryConditions(t *testing.T) {
 	t.Run("EmptyAndInvalidInterfaces", func(t *testing.T) {
 		// Test with empty and invalid interface names
 		invalidInterfaces := []string{
-			"",           // Empty name
+			"",            // Empty name
 			"nonexistent", // Non-existent interface
-			"invalid123", // Invalid interface name
-			"eth999",     // Unlikely to exist
-			"en999",      // Unlikely to exist
+			"invalid123",  // Invalid interface name
+			"eth999",      // Unlikely to exist
+			"en999",       // Unlikely to exist
 		}
 
 		for _, ifName := range invalidInterfaces {
@@ -279,13 +279,13 @@ func TestBoundaryConditions(t *testing.T) {
 
 	t.Run("VariadicArgumentsTest", func(t *testing.T) {
 		// Test GetListenIp with various argument combinations
-		GetListenIp()                    // No args
-		GetListenIp(false)              // Single false
-		GetListenIp(true)               // Single true
-		GetListenIp(false, true)        // Two args
-		GetListenIp(true, false)        // Two args reversed
-		GetListenIp(true, true, true)   // Multiple true
-		GetListenIp(false, false, false) // Multiple false
+		GetListenIp()                               // No args
+		GetListenIp(false)                          // Single false
+		GetListenIp(true)                           // Single true
+		GetListenIp(false, true)                    // Two args
+		GetListenIp(true, false)                    // Two args reversed
+		GetListenIp(true, true, true)               // Multiple true
+		GetListenIp(false, false, false)            // Multiple false
 		GetListenIp(true, false, true, false, true) // Many args
 	})
 }

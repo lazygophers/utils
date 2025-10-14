@@ -17,7 +17,6 @@ func Choose[T any](s []T) T {
 	return s[idx]
 }
 
-
 // ChooseN 从切片中选择N个不重复的元素（高性能版本）
 func ChooseN[T any](s []T, n int) []T {
 	if len(s) == 0 || n <= 0 {
@@ -60,7 +59,6 @@ func Shuffle[T any](s []T) {
 		s[i], s[j] = s[j], s[i]
 	}
 }
-
 
 // WeightedChoose 加权选择（权重数组对应元素选择概率）
 func WeightedChoose[T any](items []T, weights []float64) T {

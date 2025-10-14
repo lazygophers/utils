@@ -211,7 +211,6 @@ func TestTimeDuration4Sleep(t *testing.T) {
 	})
 }
 
-
 func TestRandomDuration(t *testing.T) {
 	t.Run("random_duration_normal_range", func(t *testing.T) {
 		// 测试正常范围
@@ -232,7 +231,7 @@ func TestRandomDuration(t *testing.T) {
 		min := time.Second * 5
 		max := time.Second * 2
 		result := RandomDuration(min, max)
-		
+
 		if result != min {
 			t.Errorf("RandomDuration(%v, %v) returned %v, expected %v",
 				min, max, result, min)
@@ -243,7 +242,7 @@ func TestRandomDuration(t *testing.T) {
 		// 测试min == max的情况
 		duration := time.Second * 3
 		result := RandomDuration(duration, duration)
-		
+
 		if result != duration {
 			t.Errorf("RandomDuration(%v, %v) returned %v, expected %v",
 				duration, duration, result, duration)
@@ -311,7 +310,7 @@ func TestRandomTime(t *testing.T) {
 		start := time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC)
 		end := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
 		result := RandomTime(start, end)
-		
+
 		if !result.Equal(start) {
 			t.Errorf("RandomTime(%v, %v) returned %v, expected %v",
 				start, end, result, start)
@@ -322,7 +321,7 @@ func TestRandomTime(t *testing.T) {
 		// 测试start == end的情况
 		timestamp := time.Date(2023, 1, 1, 12, 0, 0, 0, time.UTC)
 		result := RandomTime(timestamp, timestamp)
-		
+
 		if !result.Equal(timestamp) {
 			t.Errorf("RandomTime(%v, %v) returned %v, expected %v",
 				timestamp, timestamp, result, timestamp)
@@ -365,15 +364,15 @@ func TestRandomTimeInDay(t *testing.T) {
 	t.Run("random_time_in_day_normal", func(t *testing.T) {
 		// 测试正常日期
 		date := time.Date(2023, 1, 15, 14, 30, 45, 123456789, time.UTC)
-		
+
 		for i := 0; i < 100; i++ {
 			result := RandomTimeInDay(date)
-			
+
 			// 检查日期是否相同
 			if result.Year() != date.Year() || result.Month() != date.Month() || result.Day() != date.Day() {
 				t.Errorf("RandomTimeInDay(%v) returned %v with different date", date, result)
 			}
-			
+
 			// 检查时间是否在0:00:00到23:59:59范围内
 			if result.Hour() < 0 || result.Hour() > 23 {
 				t.Errorf("RandomTimeInDay(%v) returned %v with invalid hour", date, result)
@@ -385,7 +384,7 @@ func TestRandomTimeInDay(t *testing.T) {
 		// 测试边界情况
 		date := time.Date(2023, 12, 31, 23, 59, 59, 999999999, time.UTC)
 		result := RandomTimeInDay(date)
-		
+
 		// 应该在同一天内
 		if result.Year() != 2023 || result.Month() != 12 || result.Day() != 31 {
 			t.Errorf("RandomTimeInDay(%v) returned %v with different date", date, result)
@@ -415,16 +414,16 @@ func TestRandomTimeInHour(t *testing.T) {
 		// 测试正常小时
 		baseTime := time.Date(2023, 1, 15, 14, 30, 45, 0, time.UTC)
 		hour := 10
-		
+
 		for i := 0; i < 100; i++ {
 			result := RandomTimeInHour(baseTime, hour)
-			
+
 			// 检查小时是否正确
 			if result.Hour() != hour {
 				t.Errorf("RandomTimeInHour(%v, %d) returned %v with hour %d, expected %d",
 					baseTime, hour, result, result.Hour(), hour)
 			}
-			
+
 			// 检查日期是否相同
 			if result.Year() != baseTime.Year() || result.Month() != baseTime.Month() || result.Day() != baseTime.Day() {
 				t.Errorf("RandomTimeInHour(%v, %d) returned %v with different date", baseTime, hour, result)
@@ -435,11 +434,11 @@ func TestRandomTimeInHour(t *testing.T) {
 	t.Run("random_time_in_hour_invalid_hour", func(t *testing.T) {
 		// 测试无效小时
 		baseTime := time.Date(2023, 1, 15, 14, 30, 45, 0, time.UTC)
-		
+
 		testCases := []int{-1, 24, 25, 100}
 		for _, invalidHour := range testCases {
 			result := RandomTimeInHour(baseTime, invalidHour)
-			
+
 			// 应该使用baseTime的小时
 			if result.Hour() != baseTime.Hour() {
 				t.Errorf("RandomTimeInHour(%v, %d) returned %v with hour %d, expected %d",
@@ -637,7 +636,7 @@ func TestJitter(t *testing.T) {
 		// 测试0%抖动
 		duration := time.Second * 5
 		result := Jitter(duration, 0)
-		
+
 		if result != duration {
 			t.Errorf("Jitter(%v, 0) returned %v, expected %v", duration, result, duration)
 		}
@@ -647,7 +646,7 @@ func TestJitter(t *testing.T) {
 		// 测试负百分比
 		duration := time.Second * 5
 		result := Jitter(duration, -10)
-		
+
 		if result != duration {
 			t.Errorf("Jitter(%v, -10) returned %v, expected %v", duration, result, duration)
 		}
@@ -658,12 +657,12 @@ func TestJitter(t *testing.T) {
 		duration := time.Second * 5
 		jitterPercent := 150.0
 		result := Jitter(duration, jitterPercent)
-		
+
 		// 应该被限制在100%
-		maxJitter := duration // 100%的抖动范围
+		maxJitter := duration           // 100%的抖动范围
 		expectedMin := time.Duration(0) // 可能为0
 		expectedMax := duration + maxJitter
-		
+
 		if result < expectedMin || result > expectedMax {
 			t.Logf("Jitter(%v, %f) returned %v, expected range [%v, %v]",
 				duration, jitterPercent, result, expectedMin, expectedMax)
@@ -674,20 +673,20 @@ func TestJitter(t *testing.T) {
 		// 测试正常百分比
 		duration := time.Second * 10
 		jitterPercent := 20.0 // 20%抖动
-		
+
 		for i := 0; i < 100; i++ {
 			result := Jitter(duration, jitterPercent)
-			
+
 			// 计算期望范围：duration ± 20%
 			jitterRange := time.Duration(float64(duration) * jitterPercent / 100)
 			expectedMin := duration - jitterRange
 			expectedMax := duration + jitterRange
-			
+
 			// 但结果不能小于0
 			if expectedMin < 0 {
 				expectedMin = 0
 			}
-			
+
 			if result < expectedMin || result > expectedMax {
 				t.Errorf("Jitter(%v, %f) returned %v, expected range [%v, %v]",
 					duration, jitterPercent, result, expectedMin, expectedMax)
@@ -699,18 +698,18 @@ func TestJitter(t *testing.T) {
 		// 测试50%抖动
 		duration := time.Second * 4
 		jitterPercent := 50.0
-		
+
 		results := make([]time.Duration, 100)
 		for i := 0; i < 100; i++ {
 			results[i] = Jitter(duration, jitterPercent)
 		}
-		
+
 		// 检查变异性
 		uniqueValues := make(map[time.Duration]bool)
 		for _, r := range results {
 			uniqueValues[r] = true
 		}
-		
+
 		if len(uniqueValues) < 20 { // 至少20个不同值
 			t.Logf("Warning: Only %d unique values out of 100 iterations", len(uniqueValues))
 		}
@@ -720,7 +719,7 @@ func TestJitter(t *testing.T) {
 		// 测试结果不会为负数
 		duration := time.Millisecond * 100
 		jitterPercent := 200.0 // 很大的抖动
-		
+
 		for i := 0; i < 100; i++ {
 			result := Jitter(duration, jitterPercent)
 			if result < 0 {
@@ -734,7 +733,7 @@ func TestJitter(t *testing.T) {
 		duration := time.Duration(0)
 		jitterPercent := 50.0
 		result := Jitter(duration, jitterPercent)
-		
+
 		if result != 0 {
 			t.Errorf("Jitter(0, %f) returned %v, expected 0", jitterPercent, result)
 		}
@@ -744,7 +743,7 @@ func TestJitter(t *testing.T) {
 		// 测试很小的duration和很高的jitter百分比，确保能覆盖result < 0的情况
 		duration := time.Nanosecond * 1
 		jitterPercent := 99.0 // 高jitter可能导致负值
-		
+
 		// 多次运行以增加获得负值的概率
 		for i := 0; i < 50000; i++ {
 			result := Jitter(duration, jitterPercent)

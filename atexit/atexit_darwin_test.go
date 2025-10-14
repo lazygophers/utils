@@ -342,4 +342,3 @@ func BenchmarkExecuteCallbacks(b *testing.B) {
 		executeCallbacks()
 	}
 }
-

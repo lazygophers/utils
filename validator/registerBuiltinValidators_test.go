@@ -62,12 +62,12 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 
 			// Invalid IPv4 addresses
 			invalidIPs := []string{
-				"256.1.1.1",         // Number > 255
-				"192.168.1",         // Too few parts
-				"192.168.1.1.1",     // Too many parts
-				"192.168.1.abc",     // Non-numeric
-				"",                  // Empty
-				"hello world",       // Text
+				"256.1.1.1",     // Number > 255
+				"192.168.1",     // Too few parts
+				"192.168.1.1.1", // Too many parts
+				"192.168.1.abc", // Non-numeric
+				"",              // Empty
+				"hello world",   // Text
 			}
 
 			for _, ip := range invalidIPs {
@@ -79,9 +79,9 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 		t.Run("mobile validator", func(t *testing.T) {
 			// Valid mobile numbers (Chinese format)
 			validMobiles := []string{
-				"13812345678",  // Standard Chinese mobile
-				"15987654321",  // Another valid format
-				"18612345678",  // Common prefix
+				"13812345678", // Standard Chinese mobile
+				"15987654321", // Another valid format
+				"18612345678", // Common prefix
 			}
 
 			for _, mobile := range validMobiles {
@@ -93,11 +93,11 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 
 			// Invalid mobile numbers
 			invalidMobiles := []string{
-				"12345678901",   // Wrong start
-				"1381234567",    // Too short
-				"138123456789",  // Too long
-				"abcdefghijk",   // Non-numeric
-				"",              // Empty
+				"12345678901",  // Wrong start
+				"1381234567",   // Too short
+				"138123456789", // Too long
+				"abcdefghijk",  // Non-numeric
+				"",             // Empty
 			}
 
 			for _, mobile := range invalidMobiles {
@@ -122,11 +122,11 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 
 			// Invalid email addresses
 			invalidEmails := []string{
-				"notanemail",        // No @
-				"@example.com",      // No local part
-				"test@",             // No domain
-				"test@.com",         // Invalid domain
-				"",                  // Empty
+				"notanemail",   // No @
+				"@example.com", // No local part
+				"test@",        // No domain
+				"test@.com",    // Invalid domain
+				"",             // Empty
 			}
 
 			for _, email := range invalidEmails {
@@ -183,10 +183,10 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 
 			// Invalid MAC addresses
 			invalidMACs := []string{
-				"00:11:22:33:44",    // Too short
+				"00:11:22:33:44",       // Too short
 				"00:11:22:33:44:55:66", // Too long
-				"GG:HH:II:JJ:KK:LL", // Invalid hex
-				"",                  // Empty
+				"GG:HH:II:JJ:KK:LL",    // Invalid hex
+				"",                     // Empty
 			}
 
 			for _, mac := range invalidMACs {
@@ -234,9 +234,9 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 
 			// Invalid JSON
 			invalidJSONs := []string{
-				`[1, 2, 3`,          // Unclosed bracket
-				``,                  // Empty
-				`undefined`,         // Invalid literal
+				`[1, 2, 3`,  // Unclosed bracket
+				``,          // Empty
+				`undefined`, // Invalid literal
 			}
 
 			for _, json := range invalidJSONs {
@@ -246,8 +246,8 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 
 			// Test cases that might be valid or invalid depending on implementation
 			ambiguousJSONs := []string{
-				`{name: "test"}`,    // Unquoted key - might be valid in some parsers
-				`{"key": }`,         // Missing value
+				`{name: "test"}`, // Unquoted key - might be valid in some parsers
+				`{"key": }`,      // Missing value
 			}
 
 			for _, json := range ambiguousJSONs {
@@ -263,9 +263,9 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 		t.Run("base64 validator", func(t *testing.T) {
 			// Valid base64
 			validBase64s := []string{
-				"SGVsbG8gV29ybGQ=",  // "Hello World"
-				"VGVzdA==",          // "Test"
-				"YWJjZGVmZw==",      // "abcdefg"
+				"SGVsbG8gV29ybGQ=", // "Hello World"
+				"VGVzdA==",         // "Test"
+				"YWJjZGVmZw==",     // "abcdefg"
 			}
 
 			for _, b64 := range validBase64s {
@@ -275,7 +275,7 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 
 			// Test cases that might be valid depending on base64 implementation
 			possiblyValidBase64s := []string{
-				"SGVsbG8gV29ybGQ",   // Missing padding - some validators accept this
+				"SGVsbG8gV29ybGQ", // Missing padding - some validators accept this
 			}
 
 			for _, b64 := range possiblyValidBase64s {
@@ -289,7 +289,7 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 
 			// Test potentially invalid base64 - this validator seems very lenient
 			potentiallyInvalidBase64s := []string{
-				"SGVsbG8@V29ybGQ=",  // Invalid character - but some validators might accept this
+				"SGVsbG8@V29ybGQ=", // Invalid character - but some validators might accept this
 			}
 
 			for _, b64 := range potentiallyInvalidBase64s {
@@ -303,8 +303,8 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 
 			// Test cases that might be valid or invalid depending on implementation
 			ambiguousBase64s := []string{
-				"Hello World!",      // Plain text
-				"",                  // Empty
+				"Hello World!", // Plain text
+				"",             // Empty
 			}
 
 			for _, b64 := range ambiguousBase64s {
@@ -332,7 +332,7 @@ func TestRegisterBuiltinValidatorsCoverage(t *testing.T) {
 
 			// Invalid UUIDs
 			invalidUUIDs := []string{
-				"550e8400-e29b-41d4-a716-44665544000",  // Too short
+				"550e8400-e29b-41d4-a716-44665544000",   // Too short
 				"550e8400-e29b-41d4-a716-4466554400000", // Too long
 				"550e8400-e29b-41d4-a716-44665544000g",  // Invalid character
 				"550e8400_e29b_41d4_a716_446655440000",  // Wrong separator
@@ -403,12 +403,12 @@ func TestCustomValidatorsIndividually(t *testing.T) {
 
 	t.Run("validateIPv4 direct test", func(t *testing.T) {
 		testIPs := []string{
-			"192.168.1.1",    // Valid
-			"0.0.0.0",        // Edge case
+			"192.168.1.1",     // Valid
+			"0.0.0.0",         // Edge case
 			"255.255.255.255", // Max values
-			"256.1.1.1",      // Invalid
-			"192.168.1.256",  // Invalid
-			"192.168.1",      // Incomplete
+			"256.1.1.1",       // Invalid
+			"192.168.1.256",   // Invalid
+			"192.168.1",       // Incomplete
 			"abc.def.ghi.jkl", // Non-numeric
 		}
 

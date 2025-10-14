@@ -10,25 +10,25 @@ import (
 
 // Cache represents an Adaptive LFU cache that adjusts to access patterns
 type Cache[K comparable, V any] struct {
-	capacity       int
-	items          map[K]*entry[K, V]
-	frequencies    map[int]*list.List  // frequency -> LRU list of entries with that frequency
-	minFreq        int                 // minimum frequency in the cache
-	maxFreq        int                 // maximum frequency in the cache
-	decayFactor    float64             // decay factor for aging frequencies
-	lastDecay      time.Time           // last time decay was applied
-	decayInterval  time.Duration       // interval between decay operations
-	mu             sync.RWMutex
-	onEvict        func(K, V)
+	capacity      int
+	items         map[K]*entry[K, V]
+	frequencies   map[int]*list.List // frequency -> LRU list of entries with that frequency
+	minFreq       int                // minimum frequency in the cache
+	maxFreq       int                // maximum frequency in the cache
+	decayFactor   float64            // decay factor for aging frequencies
+	lastDecay     time.Time          // last time decay was applied
+	decayInterval time.Duration      // interval between decay operations
+	mu            sync.RWMutex
+	onEvict       func(K, V)
 }
 
 // entry represents a cache entry
 type entry[K comparable, V any] struct {
-	key         K
-	value       V
-	frequency   int
-	lastAccess  time.Time
-	element     *list.Element
+	key        K
+	value      V
+	frequency  int
+	lastAccess time.Time
+	element    *list.Element
 }
 
 // New creates a new Adaptive LFU cache with the given capacity
@@ -43,8 +43,8 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 		frequencies:   make(map[int]*list.List),
 		minFreq:       1,
 		maxFreq:       1,
-		decayFactor:   0.9,                  // 10% decay
-		decayInterval: 5 * time.Minute,      // Decay every 5 minutes
+		decayFactor:   0.9,             // 10% decay
+		decayInterval: 5 * time.Minute, // Decay every 5 minutes
 		lastDecay:     time.Now(),
 	}, nil
 }
@@ -307,14 +307,14 @@ func (c *Cache[K, V]) applyDecay() {
 		if freqList, exists := c.frequencies[freq]; exists && freqList.Len() > 0 {
 			for element := freqList.Front(); element != nil; element = element.Next() {
 				entry := element.Value.(*entry[K, V])
-				
+
 				// Apply time-based decay: more recent accesses decay less
 				timeSinceAccess := time.Since(entry.lastAccess)
 				timeDecayFactor := math.Exp(-float64(timeSinceAccess) / float64(time.Hour))
-				
+
 				// Calculate new frequency with both frequency and time decay
 				newFreq := int(math.Max(1, float64(entry.frequency)*c.decayFactor*timeDecayFactor))
-				
+
 				if newFreq != entry.frequency {
 					toMove = append(toMove, entry)
 				}
@@ -451,7 +451,7 @@ func (c *Cache[K, V]) removeEntry(entry *entry[K, V]) {
 func (c *Cache[K, V]) ForceDecay() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	c.applyDecay()
 	c.lastDecay = time.Now()
 }
@@ -483,12 +483,12 @@ func (c *Cache[K, V]) Stats() Stats {
 
 // Stats represents cache statistics
 type Stats struct {
-	Size                  int                 // actual cache size
-	Capacity              int                 // maximum cache capacity
-	MinFrequency          int                 // minimum frequency in cache
-	MaxFrequency          int                 // maximum frequency in cache
-	DecayFactor           float64             // decay factor applied during aging
-	DecayInterval         time.Duration       // interval between decay operations
-	LastDecay             time.Time           // timestamp of last decay operation
-	FrequencyDistribution map[int]int         // frequency -> count of entries
+	Size                  int           // actual cache size
+	Capacity              int           // maximum cache capacity
+	MinFrequency          int           // minimum frequency in cache
+	MaxFrequency          int           // maximum frequency in cache
+	DecayFactor           float64       // decay factor applied during aging
+	DecayInterval         time.Duration // interval between decay operations
+	LastDecay             time.Time     // timestamp of last decay operation
+	FrequencyDistribution map[int]int   // frequency -> count of entries
 }

@@ -269,7 +269,6 @@ func TestRelativeTime(t *testing.T) {
 	}
 }
 
-
 func TestOptions(t *testing.T) {
 	// 测试自定义选项
 	opts := Options{
@@ -362,7 +361,7 @@ func TestCompleteCodeCoverage(t *testing.T) {
 		_ = formatWithUnit(1.5, 1, config, "invalid") // Should return "-"
 
 		_ = formatFloat(1.5, 2)
-		_ = formatFloat(1.0, 2) // Integer value
+		_ = formatFloat(1.0, 2)  // Integer value
 		_ = formatFloat(1.5, -1) // Negative precision
 
 		_ = formatClockTime(time.Hour + 30*time.Minute + 45*time.Second)
@@ -416,13 +415,13 @@ func TestCompleteCodeCoverage(t *testing.T) {
 		// Various time ranges for relative time
 		now := time.Now()
 		past := []time.Duration{
-			5 * time.Second,    // "just now"
-			30 * time.Second,   // seconds ago
-			30 * time.Minute,   // minutes ago
-			5 * time.Hour,      // hours ago
-			3 * 24 * time.Hour, // days ago
-			10 * 24 * time.Hour, // weeks ago
-			45 * 24 * time.Hour, // months ago
+			5 * time.Second,      // "just now"
+			30 * time.Second,     // seconds ago
+			30 * time.Minute,     // minutes ago
+			5 * time.Hour,        // hours ago
+			3 * 24 * time.Hour,   // days ago
+			10 * 24 * time.Hour,  // weeks ago
+			45 * 24 * time.Hour,  // months ago
 			400 * 24 * time.Hour, // years ago
 		}
 
@@ -455,10 +454,10 @@ func TestCompleteCodeCoverage(t *testing.T) {
 	t.Run("Locale management", func(t *testing.T) {
 		// Test locale registration and retrieval
 		testLocale := &Locale{
-			Language: "test",
-			Region: "TEST",
-			ByteUnits: []string{"B", "KB", "MB"},
-			SpeedUnits: []string{"B/s", "KB/s", "MB/s"},
+			Language:      "test",
+			Region:        "TEST",
+			ByteUnits:     []string{"B", "KB", "MB"},
+			SpeedUnits:    []string{"B/s", "KB/s", "MB/s"},
 			BitSpeedUnits: []string{"bps", "Kbps", "Mbps"},
 		}
 
@@ -674,9 +673,9 @@ func TestLargeValues(t *testing.T) {
 		input    int64
 		expected string
 	}{
-		{1024 * 1024 * 1024 * 1024 * 1024, "1 PB"},                        // 1 PB
-		{1024 * 1024 * 1024 * 1024 * 1024 * 1024, "1024 PB"},             // 1024 PB (beyond units)
-		{1000 * 1000 * 1000 * 1000 * 1000, "909.5 TB"},                   // ~1000^5 in binary
+		{1024 * 1024 * 1024 * 1024 * 1024, "1 PB"},           // 1 PB
+		{1024 * 1024 * 1024 * 1024 * 1024 * 1024, "1024 PB"}, // 1024 PB (beyond units)
+		{1000 * 1000 * 1000 * 1000 * 1000, "909.5 TB"},       // ~1000^5 in binary
 	}
 
 	for _, tt := range tests {
@@ -1052,8 +1051,8 @@ func TestGetTimeUnitAllCases(t *testing.T) {
 	}
 
 	testCases := []struct {
-		unit string
-		count int64
+		unit     string
+		count    int64
 		expected string
 	}{
 		{"second", 2, "seconds"},
@@ -1281,8 +1280,8 @@ func TestIntegerValues(t *testing.T) {
 		input    int64
 		expected string
 	}{
-		{1024, "1 KB"},     // Exactly 1KB
-		{2048, "2 KB"},     // Exactly 2KB
+		{1024, "1 KB"},        // Exactly 1KB
+		{2048, "2 KB"},        // Exactly 2KB
 		{1024 * 1024, "1 MB"}, // Exactly 1MB
 	}
 
@@ -1391,8 +1390,8 @@ func TestDirectFunctionAPI(t *testing.T) {
 	// 测试Speed vs BitSpeed 的区别
 	t.Run("Speed vs BitSpeed distinction", func(t *testing.T) {
 		value := int64(8000)
-		byteSpeed := Speed(value)     // 1024-based: 8000/1024 = 7.8 KB/s
-		bitSpeed := BitSpeed(value)   // 1000-based: 8000/1000 = 8 Kbps
+		byteSpeed := Speed(value)   // 1024-based: 8000/1024 = 7.8 KB/s
+		bitSpeed := BitSpeed(value) // 1000-based: 8000/1000 = 8 Kbps
 
 		if byteSpeed == bitSpeed {
 			t.Error("Speed and BitSpeed should produce different results")
@@ -1500,4 +1499,3 @@ func BenchmarkNewAPI(b *testing.B) {
 		}
 	})
 }
-

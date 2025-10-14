@@ -382,4 +382,3 @@ func TestEdgeCases(t *testing.T) {
 		assert.Equal(t, 0, beginningOfDay.Hour())
 	})
 }
-

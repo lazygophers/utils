@@ -8,10 +8,10 @@ import (
 
 func TestEnvVariables(t *testing.T) {
 	tests := []struct {
-		name     string
-		varPtr   *string
-		varName  string
-		testVal  string
+		name    string
+		varPtr  *string
+		varName string
+		testVal string
 	}{
 		{"Commit", &Commit, "Commit", "abc123def456"},
 		{"ShortCommit", &ShortCommit, "ShortCommit", "abc123d"},

@@ -190,7 +190,6 @@ func Uint64Range(min, max uint64) uint64 {
 	return result
 }
 
-
 // BatchIntn 批量生成随机数
 func BatchIntn(n int, count int) []int {
 	if count <= 0 {

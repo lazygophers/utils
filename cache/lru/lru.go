@@ -8,11 +8,11 @@ import (
 
 // Cache represents an LRU cache
 type Cache[K comparable, V any] struct {
-	capacity int
-	items    map[K]*list.Element
+	capacity  int
+	items     map[K]*list.Element
 	evictList *list.List
-	mu       sync.RWMutex
-	onEvict  func(K, V)
+	mu        sync.RWMutex
+	onEvict   func(K, V)
 }
 
 // entry represents a cache entry
@@ -26,7 +26,7 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 	if capacity <= 0 {
 		return nil, fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
-	
+
 	return &Cache[K, V]{
 		capacity:  capacity,
 		items:     make(map[K]*list.Element),
@@ -48,14 +48,14 @@ func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache
 func (c *Cache[K, V]) Get(key K) (value V, ok bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	if element, exists := c.items[key]; exists {
 		// Move to front (most recently used)
 		c.evictList.MoveToFront(element)
 		entry := element.Value.(*entry[K, V])
 		return entry.value, true
 	}
-	
+
 	var zero V
 	return zero, false
 }
@@ -64,7 +64,7 @@ func (c *Cache[K, V]) Get(key K) (value V, ok bool) {
 func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	// Check if key already exists
 	if element, exists := c.items[key]; exists {
 		// Update existing entry
@@ -73,18 +73,18 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 		entry.value = value
 		return false
 	}
-	
+
 	// Add new entry
 	entry := &entry[K, V]{key: key, value: value}
 	element := c.evictList.PushFront(entry)
 	c.items[key] = element
-	
+
 	// Check if we need to evict
 	if c.evictList.Len() > c.capacity {
 		c.removeOldest()
 		return true
 	}
-	
+
 	return false
 }
 
@@ -92,13 +92,13 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 func (c *Cache[K, V]) Remove(key K) (value V, ok bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	if element, exists := c.items[key]; exists {
 		entry := element.Value.(*entry[K, V])
 		c.removeElement(element)
 		return entry.value, true
 	}
-	
+
 	var zero V
 	return zero, false
 }
@@ -107,7 +107,7 @@ func (c *Cache[K, V]) Remove(key K) (value V, ok bool) {
 func (c *Cache[K, V]) Contains(key K) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	_, exists := c.items[key]
 	return exists
 }
@@ -116,12 +116,12 @@ func (c *Cache[K, V]) Contains(key K) bool {
 func (c *Cache[K, V]) Peek(key K) (value V, ok bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	if element, exists := c.items[key]; exists {
 		entry := element.Value.(*entry[K, V])
 		return entry.value, true
 	}
-	
+
 	var zero V
 	return zero, false
 }
@@ -130,7 +130,7 @@ func (c *Cache[K, V]) Peek(key K) (value V, ok bool) {
 func (c *Cache[K, V]) Len() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	return c.evictList.Len()
 }
 
@@ -143,7 +143,7 @@ func (c *Cache[K, V]) Cap() int {
 func (c *Cache[K, V]) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	for k, v := range c.items {
 		if c.onEvict != nil {
 			entry := v.Value.(*entry[K, V])
@@ -158,7 +158,7 @@ func (c *Cache[K, V]) Clear() {
 func (c *Cache[K, V]) Keys() []K {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	keys := make([]K, 0, c.evictList.Len())
 	for element := c.evictList.Front(); element != nil; element = element.Next() {
 		entry := element.Value.(*entry[K, V])
@@ -171,7 +171,7 @@ func (c *Cache[K, V]) Keys() []K {
 func (c *Cache[K, V]) Values() []V {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	values := make([]V, 0, c.evictList.Len())
 	for element := c.evictList.Front(); element != nil; element = element.Next() {
 		entry := element.Value.(*entry[K, V])
@@ -184,7 +184,7 @@ func (c *Cache[K, V]) Values() []V {
 func (c *Cache[K, V]) Items() map[K]V {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	items := make(map[K]V, c.evictList.Len())
 	for element := c.evictList.Front(); element != nil; element = element.Next() {
 		entry := element.Value.(*entry[K, V])
@@ -198,12 +198,12 @@ func (c *Cache[K, V]) Resize(capacity int) error {
 	if capacity <= 0 {
 		return fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
-	
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	c.capacity = capacity
-	
+
 	// Remove excess items if new capacity is smaller
 	for c.evictList.Len() > c.capacity {
 		c.removeOldest()
@@ -224,7 +224,7 @@ func (c *Cache[K, V]) removeElement(element *list.Element) {
 	c.evictList.Remove(element)
 	entry := element.Value.(*entry[K, V])
 	delete(c.items, entry.key)
-	
+
 	if c.onEvict != nil {
 		c.onEvict(entry.key, entry.value)
 	}
@@ -234,7 +234,7 @@ func (c *Cache[K, V]) removeElement(element *list.Element) {
 func (c *Cache[K, V]) Stats() Stats {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	return Stats{
 		Size:     c.evictList.Len(),
 		Capacity: c.capacity,

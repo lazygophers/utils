@@ -10,9 +10,9 @@ import (
 type Cache[K comparable, V any] struct {
 	capacity    int
 	items       map[K]*entry[K, V]
-	frequencies map[int]*list.List  // frequency -> LRU list of entries with that frequency
-	minFreq     int                 // minimum frequency in the cache
-	maxFreq     int                 // maximum frequency in the cache
+	frequencies map[int]*list.List // frequency -> LRU list of entries with that frequency
+	minFreq     int                // minimum frequency in the cache
+	maxFreq     int                // maximum frequency in the cache
 	mu          sync.RWMutex
 	onEvict     func(K, V)
 }
@@ -341,10 +341,10 @@ func (c *Cache[K, V]) Stats() Stats {
 	}
 
 	return Stats{
-		Size:               len(c.items),
-		Capacity:           c.capacity,
-		MinFrequency:       c.minFreq,
-		MaxFrequency:       c.maxFreq,
+		Size:                  len(c.items),
+		Capacity:              c.capacity,
+		MinFrequency:          c.minFreq,
+		MaxFrequency:          c.maxFreq,
 		FrequencyDistribution: freqCounts,
 	}
 }

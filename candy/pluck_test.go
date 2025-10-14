@@ -124,7 +124,7 @@ func TestPluckPtr(t *testing.T) {
 
 	t.Run("handle nil pointers with default", func(t *testing.T) {
 		p1 := &Person{Name: "Alice", Age: 30}
-		persons := []*Person{p1, nil, &Person{Name: "Charlie", Age: 35}}
+		persons := []*Person{p1, nil, {Name: "Charlie", Age: 35}}
 		result := PluckPtr(persons, func(p *Person) string {
 			return p.Name
 		}, "Unknown")
@@ -615,7 +615,7 @@ func TestReflectionBasedPluckAdvanced(t *testing.T) {
 		p1 := &NestedPerson{Name: "Alice", Age: 30}
 		p2 := &NestedPerson{Name: "Bob", Age: 25}
 		persons := []*NestedPerson{p1, p2}
-		
+
 		result := PluckInt(persons, "Age")
 		if len(result) != 2 || result[0] != 30 || result[1] != 25 {
 			t.Errorf("PluckInt with nested pointers failed")

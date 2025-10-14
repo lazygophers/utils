@@ -56,7 +56,7 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 	}
 
 	var windowSize, protectedSize, probationSize int
-	
+
 	if capacity == 1 {
 		// Special case: single item cache - everything goes to window
 		windowSize = 1
@@ -65,7 +65,7 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 	} else {
 		windowSize = max(1, capacity/10) // 10% for window, but at least 1
 		mainSize := capacity - windowSize
-		
+
 		// Ensure reasonable minimum sizes for small caches
 		if mainSize <= 4 {
 			// For small main caches, give more equal distribution
@@ -138,13 +138,13 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 		value:   value,
 		inSpace: spaceWindow,
 	}
-	
+
 	// Check if window is full before adding
 	if c.window.Len() >= c.windowSize {
 		// Evict from window to make space
 		c.evictFromWindow()
 	}
-	
+
 	entry.element = c.window.PushFront(entry)
 	c.items[key] = entry
 
@@ -229,7 +229,7 @@ func (c *Cache[K, V]) Keys() []K {
 
 	type cacheEntry = entry[K, V]
 	keys := make([]K, 0, len(c.items))
-	
+
 	// Add keys from each space
 	for element := c.window.Front(); element != nil; element = element.Next() {
 		entry := element.Value.(*cacheEntry)
@@ -333,7 +333,7 @@ func (c *Cache[K, V]) recordAccess(e *entry[K, V]) {
 	case spaceWindow:
 		// Promote from window to probation on access
 		c.window.Remove(e.element)
-		
+
 		// Check if probation has space
 		if c.probation.Len() < c.probationCap {
 			e.element = c.probation.PushFront(e)
@@ -460,7 +460,7 @@ func (c *Cache[K, V]) demoteFromProtected() {
 	if element == nil {
 		return
 	}
-	
+
 	type cacheEntry = entry[K, V]
 	entry := element.Value.(*cacheEntry)
 	c.protected.Remove(entry.element)
@@ -505,7 +505,7 @@ func (c *Cache[K, V]) removeEntry(entry *entry[K, V]) {
 func (c *Cache[K, V]) hash(key K) uint32 {
 	// Convert key to string representation
 	keyStr := fmt.Sprintf("%v", key)
-	
+
 	// Use FNV-1a hash
 	h := fnv.New32a()
 	h.Write([]byte(keyStr))
@@ -516,7 +516,7 @@ func (c *Cache[K, V]) hash(key K) uint32 {
 func newCountMinSketch(capacity int) *countMinSketch {
 	width := max(16, capacity/10) // Width proportional to capacity
 	depth := 4                    // Fixed depth
-	
+
 	table := make([][]uint8, depth)
 	for i := range table {
 		table[i] = make([]uint8, width)
@@ -526,7 +526,7 @@ func newCountMinSketch(capacity int) *countMinSketch {
 	if capacity < 100 {
 		sampleRate = 1 // No sampling for small caches
 	}
-	
+
 	return &countMinSketch{
 		width:  width,
 		depth:  depth,

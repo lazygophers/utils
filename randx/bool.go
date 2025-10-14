@@ -22,7 +22,6 @@ func Booln(n float64) bool {
 	return result
 }
 
-
 // WeightedBool 加权布尔值，weight为true的权重(0.0-1.0)
 func WeightedBool(weight float64) bool {
 	if weight >= 1.0 {
