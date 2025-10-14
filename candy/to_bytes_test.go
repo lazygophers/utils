@@ -324,7 +324,7 @@ func TestToBytes(t *testing.T) {
 	})
 }
 
-func TestToString(t *testing.T) {
+func TestToString_HelperFunc(t *testing.T) {
 	t.Run("convert bytes to string", func(t *testing.T) {
 		tests := []struct {
 			name  string
