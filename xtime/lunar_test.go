@@ -516,3 +516,45 @@ func BenchmarkLunarConversions(b *testing.B) {
 		}
 	})
 }
+
+// Tests from missing_coverage_test.go - Lunar functions
+func TestLunar_DayAlias(t *testing.T) {
+	// Test DayAlias with various edge cases
+	testCases := []int{1, 10, 11, 20, 30, 31}
+
+	for _, day := range testCases {
+		// Using WithLunar to create proper lunar instance
+		solarDate := time.Date(2024, 1, day, 0, 0, 0, 0, time.UTC)
+		lunar := xtime.WithLunar(solarDate)
+		alias := lunar.DayAlias()
+		assert.NotEmpty(t, alias)
+		t.Logf("Day %d alias: %s", day, alias)
+	}
+}
+
+func TestLunar_MonthAlias(t *testing.T) {
+	// Test MonthAlias with various cases
+	testCases := []int{1, 11, 12}
+
+	for _, month := range testCases {
+		// Using WithLunar to create proper lunar instance
+		solarDate := time.Date(2024, time.Month(month), 15, 0, 0, 0, 0, time.UTC)
+		lunar := xtime.WithLunar(solarDate)
+		alias := lunar.MonthAlias()
+		assert.NotEmpty(t, alias)
+		t.Logf("Month %d alias: %s", month, alias)
+	}
+}
+
+func TestLunar_Animal(t *testing.T) {
+	// Test with different years
+	testYears := []int{1900, 1984, 2000, 2024}
+
+	for _, year := range testYears {
+		solarDate := time.Date(year, 6, 15, 0, 0, 0, 0, time.UTC)
+		lunar := xtime.WithLunar(solarDate)
+		animal := lunar.Animal()
+		assert.NotEmpty(t, animal)
+		t.Logf("Year %d animal: %s", year, animal)
+	}
+}

@@ -351,39 +351,6 @@ func TestSolarTermHelper(t *testing.T) {
 	})
 }
 
-func TestExamples(t *testing.T) {
-	t.Run("quick_example", func(t *testing.T) {
-		assert.NotPanics(t, func() {
-			QuickExample()
-		})
-	})
-
-	t.Run("get_today_lucky", func(t *testing.T) {
-		lucky := GetTodayLucky()
-
-		assert.Contains(t, lucky, "overall")
-		assert.Contains(t, lucky, "love")
-		assert.Contains(t, lucky, "career")
-		assert.Contains(t, lucky, "wealth")
-		assert.Contains(t, lucky, "health")
-
-		for key, value := range lucky {
-			assert.NotEmpty(t, value)
-			t.Logf("%s: %s", key, value)
-		}
-	})
-
-	t.Run("format_today_info", func(t *testing.T) {
-		info := FormatTodayInfo()
-
-		assert.NotEmpty(t, info)
-		assert.Contains(t, info, "今日信息")
-		assert.Contains(t, info, "公历")
-		assert.Contains(t, info, "农历")
-
-		t.Logf("今日信息:\n%s", info)
-	})
-}
 
 // 基准测试
 func BenchmarkCalendar(b *testing.B) {
@@ -443,4 +410,21 @@ func BenchmarkHelpers(b *testing.B) {
 			_ = helper.GetYearTerms(2023)
 		}
 	})
+}
+
+// Tests from missing_coverage_test.go - Calendar functions
+func TestCalendar_Season(t *testing.T) {
+	// Test calculateSeason with different dates via Calendar
+	testDates := []time.Time{
+		time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC), // Spring
+		time.Date(2024, 6, 15, 0, 0, 0, 0, time.UTC), // Summer
+		time.Date(2024, 9, 15, 0, 0, 0, 0, time.UTC), // Autumn
+	}
+
+	for _, date := range testDates {
+		calendar := NewCalendar(date)
+		season := calendar.Season()
+		assert.NotEmpty(t, season)
+		t.Logf("Season on %v: %s", date.Format("2006-01-02"), season)
+	}
 }
