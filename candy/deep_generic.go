@@ -19,43 +19,6 @@ type Copyable interface {
 		~complex64 | ~complex128
 }
 
-// FastDeepEqual 快速深度比较函数，对基本类型直接比较，复杂类型使用反射
-func FastDeepEqual[T comparable](x, y T) bool {
-	// 对于基本可比较类型，直接比较
-	if reflect.TypeOf(x).Comparable() {
-		return x == y
-	}
-
-	// 对于复杂类型，回退到反射版本
-	return DeepEqual(x, y)
-}
-
-// FastDeepCopy 快速深度复制函数，对基本类型直接复制，复杂类型使用反射
-func FastDeepCopy[T any](src T) T {
-	// 对于基本类型，直接返回副本
-	switch any(src).(type) {
-	case bool, string,
-		int, int8, int16, int32, int64,
-		uint, uint8, uint16, uint32, uint64,
-		float32, float64,
-		complex64, complex128:
-		return src
-	}
-
-	// 对于复杂类型，使用反射
-	v := reflect.ValueOf(src)
-	if !v.IsValid() {
-		var zero T
-		return zero
-	}
-
-	// 创建新的目标变量
-	var dst T
-	dstPtr := reflect.ValueOf(&dst)
-	deepCopyValue(v, dstPtr.Elem())
-	return dst
-}
-
 // TypedSliceCopy 类型安全的切片复制
 func TypedSliceCopy[T any](src []T) []T {
 	if src == nil {
@@ -79,8 +42,8 @@ func TypedSliceCopy[T any](src []T) []T {
 	}
 
 	// 对于复杂类型，逐个深度复制
-	for i, item := range src {
-		dst[i] = FastDeepCopy(item)
+	for i := range src {
+		DeepCopy(src[i], &dst[i])
 	}
 	return dst
 }
@@ -110,7 +73,9 @@ func TypedMapCopy[K comparable, V any](src map[K]V) map[K]V {
 
 	// 对于复杂类型，深度复制值
 	for k, v := range src {
-		dst[k] = FastDeepCopy(v)
+		var dstV V
+		DeepCopy(v, &dstV)
+		dst[k] = dstV
 	}
 	return dst
 }
@@ -172,7 +137,9 @@ func StructEqual[T any](a, b T, comparer func(T, T) bool) bool {
 
 // Clone 通用克隆函数，根据类型选择最佳策略
 func Clone[T any](src T) T {
-	return FastDeepCopy(src)
+	var dst T
+	DeepCopy(src, &dst)
+	return dst
 }
 
 // CloneSlice 切片克隆的便捷函数
@@ -187,7 +154,7 @@ func CloneMap[K comparable, V any](src map[K]V) map[K]V {
 
 // Equal 通用相等性检查，根据类型选择最佳策略
 func Equal[T comparable](a, b T) bool {
-	return FastDeepEqual(a, b)
+	return a == b
 }
 
 // EqualSlice 切片相等性检查的便捷函数
