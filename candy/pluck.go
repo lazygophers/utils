@@ -1,5 +1,10 @@
 package candy
 
+import (
+	"fmt"
+	"reflect"
+)
+
 // Pluck 从结构体切片中提取指定字段的值（泛型版本）
 // 使用函数选择器而不是反射，提供类型安全和高性能
 func Pluck[T any, U any](slice []T, selector func(T) U) []U {
@@ -125,4 +130,109 @@ func PluckUint32Generic[T any](slice []T, selector func(T) uint32) []uint32 {
 // PluckUint64Generic 从结构体切片中提取 uint64 字段（泛型版本）
 func PluckUint64Generic[T any](slice []T, selector func(T) uint64) []uint64 {
 	return Pluck(slice, selector)
+}
+
+// 基于反射的旧版 Pluck 实现，用于向后兼容
+
+func pluck(list interface{}, fieldName string, deferVal interface{}) interface{} {
+	v := reflect.ValueOf(list)
+	switch v.Kind() {
+	case reflect.Array, reflect.Slice:
+		if v.Len() == 0 {
+			return deferVal
+		}
+
+		ev := v.Type().Elem()
+		evs := ev
+		for evs.Kind() == reflect.Ptr {
+			evs = evs.Elem()
+		}
+
+		switch evs.Kind() {
+		case reflect.Struct:
+			field, ok := evs.FieldByName(fieldName)
+			if !ok {
+				panic(fmt.Sprintf("field %s not found", fieldName))
+			}
+
+			result := reflect.MakeSlice(reflect.SliceOf(field.Type), v.Len(), v.Len())
+
+			for i := 0; i < v.Len(); i++ {
+				ev := v.Index(i)
+				for ev.Kind() == reflect.Ptr {
+					ev = ev.Elem()
+				}
+				if ev.Kind() != reflect.Struct {
+					panic("element is not a struct")
+				}
+				if !ev.IsValid() {
+					continue
+				}
+				result.Index(i).Set(ev.FieldByIndex(field.Index))
+			}
+
+			return result.Interface()
+		case reflect.Slice, reflect.Array:
+			var ev reflect.Value
+			var c int
+			for i := 0; i < v.Len(); i++ {
+				ev = v.Index(i)
+				for i := 0; i < ev.Len(); i++ {
+					c += ev.Index(i).Len()
+				}
+			}
+
+			result := reflect.MakeSlice(ev.Type(), c, c)
+			var idx int
+			for i := 0; i < v.Len(); i++ {
+				ev := v.Index(i)
+				for i := 0; i < ev.Len(); i++ {
+					result.Index(idx).Set(ev.Index(i))
+					idx++
+				}
+			}
+
+			return result.Interface()
+		default:
+			panic("list element type is not supported")
+		}
+
+	default:
+		panic("list must be an array or slice")
+	}
+}
+
+// PluckInt 从结构体切片中提取指定字段的 int 值
+func PluckInt(list interface{}, fieldName string) []int {
+	return pluck(list, fieldName, []int{}).([]int)
+}
+
+// PluckInt32 从结构体切片中提取指定字段的 int32 值
+func PluckInt32(list interface{}, fieldName string) []int32 {
+	return pluck(list, fieldName, []int32{}).([]int32)
+}
+
+// PluckInt64 从结构体切片中提取指定字段的 int64 值
+func PluckInt64(list interface{}, fieldName string) []int64 {
+	return pluck(list, fieldName, []int64{}).([]int64)
+}
+
+// PluckString 从结构体切片中提取指定字段的 string 值
+func PluckString(list interface{}, fieldName string) []string {
+	return pluck(list, fieldName, []string{}).([]string)
+}
+
+// PluckUint32 从结构体切片中提取指定字段的 uint32 值
+func PluckUint32(list interface{}, fileName string) []uint32 {
+	return pluck(list, fileName, []uint32{}).([]uint32)
+}
+
+// PluckUint64 从结构体切片中提取指定字段的 uint64 值
+func PluckUint64(list interface{}, fieldName string) []uint64 {
+	return pluck(list, fieldName, []uint64{}).([]uint64)
+}
+
+// PluckStringSlice 从结构体切片中提取指定字段的 []string 值
+func PluckStringSlice(list interface{}, fieldName string) [][]string {
+	return pluck(list, fieldName, [][]string{}).([][]string)
 }
