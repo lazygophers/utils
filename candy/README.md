@@ -71,10 +71,10 @@ fmt.Println(absolutes) // [1, 2, 3, 4]
 ### Array Conversions
 
 ```go
-// Convert slice to array of strings
+// Convert slice to string slice
 items := []interface{}{"apple", 42, true}
-stringArray := candy.ToArrayString(items)
-fmt.Println(stringArray) // ["apple", "42", "true"]
+stringSlice := candy.ToStringSlice(items)
+fmt.Println(stringSlice) // ["apple", "42", "true"]
 ```
 
 ## API Reference
@@ -102,7 +102,8 @@ Boolean conversion rules:
 ### Array Utilities
 
 - `Abs[T numeric](ss []T) []T` - Get absolute values of all elements
-- `ToArrayString(val interface{}) []string` - Convert any slice to string array
+- `ToStringSlice(val interface{}) []string` - Convert any slice to string slice
+- `ToArrayString(val interface{}) []string` - Alias for ToStringSlice (deprecated)
 - `Bottom[T any](ss []T, n int) []T` - Get bottom N elements
 - `Top[T any](ss []T, n int) []T` - Get top N elements
 - `Unique[T comparable](ss []T) []T` - Remove duplicate elements

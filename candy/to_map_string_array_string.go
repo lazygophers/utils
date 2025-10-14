@@ -6,7 +6,7 @@ import "reflect"
 //
 // 如果输入为 nil，将返回 nil。
 // 如果输入不是 map 类型，将会 panic。
-// map 的 key 会通过 ToString 函数转换为字符串，value 会通过 ToArrayString 函数转换为 []string。
+// map 的 key 会通过 ToString 函数转换为字符串，value 会通过 ToStringSlice 函数转换为 []string。
 func ToMapStringArrayString(v interface{}) map[string][]string {
 	if v == nil {
 		return nil
@@ -22,7 +22,7 @@ func ToMapStringArrayString(v interface{}) map[string][]string {
 	mg := vv.MapRange()
 
 	for mg.Next() {
-		m[ToString(mg.Key().Interface())] = ToArrayString(mg.Value().Interface())
+		m[ToString(mg.Key().Interface())] = ToStringSlice(mg.Value().Interface())
 	}
 
 	return m

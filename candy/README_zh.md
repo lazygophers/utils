@@ -71,10 +71,10 @@ fmt.Println(absolutes) // [1, 2, 3, 4]
 ### 数组转换
 
 ```go
-// 将切片转换为字符串数组
+// 将切片转换为字符串切片
 items := []interface{}{"apple", 42, true}
-stringArray := candy.ToArrayString(items)
-fmt.Println(stringArray) // ["apple", "42", "true"]
+stringSlice := candy.ToStringSlice(items)
+fmt.Println(stringSlice) // ["apple", "42", "true"]
 ```
 
 ## API 参考
@@ -102,7 +102,8 @@ fmt.Println(stringArray) // ["apple", "42", "true"]
 ### 数组工具
 
 - `Abs[T numeric](ss []T) []T` - 获取所有元素的绝对值
-- `ToArrayString(val interface{}) []string` - 将任何切片转换为字符串数组
+- `ToStringSlice(val interface{}) []string` - 将任何切片转换为字符串切片
+- `ToArrayString(val interface{}) []string` - ToStringSlice 的别名（已弃用）
 - `Bottom[T any](ss []T, n int) []T` - 获取底部 N 个元素
 - `Top[T any](ss []T, n int) []T` - 获取顶部 N 个元素
 - `Unique[T comparable](ss []T) []T` - 移除重复元素
