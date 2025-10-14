@@ -35,6 +35,6 @@ func Join[T cmp.Ordered](ss []T, glue ...string) string {
 
 	// 使用 Map 函数将切片元素转换为字符串，然后用 strings.Join 连接
 	return strings.Join(Map(ss, func(s T) string {
-		return ToStringGeneric(s)
+		return ToString(s)
 	}), seq)
 }

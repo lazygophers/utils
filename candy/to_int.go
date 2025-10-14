@@ -16,7 +16,51 @@ import (
 //
 // 对于无法转换的类型(如 struct, map 等)或 nil，将返回 0。
 func ToInt(val interface{}) int {
-	return ConvertWithDefault[interface{}, int](val, 0)
+	switch x := val.(type) {
+	case bool:
+		if x {
+			return 1
+		}
+		return 0
+	case int:
+		return x
+	case int8:
+		return int(x)
+	case int16:
+		return int(x)
+	case int32:
+		return int(x)
+	case int64:
+		return int(x)
+	case uint:
+		return int(x)
+	case uint8:
+		return int(x)
+	case uint16:
+		return int(x)
+	case uint32:
+		return int(x)
+	case uint64:
+		return int(x)
+	case float32:
+		return int(x)
+	case float64:
+		return int(x)
+	case string:
+		val, err := strconv.ParseInt(x, 10, 0)
+		if err != nil {
+			return 0
+		}
+		return int(val)
+	case []byte:
+		val, err := strconv.ParseInt(string(x), 10, 0)
+		if err != nil {
+			return 0
+		}
+		return int(val)
+	default:
+		return 0
+	}
 }
 
 // ToInt8 将任何类型的值尽力转换为 int8。
