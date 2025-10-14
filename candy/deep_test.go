@@ -896,4 +896,328 @@ func TestDeepCopyEdgeCases(t *testing.T) {
 			t.Errorf("DeepCopy nested pointers failed")
 		}
 	})
+
+	t.Run("copy struct with unexported fields", func(t *testing.T) {
+		type Private struct {
+			Public  string
+			private int
+		}
+		src := Private{Public: "test", private: 42}
+		var dst Private
+		DeepCopy(src, &dst)
+		
+		if dst.Public != "test" {
+			t.Errorf("DeepCopy struct with unexported fields failed")
+		}
+	})
+
+	t.Run("copy empty struct", func(t *testing.T) {
+		type Empty struct{}
+		src := Empty{}
+		var dst Empty
+		DeepCopy(src, &dst)
+		// Should not panic
+	})
+
+	t.Run("copy map with interface values", func(t *testing.T) {
+		type Container struct {
+			Data map[string]interface{}
+		}
+		src := Container{
+			Data: map[string]interface{}{
+				"int":    42,
+				"string": "hello",
+				"slice":  []int{1, 2, 3},
+			},
+		}
+		var dst Container
+		DeepCopy(src, &dst)
+		
+		if dst.Data["int"] != 42 {
+			t.Errorf("DeepCopy map with interface values failed")
+		}
+	})
+
+	t.Run("copy slice with pointer elements", func(t *testing.T) {
+		val1, val2 := 1, 2
+		src := []*int{&val1, &val2, nil}
+		var dst []*int
+		DeepCopy(src, &dst)
+		
+		if len(dst) != 3 || *dst[0] != 1 || *dst[1] != 2 || dst[2] != nil {
+			t.Errorf("DeepCopy slice with pointer elements failed")
+		}
+	})
+}
+
+// TestDeepEqualEdgeCases 测试 DeepEqual 的边界情况
+func TestDeepEqualEdgeCases(t *testing.T) {
+	t.Run("compare empty structs", func(t *testing.T) {
+		type Empty struct{}
+		a := Empty{}
+		b := Empty{}
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual empty structs should be true")
+		}
+	})
+
+	t.Run("compare slices with nil elements", func(t *testing.T) {
+		a := []*int{nil, nil}
+		b := []*int{nil, nil}
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual slices with nil elements should be true")
+		}
+		
+		val := 1
+		c := []*int{&val, nil}
+		if DeepEqual(a, c) {
+			t.Errorf("DeepEqual different slices with nil elements should be false")
+		}
+	})
+
+	t.Run("compare maps with nil values", func(t *testing.T) {
+		a := map[string]*int{"a": nil, "b": nil}
+		b := map[string]*int{"a": nil, "b": nil}
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual maps with nil values should be true")
+		}
+	})
+
+	t.Run("compare nested nil slices", func(t *testing.T) {
+		type Container struct {
+			Slice []int
+		}
+		a := Container{Slice: nil}
+		b := Container{Slice: nil}
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual nested nil slices should be true")
+		}
+	})
+
+	t.Run("compare structs with interface fields", func(t *testing.T) {
+		type Container struct {
+			Value interface{}
+		}
+		a := Container{Value: nil}
+		b := Container{Value: nil}
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual structs with nil interface fields should be true")
+		}
+		
+		c := Container{Value: 42}
+		if DeepEqual(a, c) {
+			t.Errorf("DeepEqual nil vs non-nil interface should be false")
+		}
+	})
+
+	t.Run("compare complex nested structures", func(t *testing.T) {
+		type Inner struct {
+			Value int
+		}
+		type Middle struct {
+			Inners []*Inner
+		}
+		type Outer struct {
+			Middles map[string]*Middle
+		}
+		
+		a := Outer{
+			Middles: map[string]*Middle{
+				"m1": {Inners: []*Inner{{1}, {2}}},
+			},
+		}
+		b := Outer{
+			Middles: map[string]*Middle{
+				"m1": {Inners: []*Inner{{1}, {2}}},
+			},
+		}
+		
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual complex nested structures should be true")
+		}
+	})
+
+	t.Run("compare different length maps", func(t *testing.T) {
+		a := map[string]int{"a": 1}
+		b := map[string]int{"a": 1, "b": 2}
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual different length maps should be false")
+		}
+	})
+
+	t.Run("compare maps with missing keys", func(t *testing.T) {
+		a := map[string]int{"a": 1, "b": 2}
+		b := map[string]int{"a": 1, "c": 2}
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual maps with different keys should be false")
+		}
+	})
+}
+
+// TestDeepCopyComplexScenarios 测试复杂场景
+func TestDeepCopyComplexScenarios(t *testing.T) {
+	t.Run("copy multi-level nested map", func(t *testing.T) {
+		src := map[string]map[string][]int{
+			"outer1": {
+				"inner1": {1, 2, 3},
+				"inner2": {4, 5, 6},
+			},
+			"outer2": {
+				"inner3": {7, 8, 9},
+			},
+		}
+		var dst map[string]map[string][]int
+		DeepCopy(src, &dst)
+		
+		if len(dst) != 2 || len(dst["outer1"]) != 2 {
+			t.Errorf("DeepCopy multi-level nested map failed")
+		}
+		
+		// Verify independence
+		src["outer1"]["inner1"][0] = 999
+		if dst["outer1"]["inner1"][0] == 999 {
+			t.Errorf("DeepCopy multi-level nested map not independent")
+		}
+	})
+
+	t.Run("copy slice of slices", func(t *testing.T) {
+		src := [][]int{{1, 2}, {3, 4}, {5, 6}}
+		var dst [][]int
+		DeepCopy(src, &dst)
+		
+		if len(dst) != 3 || len(dst[0]) != 2 {
+			t.Errorf("DeepCopy slice of slices failed")
+		}
+		
+		// Verify independence
+		src[0][0] = 999
+		if dst[0][0] == 999 {
+			t.Errorf("DeepCopy slice of slices not independent")
+		}
+	})
+
+	t.Run("copy array of structs", func(t *testing.T) {
+		type Point struct {
+			X, Y int
+		}
+		src := [3]Point{{1, 2}, {3, 4}, {5, 6}}
+		var dst [3]Point
+		DeepCopy(src, &dst)
+		
+		if dst[0].X != 1 || dst[2].Y != 6 {
+			t.Errorf("DeepCopy array of structs failed")
+		}
+	})
+}
+
+// TestDeepEqualComplexScenarios 测试 DeepEqual 的复杂场景
+func TestDeepEqualComplexScenarios(t *testing.T) {
+	t.Run("equal multi-level nested structures", func(t *testing.T) {
+		type Level3 struct {
+			Value int
+		}
+		type Level2 struct {
+			L3 *Level3
+		}
+		type Level1 struct {
+			L2 map[string]*Level2
+		}
+		
+		a := Level1{
+			L2: map[string]*Level2{
+				"key": {L3: &Level3{Value: 42}},
+			},
+		}
+		b := Level1{
+			L2: map[string]*Level2{
+				"key": {L3: &Level3{Value: 42}},
+			},
+		}
+		
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual multi-level nested structures should be true")
+		}
+		
+		c := Level1{
+			L2: map[string]*Level2{
+				"key": {L3: &Level3{Value: 43}},
+			},
+		}
+		if DeepEqual(a, c) {
+			t.Errorf("DeepEqual different nested values should be false")
+		}
+	})
+
+	t.Run("equal arrays of arrays", func(t *testing.T) {
+		a := [2][3]int{{1, 2, 3}, {4, 5, 6}}
+		b := [2][3]int{{1, 2, 3}, {4, 5, 6}}
+		c := [2][3]int{{1, 2, 3}, {4, 5, 7}}
+		
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual arrays of arrays should be true")
+		}
+		if DeepEqual(a, c) {
+			t.Errorf("DeepEqual different arrays of arrays should be false")
+		}
+	})
+
+	t.Run("equal slices of pointers to arrays", func(t *testing.T) {
+		arr1 := [2]int{1, 2}
+		arr2 := [2]int{1, 2}
+		a := []*[2]int{&arr1}
+		b := []*[2]int{&arr2}
+		
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual slices of pointers to arrays should be true")
+		}
+	})
+
+	t.Run("compare structs with function fields", func(t *testing.T) {
+		type Container struct {
+			Fn   func()
+			Data int
+		}
+		
+		fn1 := func() {}
+		fn2 := func() {}
+		
+		a := Container{Fn: fn1, Data: 42}
+		b := Container{Fn: fn2, Data: 42}
+		
+		// Functions are not comparable, but struct comparison should handle it
+		// This tests the panic recovery path in deepValueEqual
+		result := DeepEqual(a, b)
+		// Result depends on whether functions are considered equal
+		_ = result // Just ensure no panic
+	})
+
+	t.Run("compare structs with channel fields", func(t *testing.T) {
+		type Container struct {
+			Ch   chan int
+			Data int
+		}
+		
+		a := Container{Ch: make(chan int), Data: 42}
+		b := Container{Ch: make(chan int), Data: 42}
+		
+		// Channels are comparable by identity
+		result := DeepEqual(a, b)
+		if result {
+			t.Errorf("DeepEqual different channels should be false")
+		}
+	})
+
+	t.Run("compare same channel references", func(t *testing.T) {
+		type Container struct {
+			Ch chan int
+		}
+		
+		ch := make(chan int)
+		a := Container{Ch: ch}
+		b := Container{Ch: ch}
+		
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual same channel reference should be true")
+		}
+	})
 }
