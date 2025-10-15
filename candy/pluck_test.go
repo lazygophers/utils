@@ -706,7 +706,7 @@ func TestReflectionBasedPluckAdvanced(t *testing.T) {
 			{{1, 2}, {3, 4}},
 			{{5, 6}, {7, 8}},
 		}
-		
+
 		// This will exercise the nested slice handling code
 		result := pluck(outerSlice, "", nil)
 		if result == nil {
@@ -725,7 +725,7 @@ func TestReflectionBasedPluckAdvanced(t *testing.T) {
 			nilPtr, // This is nil and will cause panic when dereferenced
 			{Value: 3},
 		}
-		
+
 		// This should panic because reflection will hit the nil pointer
 		defer func() {
 			if r := recover(); r == nil {

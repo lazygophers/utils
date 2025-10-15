@@ -315,8 +315,8 @@ func TestToBool(t *testing.T) {
 			"n", "N",
 			"no", "NO", "No",
 			"off", "OFF", "Off",
-			"", // empty string
-			"  ", // whitespace only
+			"",          // empty string
+			"  ",        // whitespace only
 			"  false  ", // with spaces
 		}
 

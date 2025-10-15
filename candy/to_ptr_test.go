@@ -8,14 +8,14 @@ func TestToPtr(t *testing.T) {
 	t.Run("int value", func(t *testing.T) {
 		val := 42
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(42) returned nil")
 		}
 		if *ptr != val {
 			t.Errorf("*ToPtr(%d) = %d, want %d", val, *ptr, val)
 		}
-		
+
 		// Verify it's a different address
 		if ptr == &val {
 			t.Error("ToPtr should return a new pointer, not the original variable's address")
@@ -25,7 +25,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("string value", func(t *testing.T) {
 		val := "hello"
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(\"hello\") returned nil")
 		}
@@ -37,7 +37,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("bool value", func(t *testing.T) {
 		val := true
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(true) returned nil")
 		}
@@ -49,7 +49,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("float64 value", func(t *testing.T) {
 		val := 3.14159
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(3.14159) returned nil")
 		}
@@ -65,7 +65,7 @@ func TestToPtr(t *testing.T) {
 		}
 		val := TestStruct{Name: "test", Value: 42}
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(struct) returned nil")
 		}
@@ -77,7 +77,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("slice value", func(t *testing.T) {
 		val := []int{1, 2, 3}
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(slice) returned nil")
 		}
@@ -89,7 +89,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("map value", func(t *testing.T) {
 		val := map[string]int{"a": 1, "b": 2}
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(map) returned nil")
 		}
@@ -150,7 +150,7 @@ func TestToPtr(t *testing.T) {
 		val := 42
 		ptr1 := &val
 		ptr2 := ToPtr(ptr1)
-		
+
 		if ptr2 == nil {
 			t.Error("ToPtr(pointer) returned nil")
 		}
@@ -162,7 +162,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("interface value", func(t *testing.T) {
 		var val interface{} = "test"
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(interface{}) returned nil")
 		}
@@ -174,7 +174,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("byte value", func(t *testing.T) {
 		val := byte(255)
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil || *ptr != 255 {
 			t.Errorf("ToPtr(byte) failed")
 		}
@@ -183,7 +183,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("rune value", func(t *testing.T) {
 		val := 'A'
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil || *ptr != 'A' {
 			t.Errorf("ToPtr(rune) failed")
 		}
@@ -192,7 +192,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("complex64 value", func(t *testing.T) {
 		val := complex64(1 + 2i)
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil || *ptr != val {
 			t.Errorf("ToPtr(complex64) failed")
 		}
@@ -201,7 +201,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("complex128 value", func(t *testing.T) {
 		val := complex128(3 + 4i)
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil || *ptr != val {
 			t.Errorf("ToPtr(complex128) failed")
 		}
@@ -210,7 +210,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("array value", func(t *testing.T) {
 		val := [3]int{1, 2, 3}
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(array) returned nil")
 		}
@@ -222,7 +222,7 @@ func TestToPtr(t *testing.T) {
 	t.Run("function value", func(t *testing.T) {
 		val := func() int { return 42 }
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(function) returned nil")
 		}
@@ -235,7 +235,7 @@ func TestToPtr(t *testing.T) {
 		original := 10
 		ptr := ToPtr(original)
 		*ptr = 20
-		
+
 		if original != 10 {
 			t.Errorf("Modifying *ToPtr() affected original value: original = %d, want 10", original)
 		}
@@ -248,24 +248,24 @@ func TestToPtr(t *testing.T) {
 		int16Ptr := ToPtr(int16(3))
 		int32Ptr := ToPtr(int32(4))
 		int64Ptr := ToPtr(int64(5))
-		
+
 		if *intPtr != 1 || *int8Ptr != 2 || *int16Ptr != 3 || *int32Ptr != 4 || *int64Ptr != 5 {
 			t.Error("Generic int type constraints failed")
 		}
-		
+
 		uintPtr := ToPtr(uint(1))
 		uint8Ptr := ToPtr(uint8(2))
 		uint16Ptr := ToPtr(uint16(3))
 		uint32Ptr := ToPtr(uint32(4))
 		uint64Ptr := ToPtr(uint64(5))
-		
+
 		if *uintPtr != 1 || *uint8Ptr != 2 || *uint16Ptr != 3 || *uint32Ptr != 4 || *uint64Ptr != 5 {
 			t.Error("Generic uint type constraints failed")
 		}
-		
+
 		float32Ptr := ToPtr(float32(1.5))
 		float64Ptr := ToPtr(float64(2.5))
-		
+
 		if *float32Ptr != 1.5 || *float64Ptr != 2.5 {
 			t.Error("Generic float type constraints failed")
 		}
@@ -275,11 +275,11 @@ func TestToPtr(t *testing.T) {
 		val := make(chan int, 1)
 		val <- 42
 		ptr := ToPtr(val)
-		
+
 		if ptr == nil {
 			t.Error("ToPtr(channel) returned nil")
 		}
-		
+
 		select {
 		case v := <-*ptr:
 			if v != 42 {
