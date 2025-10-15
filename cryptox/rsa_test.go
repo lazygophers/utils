@@ -2,6 +2,8 @@ package cryptox
 
 import (
 	"bytes"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"testing"
@@ -1032,5 +1034,134 @@ func TestRSASignatureIntegrity(t *testing.T) {
 				t.Error("Cross-verification should fail (PKCS1v15 sig with PSS verify)")
 			}
 		})
+	}
+}
+
+// TestPKCS1PrivateKeyFormat tests loading PKCS#1 format private keys
+func TestPKCS1PrivateKeyFormat(t *testing.T) {
+	// Generate a key pair first
+	keyPair, err := GenerateRSAKeyPair(2048)
+	if err != nil {
+		t.Fatalf("Failed to generate RSA key pair: %v", err)
+	}
+
+	// Convert to PKCS#1 format manually
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(keyPair.PrivateKey)
+	pkcs1PrivatePEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: privateKeyBytes,
+	})
+
+	// Test loading PKCS#1 format private key
+	loadedPrivateKey, err := PrivateKeyFromPEM(pkcs1PrivatePEM)
+	if err != nil {
+		t.Fatalf("Failed to load PKCS#1 private key: %v", err)
+	}
+
+	// Verify the loaded key works
+	message := []byte("test message for PKCS#1 format")
+	ciphertext, err := RSAEncryptOAEP(keyPair.PublicKey, message)
+	if err != nil {
+		t.Fatalf("Failed to encrypt: %v", err)
+	}
+
+	decrypted, err := RSADecryptOAEP(loadedPrivateKey, ciphertext)
+	if err != nil {
+		t.Fatalf("Failed to decrypt with PKCS#1 loaded key: %v", err)
+	}
+
+	if !bytes.Equal(message, decrypted) {
+		t.Error("Decryption with PKCS#1 loaded key failed")
+	}
+
+	// Test with malformed PKCS#1 private key
+	malformedPKCS1PEM := []byte(`-----BEGIN RSA PRIVATE KEY-----
+invalid base64 content here
+-----END RSA PRIVATE KEY-----`)
+
+	_, err = PrivateKeyFromPEM(malformedPKCS1PEM)
+	if err == nil {
+		t.Error("Expected error for malformed PKCS#1 private key")
+	}
+}
+
+// TestPKCS1PublicKeyFormat tests loading PKCS#1 format public keys
+func TestPKCS1PublicKeyFormat(t *testing.T) {
+	// Generate a key pair first
+	keyPair, err := GenerateRSAKeyPair(2048)
+	if err != nil {
+		t.Fatalf("Failed to generate RSA key pair: %v", err)
+	}
+
+	// Convert to PKCS#1 format manually
+	publicKeyBytes := x509.MarshalPKCS1PublicKey(keyPair.PublicKey)
+	pkcs1PublicPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: publicKeyBytes,
+	})
+
+	// Test loading PKCS#1 format public key
+	loadedPublicKey, err := PublicKeyFromPEM(pkcs1PublicPEM)
+	if err != nil {
+		t.Fatalf("Failed to load PKCS#1 public key: %v", err)
+	}
+
+	// Verify the loaded key works
+	message := []byte("test message for PKCS#1 public key format")
+	ciphertext, err := RSAEncryptOAEP(loadedPublicKey, message)
+	if err != nil {
+		t.Fatalf("Failed to encrypt with PKCS#1 loaded public key: %v", err)
+	}
+
+	decrypted, err := RSADecryptOAEP(keyPair.PrivateKey, ciphertext)
+	if err != nil {
+		t.Fatalf("Failed to decrypt: %v", err)
+	}
+
+	if !bytes.Equal(message, decrypted) {
+		t.Error("Encryption with PKCS#1 loaded public key failed")
+	}
+
+	// Test with malformed PKCS#1 public key
+	malformedPKCS1PEM := []byte(`-----BEGIN RSA PUBLIC KEY-----
+invalid base64 content here
+-----END RSA PUBLIC KEY-----`)
+
+	_, err = PublicKeyFromPEM(malformedPKCS1PEM)
+	if err == nil {
+		t.Error("Expected error for malformed PKCS#1 public key")
+	}
+}
+
+// TestPEMWithNonRSAKeys tests handling of non-RSA keys in PEM format
+func TestPEMWithNonRSAKeys(t *testing.T) {
+	// Create an ECDSA key (non-RSA) in PKCS#8 format
+	// This tests the error path where ParsePKCS8PrivateKey returns a non-RSA key
+	ecdsaPEM := []byte(`-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVcB/UNPxalR9zDYA
+jQIaQ4ztqP7Xkx8q0hqLM3f8EzChRANCAARQ/ycIrZ9D/RnZfKuNYYnfcKdnNx3F
+JnZQVm8BpOYN8w5cFLSGU7nD8MgYqVzJX/0QKKxOvJTI9OEaHQN8FbLl
+-----END PRIVATE KEY-----`)
+
+	_, err := PrivateKeyFromPEM(ecdsaPEM)
+	if err == nil {
+		t.Error("Expected error for ECDSA key in RSA parser")
+	}
+	if err != nil && err.Error() != "key is not an RSA private key" {
+		t.Logf("Got expected error: %v", err)
+	}
+
+	// Create an ECDSA public key (non-RSA) in PKIX format
+	ecdsaPublicPEM := []byte(`-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUP8nCK2fQ/0Z2XyrjWGJ33CnZzcd
+xSZ2UFZvAaTmDfMOXBS0hlO5w/DIGKlcyV/9ECisTryUyPThGh0DfBWy5Q==
+-----END PUBLIC KEY-----`)
+
+	_, err = PublicKeyFromPEM(ecdsaPublicPEM)
+	if err == nil {
+		t.Error("Expected error for ECDSA public key in RSA parser")
+	}
+	if err != nil && err.Error() != "key is not an RSA public key" {
+		t.Logf("Got expected error: %v", err)
 	}
 }
