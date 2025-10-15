@@ -10,21 +10,21 @@ import (
 // Cache represents an LRU-K cache
 type Cache[K comparable, V any] struct {
 	capacity int
-	k        int                        // K value for LRU-K
+	k        int // K value for LRU-K
 	items    map[K]*entry[K, V]
-	history  *list.List                 // History list for tracking K accesses
-	cache    *list.List                 // Main cache list
+	history  *list.List // History list for tracking K accesses
+	cache    *list.List // Main cache list
 	mu       sync.RWMutex
 	onEvict  func(K, V)
 }
 
 // entry represents a cache entry
 type entry[K comparable, V any] struct {
-	key           K
-	value         V
-	accessTimes   []time.Time    // Last K access times
-	element       *list.Element  // Element in either history or cache list
-	inCache       bool           // Whether entry is in main cache or just history
+	key         K
+	value       V
+	accessTimes []time.Time   // Last K access times
+	element     *list.Element // Element in either history or cache list
+	inCache     bool          // Whether entry is in main cache or just history
 }
 
 // New creates a new LRU-K cache with the given capacity and K value
@@ -62,7 +62,7 @@ func (c *Cache[K, V]) Get(key K) (value V, ok bool) {
 
 	if entry, exists := c.items[key]; exists {
 		c.recordAccess(entry)
-		
+
 		if entry.inCache {
 			// Move to front of cache list
 			c.cache.MoveToFront(entry.element)
@@ -84,7 +84,7 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 		// Update existing entry
 		entry.value = value
 		c.recordAccess(entry)
-		
+
 		if entry.inCache {
 			// Move to front of cache list
 			c.cache.MoveToFront(entry.element)
@@ -104,7 +104,7 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 
 	// Add to history list initially
 	entry.element = c.history.PushFront(entry)
-	
+
 	// Record access after setting up the element
 	c.recordAccess(entry)
 
@@ -246,15 +246,15 @@ func (c *Cache[K, V]) Resize(capacity int) error {
 // recordAccess records an access for an entry
 func (c *Cache[K, V]) recordAccess(entry *entry[K, V]) {
 	now := time.Now()
-	
+
 	// Add new access time
 	entry.accessTimes = append(entry.accessTimes, now)
-	
+
 	// Keep only the most recent K access times
 	if len(entry.accessTimes) > c.k {
 		entry.accessTimes = entry.accessTimes[len(entry.accessTimes)-c.k:]
 	}
-	
+
 	// If entry has K accesses and not in cache, promote it
 	if len(entry.accessTimes) >= c.k && !entry.inCache {
 		c.promoteToCache(entry)
@@ -274,7 +274,7 @@ func (c *Cache[K, V]) promoteToCache(entry *entry[K, V]) {
 
 	// Remove from history
 	c.history.Remove(entry.element)
-	
+
 	// Add to cache
 	entry.element = c.cache.PushFront(entry)
 	entry.inCache = true
@@ -298,7 +298,7 @@ func (c *Cache[K, V]) removeEntry(entry *entry[K, V], callEvict bool) {
 	} else {
 		c.history.Remove(entry.element)
 	}
-	
+
 	delete(c.items, entry.key)
 
 	if callEvict && c.onEvict != nil && entry.inCache {
@@ -319,7 +319,7 @@ func (c *Cache[K, V]) Stats() Stats {
 	// Count entries with different access levels
 	historyCount := 0
 	cacheCount := c.cache.Len()
-	
+
 	for _, entry := range c.items {
 		if !entry.inCache {
 			historyCount++

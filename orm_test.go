@@ -17,11 +17,11 @@ type TestStruct struct {
 }
 
 type ComplexStruct struct {
-	ID      int           `json:"id" default:"1"`
-	Data    TestStruct    `json:"data"`
-	Items   []string      `json:"items"`
-	Nested  *TestStruct   `json:"nested,omitempty"`
-	Map     map[string]int `json:"map"`
+	ID     int            `json:"id" default:"1"`
+	Data   TestStruct     `json:"data"`
+	Items  []string       `json:"items"`
+	Nested *TestStruct    `json:"nested,omitempty"`
+	Map    map[string]int `json:"map"`
 }
 
 func TestScan(t *testing.T) {
@@ -273,12 +273,12 @@ func TestValue(t *testing.T) {
 			},
 		},
 		{
-			name:  "value_complex_struct",
+			name: "value_complex_struct",
 			input: ComplexStruct{
-				ID:   123,
-				Data: TestStruct{Name: "Test", Age: 40},
+				ID:    123,
+				Data:  TestStruct{Name: "Test", Age: 40},
 				Items: []string{"a", "b"},
-				Map:  map[string]int{"key": 1},
+				Map:   map[string]int{"key": 1},
 			},
 			validate: func(t *testing.T, value driver.Value) {
 				bytes, ok := value.([]byte)
@@ -348,7 +348,7 @@ func TestScanValue_RoundTrip(t *testing.T) {
 			},
 		},
 		{
-			name:     "roundtrip_complex",
+			name: "roundtrip_complex",
 			original: ComplexStruct{
 				ID:    123,
 				Data:  TestStruct{Name: "Test", Age: 40},
@@ -410,7 +410,7 @@ func TestScan_EdgeCases(t *testing.T) {
 	})
 }
 
-// TestValue_EdgeCases tests edge cases for the Value function  
+// TestValue_EdgeCases tests edge cases for the Value function
 func TestValue_EdgeCases(t *testing.T) {
 	t.Run("value_channel_unsupported", func(t *testing.T) {
 		ch := make(chan int)

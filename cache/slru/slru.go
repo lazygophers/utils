@@ -373,12 +373,12 @@ func (c *Cache[K, V]) Stats() Stats {
 	defer c.mu.RUnlock()
 
 	return Stats{
-		Size:                c.probationary.Len() + c.protected.Len(),
-		Capacity:            c.capacity,
-		ProbationarySize:    c.probationary.Len(),
-		ProtectedSize:       c.protected.Len(),
+		Size:                 c.probationary.Len() + c.protected.Len(),
+		Capacity:             c.capacity,
+		ProbationarySize:     c.probationary.Len(),
+		ProtectedSize:        c.protected.Len(),
 		ProbationaryCapacity: c.pSize,
-		ProtectedCapacity:   c.protSize,
+		ProtectedCapacity:    c.protSize,
 	}
 }
 

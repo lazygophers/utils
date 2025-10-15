@@ -105,6 +105,10 @@ func DecryptECB(key, ciphertext []byte) ([]byte, error) {
 		return nil, err
 	}
 
+	if len(ciphertext)%block.BlockSize() != 0 {
+		return nil, errors.New("ciphertext is not a multiple of the block size")
+	}
+
 	plaintext := make([]byte, len(ciphertext))
 	for i := 0; i < len(ciphertext); i += block.BlockSize() {
 		block.Decrypt(plaintext[i:i+block.BlockSize()], ciphertext[i:i+block.BlockSize()])

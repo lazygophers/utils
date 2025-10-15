@@ -23,11 +23,11 @@ type KeyPair struct {
 
 // GenerateOptions 密钥生成选项
 type GenerateOptions struct {
-	Name      string        // 姓名
-	Comment   string        // 注释
-	Email     string        // 邮箱地址
-	KeyLength int           // RSA密钥长度，默认2048
-	Hash      crypto.Hash   // 哈希算法，默认SHA256
+	Name      string                // 姓名
+	Comment   string                // 注释
+	Email     string                // 邮箱地址
+	KeyLength int                   // RSA密钥长度，默认2048
+	Hash      crypto.Hash           // 哈希算法，默认SHA256
 	Cipher    packet.CipherFunction // 加密算法，默认AES256
 }
 
@@ -61,7 +61,7 @@ func GenerateKeyPair(opts *GenerateOptions) (*KeyPair, error) {
 	if opts == nil {
 		opts = defaultGenerateOptions()
 	}
-	
+
 	// 设置默认值
 	if opts.KeyLength == 0 {
 		opts.KeyLength = 2048
@@ -104,19 +104,19 @@ func GenerateKeyPair(opts *GenerateOptions) (*KeyPair, error) {
 		log.Errorf("创建公钥armor编码器失败: %v", err)
 		return nil, fmt.Errorf("创建公钥armor编码器失败: %w", err)
 	}
-	
+
 	err = entity.Serialize(publicKeyWriter)
 	if err != nil {
 		log.Errorf("序列化公钥失败: %v", err)
 		return nil, fmt.Errorf("序列化公钥失败: %w", err)
 	}
-	
+
 	err = publicKeyWriter.Close()
 	if err != nil {
 		log.Errorf("关闭公钥写入器失败: %v", err)
 		return nil, fmt.Errorf("关闭公钥写入器失败: %w", err)
 	}
-	
+
 	keyPair.PublicKey = publicKeyBuf.String()
 
 	// 序列化私钥
@@ -126,19 +126,19 @@ func GenerateKeyPair(opts *GenerateOptions) (*KeyPair, error) {
 		log.Errorf("创建私钥armor编码器失败: %v", err)
 		return nil, fmt.Errorf("创建私钥armor编码器失败: %w", err)
 	}
-	
+
 	err = entity.SerializePrivate(privateKeyWriter, nil)
 	if err != nil {
 		log.Errorf("序列化私钥失败: %v", err)
 		return nil, fmt.Errorf("序列化私钥失败: %w", err)
 	}
-	
+
 	err = privateKeyWriter.Close()
 	if err != nil {
 		log.Errorf("关闭私钥写入器失败: %v", err)
 		return nil, fmt.Errorf("关闭私钥写入器失败: %w", err)
 	}
-	
+
 	keyPair.PrivateKey = privateKeyBuf.String()
 
 	log.Infof("成功生成PGP密钥对: %s <%s>", opts.Name, opts.Email)
@@ -236,7 +236,7 @@ func ReadKeyPair(publicKeyPEM, privateKeyPEM, passphrase string) (*KeyPair, erro
 		return nil, err
 	}
 
-	// 读取公钥  
+	// 读取公钥
 	publicEntities, err := ReadPublicKey(publicKeyPEM)
 	if err != nil {
 		return nil, err

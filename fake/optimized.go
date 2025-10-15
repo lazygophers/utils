@@ -15,20 +15,20 @@ type OptimizedFaker struct {
 	language Language
 	country  Country
 	gender   Gender
-	
+
 	// 高性能随机数生成器 - 每个实例独立
 	rng *rand.Rand
-	
+
 	// 预加载的数据 - 避免运行时查找
 	firstNames []string
 	lastNames  []string
-	
+
 	// 性能统计 - 使用原子操作避免锁
 	callCount int64
-	
+
 	// 字符串构建器池 - 重用内存
 	builderPool *sync.Pool
-	
+
 	// 预计算的常量
 	nameTemplates []nameTemplate
 }
@@ -52,7 +52,7 @@ func NewOptimized(opts ...FakerOption) *OptimizedFaker {
 			},
 		},
 	}
-	
+
 	// 应用选项
 	for _, opt := range opts {
 		// 这里需要适配器函数
@@ -66,13 +66,13 @@ func NewOptimized(opts ...FakerOption) *OptimizedFaker {
 		of.country = fakeCopy.country
 		of.gender = fakeCopy.gender
 	}
-	
+
 	// 预加载数据
 	of.preloadData()
-	
+
 	// 预计算模板
 	of.precomputeTemplates()
-	
+
 	return of
 }
 
@@ -130,21 +130,21 @@ func (of *OptimizedFaker) precomputeTemplates() {
 // FastName 高性能姓名生成 - 零分配版本
 func (of *OptimizedFaker) FastName() string {
 	atomic.AddInt64(&of.callCount, 1)
-	
+
 	// 直接访问预加载的切片 - 避免缓存查找
 	firstIdx := of.rng.Intn(len(of.firstNames))
 	lastIdx := of.rng.Intn(len(of.lastNames))
-	
+
 	firstName := of.firstNames[firstIdx]
 	lastName := of.lastNames[lastIdx]
-	
+
 	// 使用字符串构建器池
 	builder := of.builderPool.Get().(*strings.Builder)
 	defer func() {
 		builder.Reset()
 		of.builderPool.Put(builder)
 	}()
-	
+
 	template := &of.nameTemplates[0]
 	if template.hasSpace {
 		builder.Grow(len(firstName) + len(lastName) + 1)
@@ -156,20 +156,20 @@ func (of *OptimizedFaker) FastName() string {
 		builder.WriteString(lastName)
 		builder.WriteString(firstName)
 	}
-	
+
 	return builder.String()
 }
 
 // UnsafeName 使用unsafe的超高性能版本 - 仅用于基准测试
 func (of *OptimizedFaker) UnsafeName() string {
 	atomic.AddInt64(&of.callCount, 1)
-	
+
 	firstIdx := of.rng.Intn(len(of.firstNames))
 	lastIdx := of.rng.Intn(len(of.lastNames))
-	
+
 	firstName := of.firstNames[firstIdx]
 	lastName := of.lastNames[lastIdx]
-	
+
 	var result string
 	switch of.language {
 	case LanguageChineseSimplified, LanguageChineseTraditional:
@@ -188,28 +188,28 @@ func (of *OptimizedFaker) UnsafeName() string {
 		copy(bytes[len(firstName)+1:], lastName)
 		result = *(*string)(unsafe.Pointer(&bytes))
 	}
-	
+
 	return result
 }
 
 // PooledName 使用对象池的版本
 func (of *OptimizedFaker) PooledName() string {
 	atomic.AddInt64(&of.callCount, 1)
-	
+
 	// 使用本地随机数而非全局锁
 	firstIdx := of.rng.Intn(len(of.firstNames))
 	lastIdx := of.rng.Intn(len(of.lastNames))
-	
+
 	firstName := of.firstNames[firstIdx]
 	lastName := of.lastNames[lastIdx]
-	
+
 	// 从池中获取构建器
 	builder := of.builderPool.Get().(*strings.Builder)
 	defer func() {
 		builder.Reset()
 		of.builderPool.Put(builder)
 	}()
-	
+
 	// 预分配容量
 	switch of.language {
 	case LanguageChineseSimplified, LanguageChineseTraditional:
@@ -222,30 +222,30 @@ func (of *OptimizedFaker) PooledName() string {
 		builder.WriteByte(' ')
 		builder.WriteString(lastName)
 	}
-	
+
 	return builder.String()
 }
 
 // BatchFastNames 批量生成姓名
 func (of *OptimizedFaker) BatchFastNames(count int) []string {
 	names := make([]string, count)
-	
+
 	// 批量生成避免重复的池操作
 	builder := of.builderPool.Get().(*strings.Builder)
 	defer func() {
 		builder.Reset()
 		of.builderPool.Put(builder)
 	}()
-	
+
 	for i := 0; i < count; i++ {
 		atomic.AddInt64(&of.callCount, 1)
-		
+
 		firstIdx := of.rng.Intn(len(of.firstNames))
 		lastIdx := of.rng.Intn(len(of.lastNames))
-		
+
 		firstName := of.firstNames[firstIdx]
 		lastName := of.lastNames[lastIdx]
-		
+
 		builder.Reset()
 		switch of.language {
 		case LanguageChineseSimplified, LanguageChineseTraditional:
@@ -258,10 +258,10 @@ func (of *OptimizedFaker) BatchFastNames(count int) []string {
 			builder.WriteByte(' ')
 			builder.WriteString(lastName)
 		}
-		
+
 		names[i] = builder.String()
 	}
-	
+
 	return names
 }
 
@@ -283,11 +283,11 @@ type PrecomputedRandGen struct {
 func NewPrecomputedRandGen(maxValue, cacheSize int) *PrecomputedRandGen {
 	indices := make([]int, cacheSize)
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	
+
 	for i := 0; i < cacheSize; i++ {
 		indices[i] = rng.Intn(maxValue)
 	}
-	
+
 	return &PrecomputedRandGen{
 		indices: indices,
 		size:    cacheSize,
@@ -302,13 +302,13 @@ func (p *PrecomputedRandGen) Next() int {
 
 // SuperOptimizedFaker 超级优化版本
 type SuperOptimizedFaker struct {
-	firstNames     []string
-	lastNames      []string
-	firstNameGen   *PrecomputedRandGen
-	lastNameGen    *PrecomputedRandGen
-	template       nameTemplate
-	builderPool    *sync.Pool
-	callCount      int64
+	firstNames   []string
+	lastNames    []string
+	firstNameGen *PrecomputedRandGen
+	lastNameGen  *PrecomputedRandGen
+	template     nameTemplate
+	builderPool  *sync.Pool
+	callCount    int64
 }
 
 // NewSuperOptimized 创建超级优化版本
@@ -318,13 +318,13 @@ func NewSuperOptimized() *SuperOptimizedFaker {
 		"Charles", "Daniel", "Matthew", "Anthony", "Mark", "Donald", "Steven", "Paul", "Andrew", "Joshua",
 		"Mary", "Patricia", "Jennifer", "Linda", "Elizabeth", "Barbara", "Susan", "Jessica", "Sarah", "Karen",
 	}
-	
+
 	lastNames := []string{
 		"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez",
 		"Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin",
 		"Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson",
 	}
-	
+
 	return &SuperOptimizedFaker{
 		firstNames:   firstNames,
 		lastNames:    lastNames,
@@ -342,38 +342,38 @@ func NewSuperOptimized() *SuperOptimizedFaker {
 // SuperFastName 超高性能姓名生成
 func (sf *SuperOptimizedFaker) SuperFastName() string {
 	atomic.AddInt64(&sf.callCount, 1)
-	
+
 	firstName := sf.firstNames[sf.firstNameGen.Next()]
 	lastName := sf.lastNames[sf.lastNameGen.Next()]
-	
+
 	// 预分配精确容量的字符串
 	totalLen := len(firstName) + 1 + len(lastName)
 	result := make([]byte, totalLen)
-	
+
 	copy(result, firstName)
 	result[len(firstName)] = ' '
 	copy(result[len(firstName)+1:], lastName)
-	
+
 	return string(result)
 }
 
 // ZeroAllocName 零分配版本（实验性）
 func (sf *SuperOptimizedFaker) ZeroAllocName() string {
 	atomic.AddInt64(&sf.callCount, 1)
-	
+
 	firstName := sf.firstNames[sf.firstNameGen.Next()]
 	lastName := sf.lastNames[sf.lastNameGen.Next()]
-	
+
 	// 使用 unsafe 包的零拷贝字符串拼接
 	firstBytes := *(*[]byte)(unsafe.Pointer(&firstName))
 	lastBytes := *(*[]byte)(unsafe.Pointer(&lastName))
-	
+
 	totalLen := len(firstBytes) + 1 + len(lastBytes)
 	result := make([]byte, 0, totalLen)
-	
+
 	result = append(result, firstBytes...)
 	result = append(result, ' ')
 	result = append(result, lastBytes...)
-	
+
 	return *(*string)(unsafe.Pointer(&result))
 }

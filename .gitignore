@@ -5,6 +5,8 @@
 .roo/
 .DS_Store
 coverage.html
+coverage_*.html
+coverage_*.out
 *.coverage
 
 # Claude Code related files

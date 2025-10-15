@@ -34,7 +34,6 @@ func TimeDuration4Sleep(s ...time.Duration) time.Duration {
 	return result
 }
 
-
 // RandomDuration 在指定范围内生成随机时间间隔 [min, max]
 func RandomDuration(min, max time.Duration) time.Duration {
 	if min > max {

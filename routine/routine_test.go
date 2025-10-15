@@ -15,13 +15,13 @@ import (
 func TestGo_BasicOperation(t *testing.T) {
 	done := make(chan bool, 1)
 	executed := int32(0)
-	
+
 	Go(func() error {
 		atomic.StoreInt32(&executed, 1)
 		done <- true
 		return nil
 	})
-	
+
 	// Wait for goroutine to complete
 	select {
 	case <-done:
@@ -29,7 +29,7 @@ func TestGo_BasicOperation(t *testing.T) {
 	case <-time.After(1 * time.Second):
 		t.Error("Goroutine did not complete within timeout")
 	}
-	
+
 	if atomic.LoadInt32(&executed) != 1 {
 		t.Error("Function was not executed")
 	}
@@ -38,12 +38,12 @@ func TestGo_BasicOperation(t *testing.T) {
 func TestGo_WithError(t *testing.T) {
 	done := make(chan bool, 1)
 	expectedError := errors.New("test error")
-	
+
 	Go(func() error {
 		defer func() { done <- true }()
 		return expectedError
 	})
-	
+
 	// Wait for goroutine to complete
 	select {
 	case <-done:
@@ -57,7 +57,7 @@ func TestGo_Concurrent(t *testing.T) {
 	const numGoroutines = 10
 	var wg sync.WaitGroup
 	counter := int32(0)
-	
+
 	for i := 0; i < numGoroutines; i++ {
 		wg.Add(1)
 		Go(func() error {
@@ -66,21 +66,21 @@ func TestGo_Concurrent(t *testing.T) {
 			return nil
 		})
 	}
-	
+
 	// Wait for all goroutines to complete
 	done := make(chan struct{})
 	go func() {
 		wg.Wait()
 		close(done)
 	}()
-	
+
 	select {
 	case <-done:
 		// Success
 	case <-time.After(2 * time.Second):
 		t.Error("Goroutines did not complete within timeout")
 	}
-	
+
 	if atomic.LoadInt32(&counter) != numGoroutines {
 		t.Errorf("Expected %d executions, got %d", numGoroutines, atomic.LoadInt32(&counter))
 	}
@@ -89,13 +89,13 @@ func TestGo_Concurrent(t *testing.T) {
 func TestGoWithRecover_BasicOperation(t *testing.T) {
 	done := make(chan bool, 1)
 	executed := int32(0)
-	
+
 	GoWithRecover(func() error {
 		atomic.StoreInt32(&executed, 1)
 		done <- true
 		return nil
 	})
-	
+
 	// Wait for goroutine to complete
 	select {
 	case <-done:
@@ -103,7 +103,7 @@ func TestGoWithRecover_BasicOperation(t *testing.T) {
 	case <-time.After(1 * time.Second):
 		t.Error("Goroutine did not complete within timeout")
 	}
-	
+
 	if atomic.LoadInt32(&executed) != 1 {
 		t.Error("Function was not executed")
 	}
@@ -111,12 +111,12 @@ func TestGoWithRecover_BasicOperation(t *testing.T) {
 
 func TestGoWithRecover_WithPanic(t *testing.T) {
 	done := make(chan bool, 1)
-	
+
 	GoWithRecover(func() error {
 		defer func() { done <- true }()
 		panic("test panic")
 	})
-	
+
 	// Wait for goroutine to complete
 	select {
 	case <-done:
@@ -129,12 +129,12 @@ func TestGoWithRecover_WithPanic(t *testing.T) {
 func TestGoWithRecover_WithError(t *testing.T) {
 	done := make(chan bool, 1)
 	expectedError := errors.New("test error")
-	
+
 	GoWithRecover(func() error {
 		defer func() { done <- true }()
 		return expectedError
 	})
-	
+
 	// Wait for goroutine to complete
 	select {
 	case <-done:
@@ -147,7 +147,7 @@ func TestGoWithRecover_WithError(t *testing.T) {
 func TestGoWithRecover_PanicRecovery(t *testing.T) {
 	done := make(chan bool, 1)
 	panicked := int32(0)
-	
+
 	GoWithRecover(func() error {
 		defer func() {
 			atomic.StoreInt32(&panicked, 1)
@@ -155,7 +155,7 @@ func TestGoWithRecover_PanicRecovery(t *testing.T) {
 		}()
 		panic("intentional panic for testing")
 	})
-	
+
 	// Wait for goroutine to complete
 	select {
 	case <-done:
@@ -163,7 +163,7 @@ func TestGoWithRecover_PanicRecovery(t *testing.T) {
 	case <-time.After(1 * time.Second):
 		t.Error("Goroutine did not complete within timeout")
 	}
-	
+
 	if atomic.LoadInt32(&panicked) != 1 {
 		t.Error("Function did not execute or panic was not handled")
 	}
@@ -172,13 +172,13 @@ func TestGoWithRecover_PanicRecovery(t *testing.T) {
 func TestGoWithMustSuccess_BasicOperation(t *testing.T) {
 	done := make(chan bool, 1)
 	executed := int32(0)
-	
+
 	GoWithMustSuccess(func() error {
 		atomic.StoreInt32(&executed, 1)
 		done <- true
 		return nil
 	})
-	
+
 	// Wait for goroutine to complete
 	select {
 	case <-done:
@@ -186,7 +186,7 @@ func TestGoWithMustSuccess_BasicOperation(t *testing.T) {
 	case <-time.After(1 * time.Second):
 		t.Error("Goroutine did not complete within timeout")
 	}
-	
+
 	if atomic.LoadInt32(&executed) != 1 {
 		t.Error("Function was not executed")
 	}
@@ -199,24 +199,24 @@ func TestAddBeforeRoutine(t *testing.T) {
 	// Save original state
 	originalBefore := beforeRoutines
 	defer func() { beforeRoutines = originalBefore }()
-	
+
 	// Reset for test
 	beforeRoutines = nil
-	
+
 	called := int32(0)
 	testFunc := func(baseGid, currentGid int64) {
 		atomic.AddInt32(&called, 1)
 	}
-	
+
 	AddBeforeRoutine(testFunc)
-	
+
 	if len(beforeRoutines) != 1 {
 		t.Errorf("Expected 1 before routine, got %d", len(beforeRoutines))
 	}
-	
+
 	// Test that it gets called
 	before(123, 456)
-	
+
 	if atomic.LoadInt32(&called) != 1 {
 		t.Error("Before routine was not called")
 	}
@@ -226,24 +226,24 @@ func TestAddAfterRoutine(t *testing.T) {
 	// Save original state
 	originalAfter := afterRoutines
 	defer func() { afterRoutines = originalAfter }()
-	
+
 	// Reset for test
 	afterRoutines = nil
-	
+
 	called := int32(0)
 	testFunc := func(currentGid int64) {
 		atomic.AddInt32(&called, 1)
 	}
-	
+
 	AddAfterRoutine(testFunc)
-	
+
 	if len(afterRoutines) != 1 {
 		t.Errorf("Expected 1 after routine, got %d", len(afterRoutines))
 	}
-	
+
 	// Test that it gets called
 	after(123)
-	
+
 	if atomic.LoadInt32(&called) != 1 {
 		t.Error("After routine was not called")
 	}
@@ -253,27 +253,27 @@ func TestBefore_MultipleRoutines(t *testing.T) {
 	// Save original state
 	originalBefore := beforeRoutines
 	defer func() { beforeRoutines = originalBefore }()
-	
+
 	// Reset for test
 	beforeRoutines = nil
-	
+
 	called1 := int32(0)
 	called2 := int32(0)
-	
+
 	AddBeforeRoutine(func(baseGid, currentGid int64) {
 		atomic.AddInt32(&called1, 1)
 	})
-	
+
 	AddBeforeRoutine(func(baseGid, currentGid int64) {
 		atomic.AddInt32(&called2, 1)
 	})
-	
+
 	before(123, 456)
-	
+
 	if atomic.LoadInt32(&called1) != 1 {
 		t.Error("First before routine was not called")
 	}
-	
+
 	if atomic.LoadInt32(&called2) != 1 {
 		t.Error("Second before routine was not called")
 	}
@@ -283,27 +283,27 @@ func TestAfter_MultipleRoutines(t *testing.T) {
 	// Save original state
 	originalAfter := afterRoutines
 	defer func() { afterRoutines = originalAfter }()
-	
+
 	// Reset for test
 	afterRoutines = nil
-	
+
 	called1 := int32(0)
 	called2 := int32(0)
-	
+
 	AddAfterRoutine(func(currentGid int64) {
 		atomic.AddInt32(&called1, 1)
 	})
-	
+
 	AddAfterRoutine(func(currentGid int64) {
 		atomic.AddInt32(&called2, 1)
 	})
-	
+
 	after(123)
-	
+
 	if atomic.LoadInt32(&called1) != 1 {
 		t.Error("First after routine was not called")
 	}
-	
+
 	if atomic.LoadInt32(&called2) != 1 {
 		t.Error("Second after routine was not called")
 	}
@@ -313,7 +313,7 @@ func TestBeforeAfter_Integration(t *testing.T) {
 	done := make(chan bool, 1)
 	beforeCalled := int32(0)
 	afterCalled := int32(0)
-	
+
 	// Save original state
 	originalBefore := beforeRoutines
 	originalAfter := afterRoutines
@@ -321,21 +321,21 @@ func TestBeforeAfter_Integration(t *testing.T) {
 		beforeRoutines = originalBefore
 		afterRoutines = originalAfter
 	}()
-	
+
 	// Add test callbacks
 	AddBeforeRoutine(func(baseGid, currentGid int64) {
 		atomic.AddInt32(&beforeCalled, 1)
 	})
-	
+
 	AddAfterRoutine(func(currentGid int64) {
 		atomic.AddInt32(&afterCalled, 1)
 	})
-	
+
 	Go(func() error {
 		defer func() { done <- true }()
 		return nil
 	})
-	
+
 	// Wait for goroutine to complete
 	select {
 	case <-done:
@@ -343,14 +343,14 @@ func TestBeforeAfter_Integration(t *testing.T) {
 	case <-time.After(1 * time.Second):
 		t.Error("Goroutine did not complete within timeout")
 	}
-	
+
 	// Give some time for after routines to execute
 	time.Sleep(100 * time.Millisecond)
-	
+
 	if atomic.LoadInt32(&beforeCalled) == 0 {
 		t.Error("Before routine was not called")
 	}
-	
+
 	if atomic.LoadInt32(&afterCalled) == 0 {
 		t.Error("After routine was not called")
 	}
@@ -358,10 +358,10 @@ func TestBeforeAfter_Integration(t *testing.T) {
 
 func TestGoWithRecover_EmptyStack(t *testing.T) {
 	done := make(chan bool, 1)
-	
+
 	GoWithRecover(func() error {
 		defer func() { done <- true }()
-		
+
 		// Create a panic scenario that might result in empty stack
 		// This is a bit artificial but tests the code path
 		defer func() {
@@ -370,10 +370,10 @@ func TestGoWithRecover_EmptyStack(t *testing.T) {
 				panic(r)
 			}
 		}()
-		
+
 		panic("test panic")
 	})
-	
+
 	// Wait for goroutine to complete
 	select {
 	case <-done:
@@ -395,11 +395,11 @@ func TestGroup_Basic(t *testing.T) {
 func TestMixedRoutines_Concurrent(t *testing.T) {
 	const numEach = 5
 	var wg sync.WaitGroup
-	
+
 	goCount := int32(0)
 	recoverCount := int32(0)
 	mustSuccessCount := int32(0)
-	
+
 	// Launch Go routines
 	for i := 0; i < numEach; i++ {
 		wg.Add(1)
@@ -409,7 +409,7 @@ func TestMixedRoutines_Concurrent(t *testing.T) {
 			return nil
 		})
 	}
-	
+
 	// Launch GoWithRecover routines
 	for i := 0; i < numEach; i++ {
 		wg.Add(1)
@@ -419,7 +419,7 @@ func TestMixedRoutines_Concurrent(t *testing.T) {
 			return nil
 		})
 	}
-	
+
 	// Launch GoWithMustSuccess routines
 	for i := 0; i < numEach; i++ {
 		wg.Add(1)
@@ -429,29 +429,29 @@ func TestMixedRoutines_Concurrent(t *testing.T) {
 			return nil
 		})
 	}
-	
+
 	// Wait for all to complete
 	done := make(chan struct{})
 	go func() {
 		wg.Wait()
 		close(done)
 	}()
-	
+
 	select {
 	case <-done:
 		// Success
 	case <-time.After(3 * time.Second):
 		t.Error("Not all goroutines completed within timeout")
 	}
-	
+
 	if atomic.LoadInt32(&goCount) != numEach {
 		t.Errorf("Expected %d Go executions, got %d", numEach, atomic.LoadInt32(&goCount))
 	}
-	
+
 	if atomic.LoadInt32(&recoverCount) != numEach {
 		t.Errorf("Expected %d GoWithRecover executions, got %d", numEach, atomic.LoadInt32(&recoverCount))
 	}
-	
+
 	if atomic.LoadInt32(&mustSuccessCount) != numEach {
 		t.Errorf("Expected %d GoWithMustSuccess executions, got %d", numEach, atomic.LoadInt32(&mustSuccessCount))
 	}
@@ -460,22 +460,22 @@ func TestMixedRoutines_Concurrent(t *testing.T) {
 // Test that routines handle nil errors properly
 func TestRoutines_NilError(t *testing.T) {
 	done := make(chan bool, 3)
-	
+
 	Go(func() error {
 		done <- true
 		return nil
 	})
-	
+
 	GoWithRecover(func() error {
 		done <- true
 		return nil
 	})
-	
+
 	GoWithMustSuccess(func() error {
 		done <- true
 		return nil
 	})
-	
+
 	// Wait for all three
 	for i := 0; i < 3; i++ {
 		select {
@@ -490,7 +490,7 @@ func TestRoutines_NilError(t *testing.T) {
 // Benchmark tests
 func BenchmarkGo(b *testing.B) {
 	var wg sync.WaitGroup
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		wg.Add(1)
@@ -504,7 +504,7 @@ func BenchmarkGo(b *testing.B) {
 
 func BenchmarkGoWithRecover(b *testing.B) {
 	var wg sync.WaitGroup
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		wg.Add(1)
@@ -941,19 +941,19 @@ func TestGoWithRecoverComplexPanicScenarios(t *testing.T) {
 		panicFunc func()
 	}{
 		{
-			name: "string_panic",
+			name:      "string_panic",
 			panicFunc: func() { panic("string panic") },
 		},
 		{
-			name: "nil_panic",
+			name:      "nil_panic",
 			panicFunc: func() { panic(nil) },
 		},
 		{
-			name: "int_panic",
+			name:      "int_panic",
 			panicFunc: func() { panic(42) },
 		},
 		{
-			name: "struct_panic",
+			name:      "struct_panic",
 			panicFunc: func() { panic(struct{ msg string }{msg: "struct panic"}) },
 		},
 	}
@@ -1100,14 +1100,14 @@ func TestGoWithRecoverStackManipulation(t *testing.T) {
 // Test edge cases
 func TestRoutines_EdgeCases(t *testing.T) {
 	done := make(chan bool, 1)
-	
+
 	// Test with function that takes time
 	Go(func() error {
 		time.Sleep(10 * time.Millisecond)
 		done <- true
 		return nil
 	})
-	
+
 	select {
 	case <-done:
 		// Success
@@ -1119,7 +1119,7 @@ func TestRoutines_EdgeCases(t *testing.T) {
 func TestRoutines_WithMultipleErrors(t *testing.T) {
 	const numErrors = 5
 	var wg sync.WaitGroup
-	
+
 	for i := 0; i < numErrors; i++ {
 		wg.Add(1)
 		Go(func() error {
@@ -1127,13 +1127,13 @@ func TestRoutines_WithMultipleErrors(t *testing.T) {
 			return errors.New("test error")
 		})
 	}
-	
+
 	done := make(chan struct{})
 	go func() {
 		wg.Wait()
 		close(done)
 	}()
-	
+
 	select {
 	case <-done:
 		// Success - all errors should be logged

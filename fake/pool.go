@@ -17,21 +17,21 @@ var (
 			return &strings.Builder{}
 		},
 	}
-	
+
 	// 字符串切片池
 	stringSlicePool = sync.Pool{
 		New: func() interface{} {
 			return make([]string, 0, 16) // 预分配16个容量
 		},
 	}
-	
+
 	// 整数切片池
 	intSlicePool = sync.Pool{
 		New: func() interface{} {
 			return make([]int, 0, 16)
 		},
 	}
-	
+
 	// Faker实例池（用于并发场景）
 	fakerPool = sync.Pool{
 		New: func() interface{} {
@@ -100,7 +100,7 @@ func PutFaker(faker *Faker) {
 	if faker == nil {
 		return
 	}
-	
+
 	// 清空缓存以防止内存泄漏
 	faker.ClearCache()
 	fakerPool.Put(faker)
@@ -118,7 +118,7 @@ func ParallelGenerate[T any](count int, generator func(*Faker) T) []T {
 	if count <= 0 {
 		return []T{}
 	}
-	
+
 	// 计算并发数，基于CPU核心数和数据量
 	const maxGoroutines = 8
 	goroutines := count
@@ -128,45 +128,45 @@ func ParallelGenerate[T any](count int, generator func(*Faker) T) []T {
 	if goroutines > count {
 		goroutines = count
 	}
-	
+
 	results := make([]T, count)
-	
+
 	if goroutines <= 1 {
 		// 单线程处理
 		faker := GetFaker()
 		defer PutFaker(faker)
-		
+
 		for i := 0; i < count; i++ {
 			results[i] = generator(faker)
 		}
 		return results
 	}
-	
+
 	// 多线程处理
 	var wg sync.WaitGroup
 	itemsPerGoroutine := count / goroutines
-	
+
 	for g := 0; g < goroutines; g++ {
 		wg.Add(1)
-		
+
 		start := g * itemsPerGoroutine
 		end := start + itemsPerGoroutine
 		if g == goroutines-1 {
 			end = count // 最后一个协程处理剩余的所有项
 		}
-		
+
 		go func(start, end int) {
 			defer wg.Done()
-			
+
 			faker := GetFaker()
 			defer PutFaker(faker)
-			
+
 			for i := start; i < end; i++ {
 				results[i] = generator(faker)
 			}
 		}(start, end)
 	}
-	
+
 	wg.Wait()
 	return results
 }
@@ -176,12 +176,12 @@ func BatchGenerate[T any](count int, generator func() T) []T {
 	if count <= 0 {
 		return []T{}
 	}
-	
+
 	results := make([]T, count)
 	for i := 0; i < count; i++ {
 		results[i] = generator()
 	}
-	
+
 	return results
 }
 
@@ -197,9 +197,9 @@ func (f *Faker) BatchNamesOptimized(count int) []string {
 	if count <= 0 {
 		return []string{}
 	}
-	
+
 	// 预先计算需要的数据
-	firstNames, firstWeights, _ := getWeightedItems(f.language, "names", 
+	firstNames, firstWeights, _ := getWeightedItems(f.language, "names",
 		func() string {
 			if f.gender == GenderMale {
 				return "first_male"
@@ -212,21 +212,21 @@ func (f *Faker) BatchNamesOptimized(count int) []string {
 			}
 			return "first_female"
 		}())
-	
+
 	lastNames, lastWeights, _ := getWeightedItems(f.language, "names", "last")
-	
+
 	// 如果数据加载失败，使用默认方式
 	if len(firstNames) == 0 || len(lastNames) == 0 {
 		return f.batchGenerate(count, f.Name)
 	}
-	
+
 	results := make([]string, count)
-	
+
 	// 批量生成，减少函数调用开销
 	for i := 0; i < count; i++ {
 		firstName := randx.WeightedChoose(firstNames, firstWeights)
 		lastName := randx.WeightedChoose(lastNames, lastWeights)
-		
+
 		// 根据语言决定姓名顺序
 		switch f.language {
 		case LanguageChineseSimplified, LanguageChineseTraditional:
@@ -235,12 +235,12 @@ func (f *Faker) BatchNamesOptimized(count int) []string {
 			results[i] = firstName + " " + lastName
 		}
 	}
-	
+
 	f.stats.Lock()
 	f.stats.callCount++
 	f.stats.generatedData += int64(count)
 	f.stats.Unlock()
-	
+
 	return results
 }
 
@@ -249,7 +249,7 @@ func (f *Faker) BatchEmailsOptimized(count int) []string {
 	if count <= 0 {
 		return []string{}
 	}
-	
+
 	// 预生成域名列表
 	domains := []string{
 		"gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com",
@@ -257,22 +257,22 @@ func (f *Faker) BatchEmailsOptimized(count int) []string {
 		"live.com", "msn.com", "qq.com", "163.com", "126.com",
 		"sina.com", "sohu.com", "yeah.net", "foxmail.com", "139.com",
 	}
-	
+
 	results := make([]string, count)
 	sb := getStringBuilder()
 	defer putStringBuilder(sb)
-	
+
 	for i := 0; i < count; i++ {
 		sb.Reset()
-		
+
 		// 生成用户名
 		firstName := strings.ToLower(f.FirstName())
 		lastName := strings.ToLower(f.LastName())
-		
+
 		// 简化用户名生成逻辑
 		patterns := []int{0, 1, 2, 3} // 0: first.last, 1: first_last, 2: firstlast, 3: first123
 		pattern := randx.Choose(patterns)
-		
+
 		switch pattern {
 		case 0:
 			sb.WriteString(firstName)
@@ -289,18 +289,18 @@ func (f *Faker) BatchEmailsOptimized(count int) []string {
 			sb.WriteString(firstName)
 			sb.WriteString(fmt.Sprintf("%d", randx.Intn(999)+1))
 		}
-		
+
 		sb.WriteByte('@')
 		sb.WriteString(randx.Choose(domains))
-		
+
 		results[i] = sb.String()
 	}
-	
+
 	f.stats.Lock()
 	f.stats.callCount++
 	f.stats.generatedData += int64(count)
 	f.stats.Unlock()
-	
+
 	return results
 }
 
@@ -345,13 +345,13 @@ func WarmupPools() {
 		sb := &strings.Builder{}
 		sb.Grow(128)
 		stringBuilderPool.Put(sb)
-		
+
 		slice := make([]string, 0, 16)
 		stringSlicePool.Put(slice)
-		
+
 		intSlice := make([]int, 0, 16)
 		intSlicePool.Put(intSlice)
-		
+
 		faker := New()
 		fakerPool.Put(faker)
 	}

@@ -10,9 +10,9 @@ import (
 
 // Engine 自定义验证引擎
 type Engine struct {
-	validators       map[string]ValidatorFunc
-	tagName          string
-	fieldNameFunc    func(reflect.StructField) string
+	validators    map[string]ValidatorFunc
+	tagName       string
+	fieldNameFunc func(reflect.StructField) string
 }
 
 // ValidatorFunc 验证函数类型
@@ -38,13 +38,13 @@ type FieldLevel interface {
 
 // fieldLevel 字段级别实现
 type fieldLevel struct {
-	top              reflect.Value
-	parent           reflect.Value
-	field            reflect.Value
-	fieldName        string
-	structFieldName  string
-	param            string
-	structField      reflect.StructField
+	top             reflect.Value
+	parent          reflect.Value
+	field           reflect.Value
+	fieldName       string
+	structFieldName string
+	param           string
+	structField     reflect.StructField
 }
 
 func (fl *fieldLevel) Top() reflect.Value {
@@ -82,10 +82,10 @@ func NewEngine() *Engine {
 		tagName:       "validate",
 		fieldNameFunc: defaultFieldNameFunc,
 	}
-	
+
 	// 注册内置验证器
 	e.registerBuiltinValidators()
-	
+
 	return e
 }
 
@@ -104,7 +104,7 @@ func (e *Engine) RegisterValidation(tag string, fn ValidatorFunc) error {
 	if fn == nil {
 		return fmt.Errorf("validation function cannot be nil")
 	}
-	
+
 	e.validators[tag] = fn
 	return nil
 }
@@ -120,14 +120,14 @@ func (e *Engine) Struct(s interface{}) error {
 	if rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
 	}
-	
+
 	if rv.Kind() != reflect.Struct {
 		return fmt.Errorf("expected struct, got %s", rv.Kind())
 	}
-	
+
 	var errors ValidationErrors
 	e.validateStruct(rv, rv, "", &errors)
-	
+
 	if len(errors) > 0 {
 		return errors
 	}
@@ -137,13 +137,13 @@ func (e *Engine) Struct(s interface{}) error {
 // Var 验证单个变量
 func (e *Engine) Var(field interface{}, tag string) error {
 	rv := reflect.ValueOf(field)
-	
+
 	// 解析验证标签
 	rules := e.parseTag(tag)
 	if len(rules) == 0 {
 		return nil
 	}
-	
+
 	fl := &fieldLevel{
 		top:             rv,
 		parent:          rv,
@@ -151,41 +151,41 @@ func (e *Engine) Var(field interface{}, tag string) error {
 		fieldName:       "var",
 		structFieldName: "var",
 	}
-	
+
 	for _, rule := range rules {
 		fl.param = rule.param
 		if !e.validateField(fl, rule.tag) {
 			return &FieldError{
-				Field:     "var",
-				Tag:       rule.tag,
-				Value:     field,
-				Param:     rule.param,
-				Message:   fmt.Sprintf("validation failed for tag '%s'", rule.tag),
+				Field:   "var",
+				Tag:     rule.tag,
+				Value:   field,
+				Param:   rule.param,
+				Message: fmt.Sprintf("validation failed for tag '%s'", rule.tag),
 			}
 		}
 	}
-	
+
 	return nil
 }
 
 // validateStruct 验证结构体内部实现
 func (e *Engine) validateStruct(top, current reflect.Value, namespace string, errors *ValidationErrors) {
 	rt := current.Type()
-	
+
 	for i := 0; i < current.NumField(); i++ {
 		field := current.Field(i)
 		fieldType := rt.Field(i)
-		
+
 		// 跳过非导出字段
 		if !fieldType.IsExported() {
 			continue
 		}
-		
+
 		fieldName := fieldType.Name
 		if namespace != "" {
 			fieldName = namespace + "." + fieldName
 		}
-		
+
 		// 获取验证标签
 		tag := fieldType.Tag.Get(e.tagName)
 		if tag == "" || tag == "-" {
@@ -197,13 +197,13 @@ func (e *Engine) validateStruct(top, current reflect.Value, namespace string, er
 			}
 			continue
 		}
-		
+
 		// 解析验证规则
 		rules := e.parseTag(tag)
-		
+
 		// 获取字段显示名称
 		displayName := e.fieldNameFunc(fieldType)
-		
+
 		fl := &fieldLevel{
 			top:             top,
 			parent:          current,
@@ -212,7 +212,7 @@ func (e *Engine) validateStruct(top, current reflect.Value, namespace string, er
 			structFieldName: fieldType.Name,
 			structField:     fieldType,
 		}
-		
+
 		for _, rule := range rules {
 			fl.param = rule.param
 			if !e.validateField(fl, rule.tag) {
@@ -229,7 +229,7 @@ func (e *Engine) validateStruct(top, current reflect.Value, namespace string, er
 				*errors = append(*errors, fieldError)
 			}
 		}
-		
+
 		// 递归验证嵌套结构体
 		if field.Kind() == reflect.Struct {
 			e.validateStruct(top, field, fieldName, errors)
@@ -246,7 +246,7 @@ func (e *Engine) validateField(fl FieldLevel, tag string) bool {
 		// 如果验证器不存在，默认返回true（忽略未知的验证标签）
 		return true
 	}
-	
+
 	return validator(fl)
 }
 
@@ -259,16 +259,16 @@ type validationRule struct {
 // parseTag 解析验证标签
 func (e *Engine) parseTag(tag string) []validationRule {
 	var rules []validationRule
-	
+
 	// 按逗号分割验证规则
 	parts := strings.Split(tag, ",")
-	
+
 	for _, part := range parts {
 		part = strings.TrimSpace(part)
 		if part == "" {
 			continue
 		}
-		
+
 		// 解析参数
 		if idx := strings.Index(part, "="); idx != -1 {
 			ruleName := strings.TrimSpace(part[:idx])
@@ -278,7 +278,7 @@ func (e *Engine) parseTag(tag string) []validationRule {
 			rules = append(rules, validationRule{tag: part, param: ""})
 		}
 	}
-	
+
 	return rules
 }
 
@@ -291,7 +291,7 @@ func defaultFieldNameFunc(field reflect.StructField) string {
 			return parts[0]
 		}
 	}
-	
+
 	// 回退到字段名
 	return field.Name
 }
@@ -317,7 +317,7 @@ func (e *Engine) registerBuiltinValidators() {
 			return field.IsValid() && !field.IsZero()
 		}
 	})
-	
+
 	// 邮箱验证
 	e.RegisterValidation("email", func(fl FieldLevel) bool {
 		email := fl.Field().String()
@@ -327,7 +327,7 @@ func (e *Engine) registerBuiltinValidators() {
 		matched, _ := regexp.MatchString(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, email)
 		return matched
 	})
-	
+
 	// URL验证
 	e.RegisterValidation("url", func(fl FieldLevel) bool {
 		url := fl.Field().String()
@@ -337,17 +337,17 @@ func (e *Engine) registerBuiltinValidators() {
 		matched, _ := regexp.MatchString(`^(https?|ftp)://[^\s/$.?#].[^\s]*$`, url)
 		return matched
 	})
-	
+
 	// 最小值验证
 	e.RegisterValidation("min", func(fl FieldLevel) bool {
 		field := fl.Field()
 		param := fl.Param()
-		
+
 		min, err := strconv.ParseFloat(param, 64)
 		if err != nil {
 			return false
 		}
-		
+
 		switch field.Kind() {
 		case reflect.String:
 			return float64(len(field.String())) >= min
@@ -362,17 +362,17 @@ func (e *Engine) registerBuiltinValidators() {
 		}
 		return false
 	})
-	
+
 	// 最大值验证
 	e.RegisterValidation("max", func(fl FieldLevel) bool {
 		field := fl.Field()
 		param := fl.Param()
-		
+
 		max, err := strconv.ParseFloat(param, 64)
 		if err != nil {
 			return false
 		}
-		
+
 		switch field.Kind() {
 		case reflect.String:
 			return float64(len(field.String())) <= max
@@ -387,17 +387,17 @@ func (e *Engine) registerBuiltinValidators() {
 		}
 		return false
 	})
-	
+
 	// 长度验证
 	e.RegisterValidation("len", func(fl FieldLevel) bool {
 		field := fl.Field()
 		param := fl.Param()
-		
+
 		length, err := strconv.Atoi(param)
 		if err != nil {
 			return false
 		}
-		
+
 		switch field.Kind() {
 		case reflect.String:
 			return len(field.String()) == length
@@ -406,7 +406,7 @@ func (e *Engine) registerBuiltinValidators() {
 		}
 		return false
 	})
-	
+
 	// 数字验证
 	e.RegisterValidation("numeric", func(fl FieldLevel) bool {
 		value := fl.Field().String()
@@ -416,7 +416,7 @@ func (e *Engine) registerBuiltinValidators() {
 		_, err := strconv.ParseFloat(value, 64)
 		return err == nil
 	})
-	
+
 	// 字母验证
 	e.RegisterValidation("alpha", func(fl FieldLevel) bool {
 		value := fl.Field().String()
@@ -426,7 +426,7 @@ func (e *Engine) registerBuiltinValidators() {
 		matched, _ := regexp.MatchString(`^[a-zA-Z]+$`, value)
 		return matched
 	})
-	
+
 	// 字母数字验证
 	e.RegisterValidation("alphanum", func(fl FieldLevel) bool {
 		value := fl.Field().String()
@@ -436,12 +436,12 @@ func (e *Engine) registerBuiltinValidators() {
 		matched, _ := regexp.MatchString(`^[a-zA-Z0-9]+$`, value)
 		return matched
 	})
-	
+
 	// 等于验证
 	e.RegisterValidation("eq", func(fl FieldLevel) bool {
 		field := fl.Field()
 		param := fl.Param()
-		
+
 		switch field.Kind() {
 		case reflect.String:
 			return field.String() == param
@@ -460,7 +460,7 @@ func (e *Engine) registerBuiltinValidators() {
 		}
 		return false
 	})
-	
+
 	// 不等于验证
 	e.RegisterValidation("ne", func(fl FieldLevel) bool {
 		// 复用eq验证，然后取反

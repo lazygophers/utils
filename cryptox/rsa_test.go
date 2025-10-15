@@ -2,6 +2,8 @@ package cryptox
 
 import (
 	"bytes"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"testing"
@@ -990,11 +992,11 @@ func TestRSASignatureIntegrity(t *testing.T) {
 	}
 
 	testMessages := [][]byte{
-		[]byte(""),                                    // Empty message
-		[]byte("A"),                                   // Single character
-		[]byte("Hello, World!"),                       // Short message
+		[]byte(""),              // Empty message
+		[]byte("A"),             // Single character
+		[]byte("Hello, World!"), // Short message
 		[]byte("This is a longer message for testing RSA signature integrity with various message lengths."), // Long message
-		bytes.Repeat([]byte("X"), 1000),               // Very long message
+		bytes.Repeat([]byte("X"), 1000), // Very long message
 	}
 
 	for i, message := range testMessages {
@@ -1032,5 +1034,428 @@ func TestRSASignatureIntegrity(t *testing.T) {
 				t.Error("Cross-verification should fail (PKCS1v15 sig with PSS verify)")
 			}
 		})
+	}
+}
+
+// TestPKCS1PrivateKeyFormat tests loading PKCS#1 format private keys
+func TestPKCS1PrivateKeyFormat(t *testing.T) {
+	// Generate a key pair first
+	keyPair, err := GenerateRSAKeyPair(2048)
+	if err != nil {
+		t.Fatalf("Failed to generate RSA key pair: %v", err)
+	}
+
+	// Convert to PKCS#1 format manually
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(keyPair.PrivateKey)
+	pkcs1PrivatePEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: privateKeyBytes,
+	})
+
+	// Test loading PKCS#1 format private key
+	loadedPrivateKey, err := PrivateKeyFromPEM(pkcs1PrivatePEM)
+	if err != nil {
+		t.Fatalf("Failed to load PKCS#1 private key: %v", err)
+	}
+
+	// Verify the loaded key works
+	message := []byte("test message for PKCS#1 format")
+	ciphertext, err := RSAEncryptOAEP(keyPair.PublicKey, message)
+	if err != nil {
+		t.Fatalf("Failed to encrypt: %v", err)
+	}
+
+	decrypted, err := RSADecryptOAEP(loadedPrivateKey, ciphertext)
+	if err != nil {
+		t.Fatalf("Failed to decrypt with PKCS#1 loaded key: %v", err)
+	}
+
+	if !bytes.Equal(message, decrypted) {
+		t.Error("Decryption with PKCS#1 loaded key failed")
+	}
+
+	// Test with malformed PKCS#1 private key
+	malformedPKCS1PEM := []byte(`-----BEGIN RSA PRIVATE KEY-----
+invalid base64 content here
+-----END RSA PRIVATE KEY-----`)
+
+	_, err = PrivateKeyFromPEM(malformedPKCS1PEM)
+	if err == nil {
+		t.Error("Expected error for malformed PKCS#1 private key")
+	}
+}
+
+// TestPKCS1PublicKeyFormat tests loading PKCS#1 format public keys
+func TestPKCS1PublicKeyFormat(t *testing.T) {
+	// Generate a key pair first
+	keyPair, err := GenerateRSAKeyPair(2048)
+	if err != nil {
+		t.Fatalf("Failed to generate RSA key pair: %v", err)
+	}
+
+	// Convert to PKCS#1 format manually
+	publicKeyBytes := x509.MarshalPKCS1PublicKey(keyPair.PublicKey)
+	pkcs1PublicPEM := pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PUBLIC KEY",
+		Bytes: publicKeyBytes,
+	})
+
+	// Test loading PKCS#1 format public key
+	loadedPublicKey, err := PublicKeyFromPEM(pkcs1PublicPEM)
+	if err != nil {
+		t.Fatalf("Failed to load PKCS#1 public key: %v", err)
+	}
+
+	// Verify the loaded key works
+	message := []byte("test message for PKCS#1 public key format")
+	ciphertext, err := RSAEncryptOAEP(loadedPublicKey, message)
+	if err != nil {
+		t.Fatalf("Failed to encrypt with PKCS#1 loaded public key: %v", err)
+	}
+
+	decrypted, err := RSADecryptOAEP(keyPair.PrivateKey, ciphertext)
+	if err != nil {
+		t.Fatalf("Failed to decrypt: %v", err)
+	}
+
+	if !bytes.Equal(message, decrypted) {
+		t.Error("Encryption with PKCS#1 loaded public key failed")
+	}
+
+	// Test with malformed PKCS#1 public key
+	malformedPKCS1PEM := []byte(`-----BEGIN RSA PUBLIC KEY-----
+invalid base64 content here
+-----END RSA PUBLIC KEY-----`)
+
+	_, err = PublicKeyFromPEM(malformedPKCS1PEM)
+	if err == nil {
+		t.Error("Expected error for malformed PKCS#1 public key")
+	}
+}
+
+// TestPEMWithNonRSAKeys tests handling of non-RSA keys in PEM format
+func TestPEMWithNonRSAKeys(t *testing.T) {
+	// Create an ECDSA key (non-RSA) in PKCS#8 format
+	// This tests the error path where ParsePKCS8PrivateKey returns a non-RSA key
+	ecdsaPEM := []byte(`-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgVcB/UNPxalR9zDYA
+jQIaQ4ztqP7Xkx8q0hqLM3f8EzChRANCAARQ/ycIrZ9D/RnZfKuNYYnfcKdnNx3F
+JnZQVm8BpOYN8w5cFLSGU7nD8MgYqVzJX/0QKKxOvJTI9OEaHQN8FbLl
+-----END PRIVATE KEY-----`)
+
+	_, err := PrivateKeyFromPEM(ecdsaPEM)
+	if err == nil {
+		t.Error("Expected error for ECDSA key in RSA parser")
+	}
+	if err != nil && err.Error() != "key is not an RSA private key" {
+		t.Logf("Got expected error: %v", err)
+	}
+
+	// Create an ECDSA public key (non-RSA) in PKIX format
+	ecdsaPublicPEM := []byte(`-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUP8nCK2fQ/0Z2XyrjWGJ33CnZzcd
+xSZ2UFZvAaTmDfMOXBS0hlO5w/DIGKlcyV/9ECisTryUyPThGh0DfBWy5Q==
+-----END PUBLIC KEY-----`)
+
+	_, err = PublicKeyFromPEM(ecdsaPublicPEM)
+	if err == nil {
+		t.Error("Expected error for ECDSA public key in RSA parser")
+	}
+	if err != nil && err.Error() != "key is not an RSA public key" {
+		t.Logf("Got expected error: %v", err)
+	}
+}
+
+// TestRSAPEMRoundTripAllSizes tests PEM round-trip with various key sizes
+func TestRSAPEMRoundTripAllSizes(t *testing.T) {
+	keySizes := []int{1024, 2048, 3072, 4096}
+
+	for _, size := range keySizes {
+		t.Run(fmt.Sprintf("KeySize_%d", size), func(t *testing.T) {
+			// Generate key pair
+			keyPair, err := GenerateRSAKeyPair(size)
+			if err != nil {
+				t.Fatalf("Failed to generate %d-bit key pair: %v", size, err)
+			}
+
+			// Test private key PEM round-trip
+			privatePEM, err := keyPair.PrivateKeyToPEM()
+			if err != nil {
+				t.Fatalf("Failed to convert private key to PEM: %v", err)
+			}
+
+			loadedPrivateKey, err := PrivateKeyFromPEM(privatePEM)
+			if err != nil {
+				t.Fatalf("Failed to load private key from PEM: %v", err)
+			}
+
+			// Verify the keys match
+			if keyPair.PrivateKey.N.Cmp(loadedPrivateKey.N) != 0 {
+				t.Error("Private key modulus doesn't match after round-trip")
+			}
+
+			// Test public key PEM round-trip
+			publicPEM, err := keyPair.PublicKeyToPEM()
+			if err != nil {
+				t.Fatalf("Failed to convert public key to PEM: %v", err)
+			}
+
+			loadedPublicKey, err := PublicKeyFromPEM(publicPEM)
+			if err != nil {
+				t.Fatalf("Failed to load public key from PEM: %v", err)
+			}
+
+			// Verify the keys match
+			if keyPair.PublicKey.N.Cmp(loadedPublicKey.N) != 0 {
+				t.Error("Public key modulus doesn't match after round-trip")
+			}
+
+			// Test that loaded keys can be used for encryption/decryption
+			message := []byte(fmt.Sprintf("Test message for %d-bit key", size))
+
+			// Calculate max message length
+			maxLen, err := RSAMaxMessageLength(loadedPublicKey, "OAEP")
+			if err != nil {
+				t.Fatalf("Failed to get max message length: %v", err)
+			}
+
+			// Use a smaller message if needed
+			if len(message) > maxLen {
+				message = message[:maxLen]
+			}
+
+			ciphertext, err := RSAEncryptOAEP(loadedPublicKey, message)
+			if err != nil {
+				t.Fatalf("Failed to encrypt with loaded public key: %v", err)
+			}
+
+			decrypted, err := RSADecryptOAEP(loadedPrivateKey, ciphertext)
+			if err != nil {
+				t.Fatalf("Failed to decrypt with loaded private key: %v", err)
+			}
+
+			if !bytes.Equal(message, decrypted) {
+				t.Error("Decrypted message doesn't match original")
+			}
+		})
+	}
+}
+
+// TestRSASignPKCS1v15WithDifferentMessages tests PKCS1v15 signing with various message types
+func TestRSASignPKCS1v15WithDifferentMessages(t *testing.T) {
+	keyPair, err := GenerateRSAKeyPair(2048)
+	if err != nil {
+		t.Fatalf("Failed to generate RSA key pair: %v", err)
+	}
+
+	testCases := []struct {
+		name    string
+		message []byte
+	}{
+		{"empty message", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello, World!")},
+		{"medium message", []byte("This is a medium-length message for testing RSA PKCS1v15 signatures.")},
+		{"long message", bytes.Repeat([]byte("X"), 1000)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}},
+		{"unicode message", []byte("你好世界 🌍 Hello World 🚀")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Sign the message
+			signature, err := RSASignPKCS1v15(keyPair.PrivateKey, tc.message)
+			if err != nil {
+				t.Fatalf("Failed to sign message: %v", err)
+			}
+
+			// Verify the signature
+			err = RSAVerifyPKCS1v15(keyPair.PublicKey, tc.message, signature)
+			if err != nil {
+				t.Errorf("Failed to verify signature: %v", err)
+			}
+
+			// Verify that modified message fails
+			if len(tc.message) > 0 {
+				modifiedMessage := append([]byte{}, tc.message...)
+				modifiedMessage[0] ^= 0xFF // Flip bits in first byte
+
+				err = RSAVerifyPKCS1v15(keyPair.PublicKey, modifiedMessage, signature)
+				if err == nil {
+					t.Error("Signature verification should fail for modified message")
+				}
+			}
+		})
+	}
+}
+
+// TestRSAEncryptionWithMaximumMessageLength tests encryption with maximum allowed message length
+func TestRSAEncryptionWithMaximumMessageLength(t *testing.T) {
+	keyPair, err := GenerateRSAKeyPair(2048)
+	if err != nil {
+		t.Fatalf("Failed to generate RSA key pair: %v", err)
+	}
+
+	// Test OAEP with maximum length
+	maxLenOAEP, err := RSAMaxMessageLength(keyPair.PublicKey, "OAEP")
+	if err != nil {
+		t.Fatalf("Failed to get max message length for OAEP: %v", err)
+	}
+
+	maxMessage := make([]byte, maxLenOAEP)
+	for i := range maxMessage {
+		maxMessage[i] = byte(i % 256)
+	}
+
+	ciphertext, err := RSAEncryptOAEP(keyPair.PublicKey, maxMessage)
+	if err != nil {
+		t.Fatalf("Failed to encrypt maximum length message with OAEP: %v", err)
+	}
+
+	decrypted, err := RSADecryptOAEP(keyPair.PrivateKey, ciphertext)
+	if err != nil {
+		t.Fatalf("Failed to decrypt maximum length message with OAEP: %v", err)
+	}
+
+	if !bytes.Equal(maxMessage, decrypted) {
+		t.Error("Decrypted maximum length message doesn't match original")
+	}
+
+	// Test PKCS1v15 with maximum length
+	maxLenPKCS1v15, err := RSAMaxMessageLength(keyPair.PublicKey, "PKCS1v15")
+	if err != nil {
+		t.Fatalf("Failed to get max message length for PKCS1v15: %v", err)
+	}
+
+	maxMessage = make([]byte, maxLenPKCS1v15)
+	for i := range maxMessage {
+		maxMessage[i] = byte(i % 256)
+	}
+
+	ciphertext, err = RSAEncryptPKCS1v15(keyPair.PublicKey, maxMessage)
+	if err != nil {
+		t.Fatalf("Failed to encrypt maximum length message with PKCS1v15: %v", err)
+	}
+
+	decrypted, err = RSADecryptPKCS1v15(keyPair.PrivateKey, ciphertext)
+	if err != nil {
+		t.Fatalf("Failed to decrypt maximum length message with PKCS1v15: %v", err)
+	}
+
+	if !bytes.Equal(maxMessage, decrypted) {
+		t.Error("Decrypted maximum length message doesn't match original")
+	}
+}
+
+// TestRSAGetKeySizeEdgeCases tests GetRSAKeySize with edge cases
+func TestRSAGetKeySizeEdgeCases(t *testing.T) {
+	// Test with nil key
+	size := GetRSAKeySize(nil)
+	if size != 0 {
+		t.Errorf("Expected 0 for nil key, got %d", size)
+	}
+
+	// Test with various key sizes
+	keySizes := []int{1024, 2048, 3072, 4096}
+	for _, expectedSize := range keySizes {
+		keyPair, err := GenerateRSAKeyPair(expectedSize)
+		if err != nil {
+			t.Fatalf("Failed to generate %d-bit key: %v", expectedSize, err)
+		}
+
+		actualSize := GetRSAKeySize(keyPair.PublicKey)
+		if actualSize != expectedSize {
+			t.Errorf("Expected key size %d, got %d", expectedSize, actualSize)
+		}
+	}
+}
+
+// TestRSAPKCS1PublicKeyFormat tests loading PKCS#1 format public keys with error cases
+func TestRSAPKCS1PublicKeyFormatErrors(t *testing.T) {
+	// Test with malformed PKCS#1 public key that will fail parsing
+	malformedPKCS1PEM := []byte(`-----BEGIN RSA PUBLIC KEY-----
+aW52YWxpZCBkYXRhIGhlcmU=
+-----END RSA PUBLIC KEY-----`)
+
+	_, err := PublicKeyFromPEM(malformedPKCS1PEM)
+	if err == nil {
+		t.Error("Expected error for malformed PKCS#1 public key")
+	}
+	t.Logf("Got expected error for malformed PKCS#1 public key: %v", err)
+}
+
+// TestRSASignatureIntegrityWithMultipleKeys tests signatures across different key pairs
+func TestRSASignatureIntegrityWithMultipleKeys(t *testing.T) {
+	// Generate two different key pairs
+	keyPair1, err := GenerateRSAKeyPair(2048)
+	if err != nil {
+		t.Fatalf("Failed to generate first key pair: %v", err)
+	}
+
+	keyPair2, err := GenerateRSAKeyPair(2048)
+	if err != nil {
+		t.Fatalf("Failed to generate second key pair: %v", err)
+	}
+
+	message := []byte("Test message for signature integrity")
+
+	// Sign with first key
+	signaturePSS1, err := RSASignPSS(keyPair1.PrivateKey, message)
+	if err != nil {
+		t.Fatalf("Failed to sign with PSS (key 1): %v", err)
+	}
+
+	signaturePKCS1v15_1, err := RSASignPKCS1v15(keyPair1.PrivateKey, message)
+	if err != nil {
+		t.Fatalf("Failed to sign with PKCS1v15 (key 1): %v", err)
+	}
+
+	// Verify with correct key (should succeed)
+	err = RSAVerifyPSS(keyPair1.PublicKey, message, signaturePSS1)
+	if err != nil {
+		t.Errorf("PSS signature verification should succeed with correct key")
+	}
+
+	err = RSAVerifyPKCS1v15(keyPair1.PublicKey, message, signaturePKCS1v15_1)
+	if err != nil {
+		t.Errorf("PKCS1v15 signature verification should succeed with correct key")
+	}
+
+	// Verify with wrong key (should fail)
+	err = RSAVerifyPSS(keyPair2.PublicKey, message, signaturePSS1)
+	if err == nil {
+		t.Error("PSS signature verification should fail with wrong key")
+	}
+
+	err = RSAVerifyPKCS1v15(keyPair2.PublicKey, message, signaturePKCS1v15_1)
+	if err == nil {
+		t.Error("PKCS1v15 signature verification should fail with wrong key")
+	}
+
+	// Sign same message with second key
+	signaturePSS2, err := RSASignPSS(keyPair2.PrivateKey, message)
+	if err != nil {
+		t.Fatalf("Failed to sign with PSS (key 2): %v", err)
+	}
+
+	signaturePKCS1v15_2, err := RSASignPKCS1v15(keyPair2.PrivateKey, message)
+	if err != nil {
+		t.Fatalf("Failed to sign with PKCS1v15 (key 2): %v", err)
+	}
+
+	// Verify signatures are different (PSS should always be different, PKCS1v15 might be)
+	if bytes.Equal(signaturePSS1, signaturePSS2) {
+		t.Error("PSS signatures from different keys should be different")
+	}
+
+	// Each signature should only verify with its corresponding key
+	err = RSAVerifyPSS(keyPair2.PublicKey, message, signaturePSS2)
+	if err != nil {
+		t.Errorf("PSS signature 2 should verify with key 2")
+	}
+
+	err = RSAVerifyPKCS1v15(keyPair2.PublicKey, message, signaturePKCS1v15_2)
+	if err != nil {
+		t.Errorf("PKCS1v15 signature 2 should verify with key 2")
 	}
 }

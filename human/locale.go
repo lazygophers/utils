@@ -15,10 +15,10 @@ type Locale struct {
 	SpeedUnits    []string // 速度单位
 	BitSpeedUnits []string // 比特速度单位
 
-	TimeUnits    TimeUnits              // 时间单位
-	RelativeTime RelativeTimeStrings    // 相对时间表达
-	NumberFormat NumberFormat          // 数字格式
-	Common       CommonStrings         // 常用词汇
+	TimeUnits    TimeUnits           // 时间单位
+	RelativeTime RelativeTimeStrings // 相对时间表达
+	NumberFormat NumberFormat        // 数字格式
+	Common       CommonStrings       // 常用词汇
 }
 
 // TimeUnits 时间单位
@@ -35,25 +35,25 @@ type TimeUnits struct {
 	Year        string
 
 	// 复数形式
-	Seconds     string
-	Minutes     string
-	Hours       string
-	Days        string
-	Weeks       string
-	Months      string
-	Years       string
+	Seconds string
+	Minutes string
+	Hours   string
+	Days    string
+	Weeks   string
+	Months  string
+	Years   string
 }
 
 // RelativeTimeStrings 相对时间表达
 type RelativeTimeStrings struct {
-	JustNow     string
-	SecondsAgo  string
-	MinutesAgo  string
-	HoursAgo    string
-	DaysAgo     string
-	WeeksAgo    string
-	MonthsAgo   string
-	YearsAgo    string
+	JustNow    string
+	SecondsAgo string
+	MinutesAgo string
+	HoursAgo   string
+	DaysAgo    string
+	WeeksAgo   string
+	MonthsAgo  string
+	YearsAgo   string
 
 	In           string
 	SecondsLater string
@@ -94,38 +94,38 @@ func RegisterLocale(name string, locale *Locale) {
 func GetLocaleConfig(name string) (*Locale, bool) {
 	mu.RLock()
 	defer mu.RUnlock()
-	
+
 	// 尝试完整匹配
 	if locale, ok := locales[name]; ok {
 		return locale, true
 	}
-	
+
 	// 尝试语言匹配（忽略地区）
 	lang := strings.Split(name, "-")[0]
 	if locale, ok := locales[lang]; ok {
 		return locale, true
 	}
-	
+
 	// 默认英文
 	if locale, ok := locales["en"]; ok {
 		return locale, true
 	}
-	
+
 	return nil, false
 }
 
 // 注册默认英文地区
 func init() {
 	RegisterLocale("en", &Locale{
-		Language:   "en",
-		Region:     "US",
+		Language:      "en",
+		Region:        "US",
 		ByteUnits:     []string{"B", "KB", "MB", "GB", "TB", "PB"},
 		SpeedUnits:    []string{"B/s", "KB/s", "MB/s", "GB/s", "TB/s", "PB/s"},
 		BitSpeedUnits: []string{"bps", "Kbps", "Mbps", "Gbps", "Tbps", "Pbps"},
-		
+
 		TimeUnits: TimeUnits{
 			Nanosecond:  "ns",
-			Microsecond: "μs", 
+			Microsecond: "μs",
 			Millisecond: "ms",
 			Second:      "second",
 			Minute:      "minute",
@@ -134,7 +134,7 @@ func init() {
 			Week:        "week",
 			Month:       "month",
 			Year:        "year",
-			
+
 			Seconds: "seconds",
 			Minutes: "minutes",
 			Hours:   "hours",
@@ -143,17 +143,17 @@ func init() {
 			Months:  "months",
 			Years:   "years",
 		},
-		
+
 		RelativeTime: RelativeTimeStrings{
-			JustNow:      "just now",
-			SecondsAgo:   "%d seconds ago",
-			MinutesAgo:   "%d minutes ago",
-			HoursAgo:     "%d hours ago",
-			DaysAgo:      "%d days ago",
-			WeeksAgo:     "%d weeks ago",
-			MonthsAgo:    "%d months ago",
-			YearsAgo:     "%d years ago",
-			
+			JustNow:    "just now",
+			SecondsAgo: "%d seconds ago",
+			MinutesAgo: "%d minutes ago",
+			HoursAgo:   "%d hours ago",
+			DaysAgo:    "%d days ago",
+			WeeksAgo:   "%d weeks ago",
+			MonthsAgo:  "%d months ago",
+			YearsAgo:   "%d years ago",
+
 			In:           "in",
 			SecondsLater: "in %d seconds",
 			MinutesLater: "in %d minutes",
@@ -163,13 +163,13 @@ func init() {
 			MonthsLater:  "in %d months",
 			YearsLater:   "in %d years",
 		},
-		
+
 		NumberFormat: NumberFormat{
 			DecimalSeparator:  ".",
 			ThousandSeparator: ",",
 			LargeNumberUnits:  []string{"K", "M", "B", "T"},
 		},
-		
+
 		Common: CommonStrings{
 			And: "and",
 			Or:  "or",
@@ -182,10 +182,10 @@ func formatWithLocale(locale *Locale, format string, args ...interface{}) string
 	if locale == nil {
 		locale, _ = GetLocaleConfig("en")
 	}
-	
+
 	// 这里可以根据需要进行更复杂的本地化处理
 	// 比如处理复数形式、语序调整等
-	
+
 	return fmt.Sprintf(format, args...)
 }
 
@@ -194,7 +194,7 @@ func getTimeUnit(locale *Locale, unit string, count int64) string {
 	if locale == nil {
 		locale, _ = GetLocaleConfig("en")
 	}
-	
+
 	// 对于英文，需要处理单复数
 	if locale.Language == "en" && count != 1 {
 		switch unit {
@@ -214,6 +214,6 @@ func getTimeUnit(locale *Locale, unit string, count int64) string {
 			return locale.TimeUnits.Years
 		}
 	}
-	
+
 	return unit
 }

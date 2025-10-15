@@ -13,20 +13,6 @@ func Slice2Map[M cmp.Ordered](list []M) map[M]bool {
 	return m
 }
 
-// SliceToMapGeneric converts a slice to a map where each element becomes a key with value true
-func SliceToMapGeneric[T comparable](list []T) map[T]bool {
-	if list == nil {
-		return nil
-	}
-
-	result := make(map[T]bool, len(list))
-	for _, item := range list {
-		result[item] = true
-	}
-
-	return result
-}
-
 // SliceToMapWithValue converts a slice to a map with a custom value
 func SliceToMapWithValue[T comparable, V any](list []T, value V) map[T]V {
 	if list == nil {

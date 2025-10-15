@@ -80,10 +80,10 @@ func NewUserAgentGenerator() *UserAgentGenerator {
 			},
 		},
 		browserEngines: map[string]BrowserEngine{
-			"Chrome": {Name: "AppleWebKit", Version: "537.36"},
-			"Edge":   {Name: "AppleWebKit", Version: "537.36"},
-			"Opera":  {Name: "AppleWebKit", Version: "537.36"},
-			"Safari": {Name: "AppleWebKit", Version: "605.1.15"},
+			"Chrome":  {Name: "AppleWebKit", Version: "537.36"},
+			"Edge":    {Name: "AppleWebKit", Version: "537.36"},
+			"Opera":   {Name: "AppleWebKit", Version: "537.36"},
+			"Safari":  {Name: "AppleWebKit", Version: "605.1.15"},
 			"Firefox": {Name: "Gecko", Version: "20100101"},
 		},
 	}
@@ -121,7 +121,7 @@ func (g *UserAgentGenerator) GenerateUserAgent(opts UserAgentOptions) string {
 
 	// 生成浏览器版本
 	browserVersion := g.getBrowserVersion(opts.Browser)
-	
+
 	// 根据平台和浏览器生成用户代理
 	return g.buildUserAgent(opts, browserVersion)
 }
@@ -183,11 +183,11 @@ func (g *UserAgentGenerator) getBrowserVersion(browser string) string {
 		return randx.Choose(versions)
 	}
 	// 如果没有预定义版本，生成一个随机版本
-	return fmt.Sprintf("%d.%d.%d.%d", 
-		randx.Intn(50)+80,  // 主版本号 80-130
-		randx.Intn(10),     // 次版本号 0-9
-		randx.Intn(9999),   // 修订版本号 0-9999
-		randx.Intn(999),    // 构建号 0-999
+	return fmt.Sprintf("%d.%d.%d.%d",
+		randx.Intn(50)+80, // 主版本号 80-130
+		randx.Intn(10),    // 次版本号 0-9
+		randx.Intn(9999),  // 修订版本号 0-9999
+		randx.Intn(999),   // 构建号 0-999
 	)
 }
 
@@ -213,19 +213,19 @@ func (g *UserAgentGenerator) buildUserAgent(opts UserAgentOptions, browserVersio
 func (g *UserAgentGenerator) buildWindowsUserAgent(opts UserAgentOptions, browserVersion string) string {
 	engine := g.browserEngines[opts.Browser]
 	osVersion := opts.OSVersion
-	
+
 	// Windows版本映射
 	if osVersion == "11" {
 		osVersion = "10.0"
 	} else if osVersion == "10" {
 		osVersion = "10.0"
 	}
-	
+
 	arch := "Win64; x64"
 	if opts.Architecture == "WOW64" {
 		arch = "WOW64"
 	}
-	
+
 	switch opts.Browser {
 	case "Chrome", "Edge", "Opera":
 		return fmt.Sprintf("Mozilla/5.0 (Windows NT %s; %s) AppleWebKit/%s (KHTML, like Gecko) %s/%s Safari/537.36",
@@ -246,7 +246,7 @@ func (g *UserAgentGenerator) buildWindowsUserAgent(opts UserAgentOptions, browse
 func (g *UserAgentGenerator) buildMacOSUserAgent(opts UserAgentOptions, browserVersion string) string {
 	engine := g.browserEngines[opts.Browser]
 	osVersion := strings.ReplaceAll(opts.OSVersion, ".", "_")
-	
+
 	switch opts.Browser {
 	case "Chrome", "Edge", "Opera":
 		return fmt.Sprintf("Mozilla/5.0 (Macintosh; Intel Mac OS X %s) AppleWebKit/%s (KHTML, like Gecko) %s/%s Safari/537.36",
@@ -267,7 +267,7 @@ func (g *UserAgentGenerator) buildMacOSUserAgent(opts UserAgentOptions, browserV
 func (g *UserAgentGenerator) buildLinuxUserAgent(opts UserAgentOptions, browserVersion string) string {
 	engine := g.browserEngines[opts.Browser]
 	arch := opts.Architecture
-	
+
 	switch opts.Browser {
 	case "Chrome", "Edge", "Opera":
 		return fmt.Sprintf("Mozilla/5.0 (X11; Linux %s) AppleWebKit/%s (KHTML, like Gecko) %s/%s Safari/537.36",
@@ -284,14 +284,14 @@ func (g *UserAgentGenerator) buildLinuxUserAgent(opts UserAgentOptions, browserV
 // buildAndroidUserAgent 构建Android用户代理
 func (g *UserAgentGenerator) buildAndroidUserAgent(opts UserAgentOptions, browserVersion string) string {
 	engine := g.browserEngines[opts.Browser]
-	
+
 	// 随机生成设备型号
 	deviceModels := []string{
 		"SM-G973F", "SM-G981B", "SM-G998B", "SM-A525F", "SM-A715F",
 		"Pixel 6", "Pixel 7", "OnePlus 9", "Mi 11", "HUAWEI P40",
 	}
 	deviceModel := randx.Choose(deviceModels)
-	
+
 	switch opts.Browser {
 	case "Chrome":
 		mobileStr := ""
@@ -317,17 +317,17 @@ func (g *UserAgentGenerator) buildAndroidUserAgent(opts UserAgentOptions, browse
 func (g *UserAgentGenerator) buildIOSUserAgent(opts UserAgentOptions, browserVersion string) string {
 	engine := g.browserEngines[opts.Browser]
 	osVersion := strings.ReplaceAll(opts.OSVersion, ".", "_")
-	
+
 	deviceType := "iPhone"
 	if opts.DeviceType == DeviceTypeTablet {
 		deviceType = "iPad"
 	}
-	
+
 	cpuType := fmt.Sprintf("CPU %s OS", deviceType)
 	if deviceType == "iPad" {
 		cpuType = "CPU OS"
 	}
-	
+
 	switch opts.Browser {
 	case "Safari", "Chrome", "Edge", "Opera":
 		return fmt.Sprintf("Mozilla/5.0 (%s; %s %s like Mac OS X) AppleWebKit/%s (KHTML, like Gecko) Version/%s Mobile/15E148 Safari/604.1",
@@ -343,7 +343,7 @@ func (g *UserAgentGenerator) buildIOSUserAgent(opts UserAgentOptions, browserVer
 
 // buildGenericUserAgent 构建通用用户代理
 func (g *UserAgentGenerator) buildGenericUserAgent(opts UserAgentOptions, browserVersion string) string {
-	return fmt.Sprintf("Mozilla/5.0 (%s %s) %s/%s", 
+	return fmt.Sprintf("Mozilla/5.0 (%s %s) %s/%s",
 		opts.Platform, opts.OSVersion, opts.Browser, browserVersion)
 }
 
@@ -359,19 +359,19 @@ func (f *Faker) GenerateUserAgent(opts UserAgentOptions) string {
 // GenerateRandomUserAgent 生成随机用户代理
 func (f *Faker) GenerateRandomUserAgent() string {
 	f.incrementCallCount()
-	
+
 	// 随机选择设备类型
 	deviceTypes := []DeviceType{DeviceTypeDesktop, DeviceTypeLaptop, DeviceTypeMobile, DeviceTypeTablet}
 	deviceType := randx.Choose(deviceTypes)
-	
+
 	// 根据设备类型设置mobile选项
 	mobile := deviceType == DeviceTypeMobile || deviceType == DeviceTypeTablet
-	
+
 	opts := UserAgentOptions{
 		DeviceType: deviceType,
 		Mobile:     mobile,
 	}
-	
+
 	return defaultUserAgentGen.GenerateUserAgent(opts)
 }
 
@@ -450,7 +450,7 @@ func (f *Faker) AndroidUserAgent() string {
 	return defaultUserAgentGen.GenerateUserAgent(opts)
 }
 
-// 便捷方法 - iOS设备用户代理  
+// 便捷方法 - iOS设备用户代理
 func (f *Faker) IOSUserAgent() string {
 	f.incrementCallCount()
 	opts := UserAgentOptions{

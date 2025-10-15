@@ -5,525 +5,664 @@ import (
 	"crypto/cipher"
 	"crypto/des"
 	"errors"
+	"strings"
 	"testing"
 )
 
-// Test data
-const (
-	testDESMessage       = "Hello, DES encryption!"
-	testTripleDESMessage = "Hello, 3DES encryption test message!"
-)
+// generateValidDESKey generates a valid 8-byte DES key for testing
+func generateValidDESKey() []byte {
+	return []byte("12345678") // 8 bytes
+}
 
-var (
-	desKey8  = []byte("12345678")                 // 8 bytes for DES
-	desKey24 = []byte("123456789012345678901234") // 24 bytes for 3DES
-)
+// generateValid3DESKey generates a valid 24-byte 3DES key for testing
+func generateValid3DESKey() []byte {
+	return []byte("123456789012345678901234") // 24 bytes
+}
 
-// TestDESEncryptDecryptECB tests DES ECB mode encryption and decryption
+// TestDESEncryptDecryptECB tests DES ECB encryption and decryption round-trip
 func TestDESEncryptDecryptECB(t *testing.T) {
-	plaintext := []byte(testDESMessage)
+	key := generateValidDESKey()
 
-	// Test encryption
-	ciphertext, err := DESEncryptECB(desKey8, plaintext)
-	if err != nil {
-		t.Fatalf("DES ECB encryption failed: %v", err)
-	}
-
-	// Test decryption
-	decrypted, err := DESDecryptECB(desKey8, ciphertext)
-	if err != nil {
-		t.Fatalf("DES ECB decryption failed: %v", err)
-	}
-
-	if !bytes.Equal(plaintext, decrypted) {
-		t.Errorf("DES ECB: plaintext mismatch.\nExpected: %s\nGot: %s", plaintext, decrypted)
-	}
-}
-
-// TestDESEncryptDecryptCBC tests DES CBC mode encryption and decryption
-func TestDESEncryptDecryptCBC(t *testing.T) {
-	plaintext := []byte(testDESMessage)
-
-	// Test encryption
-	ciphertext, err := DESEncryptCBC(desKey8, plaintext)
-	if err != nil {
-		t.Fatalf("DES CBC encryption failed: %v", err)
-	}
-
-	// Test decryption
-	decrypted, err := DESDecryptCBC(desKey8, ciphertext)
-	if err != nil {
-		t.Fatalf("DES CBC decryption failed: %v", err)
-	}
-
-	if !bytes.Equal(plaintext, decrypted) {
-		t.Errorf("DES CBC: plaintext mismatch.\nExpected: %s\nGot: %s", plaintext, decrypted)
-	}
-}
-
-// TestTripleDESEncryptDecryptECB tests 3DES ECB mode encryption and decryption
-func TestTripleDESEncryptDecryptECB(t *testing.T) {
-	plaintext := []byte(testTripleDESMessage)
-
-	// Test with 24-byte key
-	t.Run("24-byte key", func(t *testing.T) {
-		ciphertext, err := TripleDESEncryptECB(desKey24, plaintext)
-		if err != nil {
-			t.Fatalf("3DES ECB encryption failed: %v", err)
-		}
-
-		decrypted, err := TripleDESDecryptECB(desKey24, ciphertext)
-		if err != nil {
-			t.Fatalf("3DES ECB decryption failed: %v", err)
-		}
-
-		if !bytes.Equal(plaintext, decrypted) {
-			t.Errorf("3DES ECB (24-byte): plaintext mismatch.\nExpected: %s\nGot: %s", plaintext, decrypted)
-		}
-	})
-}
-
-// TestTripleDESEncryptDecryptCBC tests 3DES CBC mode encryption and decryption
-func TestTripleDESEncryptDecryptCBC(t *testing.T) {
-	plaintext := []byte(testTripleDESMessage)
-
-	// Test with 24-byte key
-	t.Run("24-byte key", func(t *testing.T) {
-		ciphertext, err := TripleDESEncryptCBC(desKey24, plaintext)
-		if err != nil {
-			t.Fatalf("3DES CBC encryption failed: %v", err)
-		}
-
-		decrypted, err := TripleDESDecryptCBC(desKey24, ciphertext)
-		if err != nil {
-			t.Fatalf("3DES CBC decryption failed: %v", err)
-		}
-
-		if !bytes.Equal(plaintext, decrypted) {
-			t.Errorf("3DES CBC (24-byte): plaintext mismatch.\nExpected: %s\nGot: %s", plaintext, decrypted)
-		}
-	})
-}
-
-// TestDESInvalidKeyLength tests DES functions with invalid key lengths
-func TestDESInvalidKeyLength(t *testing.T) {
-	plaintext := []byte("test")
-	invalidKey := []byte("invalid")
-
-	// Test DES ECB with invalid key
-	_, err := DESEncryptECB(invalidKey, plaintext)
-	if err == nil || err.Error() != "invalid key length: must be 8 bytes for DES" {
-		t.Error("Expected invalid key length error for DES ECB encryption")
-	}
-
-	_, err = DESDecryptECB(invalidKey, plaintext)
-	if err == nil || err.Error() != "invalid key length: must be 8 bytes for DES" {
-		t.Error("Expected invalid key length error for DES ECB decryption")
-	}
-
-	// Test DES CBC with invalid key
-	_, err = DESEncryptCBC(invalidKey, plaintext)
-	if err == nil || err.Error() != "invalid key length: must be 8 bytes for DES" {
-		t.Error("Expected invalid key length error for DES CBC encryption")
-	}
-
-	_, err = DESDecryptCBC(invalidKey, plaintext)
-	if err == nil || err.Error() != "invalid key length: must be 8 bytes for DES" {
-		t.Error("Expected invalid key length error for DES CBC decryption")
-	}
-}
-
-// TestTripleDESInvalidKeyLength tests 3DES functions with invalid key lengths
-func TestTripleDESInvalidKeyLength(t *testing.T) {
-	plaintext := []byte("test")
-	invalidKey := []byte("invalid")
-
-	// Test 3DES ECB with invalid key
-	_, err := TripleDESEncryptECB(invalidKey, plaintext)
-	if err == nil || err.Error() != "invalid key length: must be 24 bytes for 3DES" {
-		t.Error("Expected invalid key length error for 3DES ECB encryption")
-	}
-
-	_, err = TripleDESDecryptECB(invalidKey, plaintext)
-	if err == nil || err.Error() != "invalid key length: must be 24 bytes for 3DES" {
-		t.Error("Expected invalid key length error for 3DES ECB decryption")
-	}
-
-	// Test 3DES CBC with invalid key
-	_, err = TripleDESEncryptCBC(invalidKey, plaintext)
-	if err == nil || err.Error() != "invalid key length: must be 24 bytes for 3DES" {
-		t.Error("Expected invalid key length error for 3DES CBC encryption")
-	}
-
-	_, err = TripleDESDecryptCBC(invalidKey, plaintext)
-	if err == nil || err.Error() != "invalid key length: must be 24 bytes for 3DES" {
-		t.Error("Expected invalid key length error for 3DES CBC decryption")
-	}
-}
-
-// TestDESCBCShortCiphertext tests DES CBC with short ciphertext
-func TestDESCBCShortCiphertext(t *testing.T) {
-	shortCiphertext := make([]byte, des.BlockSize-1) // Less than block size
-
-	_, err := DESDecryptCBC(desKey8, shortCiphertext)
-	if err == nil || err.Error() != "ciphertext too short" {
-		t.Error("Expected 'ciphertext too short' error for DES CBC")
-	}
-}
-
-// TestTripleDESCBCShortCiphertext tests 3DES CBC with short ciphertext
-func TestTripleDESCBCShortCiphertext(t *testing.T) {
-	shortCiphertext := make([]byte, des.BlockSize-1) // Less than block size
-
-	_, err := TripleDESDecryptCBC(desKey24, shortCiphertext)
-	if err == nil || err.Error() != "ciphertext too short" {
-		t.Error("Expected 'ciphertext too short' error for 3DES CBC")
-	}
-}
-
-// TestDESInvalidCiphertext tests DES functions with invalid ciphertext lengths
-func TestDESInvalidCiphertext(t *testing.T) {
-	// Create ciphertext that's not a multiple of block size
-	invalidCiphertext := make([]byte, des.BlockSize+1) // 9 bytes (not multiple of 8)
-
-	// Test DES ECB
-	_, err := DESDecryptECB(desKey8, invalidCiphertext)
-	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {
-		t.Error("Expected block size error for DES ECB decryption")
-	}
-
-	// Test 3DES ECB
-	_, err = TripleDESDecryptECB(desKey24, invalidCiphertext)
-	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {
-		t.Error("Expected block size error for 3DES ECB decryption")
-	}
-}
-
-// TestDESCBCInvalidCiphertext tests DES CBC functions with invalid ciphertext lengths
-func TestDESCBCInvalidCiphertext(t *testing.T) {
-	// Create ciphertext with valid IV but invalid data length
-	invalidCiphertext := make([]byte, des.BlockSize+des.BlockSize+1) // IV + 9 bytes data
-
-	// Test DES CBC
-	_, err := DESDecryptCBC(desKey8, invalidCiphertext)
-	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {
-		t.Error("Expected block size error for DES CBC decryption")
-	}
-
-	// Test 3DES CBC
-	_, err = TripleDESDecryptCBC(desKey24, invalidCiphertext)
-	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {
-		t.Error("Expected block size error for 3DES CBC decryption")
-	}
-}
-
-// TestDESEmptyPlaintext tests DES functions with empty plaintext
-func TestDESEmptyPlaintext(t *testing.T) {
-	emptyPlaintext := []byte("")
-
-	// Test DES ECB
-	ciphertext, err := DESEncryptECB(desKey8, emptyPlaintext)
-	if err != nil {
-		t.Fatalf("DES ECB encryption of empty plaintext failed: %v", err)
-	}
-
-	decrypted, err := DESDecryptECB(desKey8, ciphertext)
-	if err != nil {
-		t.Fatalf("DES ECB decryption failed: %v", err)
-	}
-
-	if !bytes.Equal(emptyPlaintext, decrypted) {
-		t.Error("DES ECB: empty plaintext mismatch")
-	}
-
-	// Test DES CBC
-	ciphertext, err = DESEncryptCBC(desKey8, emptyPlaintext)
-	if err != nil {
-		t.Fatalf("DES CBC encryption of empty plaintext failed: %v", err)
-	}
-
-	decrypted, err = DESDecryptCBC(desKey8, ciphertext)
-	if err != nil {
-		t.Fatalf("DES CBC decryption failed: %v", err)
-	}
-
-	if !bytes.Equal(emptyPlaintext, decrypted) {
-		t.Error("DES CBC: empty plaintext mismatch")
-	}
-}
-
-// TestTripleDESEmptyPlaintext tests 3DES functions with empty plaintext
-func TestTripleDESEmptyPlaintext(t *testing.T) {
-	emptyPlaintext := []byte("")
-
-	// Test 3DES ECB
-	ciphertext, err := TripleDESEncryptECB(desKey24, emptyPlaintext)
-	if err != nil {
-		t.Fatalf("3DES ECB encryption of empty plaintext failed: %v", err)
-	}
-
-	decrypted, err := TripleDESDecryptECB(desKey24, ciphertext)
-	if err != nil {
-		t.Fatalf("3DES ECB decryption failed: %v", err)
-	}
-
-	if !bytes.Equal(emptyPlaintext, decrypted) {
-		t.Error("3DES ECB: empty plaintext mismatch")
-	}
-
-	// Test 3DES CBC
-	ciphertext, err = TripleDESEncryptCBC(desKey24, emptyPlaintext)
-	if err != nil {
-		t.Fatalf("3DES CBC encryption of empty plaintext failed: %v", err)
-	}
-
-	decrypted, err = TripleDESDecryptCBC(desKey24, ciphertext)
-	if err != nil {
-		t.Fatalf("3DES CBC decryption failed: %v", err)
-	}
-
-	if !bytes.Equal(emptyPlaintext, decrypted) {
-		t.Error("3DES CBC: empty plaintext mismatch")
-	}
-}
-
-// TestDESLargePlaintext tests DES functions with large plaintext
-func TestDESLargePlaintext(t *testing.T) {
-	// Create a large plaintext (multiple blocks)
-	largePlaintext := bytes.Repeat([]byte("This is a large plaintext for testing DES encryption with multiple blocks. "), 10)
-
-	// Test DES ECB
-	ciphertext, err := DESEncryptECB(desKey8, largePlaintext)
-	if err != nil {
-		t.Fatalf("DES ECB encryption of large plaintext failed: %v", err)
-	}
-
-	decrypted, err := DESDecryptECB(desKey8, ciphertext)
-	if err != nil {
-		t.Fatalf("DES ECB decryption failed: %v", err)
-	}
-
-	if !bytes.Equal(largePlaintext, decrypted) {
-		t.Error("DES ECB: large plaintext mismatch")
-	}
-
-	// Test DES CBC
-	ciphertext, err = DESEncryptCBC(desKey8, largePlaintext)
-	if err != nil {
-		t.Fatalf("DES CBC encryption of large plaintext failed: %v", err)
-	}
-
-	decrypted, err = DESDecryptCBC(desKey8, ciphertext)
-	if err != nil {
-		t.Fatalf("DES CBC decryption failed: %v", err)
-	}
-
-	if !bytes.Equal(largePlaintext, decrypted) {
-		t.Error("DES CBC: large plaintext mismatch")
-	}
-}
-
-// ==== MERGED FROM des_100_coverage_test.go ====
-
-// FailingDESReader implements io.Reader but always fails
-type FailingDESReader struct{}
-
-func (fr FailingDESReader) Read(p []byte) (n int, err error) {
-	return 0, errors.New("simulated random reader failure")
-}
-
-// FailingDESFunc simulates des.NewCipher failure
-func FailingDESFunc(key []byte) (cipher.Block, error) {
-	return nil, errors.New("simulated des.NewCipher failure")
-}
-
-// FailingTripleDESFunc simulates des.NewTripleDESCipher failure
-func FailingTripleDESFunc(key []byte) (cipher.Block, error) {
-	return nil, errors.New("simulated des.NewTripleDESCipher failure")
-}
-
-// TestDES_100PercentCoverage triggers all error paths using dependency injection
-func TestDES_100PercentCoverage(t *testing.T) {
-	// Save original functions
-	originalNewDESCipher := desNewCipher
-	originalNewTripleDESCipher := desNewTripleDES
-	originalDESRandReader := desRandReader
-
-	// Restore original functions after test
-	defer func() {
-		desNewCipher = originalNewDESCipher
-		desNewTripleDES = originalNewTripleDESCipher
-		desRandReader = originalDESRandReader
-	}()
-
-	key8 := make([]byte, 8)   // DES key
-	key24 := make([]byte, 24) // 3DES key
-	plaintext := []byte("test plaintext for DES")
-
-	// Test 1: Trigger des.NewCipher failure in DES functions
-	desNewCipher = FailingDESFunc
-	desNewTripleDES = originalNewTripleDESCipher
-	desRandReader = originalDESRandReader
-
-	_, err := DESEncryptECB(key8, plaintext)
-	if err == nil {
-		t.Error("Expected des.NewCipher error in DESEncryptECB")
-	}
-
-	_, err = DESDecryptECB(key8, []byte("fake ciphertext"))
-	if err == nil {
-		t.Error("Expected des.NewCipher error in DESDecryptECB")
-	}
-
-	_, err = DESEncryptCBC(key8, plaintext)
-	if err == nil {
-		t.Error("Expected des.NewCipher error in DESEncryptCBC")
-	}
-
-	_, err = DESDecryptCBC(key8, []byte("fake ciphertext that's long enough"))
-	if err == nil {
-		t.Error("Expected des.NewCipher error in DESDecryptCBC")
-	}
-
-	// Test 2: Trigger des.NewTripleDESCipher failure in 3DES functions
-	desNewCipher = originalNewDESCipher
-	desNewTripleDES = FailingTripleDESFunc
-	desRandReader = originalDESRandReader
-
-	_, err = TripleDESEncryptECB(key24, plaintext)
-	if err == nil {
-		t.Error("Expected des.NewTripleDESCipher error in TripleDESEncryptECB")
-	}
-
-	_, err = TripleDESDecryptECB(key24, []byte("fake ciphertext"))
-	if err == nil {
-		t.Error("Expected des.NewTripleDESCipher error in TripleDESDecryptECB")
-	}
-
-	_, err = TripleDESEncryptCBC(key24, plaintext)
-	if err == nil {
-		t.Error("Expected des.NewTripleDESCipher error in TripleDESEncryptCBC")
-	}
-
-	_, err = TripleDESDecryptCBC(key24, []byte("fake ciphertext that's long enough"))
-	if err == nil {
-		t.Error("Expected des.NewTripleDESCipher error in TripleDESDecryptCBC")
-	}
-
-	// Test 3: Trigger rand.Reader failure in functions that use random IV
-	desNewCipher = originalNewDESCipher
-	desNewTripleDES = originalNewTripleDESCipher
-	desRandReader = FailingDESReader{}
-
-	_, err = DESEncryptCBC(key8, plaintext)
-	if err == nil {
-		t.Error("Expected rand.Reader error in DESEncryptCBC")
-	}
-
-	_, err = TripleDESEncryptCBC(key24, plaintext)
-	if err == nil {
-		t.Error("Expected rand.Reader error in TripleDESEncryptCBC")
-	}
-}
-
-// TestInvalidCiphertextForAllModes tests ciphertext validation for all DES modes
-func TestInvalidCiphertextForAllModes(t *testing.T) {
-	// Test with valid keys
-	key8 := desKey8
-	key24 := desKey24
-
-	// Test ECB with non-block-size ciphertext
-	invalidECBCiphertext := make([]byte, des.BlockSize+1) // 9 bytes (not multiple of 8)
-
-	_, err := DESDecryptECB(key8, invalidECBCiphertext)
-	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {
-		t.Error("Expected block size error for DES ECB")
-	}
-
-	_, err = TripleDESDecryptECB(key24, invalidECBCiphertext)
-	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {
-		t.Error("Expected block size error for 3DES ECB")
-	}
-
-	// Test CBC with non-block-size data portion (after IV)
-	invalidCBCCiphertext := make([]byte, des.BlockSize+des.BlockSize+1) // IV + 9 bytes data
-
-	_, err = DESDecryptCBC(key8, invalidCBCCiphertext)
-	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {
-		t.Error("Expected block size error for DES CBC")
-	}
-
-	_, err = TripleDESDecryptCBC(key24, invalidCBCCiphertext)
-	if err == nil || err.Error() != "ciphertext is not a multiple of the block size" {
-		t.Error("Expected block size error for 3DES CBC")
-	}
-}
-
-// TestRoundTripConsistency ensures all DES modes produce consistent results
-func TestRoundTripConsistency(t *testing.T) {
 	testCases := []struct {
 		name      string
 		plaintext []byte
 	}{
-		{"empty", []byte("")},
-		{"single_block", []byte("12345678")},
-		{"multiple_blocks", []byte("This is a test message that spans multiple DES blocks for testing.")},
-		{"binary_data", []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F}},
+		{"empty data", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello")},
+		{"medium message", []byte("The quick brown fox")},
+		{"long message", bytes.Repeat([]byte("X"), 100)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE}},
+		{"unicode data", []byte("你好世界")},
+		{"block aligned", make([]byte, des.BlockSize*3)},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Test DES ECB
-			ciphertext, err := DESEncryptECB(desKey8, tc.plaintext)
+			// Encrypt
+			ciphertext, err := DESEncryptECB(key, tc.plaintext)
 			if err != nil {
-				t.Fatalf("DES ECB encryption failed: %v", err)
-			}
-			decrypted, err := DESDecryptECB(desKey8, ciphertext)
-			if err != nil {
-				t.Fatalf("DES ECB decryption failed: %v", err)
-			}
-			if !bytes.Equal(tc.plaintext, decrypted) {
-				t.Error("DES ECB round-trip failed")
+				t.Fatalf("DESEncryptECB failed: %v", err)
 			}
 
-			// Test DES CBC
-			ciphertext, err = DESEncryptCBC(desKey8, tc.plaintext)
+			// Decrypt
+			decrypted, err := DESDecryptECB(key, ciphertext)
 			if err != nil {
-				t.Fatalf("DES CBC encryption failed: %v", err)
-			}
-			decrypted, err = DESDecryptCBC(desKey8, ciphertext)
-			if err != nil {
-				t.Fatalf("DES CBC decryption failed: %v", err)
-			}
-			if !bytes.Equal(tc.plaintext, decrypted) {
-				t.Error("DES CBC round-trip failed")
+				t.Fatalf("DESDecryptECB failed: %v", err)
 			}
 
-			// Test 3DES ECB
-			ciphertext, err = TripleDESEncryptECB(desKey24, tc.plaintext)
-			if err != nil {
-				t.Fatalf("3DES ECB encryption failed: %v", err)
-			}
-			decrypted, err = TripleDESDecryptECB(desKey24, ciphertext)
-			if err != nil {
-				t.Fatalf("3DES ECB decryption failed: %v", err)
-			}
-			if !bytes.Equal(tc.plaintext, decrypted) {
-				t.Error("3DES ECB round-trip failed")
-			}
-
-			// Test 3DES CBC
-			ciphertext, err = TripleDESEncryptCBC(desKey24, tc.plaintext)
-			if err != nil {
-				t.Fatalf("3DES CBC encryption failed: %v", err)
-			}
-			decrypted, err = TripleDESDecryptCBC(desKey24, ciphertext)
-			if err != nil {
-				t.Fatalf("3DES CBC decryption failed: %v", err)
-			}
-			if !bytes.Equal(tc.plaintext, decrypted) {
-				t.Error("3DES CBC round-trip failed")
+			// Verify round-trip
+			if !bytes.Equal(decrypted, tc.plaintext) {
+				t.Errorf("Decrypted data doesn't match original.\nGot:      %v\nExpected: %v", decrypted, tc.plaintext)
 			}
 		})
+	}
+}
+
+// TestDESEncryptDecryptECBErrors tests error cases for DES ECB mode
+func TestDESEncryptDecryptECBErrors(t *testing.T) {
+	validKey := generateValidDESKey()
+	plaintext := []byte("test message")
+
+	t.Run("DESEncryptECB with invalid key length", func(t *testing.T) {
+		invalidKeys := [][]byte{
+			[]byte("short"),      // too short
+			[]byte("123456789"),  // 9 bytes
+			[]byte("1234567890"), // 10 bytes
+		}
+
+		for _, key := range invalidKeys {
+			_, err := DESEncryptECB(key, plaintext)
+			if err == nil {
+				t.Errorf("DESEncryptECB should fail with key length %d", len(key))
+			}
+			if err != nil && !strings.Contains(err.Error(), "invalid key length") {
+				t.Errorf("Expected 'invalid key length' error, got: %v", err)
+			}
+		}
+	})
+
+	t.Run("DESDecryptECB with invalid key length", func(t *testing.T) {
+		ciphertext, _ := DESEncryptECB(validKey, plaintext)
+		invalidKey := []byte("short")
+		_, err := DESDecryptECB(invalidKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DESDecryptECB with invalid block size", func(t *testing.T) {
+		invalidCiphertext := make([]byte, des.BlockSize+1)
+		_, err := DESDecryptECB(validKey, invalidCiphertext)
+		if err == nil {
+			t.Error("DESDecryptECB should fail with ciphertext not multiple of block size")
+		}
+		if err != nil && !strings.Contains(err.Error(), "not a multiple of the block size") {
+			t.Errorf("Expected block size error, got: %v", err)
+		}
+	})
+}
+
+// TestDESEncryptDecryptCBC tests DES CBC encryption and decryption round-trip
+func TestDESEncryptDecryptCBC(t *testing.T) {
+	key := generateValidDESKey()
+
+	testCases := []struct {
+		name      string
+		plaintext []byte
+	}{
+		{"empty data", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello")},
+		{"medium message", []byte("The quick brown fox")},
+		{"long message", bytes.Repeat([]byte("X"), 100)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE}},
+		{"unicode data", []byte("你好世界")},
+		{"block aligned", make([]byte, des.BlockSize*3)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Encrypt
+			ciphertext, err := DESEncryptCBC(key, tc.plaintext)
+			if err != nil {
+				t.Fatalf("DESEncryptCBC failed: %v", err)
+			}
+
+			// Decrypt
+			decrypted, err := DESDecryptCBC(key, ciphertext)
+			if err != nil {
+				t.Fatalf("DESDecryptCBC failed: %v", err)
+			}
+
+			// Verify round-trip
+			if !bytes.Equal(decrypted, tc.plaintext) {
+				t.Errorf("Decrypted data doesn't match original.\nGot:      %v\nExpected: %v", decrypted, tc.plaintext)
+			}
+		})
+	}
+}
+
+// TestDESEncryptDecryptCBCErrors tests error cases for DES CBC mode
+func TestDESEncryptDecryptCBCErrors(t *testing.T) {
+	validKey := generateValidDESKey()
+	plaintext := []byte("test message")
+
+	t.Run("DESEncryptCBC with invalid key length", func(t *testing.T) {
+		invalidKey := []byte("short")
+		_, err := DESEncryptCBC(invalidKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DESDecryptCBC with invalid key length", func(t *testing.T) {
+		ciphertext, _ := DESEncryptCBC(validKey, plaintext)
+		invalidKey := []byte("short")
+		_, err := DESDecryptCBC(invalidKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DESDecryptCBC with ciphertext too short", func(t *testing.T) {
+		shortCiphertext := []byte("short")
+		_, err := DESDecryptCBC(validKey, shortCiphertext)
+		if err == nil {
+			t.Error("DESDecryptCBC should fail with ciphertext too short")
+		}
+		if err != nil && !strings.Contains(err.Error(), "ciphertext too short") {
+			t.Errorf("Expected 'ciphertext too short' error, got: %v", err)
+		}
+	})
+
+	t.Run("DESDecryptCBC with invalid block size", func(t *testing.T) {
+		// Create ciphertext with IV + invalid data length
+		invalidCiphertext := make([]byte, des.BlockSize+1)
+		_, err := DESDecryptCBC(validKey, invalidCiphertext)
+		if err == nil {
+			t.Error("DESDecryptCBC should fail with ciphertext not multiple of block size")
+		}
+		if err != nil && !strings.Contains(err.Error(), "not a multiple of the block size") {
+			t.Errorf("Expected block size error, got: %v", err)
+		}
+	})
+
+	t.Run("DESDecryptCBC with corrupted padding", func(t *testing.T) {
+		ciphertext, _ := DESEncryptCBC(validKey, plaintext)
+		// Corrupt the last block (where padding is)
+		ciphertext[len(ciphertext)-1] ^= 0xFF
+		_, err := DESDecryptCBC(validKey, ciphertext)
+		if err == nil {
+			t.Error("DESDecryptCBC should fail with corrupted padding")
+		}
+	})
+}
+
+// TestTripleDESEncryptDecryptECB tests 3DES ECB encryption and decryption round-trip
+func TestTripleDESEncryptDecryptECB(t *testing.T) {
+	key := generateValid3DESKey()
+
+	testCases := []struct {
+		name      string
+		plaintext []byte
+	}{
+		{"empty data", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello")},
+		{"medium message", []byte("The quick brown fox")},
+		{"long message", bytes.Repeat([]byte("X"), 100)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE}},
+		{"unicode data", []byte("你好世界")},
+		{"block aligned", make([]byte, des.BlockSize*3)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Encrypt
+			ciphertext, err := TripleDESEncryptECB(key, tc.plaintext)
+			if err != nil {
+				t.Fatalf("TripleDESEncryptECB failed: %v", err)
+			}
+
+			// Decrypt
+			decrypted, err := TripleDESDecryptECB(key, ciphertext)
+			if err != nil {
+				t.Fatalf("TripleDESDecryptECB failed: %v", err)
+			}
+
+			// Verify round-trip
+			if !bytes.Equal(decrypted, tc.plaintext) {
+				t.Errorf("Decrypted data doesn't match original.\nGot:      %v\nExpected: %v", decrypted, tc.plaintext)
+			}
+		})
+	}
+}
+
+// TestTripleDESEncryptDecryptECBErrors tests error cases for 3DES ECB mode
+func TestTripleDESEncryptDecryptECBErrors(t *testing.T) {
+	validKey := generateValid3DESKey()
+	plaintext := []byte("test message")
+
+	t.Run("TripleDESEncryptECB with invalid key length", func(t *testing.T) {
+		invalidKeys := [][]byte{
+			[]byte("short"),               // too short
+			generateValidDESKey(),         // 8 bytes (DES key)
+			[]byte("1234567890123456"),    // 16 bytes
+			bytes.Repeat([]byte("X"), 32), // 32 bytes
+		}
+
+		for _, key := range invalidKeys {
+			_, err := TripleDESEncryptECB(key, plaintext)
+			if err == nil {
+				t.Errorf("TripleDESEncryptECB should fail with key length %d", len(key))
+			}
+			if err != nil && !strings.Contains(err.Error(), "invalid key length") {
+				t.Errorf("Expected 'invalid key length' error, got: %v", err)
+			}
+		}
+	})
+
+	t.Run("TripleDESDecryptECB with invalid key length", func(t *testing.T) {
+		ciphertext, _ := TripleDESEncryptECB(validKey, plaintext)
+		invalidKey := []byte("short")
+		_, err := TripleDESDecryptECB(invalidKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("TripleDESDecryptECB with invalid block size", func(t *testing.T) {
+		invalidCiphertext := make([]byte, des.BlockSize+1)
+		_, err := TripleDESDecryptECB(validKey, invalidCiphertext)
+		if err == nil {
+			t.Error("TripleDESDecryptECB should fail with ciphertext not multiple of block size")
+		}
+		if err != nil && !strings.Contains(err.Error(), "not a multiple of the block size") {
+			t.Errorf("Expected block size error, got: %v", err)
+		}
+	})
+}
+
+// TestTripleDESEncryptDecryptCBC tests 3DES CBC encryption and decryption round-trip
+func TestTripleDESEncryptDecryptCBC(t *testing.T) {
+	key := generateValid3DESKey()
+
+	testCases := []struct {
+		name      string
+		plaintext []byte
+	}{
+		{"empty data", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello")},
+		{"medium message", []byte("The quick brown fox")},
+		{"long message", bytes.Repeat([]byte("X"), 100)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE}},
+		{"unicode data", []byte("你好世界")},
+		{"block aligned", make([]byte, des.BlockSize*3)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Encrypt
+			ciphertext, err := TripleDESEncryptCBC(key, tc.plaintext)
+			if err != nil {
+				t.Fatalf("TripleDESEncryptCBC failed: %v", err)
+			}
+
+			// Decrypt
+			decrypted, err := TripleDESDecryptCBC(key, ciphertext)
+			if err != nil {
+				t.Fatalf("TripleDESDecryptCBC failed: %v", err)
+			}
+
+			// Verify round-trip
+			if !bytes.Equal(decrypted, tc.plaintext) {
+				t.Errorf("Decrypted data doesn't match original.\nGot:      %v\nExpected: %v", decrypted, tc.plaintext)
+			}
+		})
+	}
+}
+
+// TestTripleDESEncryptDecryptCBCErrors tests error cases for 3DES CBC mode
+func TestTripleDESEncryptDecryptCBCErrors(t *testing.T) {
+	validKey := generateValid3DESKey()
+	plaintext := []byte("test message")
+
+	t.Run("TripleDESEncryptCBC with invalid key length", func(t *testing.T) {
+		invalidKey := []byte("short")
+		_, err := TripleDESEncryptCBC(invalidKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("TripleDESDecryptCBC with invalid key length", func(t *testing.T) {
+		ciphertext, _ := TripleDESEncryptCBC(validKey, plaintext)
+		invalidKey := []byte("short")
+		_, err := TripleDESDecryptCBC(invalidKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("TripleDESDecryptCBC with ciphertext too short", func(t *testing.T) {
+		shortCiphertext := []byte("short")
+		_, err := TripleDESDecryptCBC(validKey, shortCiphertext)
+		if err == nil {
+			t.Error("TripleDESDecryptCBC should fail with ciphertext too short")
+		}
+		if err != nil && !strings.Contains(err.Error(), "ciphertext too short") {
+			t.Errorf("Expected 'ciphertext too short' error, got: %v", err)
+		}
+	})
+
+	t.Run("TripleDESDecryptCBC with invalid block size", func(t *testing.T) {
+		// Create ciphertext with IV + invalid data length
+		invalidCiphertext := make([]byte, des.BlockSize+1)
+		_, err := TripleDESDecryptCBC(validKey, invalidCiphertext)
+		if err == nil {
+			t.Error("TripleDESDecryptCBC should fail with ciphertext not multiple of block size")
+		}
+		if err != nil && !strings.Contains(err.Error(), "not a multiple of the block size") {
+			t.Errorf("Expected block size error, got: %v", err)
+		}
+	})
+
+	t.Run("TripleDESDecryptCBC with corrupted padding", func(t *testing.T) {
+		ciphertext, _ := TripleDESEncryptCBC(validKey, plaintext)
+		// Corrupt the last block (where padding is)
+		ciphertext[len(ciphertext)-1] ^= 0xFF
+		_, err := TripleDESDecryptCBC(validKey, ciphertext)
+		if err == nil {
+			t.Error("TripleDESDecryptCBC should fail with corrupted padding")
+		}
+	})
+}
+
+// TestDESErrorPaths tests error paths using dependency injection
+func TestDESErrorPaths(t *testing.T) {
+	desKey := generateValidDESKey()
+	tripleKey := generateValid3DESKey()
+	plaintext := []byte("test message")
+
+	t.Run("DESEncryptECB fails when desNewCipher returns error", func(t *testing.T) {
+		originalDesNewCipher := desNewCipher
+		desNewCipher = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { desNewCipher = originalDesNewCipher }()
+
+		_, err := DESEncryptECB(desKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "mock cipher error") {
+			t.Errorf("Expected mock cipher error, got: %v", err)
+		}
+	})
+
+	t.Run("DESDecryptECB fails when desNewCipher returns error", func(t *testing.T) {
+		ciphertext, _ := DESEncryptECB(desKey, plaintext)
+
+		originalDesNewCipher := desNewCipher
+		desNewCipher = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { desNewCipher = originalDesNewCipher }()
+
+		_, err := DESDecryptECB(desKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "mock cipher error") {
+			t.Errorf("Expected mock cipher error, got: %v", err)
+		}
+	})
+
+	t.Run("DESEncryptCBC fails when desNewCipher returns error", func(t *testing.T) {
+		originalDesNewCipher := desNewCipher
+		desNewCipher = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { desNewCipher = originalDesNewCipher }()
+
+		_, err := DESEncryptCBC(desKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "mock cipher error") {
+			t.Errorf("Expected mock cipher error, got: %v", err)
+		}
+	})
+
+	t.Run("DESEncryptCBC fails when desRandReader returns error", func(t *testing.T) {
+		originalDesRandReader := desRandReader
+		desRandReader = &desFailingReader{}
+		defer func() { desRandReader = originalDesRandReader }()
+
+		_, err := DESEncryptCBC(desKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "mock random error") {
+			t.Errorf("Expected mock random error, got: %v", err)
+		}
+	})
+
+	t.Run("DESDecryptCBC fails when desNewCipher returns error", func(t *testing.T) {
+		ciphertext, _ := DESEncryptCBC(desKey, plaintext)
+
+		originalDesNewCipher := desNewCipher
+		desNewCipher = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { desNewCipher = originalDesNewCipher }()
+
+		_, err := DESDecryptCBC(desKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "mock cipher error") {
+			t.Errorf("Expected mock cipher error, got: %v", err)
+		}
+	})
+
+	t.Run("TripleDESEncryptECB fails when desNewTripleDES returns error", func(t *testing.T) {
+		originalDesNewTripleDES := desNewTripleDES
+		desNewTripleDES = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock 3DES error")
+		}
+		defer func() { desNewTripleDES = originalDesNewTripleDES }()
+
+		_, err := TripleDESEncryptECB(tripleKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "mock 3DES error") {
+			t.Errorf("Expected mock 3DES error, got: %v", err)
+		}
+	})
+
+	t.Run("TripleDESDecryptECB fails when desNewTripleDES returns error", func(t *testing.T) {
+		ciphertext, _ := TripleDESEncryptECB(tripleKey, plaintext)
+
+		originalDesNewTripleDES := desNewTripleDES
+		desNewTripleDES = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock 3DES error")
+		}
+		defer func() { desNewTripleDES = originalDesNewTripleDES }()
+
+		_, err := TripleDESDecryptECB(tripleKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "mock 3DES error") {
+			t.Errorf("Expected mock 3DES error, got: %v", err)
+		}
+	})
+
+	t.Run("TripleDESEncryptCBC fails when desNewTripleDES returns error", func(t *testing.T) {
+		originalDesNewTripleDES := desNewTripleDES
+		desNewTripleDES = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock 3DES error")
+		}
+		defer func() { desNewTripleDES = originalDesNewTripleDES }()
+
+		_, err := TripleDESEncryptCBC(tripleKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "mock 3DES error") {
+			t.Errorf("Expected mock 3DES error, got: %v", err)
+		}
+	})
+
+	t.Run("TripleDESEncryptCBC fails when desRandReader returns error", func(t *testing.T) {
+		originalDesRandReader := desRandReader
+		desRandReader = &desFailingReader{}
+		defer func() { desRandReader = originalDesRandReader }()
+
+		_, err := TripleDESEncryptCBC(tripleKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "mock random error") {
+			t.Errorf("Expected mock random error, got: %v", err)
+		}
+	})
+
+	t.Run("TripleDESDecryptCBC fails when desNewTripleDES returns error", func(t *testing.T) {
+		ciphertext, _ := TripleDESEncryptCBC(tripleKey, plaintext)
+
+		originalDesNewTripleDES := desNewTripleDES
+		desNewTripleDES = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock 3DES error")
+		}
+		defer func() { desNewTripleDES = originalDesNewTripleDES }()
+
+		_, err := TripleDESDecryptCBC(tripleKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "mock 3DES error") {
+			t.Errorf("Expected mock 3DES error, got: %v", err)
+		}
+	})
+}
+
+// desFailingReader is a mock io.Reader that always returns an error
+type desFailingReader struct{}
+
+func (r *desFailingReader) Read(p []byte) (n int, err error) {
+	return 0, errors.New("mock random error")
+}
+
+// TestDESCBCConsistency tests that CBC mode produces different ciphertexts with random IV
+func TestDESCBCConsistency(t *testing.T) {
+	desKey := generateValidDESKey()
+	tripleKey := generateValid3DESKey()
+	plaintext := []byte("test message for consistency check")
+
+	t.Run("DES CBC produces different ciphertexts", func(t *testing.T) {
+		ct1, _ := DESEncryptCBC(desKey, plaintext)
+		ct2, _ := DESEncryptCBC(desKey, plaintext)
+		if bytes.Equal(ct1, ct2) {
+			t.Error("DES CBC should produce different ciphertexts with random IV")
+		}
+	})
+
+	t.Run("3DES CBC produces different ciphertexts", func(t *testing.T) {
+		ct1, _ := TripleDESEncryptCBC(tripleKey, plaintext)
+		ct2, _ := TripleDESEncryptCBC(tripleKey, plaintext)
+		if bytes.Equal(ct1, ct2) {
+			t.Error("3DES CBC should produce different ciphertexts with random IV")
+		}
+	})
+}
+
+// TestDESWithDifferentKeys tests that different keys produce different ciphertexts
+func TestDESWithDifferentKeys(t *testing.T) {
+	desKey1 := []byte("12345678")
+	desKey2 := []byte("87654321")
+	tripleKey1 := []byte("123456789012345678901234")
+	tripleKey2 := []byte("432109876543210987654321")
+	plaintext := []byte("test message")
+
+	t.Run("DES ECB with different keys", func(t *testing.T) {
+		ct1, _ := DESEncryptECB(desKey1, plaintext)
+		ct2, _ := DESEncryptECB(desKey2, plaintext)
+		if bytes.Equal(ct1, ct2) {
+			t.Error("Different DES keys should produce different ciphertexts in ECB mode")
+		}
+	})
+
+	t.Run("3DES ECB with different keys", func(t *testing.T) {
+		ct1, _ := TripleDESEncryptECB(tripleKey1, plaintext)
+		ct2, _ := TripleDESEncryptECB(tripleKey2, plaintext)
+		if bytes.Equal(ct1, ct2) {
+			t.Error("Different 3DES keys should produce different ciphertexts in ECB mode")
+		}
+	})
+}
+
+// TestDESvsTripleDES tests that DES and 3DES produce different results
+func TestDESvsTripleDES(t *testing.T) {
+	// Use different keys to ensure different results
+	desKey := []byte("12345678")
+	tripleKey := []byte("123456789012345678901234") // Different key parts
+	plaintext := []byte("test message")
+
+	t.Run("DES and 3DES ECB produce different ciphertexts", func(t *testing.T) {
+		desCT, _ := DESEncryptECB(desKey, plaintext)
+		tripleCT, _ := TripleDESEncryptECB(tripleKey, plaintext)
+		// DES and 3DES should produce different ciphertexts
+		// (they have different key lengths and algorithm structures)
+		if bytes.Equal(desCT, tripleCT) {
+			t.Error("DES and 3DES should produce different ciphertexts")
+		}
+	})
+}
+
+// BenchmarkDES benchmarks all DES encryption/decryption modes
+func BenchmarkDESEncryptECB(b *testing.B) {
+	key := generateValidDESKey()
+	plaintext := []byte("benchmark message for DES testing")
+	for i := 0; i < b.N; i++ {
+		_, _ = DESEncryptECB(key, plaintext)
+	}
+}
+
+func BenchmarkDESDecryptECB(b *testing.B) {
+	key := generateValidDESKey()
+	plaintext := []byte("benchmark message for DES testing")
+	ciphertext, _ := DESEncryptECB(key, plaintext)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = DESDecryptECB(key, ciphertext)
+	}
+}
+
+func BenchmarkDESEncryptCBC(b *testing.B) {
+	key := generateValidDESKey()
+	plaintext := []byte("benchmark message for DES testing")
+	for i := 0; i < b.N; i++ {
+		_, _ = DESEncryptCBC(key, plaintext)
+	}
+}
+
+func BenchmarkDESDecryptCBC(b *testing.B) {
+	key := generateValidDESKey()
+	plaintext := []byte("benchmark message for DES testing")
+	ciphertext, _ := DESEncryptCBC(key, plaintext)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = DESDecryptCBC(key, ciphertext)
+	}
+}
+
+func BenchmarkTripleDESEncryptECB(b *testing.B) {
+	key := generateValid3DESKey()
+	plaintext := []byte("benchmark message for 3DES testing")
+	for i := 0; i < b.N; i++ {
+		_, _ = TripleDESEncryptECB(key, plaintext)
+	}
+}
+
+func BenchmarkTripleDESDecryptECB(b *testing.B) {
+	key := generateValid3DESKey()
+	plaintext := []byte("benchmark message for 3DES testing")
+	ciphertext, _ := TripleDESEncryptECB(key, plaintext)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = TripleDESDecryptECB(key, ciphertext)
+	}
+}
+
+func BenchmarkTripleDESEncryptCBC(b *testing.B) {
+	key := generateValid3DESKey()
+	plaintext := []byte("benchmark message for 3DES testing")
+	for i := 0; i < b.N; i++ {
+		_, _ = TripleDESEncryptCBC(key, plaintext)
+	}
+}
+
+func BenchmarkTripleDESDecryptCBC(b *testing.B) {
+	key := generateValid3DESKey()
+	plaintext := []byte("benchmark message for 3DES testing")
+	ciphertext, _ := TripleDESEncryptCBC(key, plaintext)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = TripleDESDecryptCBC(key, ciphertext)
 	}
 }

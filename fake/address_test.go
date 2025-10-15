@@ -8,11 +8,11 @@ import (
 func TestStreet(t *testing.T) {
 	faker := New()
 	street := faker.Street()
-	
+
 	if street == "" {
 		t.Error("Street() returned empty string")
 	}
-	
+
 	// 街道地址应该包含数字
 	hasNumber := false
 	for _, char := range street {
@@ -30,7 +30,7 @@ func TestStreet(t *testing.T) {
 func TestCity(t *testing.T) {
 	faker := New()
 	city := faker.City()
-	
+
 	if city == "" {
 		t.Error("City() returned empty string")
 	}
@@ -44,7 +44,7 @@ func TestState(t *testing.T) {
 	if usState == "" {
 		t.Error("US State() returned empty string")
 	}
-	
+
 	// 测试中国省份
 	cnFaker := New(WithCountry(CountryChina))
 	cnProvince := cnFaker.State()
@@ -61,7 +61,7 @@ func TestZipCode(t *testing.T) {
 	if len(usZip) != 5 {
 		t.Errorf("US zip code should be 5 digits, got %s", usZip)
 	}
-	
+
 	// 测试中国邮编
 	cnFaker := New(WithCountry(CountryChina))
 	cnZip := cnFaker.ZipCode()
@@ -74,27 +74,27 @@ func TestZipCode(t *testing.T) {
 func TestFullAddress(t *testing.T) {
 	faker := New()
 	address := faker.FullAddress()
-	
+
 	if address == nil {
 		t.Fatal("FullAddress() returned nil")
 	}
-	
+
 	if address.Street == "" {
 		t.Error("Address street should not be empty")
 	}
-	
+
 	if address.City == "" {
 		t.Error("Address city should not be empty")
 	}
-	
+
 	if address.ZipCode == "" {
 		t.Error("Address zip code should not be empty")
 	}
-	
+
 	if address.Country == "" {
 		t.Error("Address country should not be empty")
 	}
-	
+
 	if address.FullAddress == "" {
 		t.Error("Address full address should not be empty")
 	}
@@ -106,27 +106,27 @@ func TestGlobalAddressFunctions(t *testing.T) {
 	if street == "" {
 		t.Error("Global Street() returned empty string")
 	}
-	
+
 	city := City()
 	if city == "" {
 		t.Error("Global City() returned empty string")
 	}
-	
+
 	zipCode := ZipCode()
 	if zipCode == "" {
 		t.Error("Global ZipCode() returned empty string")
 	}
-	
+
 	countryName := CountryName()
 	if countryName == "" {
 		t.Error("Global CountryName() returned empty string")
 	}
-	
+
 	fullAddress := FullAddress()
 	if fullAddress == nil {
 		t.Error("Global FullAddress() returned nil")
 	}
-	
+
 	addressLine := AddressLine()
 	if addressLine == "" {
 		t.Error("Global AddressLine() returned empty string")

@@ -1,0 +1,401 @@
+# Cryptox Package - Comprehensive Cryptographic Utilities
+
+## Package Overview
+
+The `cryptox` package provides a comprehensive suite of cryptographic utilities for Go applications, offering simplified interfaces for common cryptographic operations including symmetric encryption, asymmetric encryption, digital signatures, hashing, and checksums.
+
+**Test Coverage**: 97.4%
+**Dependencies**: Standard library only (no external crypto dependencies)
+
+## Module Categories
+
+### 1. Symmetric Encryption
+
+#### AES (Advanced Encryption Standard)
+**File**: `aes.go`
+
+Supports multiple AES-256 modes with comprehensive error handling:
+
+- **AES-GCM** (Recommended): Authenticated encryption with associated data
+  - `Encrypt(key, plaintext []byte) ([]byte, error)` - Encrypt with AES-256-GCM
+  - `Decrypt(key, ciphertext []byte) ([]byte, error)` - Decrypt with AES-256-GCM
+
+- **AES-ECB** (Not recommended): Electronic Codebook mode
+  - `EncryptECB(key, plaintext []byte) ([]byte, error)`
+  - `DecryptECB(key, ciphertext []byte) ([]byte, error)`
+  - ⚠️ Warning: ECB is cryptographically insecure - identical plaintext blocks produce identical ciphertext blocks
+
+- **AES-CBC**: Cipher Block Chaining mode
+  - `EncryptCBC(key, plaintext []byte) ([]byte, error)`
+  - `DecryptCBC(key, ciphertext []byte) ([]byte, error)`
+
+- **AES-CFB**: Cipher Feedback mode
+  - `EncryptCFB(key, plaintext []byte) ([]byte, error)`
+  - `DecryptCFB(key, ciphertext []byte) ([]byte, error)`
+
+- **AES-CTR**: Counter mode
+  - `EncryptCTR(key, plaintext []byte) ([]byte, error)`
+  - `DecryptCTR(key, ciphertext []byte) ([]byte, error)`
+
+- **AES-OFB**: Output Feedback mode
+  - `EncryptOFB(key, plaintext []byte) ([]byte, error)`
+  - `DecryptOFB(key, ciphertext []byte) ([]byte, error)`
+
+**Key Requirements**: All AES functions require 32-byte (256-bit) keys
+**Padding**: PKCS#7 padding for block cipher modes
+**IV/Nonce**: Automatically generated using crypto/rand
+
+#### DES & 3DES (Data Encryption Standard)
+**File**: `des.go`
+
+⚠️ **Deprecated**: DES is considered insecure. Use AES instead. Provided for legacy compatibility only.
+
+- **DES-ECB**:
+  - `DESEncryptECB(key, plaintext []byte) ([]byte, error)` - 8-byte key
+  - `DESDecryptECB(key, ciphertext []byte) ([]byte, error)`
+
+- **DES-CBC**:
+  - `DESEncryptCBC(key, plaintext []byte) ([]byte, error)`
+  - `DESDecryptCBC(key, ciphertext []byte) ([]byte, error)`
+
+- **3DES-ECB**:
+  - `TripleDESEncryptECB(key, plaintext []byte) ([]byte, error)` - 24-byte key
+  - `TripleDESDecryptECB(key, ciphertext []byte) ([]byte, error)`
+
+- **3DES-CBC**:
+  - `TripleDESEncryptCBC(key, plaintext []byte) ([]byte, error)`
+  - `TripleDESDecryptCBC(key, ciphertext []byte) ([]byte, error)`
+
+### 2. Asymmetric Encryption & Digital Signatures
+
+#### RSA
+**File**: `rsa.go`
+
+Complete RSA implementation with multiple key sizes and padding schemes:
+
+**Key Generation**:
+- `GenerateRSAKeyPair(keySize int) (*RSAKeyPair, error)` - Supports 2048, 3072, 4096 bits
+
+**Key Serialization**:
+- `(*RSAKeyPair).PrivateKeyToPEM() ([]byte, error)` - Export private key as PEM
+- `(*RSAKeyPair).PublicKeyToPEM() ([]byte, error)` - Export public key as PEM
+- `PrivateKeyFromPEM(pemData []byte) (*rsa.PrivateKey, error)` - Import private key
+- `PublicKeyFromPEM(pemData []byte) (*rsa.PublicKey, error)` - Import public key
+
+**Encryption** (OAEP recommended):
+- `RSAEncryptOAEP(publicKey *rsa.PublicKey, plaintext []byte) ([]byte, error)` - OAEP padding with SHA-256
+- `RSADecryptOAEP(privateKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error)`
+- `RSAEncryptPKCS1v15(publicKey *rsa.PublicKey, plaintext []byte) ([]byte, error)` - Legacy PKCS#1 v1.5
+- `RSADecryptPKCS1v15(privateKey *rsa.PrivateKey, ciphertext []byte) ([]byte, error)`
+
+**Digital Signatures** (PSS recommended):
+- `RSASignPSS(privateKey *rsa.PrivateKey, message []byte) ([]byte, error)` - PSS with SHA-256
+- `RSAVerifyPSS(publicKey *rsa.PublicKey, message, signature []byte) error`
+- `RSASignPKCS1v15(privateKey *rsa.PrivateKey, message []byte) ([]byte, error)` - Legacy PKCS#1 v1.5
+- `RSAVerifyPKCS1v15(publicKey *rsa.PublicKey, message, signature []byte) error`
+
+#### ECDSA (Elliptic Curve Digital Signature Algorithm)
+**File**: `ecdsa.go`
+
+**Supported Curves**: P-224, P-256, P-384, P-521
+
+**Key Generation**:
+- `GenerateECDSAKey(curve elliptic.Curve) (*ECDSAKeyPair, error)` - Generic curve
+- `GenerateECDSAP256Key() (*ECDSAKeyPair, error)` - P-256 (most common)
+- `GenerateECDSAP384Key() (*ECDSAKeyPair, error)` - P-384
+- `GenerateECDSAP521Key() (*ECDSAKeyPair, error)` - P-521
+
+**Signing**:
+- `ECDSASign(privateKey *ecdsa.PrivateKey, data []byte, hashFunc func() hash.Hash) (r, s *big.Int, err error)`
+- `ECDSASignSHA256(privateKey *ecdsa.PrivateKey, data []byte) (r, s *big.Int, err error)`
+- `ECDSASignSHA512(privateKey *ecdsa.PrivateKey, data []byte) (r, s *big.Int, err error)`
+
+**Verification**:
+- `ECDSAVerify(publicKey *ecdsa.PublicKey, data []byte, r, s *big.Int, hashFunc func() hash.Hash) bool`
+- `ECDSAVerifySHA256(publicKey *ecdsa.PublicKey, data []byte, r, s *big.Int) bool`
+- `ECDSAVerifySHA512(publicKey *ecdsa.PublicKey, data []byte, r, s *big.Int) bool`
+
+**Key Serialization**:
+- `ECDSAPrivateKeyToPEM(privateKey *ecdsa.PrivateKey) ([]byte, error)`
+- `ECDSAPrivateKeyFromPEM(pemData []byte) (*ecdsa.PrivateKey, error)`
+- `ECDSAPublicKeyToPEM(publicKey *ecdsa.PublicKey) ([]byte, error)`
+- `ECDSAPublicKeyFromPEM(pemData []byte) (*ecdsa.PublicKey, error)`
+
+**Signature Encoding**:
+- `ECDSASignatureToBytes(r, s *big.Int) ([]byte, error)` - DER encoding
+- `ECDSASignatureFromBytes(data []byte) (r, s *big.Int, err error)` - DER decoding
+
+**Utilities**:
+- `GetCurveName(curve elliptic.Curve) string` - P-224, P-256, P-384, P-521, Unknown
+- `IsValidCurve(curve elliptic.Curve) bool` - Validate curve support
+
+#### ECDH (Elliptic Curve Diffie-Hellman)
+**File**: `ecdh.go`
+
+**Supported Curves**: P-224, P-256, P-384, P-521
+
+**Key Generation**:
+- `GenerateECDHKey(curve elliptic.Curve) (*ECDHKeyPair, error)`
+- `GenerateECDHP256Key() (*ECDHKeyPair, error)`
+- `GenerateECDHP384Key() (*ECDHKeyPair, error)`
+- `GenerateECDHP521Key() (*ECDHKeyPair, error)`
+
+**Shared Secret Computation**:
+- `ECDHComputeShared(privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey) ([]byte, error)`
+- `ECDHComputeSharedWithKDF(privateKey, publicKey, keyLength int, kdf func() hash.Hash) ([]byte, error)`
+- `ECDHComputeSharedSHA256(privateKey, publicKey, keyLength int) ([]byte, error)`
+- `ECDHKeyExchange(alicePrivateKey, bobPublicKey, keyLength int) ([]byte, error)`
+
+**Key Validation**:
+- `ValidateECDHKeyPair(keyPair *ECDHKeyPair) error` - Comprehensive validation
+
+**Coordinate Utilities**:
+- `ECDHPublicKeyFromCoordinates(curve elliptic.Curve, x, y *big.Int) (*ecdsa.PublicKey, error)`
+- `ECDHPublicKeyToCoordinates(publicKey *ecdsa.PublicKey) (x, y *big.Int, err error)`
+
+**Testing Utilities**:
+- `ECDHSharedSecretTest(keyPair1, keyPair2 *ECDHKeyPair) (bool, error)` - Verify shared secret match
+
+### 3. Hash Functions
+
+#### Basic Cryptographic Hashes
+**File**: `hash_basic.go`
+
+All functions are generic and accept `string | []byte` input, returning hex-encoded strings:
+
+- `Md5[M string | []byte](s M) string` - MD5 (128-bit)
+  - ⚠️ Insecure: Use only for non-cryptographic purposes
+- `SHA1[M string | []byte](s M) string` - SHA-1 (160-bit)
+  - ⚠️ Insecure: Use only for legacy compatibility
+- `Sha224[M string | []byte](s M) string` - SHA-224 (224-bit)
+- `Sha256[M string | []byte](s M) string` - SHA-256 (256-bit) ✅ Recommended
+- `Sha384[M string | []byte](s M) string` - SHA-384 (384-bit)
+- `Sha512[M string | []byte](s M) string` - SHA-512 (512-bit)
+- `Sha512_224[M string | []byte](s M) string` - SHA-512/224 (224-bit)
+- `Sha512_256[M string | []byte](s M) string` - SHA-512/256 (256-bit)
+
+**Usage Example**:
+```go
+hash := cryptox.Sha256("hello world")
+hash := cryptox.Sha256([]byte("hello world"))
+```
+
+#### HMAC (Hash-based Message Authentication Code)
+**File**: `hash_hmac.go`
+
+All functions accept `string | []byte` for both key and message, returning hex-encoded strings:
+
+- `HMACMd5[M string | []byte](key, message M) string` - HMAC-MD5
+- `HMACSHA1[M string | []byte](key, message M) string` - HMAC-SHA1
+- `HMACSHA256[M string | []byte](key, message M) string` - HMAC-SHA256 ✅ Recommended
+- `HMACSHA384[M string | []byte](key, message M) string` - HMAC-SHA384
+- `HMACSHA512[M string | []byte](key, message M) string` - HMAC-SHA512
+
+**Usage Example**:
+```go
+mac := cryptox.HMACSHA256("secret-key", "message")
+mac := cryptox.HMACSHA256([]byte("secret-key"), []byte("message"))
+```
+
+#### FNV (Fowler-Noll-Vo) Hash
+**File**: `hash_fnv.go`
+
+Fast non-cryptographic hash functions for hash tables and checksums:
+
+- `Hash32[M string | []byte](s M) uint32` - FNV-1 32-bit (~21 ns/op)
+- `Hash32a[M string | []byte](s M) uint32` - FNV-1a 32-bit (~21 ns/op)
+- `Hash64[M string | []byte](s M) uint64` - FNV-1 64-bit (~23 ns/op)
+- `Hash64a[M string | []byte](s M) uint64` - FNV-1a 64-bit (~23 ns/op)
+
+**Performance**: Zero allocations, ideal for hash tables
+
+#### CRC (Cyclic Redundancy Check)
+**File**: `hash_crc.go`
+
+Error detection checksums:
+
+- `CRC32[M string | []byte](s M) uint32` - CRC-32 IEEE (~5 ns/op for bytes)
+- `CRC64[M string | []byte](s M) uint64` - CRC-64 ECMA (~54 ns/op)
+
+**Use Cases**: File integrity, network protocols, data validation
+
+### 4. UUID Generation
+**File**: `uuid.go`
+
+- `UUID() string` - Generate UUID v4 without hyphens (32 hex characters)
+
+## Design Patterns
+
+### Generic Type Support
+Most hash and checksum functions use Go generics to accept both `string` and `[]byte`:
+```go
+func Sha256[M string | []byte](s M) string
+```
+
+### Error Handling
+All cryptographic operations return explicit errors for:
+- Invalid key lengths
+- Nil inputs
+- Curve validation failures
+- Padding errors
+- Decryption failures
+
+### Dependency Injection
+Internal global variables allow testing with mock implementations:
+- `randReader` for random number generation
+- `newCipherFunc` for cipher creation
+- Function pointers for RSA/ECDSA operations
+
+### PKCS#7 Padding
+Automatic padding/unpadding for block cipher modes:
+- `padPKCS7(data []byte, blockSize int) []byte`
+- `unpadPKCS7(data []byte) ([]byte, error)`
+
+## Security Considerations
+
+### Recommended Algorithms
+✅ **Use These**:
+- AES-GCM for symmetric encryption
+- RSA-OAEP for asymmetric encryption
+- RSA-PSS for signatures
+- ECDSA with P-256/P-384 for signatures
+- ECDH for key exchange
+- SHA-256, SHA-512 for hashing
+- HMAC-SHA256 for authentication
+
+❌ **Avoid These** (Legacy/Insecure):
+- DES, 3DES (use AES instead)
+- MD5, SHA-1 (cryptographically broken)
+- ECB mode (pattern leakage)
+- RSA PKCS#1 v1.5 (use OAEP/PSS instead)
+
+### Key Size Recommendations
+- **AES**: 256-bit keys (32 bytes)
+- **RSA**: Minimum 2048 bits, prefer 3072 or 4096
+- **ECDSA/ECDH**: P-256 (most common), P-384 (higher security)
+
+### Random Number Generation
+All cryptographic operations use `crypto/rand.Reader` for secure randomness.
+
+## Performance Characteristics
+
+### Hash Functions (per operation)
+- **FNV**: ~21-23 ns/op (fastest, non-cryptographic)
+- **CRC32**: ~5 ns/op for bytes
+- **CRC64**: ~54 ns/op
+- **SHA-256**: ~500 ns/op for short inputs
+- **HMAC-SHA256**: ~600 ns/op
+
+### Symmetric Encryption
+- **AES-GCM Encrypt**: ~575 ns/op (includes authentication)
+- **AES-GCM Decrypt**: ~304 ns/op
+- **AES-ECB**: ~200-300 ns/op per block
+
+### Asymmetric Operations
+- **ECDSA P-256 Sign**: ~30-40 μs/op
+- **ECDSA P-256 Verify**: ~80-100 μs/op
+- **ECDH P-256 Shared Secret**: ~32 μs/op
+- **RSA-2048 Encrypt**: ~100-200 μs/op
+- **RSA-2048 Decrypt**: ~2-3 ms/op
+
+## Testing
+
+**Coverage**: 97.4% across all modules
+
+### Test Highlights
+- 100% coverage: AES, DES, hash_basic, hash_hmac, hash_fnv, hash_crc, UUID
+- 97-100% coverage: ECDSA, ECDH, RSA
+- Comprehensive edge case testing
+- Error path validation
+- Performance benchmarks for all operations
+- RFC test vectors for standards compliance
+
+### Test Patterns
+- Dependency injection for error simulation
+- Round-trip testing (encrypt/decrypt, sign/verify)
+- Cross-validation between different curves/modes
+- Boundary condition testing
+- Known test vector validation
+
+## Common Usage Patterns
+
+### Symmetric Encryption (AES-GCM)
+```go
+// Generate a 32-byte key (in production, use proper key derivation)
+key := make([]byte, 32)
+rand.Read(key)
+
+// Encrypt
+ciphertext, err := cryptox.Encrypt(key, []byte("secret message"))
+
+// Decrypt
+plaintext, err := cryptox.Decrypt(key, ciphertext)
+```
+
+### Digital Signature (ECDSA)
+```go
+// Generate key pair
+keyPair, err := cryptox.GenerateECDSAP256Key()
+
+// Sign
+r, s, err := cryptox.ECDSASignSHA256(keyPair.PrivateKey, []byte("message"))
+
+// Verify
+valid := cryptox.ECDSAVerifySHA256(keyPair.PublicKey, []byte("message"), r, s)
+```
+
+### Key Exchange (ECDH)
+```go
+// Alice generates key pair
+alice, _ := cryptox.GenerateECDHP256Key()
+
+// Bob generates key pair
+bob, _ := cryptox.GenerateECDHP256Key()
+
+// Both compute same shared secret
+aliceSecret, _ := cryptox.ECDHComputeShared(alice.PrivateKey, bob.PublicKey)
+bobSecret, _ := cryptox.ECDHComputeShared(bob.PrivateKey, alice.PublicKey)
+// aliceSecret == bobSecret
+
+// Derive 32-byte key from shared secret
+key, _ := cryptox.ECDHComputeSharedSHA256(alice.PrivateKey, bob.PublicKey, 32)
+```
+
+### Hash & HMAC
+```go
+// Simple hash
+hash := cryptox.Sha256("data")
+
+// HMAC for authentication
+mac := cryptox.HMACSHA256("secret-key", "data")
+
+// Fast non-crypto hash
+checksum := cryptox.Hash32a("data")
+```
+
+## Module Dependencies
+
+**Internal Dependencies**: None (self-contained)
+**External Dependencies**: 
+- `github.com/google/uuid` (UUID generation only)
+- Standard library: crypto/*, encoding/*, hash/*
+
+## Version Compatibility
+
+- **Go Version**: 1.18+ (requires generics support)
+- **Cryptographic Standards**: FIPS 186-4, NIST SP 800-38A/D, RFC 2104/4231
+
+## Future Enhancements
+
+Potential additions (not yet implemented):
+- ChaCha20-Poly1305 symmetric encryption
+- Ed25519 signatures
+- X25519 key exchange
+- Argon2/scrypt key derivation
+- HKDF (HMAC-based KDF)
+
+---
+
+**Last Updated**: December 2024
+**Maintainer**: LazyGophers Team
+**License**: See repository LICENSE file

@@ -168,18 +168,18 @@ func TestEdgeCaseScenarios(t *testing.T) {
 	t.Run("IPv6PreferenceScenarios", func(t *testing.T) {
 		// Test various IPv6 preference scenarios that might hit uncovered paths
 		scenarios := [][]bool{
-			{},                          // no args (default false)
-			{false},                     // explicit false
-			{true},                      // explicit true
-			{false, true},               // multiple args
-			{true, false},               // multiple args
-			{true, true, true},          // multiple true
-			{false, false, false},       // multiple false
-			{true, false, true, false},  // alternating
+			{},                         // no args (default false)
+			{false},                    // explicit false
+			{true},                     // explicit true
+			{false, true},              // multiple args
+			{true, false},              // multiple args
+			{true, true, true},         // multiple true
+			{false, false, false},      // multiple false
+			{true, false, true, false}, // alternating
 		}
 
 		for i, args := range scenarios {
-			t.Run("Scenario_" + string(rune('A'+i)), func(t *testing.T) {
+			t.Run("Scenario_"+string(rune('A'+i)), func(t *testing.T) {
 				result := GetListenIp(args...)
 				if result != "" && net.ParseIP(result) == nil {
 					t.Errorf("Invalid IP from scenario %d: %s", i, result)

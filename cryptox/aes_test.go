@@ -2,1124 +2,1093 @@ package cryptox
 
 import (
 	"bytes"
+	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 )
 
-func TestEncrypt(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
+// generateValidKey generates a valid 32-byte AES-256 key for testing
+func generateValidKey() []byte {
+	return []byte("12345678901234567890123456789012") // 32 bytes
+}
+
+// TestEncryptDecryptGCM tests AES-GCM encryption and decryption round-trip
+func TestEncryptDecryptGCM(t *testing.T) {
+	key := generateValidKey()
+
+	testCases := []struct {
+		name      string
+		plaintext []byte
+	}{
+		{"empty data", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello, World!")},
+		{"medium message", []byte("The quick brown fox jumps over the lazy dog")},
+		{"long message", bytes.Repeat([]byte("X"), 1000)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}},
+		{"unicode data", []byte("你好世界🌍Hello World🚀")},
+		{"all zeros", make([]byte, 100)},
+		{"block aligned", make([]byte, aes.BlockSize*3)},
 	}
 
-	plaintext := []byte("test plaintext")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Encrypt
+			ciphertext, err := Encrypt(key, tc.plaintext)
+			if err != nil {
+				t.Fatalf("Encrypt failed: %v", err)
+			}
 
-	ciphertext, err := Encrypt(key, plaintext)
-	if err != nil {
-		t.Fatalf("Encrypt failed: %v", err)
-	}
+			// Verify ciphertext is different from plaintext (unless empty)
+			if len(tc.plaintext) > 0 && bytes.Equal(ciphertext, tc.plaintext) {
+				t.Error("Ciphertext should be different from plaintext")
+			}
 
-	if len(ciphertext) == 0 {
-		t.Error("ciphertext should not be empty")
+			// Decrypt
+			decrypted, err := Decrypt(key, ciphertext)
+			if err != nil {
+				t.Fatalf("Decrypt failed: %v", err)
+			}
+
+			// Verify round-trip
+			if !bytes.Equal(decrypted, tc.plaintext) {
+				t.Errorf("Decrypted data doesn't match original.\nGot:      %v\nExpected: %v", decrypted, tc.plaintext)
+			}
+		})
 	}
 }
 
-func TestDecrypt(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	plaintext := []byte("test plaintext")
-
-	ciphertext, err := Encrypt(key, plaintext)
-	if err != nil {
-		t.Fatalf("Encrypt failed: %v", err)
-	}
-
-	decrypted, err := Decrypt(key, ciphertext)
-	if err != nil {
-		t.Fatalf("Decrypt failed: %v", err)
-	}
-
-	if !bytes.Equal(plaintext, decrypted) {
-		t.Errorf("decrypted text does not match original plaintext")
-	}
-}
-
-func TestEncryptECB(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	plaintext := []byte("test plaintext")
-
-	ciphertext, err := EncryptECB(key, plaintext)
-	if err != nil {
-		t.Fatalf("EncryptECB failed: %v", err)
-	}
-
-	if len(ciphertext) == 0 {
-		t.Error("ciphertext should not be empty")
-	}
-}
-
-func TestDecryptECB(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	plaintext := []byte("test plaintext")
-
-	ciphertext, err := EncryptECB(key, plaintext)
-	if err != nil {
-		t.Fatalf("EncryptECB failed: %v", err)
-	}
-
-	decrypted, err := DecryptECB(key, ciphertext)
-	if err != nil {
-		t.Fatalf("DecryptECB failed: %v", err)
-	}
-
-	if !bytes.Equal(plaintext, decrypted) {
-		t.Errorf("decrypted text does not match original plaintext")
-	}
-}
-
-func TestEncryptCBC(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	plaintext := []byte("test plaintext")
-
-	ciphertext, err := EncryptCBC(key, plaintext)
-	if err != nil {
-		t.Fatalf("EncryptCBC failed: %v", err)
-	}
-
-	if len(ciphertext) == 0 {
-		t.Error("ciphertext should not be empty")
-	}
-}
-
-func TestDecryptCBC(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	plaintext := []byte("test plaintext")
-
-	ciphertext, err := EncryptCBC(key, plaintext)
-	if err != nil {
-		t.Fatalf("EncryptCBC failed: %v", err)
-	}
-
-	decrypted, err := DecryptCBC(key, ciphertext)
-	if err != nil {
-		t.Fatalf("DecryptCBC failed: %v", err)
-	}
-
-	if !bytes.Equal(plaintext, decrypted) {
-		t.Errorf("decrypted text does not match original plaintext")
-	}
-}
-
-func TestEncryptCFB(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	plaintext := []byte("test plaintext")
-
-	ciphertext, err := EncryptCFB(key, plaintext)
-	if err != nil {
-		t.Fatalf("EncryptCFB failed: %v", err)
-	}
-
-	if len(ciphertext) == 0 {
-		t.Error("ciphertext should not be empty")
-	}
-}
-
-func TestDecryptCFB(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	plaintext := []byte("test plaintext")
-
-	ciphertext, err := EncryptCFB(key, plaintext)
-	if err != nil {
-		t.Fatalf("EncryptCFB failed: %v", err)
-	}
-
-	decrypted, err := DecryptCFB(key, ciphertext)
-	if err != nil {
-		t.Fatalf("DecryptCFB failed: %v", err)
-	}
-
-	if !bytes.Equal(plaintext, decrypted) {
-		t.Errorf("decrypted text does not match original plaintext")
-	}
-}
-
-func TestEncryptCTR(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	plaintext := []byte("test plaintext")
-
-	ciphertext, err := EncryptCTR(key, plaintext)
-	if err != nil {
-		t.Fatalf("EncryptCTR failed: %v", err)
-	}
-
-	if len(ciphertext) == 0 {
-		t.Error("ciphertext should not be empty")
-	}
-}
-
-func TestDecryptCTR(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	plaintext := []byte("test plaintext")
-
-	ciphertext, err := EncryptCTR(key, plaintext)
-	if err != nil {
-		t.Fatalf("EncryptCTR failed: %v", err)
-	}
-
-	decrypted, err := DecryptCTR(key, ciphertext)
-	if err != nil {
-		t.Fatalf("DecryptCTR failed: %v", err)
-	}
-
-	if !bytes.Equal(plaintext, decrypted) {
-		t.Errorf("decrypted text does not match original plaintext")
-	}
-}
-
-func TestPadPKCS7(t *testing.T) {
-	data := []byte("test")
-	blockSize := 8
-
-	padded := padPKCS7(data, blockSize)
-	if len(padded)%blockSize != 0 {
-		t.Errorf("padded data length should be a multiple of block size")
-	}
-}
-
-func TestUnpadPKCS7(t *testing.T) {
-	data := []byte("test\x04\x04\x04\x04")
-	expected := []byte("test")
-
-	unpadded, err := unpadPKCS7(data)
-	if err != nil {
-		t.Fatalf("unpadPKCS7 failed: %v", err)
-	}
-
-	if !bytes.Equal(unpadded, expected) {
-		t.Errorf("unpadded data does not match expected")
-	}
-}
-
-// Test error conditions
-func TestInvalidKeyLength(t *testing.T) {
-	shortKey := make([]byte, 16) // Invalid key length
-	plaintext := []byte("test")
-
-	_, err := Encrypt(shortKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for invalid key length")
-	}
-
-	_, err = EncryptECB(shortKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for invalid key length")
-	}
-
-	_, err = EncryptCBC(shortKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for invalid key length")
-	}
-
-	_, err = EncryptCFB(shortKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for invalid key length")
-	}
-
-	_, err = EncryptCTR(shortKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for invalid key length")
-	}
-}
-
-func TestInvalidCiphertext(t *testing.T) {
-	key := make([]byte, 32)
-	shortCiphertext := []byte("short")
-
-	_, err := Decrypt(key, shortCiphertext)
-	if err == nil {
-		t.Error("Expected error for short ciphertext")
-	}
-
-	_, err = DecryptCBC(key, shortCiphertext)
-	if err == nil {
-		t.Error("Expected error for short ciphertext")
-	}
-
-	_, err = DecryptCFB(key, shortCiphertext)
-	if err == nil {
-		t.Error("Expected error for short ciphertext")
-	}
-
-	_, err = DecryptCTR(key, shortCiphertext)
-	if err == nil {
-		t.Error("Expected error for short ciphertext")
-	}
-}
-
-func TestUnpadPKCS7Errors(t *testing.T) {
-	// Test empty data
-	_, err := unpadPKCS7([]byte{})
-	if err == nil {
-		t.Error("Expected error for empty data")
-	}
-
-	// Test invalid padding (padding value larger than data length)
-	_, err = unpadPKCS7([]byte{1, 2, 3, 4, 5})
-	if err == nil {
-		t.Error("Expected error for invalid padding")
-	}
-
-	// Test invalid padding data (inconsistent padding bytes)
-	_, err = unpadPKCS7([]byte{1, 2, 3, 2})
-	if err == nil {
-		t.Error("Expected error for invalid padding data")
-	}
-
-	// Test padding value of 0
-	_, err = unpadPKCS7([]byte{1, 2, 3, 0})
-	if err == nil {
-		t.Error("Expected error for padding value 0")
-	}
-}
-
-// Test AES cipher creation errors (simulate by using invalid operations)
-func TestAESErrorConditions(t *testing.T) {
-	key := make([]byte, 32)
-
-	// Test decrypt with invalid GCM data
-	invalidGCMData := []byte("short")
-	_, err := Decrypt(key, invalidGCMData)
-	if err == nil {
-		t.Error("Expected error for invalid GCM data")
-	}
-
-	// Test decrypt ECB with invalid block size (needs to be properly sized to avoid panic)
-	// ECB requires data to be a multiple of block size (16 bytes), but also needs valid padding
-	invalidECBData := make([]byte, 16) // Valid block size but invalid padding
-	for i := range invalidECBData {
-		invalidECBData[i] = 0xFF // Invalid padding bytes
-	}
-	_, err = DecryptECB(key, invalidECBData)
-	if err == nil {
-		t.Error("Expected error for invalid ECB padding")
-	}
-
-	// Test decrypt with malformed IV
-	invalidIVData := make([]byte, 15) // Less than AES block size
-	_, err = DecryptCBC(key, invalidIVData)
-	if err == nil {
-		t.Error("Expected error for invalid IV length")
-	}
-
-	_, err = DecryptCFB(key, invalidIVData)
-	if err == nil {
-		t.Error("Expected error for invalid IV length in CFB")
-	}
-
-	_, err = DecryptCTR(key, invalidIVData)
-	if err == nil {
-		t.Error("Expected error for invalid IV length in CTR")
-	}
-}
-
-// Test decryption key length validation for all modes
-func TestDecryptInvalidKeyLength(t *testing.T) {
-	shortKey := make([]byte, 16)   // Invalid key length
-	ciphertext := make([]byte, 32) // Valid length ciphertext
-
-	_, err := Decrypt(shortKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for invalid key length in Decrypt")
-	}
-
-	_, err = DecryptECB(shortKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for invalid key length in DecryptECB")
-	}
-
-	_, err = DecryptCBC(shortKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for invalid key length in DecryptCBC")
-	}
-
-	_, err = DecryptCFB(shortKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for invalid key length in DecryptCFB")
-	}
-
-	_, err = DecryptCTR(shortKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for invalid key length in DecryptCTR")
-	}
-}
-
-// Test error paths by creating failing conditions
-func TestAllAESErrorPaths(t *testing.T) {
-	// Test with empty key to trigger various error conditions
-	emptyKey := make([]byte, 32)
-	plaintext := []byte("test message that needs padding for block size")
-
-	// Test all encryption functions to ensure they work (success path)
-	_, err := Encrypt(emptyKey, plaintext)
-	if err != nil {
-		t.Errorf("Encrypt should work with valid key: %v", err)
-	}
-
-	_, err = EncryptECB(emptyKey, plaintext)
-	if err != nil {
-		t.Errorf("EncryptECB should work with valid key: %v", err)
-	}
-
-	_, err = EncryptCBC(emptyKey, plaintext)
-	if err != nil {
-		t.Errorf("EncryptCBC should work with valid key: %v", err)
-	}
-
-	_, err = EncryptCFB(emptyKey, plaintext)
-	if err != nil {
-		t.Errorf("EncryptCFB should work with valid key: %v", err)
-	}
-
-	_, err = EncryptCTR(emptyKey, plaintext)
-	if err != nil {
-		t.Errorf("EncryptCTR should work with valid key: %v", err)
-	}
-}
-
-// Test specific decrypt error conditions with malformed data
-func TestDecryptMalformedData(t *testing.T) {
-	key := make([]byte, 32)
-
-	// Test GCM decrypt with malformed data (fails in gcm.Open)
-	malformedGCM := make([]byte, 24) // Valid nonce size but invalid ciphertext
-	_, err := Decrypt(key, malformedGCM)
-	if err == nil {
-		t.Error("Expected error for malformed GCM data")
-	}
-
-	// Test CBC decrypt with invalid IV length check
-	validSizeCBC := make([]byte, 32) // 16 byte IV + 16 byte data
-	for i := range validSizeCBC {
-		validSizeCBC[i] = 0x00 // All zeros to trigger padding errors
-	}
-	_, err = DecryptCBC(key, validSizeCBC)
-	if err == nil {
-		t.Error("Expected error for malformed CBC data")
-	}
-}
-
-// Test with bytes input types to ensure generic functions work
-func TestGenericInputTypes(t *testing.T) {
-	// Test with []byte input for hash functions
-	data := []byte("test data")
-
-	result := Md5(data)
-	if result == "" {
-		t.Error("Md5 with []byte should return non-empty result")
-	}
-
-	result = Sha256(data)
-	if result == "" {
-		t.Error("Sha256 with []byte should return non-empty result")
-	}
-}
-
-// Test covering missing edge cases and error paths
-func TestRemainingErrorPaths(t *testing.T) {
-	key := make([]byte, 32)
-
-	// Test empty plaintext encryption/decryption to cover edge cases
-	emptyText := []byte{}
-
-	ciphertext, err := Encrypt(key, emptyText)
-	if err != nil {
-		t.Errorf("Encrypt empty text should work: %v", err)
-	}
-
-	decrypted, err := Decrypt(key, ciphertext)
-	if err != nil {
-		t.Errorf("Decrypt empty text should work: %v", err)
-	}
-	if !bytes.Equal(emptyText, decrypted) {
-		t.Error("Empty text roundtrip failed")
-	}
-
-	// Test ECB with empty text
-	ciphertext, err = EncryptECB(key, emptyText)
-	if err != nil {
-		t.Errorf("EncryptECB empty text should work: %v", err)
-	}
-
-	decrypted, err = DecryptECB(key, ciphertext)
-	if err != nil {
-		t.Errorf("DecryptECB empty text should work: %v", err)
-	}
-	if !bytes.Equal(emptyText, decrypted) {
-		t.Error("ECB empty text roundtrip failed")
-	}
-}
-
-// Test more padding scenarios
-func TestMorePaddingScenarios(t *testing.T) {
-	// Test with data that's exactly one block size
-	data := make([]byte, 16)
-	for i := range data {
-		data[i] = byte(i)
-	}
-
-	padded := padPKCS7(data, 16)
-	if len(padded) != 32 { // Should add a full block of padding
-		t.Errorf("Expected 32 bytes after padding, got %d", len(padded))
-	}
-
-	unpadded, err := unpadPKCS7(padded)
-	if err != nil {
-		t.Errorf("Failed to unpad: %v", err)
-	}
-
-	if !bytes.Equal(data, unpadded) {
-		t.Error("Padding/unpadding roundtrip failed")
-	}
-}
-
-// Test UUID function with []byte conversion
-func TestUUIDFunction(t *testing.T) {
-	uuid1 := UUID()
-	uuid2 := UUID()
-
-	if uuid1 == uuid2 {
-		t.Error("UUIDs should be unique")
-	}
-
-	if len(uuid1) != 32 { // 36 chars - 4 hyphens = 32 chars
-		t.Errorf("UUID should be 32 characters, got %d", len(uuid1))
-	}
-
-	// Should not contain hyphens
-	if strings.Contains(uuid1, "-") {
-		t.Error("UUID should not contain hyphens")
-	}
-}
-
-// Test comprehensive error validation with edge cases
-func TestComprehensiveErrorValidation(t *testing.T) {
-	// Test all modes with shortest possible invalid key (0 length)
-	emptyKey := []byte{}
-	plaintext := []byte("test")
-
-	_, err := Encrypt(emptyKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for empty key in Encrypt")
-	}
-
-	_, err = EncryptECB(emptyKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for empty key in EncryptECB")
-	}
-
-	_, err = EncryptCBC(emptyKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for empty key in EncryptCBC")
-	}
-
-	_, err = EncryptCFB(emptyKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for empty key in EncryptCFB")
-	}
-
-	_, err = EncryptCTR(emptyKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for empty key in EncryptCTR")
-	}
-
-	// Test all decrypt modes with empty key
-	ciphertext := []byte("dummy data")
-
-	_, err = Decrypt(emptyKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for empty key in Decrypt")
-	}
-
-	_, err = DecryptECB(emptyKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for empty key in DecryptECB")
-	}
-
-	_, err = DecryptCBC(emptyKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for empty key in DecryptCBC")
-	}
-
-	_, err = DecryptCFB(emptyKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for empty key in DecryptCFB")
-	}
-
-	_, err = DecryptCTR(emptyKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for empty key in DecryptCTR")
-	}
-}
-
-// Attempt to create a test that might trigger some of the hard-to-reach error conditions
-// by testing with extremely unusual inputs that might cause internal failures
-func TestExtremeEdgeCases(t *testing.T) {
-	// Test with various unusual key lengths that might trigger different error paths
-	for _, keyLen := range []int{1, 15, 17, 31, 33, 64} {
-		key := make([]byte, keyLen)
-		plaintext := []byte("test")
-
-		// All these should fail with "invalid key length" but ensure we test the path
-		_, err := Encrypt(key, plaintext)
-		if err == nil && keyLen != 32 {
-			t.Errorf("Expected error for key length %d in Encrypt", keyLen)
+// TestEncryptDecryptGCMErrors tests error cases for GCM mode
+func TestEncryptDecryptGCMErrors(t *testing.T) {
+	validKey := generateValidKey()
+	plaintext := []byte("test message")
+
+	t.Run("Encrypt with invalid key length", func(t *testing.T) {
+		invalidKeys := [][]byte{
+			[]byte("short"),           // too short
+			[]byte("1234567890123456"), // 16 bytes (AES-128, but we require AES-256)
+			[]byte("123456789012345678901234"), // 24 bytes (AES-192, but we require AES-256)
+			make([]byte, 64),          // too long
 		}
 
-		_, err = EncryptECB(key, plaintext)
-		if err == nil && keyLen != 32 {
-			t.Errorf("Expected error for key length %d in EncryptECB", keyLen)
-		}
-
-		_, err = EncryptCBC(key, plaintext)
-		if err == nil && keyLen != 32 {
-			t.Errorf("Expected error for key length %d in EncryptCBC", keyLen)
-		}
-
-		_, err = EncryptCFB(key, plaintext)
-		if err == nil && keyLen != 32 {
-			t.Errorf("Expected error for key length %d in EncryptCFB", keyLen)
-		}
-
-		_, err = EncryptCTR(key, plaintext)
-		if err == nil && keyLen != 32 {
-			t.Errorf("Expected error for key length %d in EncryptCTR", keyLen)
-		}
-	}
-}
-
-// Test behavior with very large inputs to ensure no overflow/panic conditions
-func TestLargeInputs(t *testing.T) {
-	key := make([]byte, 32)
-
-	// Test with larger plaintext to ensure all code paths are exercised
-	largePlaintext := make([]byte, 1024*16) // 16KB
-	for i := range largePlaintext {
-		largePlaintext[i] = byte(i % 256)
-	}
-
-	// Test encryption and decryption with large input
-	ciphertext, err := Encrypt(key, largePlaintext)
-	if err != nil {
-		t.Errorf("Encrypt large input failed: %v", err)
-	}
-
-	decrypted, err := Decrypt(key, ciphertext)
-	if err != nil {
-		t.Errorf("Decrypt large input failed: %v", err)
-	}
-
-	if !bytes.Equal(largePlaintext, decrypted) {
-		t.Error("Large input roundtrip failed")
-	}
-
-	// Test ECB mode with large input
-	ciphertext, err = EncryptECB(key, largePlaintext)
-	if err != nil {
-		t.Errorf("EncryptECB large input failed: %v", err)
-	}
-
-	decrypted, err = DecryptECB(key, ciphertext)
-	if err != nil {
-		t.Errorf("DecryptECB large input failed: %v", err)
-	}
-
-	if !bytes.Equal(largePlaintext, decrypted) {
-		t.Error("ECB large input roundtrip failed")
-	}
-}
-
-// ==== MERGED FROM aes_100_coverage_test.go ====
-
-// FailingReader implements io.Reader but always fails
-type FailingReader struct{}
-
-func (fr FailingReader) Read(p []byte) (n int, err error) {
-	return 0, errors.New("simulated random reader failure")
-}
-
-// FailingCipherFunc simulates aes.NewCipher failure
-func FailingCipherFunc(key []byte) (cipher.Block, error) {
-	return nil, errors.New("simulated aes.NewCipher failure")
-}
-
-// FailingGCMFunc simulates cipher.NewGCM failure
-func FailingGCMFunc(block cipher.Block) (cipher.AEAD, error) {
-	return nil, errors.New("simulated cipher.NewGCM failure")
-}
-
-// Test100PercentCoverage triggers all error paths using dependency injection
-func Test100PercentCoverage(t *testing.T) {
-	// Save original functions
-	originalNewCipher := newCipherFunc
-	originalNewGCM := newGCMFunc
-	originalRandReader := randReader
-
-	// Restore original functions after test
-	defer func() {
-		newCipherFunc = originalNewCipher
-		newGCMFunc = originalNewGCM
-		randReader = originalRandReader
-	}()
-
-	key := make([]byte, 32)
-	plaintext := []byte("test plaintext")
-
-	// Test 1: Trigger aes.NewCipher failure in all functions
-	newCipherFunc = FailingCipherFunc
-	newGCMFunc = originalNewGCM
-	randReader = originalRandReader
-
-	_, err := Encrypt(key, plaintext)
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in Encrypt")
-	}
-
-	_, err = Decrypt(key, []byte("fake ciphertext that's long enough"))
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in Decrypt")
-	}
-
-	_, err = EncryptECB(key, plaintext)
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in EncryptECB")
-	}
-
-	_, err = DecryptECB(key, []byte("fake ciphertext"))
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in DecryptECB")
-	}
-
-	_, err = EncryptCBC(key, plaintext)
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in EncryptCBC")
-	}
-
-	_, err = DecryptCBC(key, []byte("fake ciphertext that's long enough"))
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in DecryptCBC")
-	}
-
-	_, err = EncryptCFB(key, plaintext)
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in EncryptCFB")
-	}
-
-	_, err = DecryptCFB(key, []byte("fake ciphertext that's long enough"))
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in DecryptCFB")
-	}
-
-	_, err = EncryptCTR(key, plaintext)
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in EncryptCTR")
-	}
-
-	_, err = DecryptCTR(key, []byte("fake ciphertext that's long enough"))
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in DecryptCTR")
-	}
-
-	_, err = EncryptOFB(key, plaintext)
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in EncryptOFB")
-	}
-
-	_, err = DecryptOFB(key, []byte("fake ciphertext that's long enough"))
-	if err == nil {
-		t.Error("Expected aes.NewCipher error in DecryptOFB")
-	}
-
-	// Test 2: Trigger cipher.NewGCM failure in GCM functions
-	newCipherFunc = originalNewCipher
-	newGCMFunc = FailingGCMFunc
-	randReader = originalRandReader
-
-	_, err = Encrypt(key, plaintext)
-	if err == nil {
-		t.Error("Expected cipher.NewGCM error in Encrypt")
-	}
-
-	_, err = Decrypt(key, []byte("fake ciphertext that's long enough"))
-	if err == nil {
-		t.Error("Expected cipher.NewGCM error in Decrypt")
-	}
-
-	// Test 3: Trigger rand.Reader failure in functions that use random IV
-	newCipherFunc = originalNewCipher
-	newGCMFunc = originalNewGCM
-	randReader = FailingReader{}
-
-	_, err = Encrypt(key, plaintext)
-	if err == nil {
-		t.Error("Expected rand.Reader error in Encrypt")
-	}
-
-	_, err = EncryptCBC(key, plaintext)
-	if err == nil {
-		t.Error("Expected rand.Reader error in EncryptCBC")
-	}
-
-	_, err = EncryptCFB(key, plaintext)
-	if err == nil {
-		t.Error("Expected rand.Reader error in EncryptCFB")
-	}
-
-	_, err = EncryptCTR(key, plaintext)
-	if err == nil {
-		t.Error("Expected rand.Reader error in EncryptCTR")
-	}
-
-	_, err = EncryptOFB(key, plaintext)
-	if err == nil {
-		t.Error("Expected rand.Reader error in EncryptOFB")
-	}
-}
-
-// TestShortCiphertext tests ciphertext length validation
-func TestShortCiphertext(t *testing.T) {
-	key := make([]byte, 32)
-
-	// Test all decrypt functions with short ciphertext (less than block size)
-	shortCiphertext := make([]byte, 15) // Less than aes.BlockSize (16 bytes)
-
-	_, err := DecryptCBC(key, shortCiphertext)
-	if err == nil || err.Error() != "ciphertext too short" {
-		t.Error("Expected 'ciphertext too short' error in DecryptCBC")
-	}
-
-	_, err = DecryptCFB(key, shortCiphertext)
-	if err == nil || err.Error() != "ciphertext too short" {
-		t.Error("Expected 'ciphertext too short' error in DecryptCFB")
-	}
-
-	_, err = DecryptCTR(key, shortCiphertext)
-	if err == nil || err.Error() != "ciphertext too short" {
-		t.Error("Expected 'ciphertext too short' error in DecryptCTR")
-	}
-
-	_, err = DecryptOFB(key, shortCiphertext)
-	if err == nil || err.Error() != "ciphertext too short" {
-		t.Error("Expected 'ciphertext too short' error in DecryptOFB")
-	}
-}
-
-// Test OFB mode encryption and decryption
-func TestEncryptDecryptOFB(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	plaintext := []byte("test plaintext for OFB mode")
-
-	// Test encryption
-	ciphertext, err := EncryptOFB(key, plaintext)
-	if err != nil {
-		t.Fatalf("EncryptOFB failed: %v", err)
-	}
-
-	if len(ciphertext) == 0 {
-		t.Error("OFB ciphertext should not be empty")
-	}
-
-	// Test decryption
-	decrypted, err := DecryptOFB(key, ciphertext)
-	if err != nil {
-		t.Fatalf("DecryptOFB failed: %v", err)
-	}
-
-	if !bytes.Equal(plaintext, decrypted) {
-		t.Errorf("OFB decrypted text does not match original plaintext")
-	}
-}
-
-func TestEncryptOFBInvalidKey(t *testing.T) {
-	// Test with invalid key length
-	invalidKey := make([]byte, 16) // Should be 32 bytes
-	plaintext := []byte("test")
-
-	_, err := EncryptOFB(invalidKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for invalid key length in EncryptOFB")
-	}
-
-	expectedMsg := "invalid key length: must be 32 bytes"
-	if err.Error() != expectedMsg {
-		t.Errorf("Expected error message '%s', got '%s'", expectedMsg, err.Error())
-	}
-}
-
-func TestDecryptOFBInvalidKey(t *testing.T) {
-	// Test with invalid key length
-	invalidKey := make([]byte, 16) // Should be 32 bytes
-	ciphertext := make([]byte, 32) // Minimum size to pass length check
-
-	_, err := DecryptOFB(invalidKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for invalid key length in DecryptOFB")
-	}
-
-	expectedMsg := "invalid key length: must be 32 bytes"
-	if err.Error() != expectedMsg {
-		t.Errorf("Expected error message '%s', got '%s'", expectedMsg, err.Error())
-	}
-}
-
-func TestDecryptOFBShortCiphertext(t *testing.T) {
-	key := make([]byte, 32)
-	shortCiphertext := make([]byte, 10) // Too short
-
-	_, err := DecryptOFB(key, shortCiphertext)
-	if err == nil {
-		t.Error("Expected error for short ciphertext in DecryptOFB")
-	}
-
-	expectedMsg := "ciphertext too short"
-	if err.Error() != expectedMsg {
-		t.Errorf("Expected error message '%s', got '%s'", expectedMsg, err.Error())
-	}
-}
-
-func TestOFBRoundtrip(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	testCases := [][]byte{
-		[]byte(""),
-		[]byte("a"),
-		[]byte("hello"),
-		[]byte("this is a longer test message"),
-		[]byte(strings.Repeat("x", 100)),
-		[]byte("special chars: !@#$%^&*()"),
-		{0, 1, 2, 3, 255, 254, 253},
-	}
-
-	for i, plaintext := range testCases {
-		ciphertext, err := EncryptOFB(key, plaintext)
-		if err != nil {
-			t.Errorf("Test case %d: EncryptOFB failed: %v", i, err)
-			continue
-		}
-
-		decrypted, err := DecryptOFB(key, ciphertext)
-		if err != nil {
-			t.Errorf("Test case %d: DecryptOFB failed: %v", i, err)
-			continue
-		}
-
-		if !bytes.Equal(plaintext, decrypted) {
-			t.Errorf("Test case %d: OFB roundtrip failed", i)
-		}
-	}
-}
-
-func TestOFBEmptyKeyAndCiphertext(t *testing.T) {
-	// Test EncryptOFB with empty key
-	emptyKey := []byte{}
-	plaintext := []byte("test")
-
-	_, err := EncryptOFB(emptyKey, plaintext)
-	if err == nil {
-		t.Error("Expected error for empty key in EncryptOFB")
-	}
-
-	// Test DecryptOFB with empty key
-	validKey := make([]byte, 32)
-	ciphertext, _ := EncryptOFB(validKey, plaintext)
-
-	_, err = DecryptOFB(emptyKey, ciphertext)
-	if err == nil {
-		t.Error("Expected error for empty key in DecryptOFB")
-	}
-}
-
-func TestOFBLargeInput(t *testing.T) {
-	key := make([]byte, 32)
-	_, err := io.ReadFull(rand.Reader, key)
-	if err != nil {
-		t.Fatalf("failed to generate random key: %v", err)
-	}
-
-	// Test with larger plaintext
-	largePlaintext := make([]byte, 1024*8) // 8KB
-	for i := range largePlaintext {
-		largePlaintext[i] = byte(i % 256)
-	}
-
-	// Test encryption and decryption with large input
-	ciphertext, err := EncryptOFB(key, largePlaintext)
-	if err != nil {
-		t.Errorf("EncryptOFB large input failed: %v", err)
-	}
-
-	decrypted, err := DecryptOFB(key, ciphertext)
-	if err != nil {
-		t.Errorf("DecryptOFB large input failed: %v", err)
-	}
-
-	if !bytes.Equal(largePlaintext, decrypted) {
-		t.Error("OFB large input roundtrip failed")
-	}
-}
-
-// Update the extreme edge cases test to include OFB mode
-func TestExtremeEdgeCasesWithOFB(t *testing.T) {
-	// Test with various unusual key lengths that might trigger different error paths
-	for _, keyLen := range []int{1, 15, 17, 31, 33, 64} {
-		key := make([]byte, keyLen)
-		plaintext := []byte("test")
-
-		// All these should fail with "invalid key length" but ensure we test the path
-		_, err := EncryptOFB(key, plaintext)
-		if err == nil && keyLen != 32 {
-			t.Errorf("Expected error for key length %d in EncryptOFB", keyLen)
-		}
-	}
-}
-
-// Test to trigger error conditions with mock implementations
-func TestAESErrorConditions100Coverage(t *testing.T) {
-	key := make([]byte, 32)
-	plaintext := []byte("test plaintext")
-
-	// Test case: try to trigger conditions that might cause internal errors
-	// Use unusual key patterns that might trigger aes.NewCipher errors in rare cases
-	for i := 0; i < 1000; i++ {
-		// Try different key patterns
-		for j := range key {
-			key[j] = byte((i + j) % 256)
-		}
-
-		// Test all encryption functions with this key
-		testFuncs := []func([]byte, []byte) ([]byte, error){
-			Encrypt,
-			EncryptECB,
-			EncryptCBC,
-			EncryptCFB,
-			EncryptCTR,
-			EncryptOFB,
-		}
-
-		for _, encFunc := range testFuncs {
-			_, err := encFunc(key, plaintext)
-			// If we get an error that's not about key length, it might be a rare internal error
-			if err != nil && err.Error() != "invalid key length: must be 32 bytes" {
-				t.Logf("Got internal error (this is expected for coverage): %v", err)
+		for _, key := range invalidKeys {
+			_, err := Encrypt(key, plaintext)
+			if err == nil {
+				t.Errorf("Encrypt should fail with key length %d", len(key))
+			}
+			if err != nil && !strings.Contains(err.Error(), "invalid key length") {
+				t.Errorf("Expected 'invalid key length' error, got: %v", err)
 			}
 		}
+	})
+
+	t.Run("Decrypt with invalid key length", func(t *testing.T) {
+		ciphertext, _ := Encrypt(validKey, plaintext)
+
+		invalidKey := []byte("short")
+		_, err := Decrypt(invalidKey, ciphertext)
+		if err == nil {
+			t.Error("Decrypt should fail with invalid key length")
+		}
+		if err != nil && !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("Decrypt with ciphertext too short", func(t *testing.T) {
+		shortCiphertext := []byte("short")
+		_, err := Decrypt(validKey, shortCiphertext)
+		if err == nil {
+			t.Error("Decrypt should fail with ciphertext too short")
+		}
+		if err != nil && !strings.Contains(err.Error(), "ciphertext too short") {
+			t.Errorf("Expected 'ciphertext too short' error, got: %v", err)
+		}
+	})
+
+	t.Run("Decrypt with corrupted ciphertext", func(t *testing.T) {
+		ciphertext, _ := Encrypt(validKey, plaintext)
+		// Corrupt the ciphertext
+		ciphertext[len(ciphertext)-1] ^= 0xFF
+		_, err := Decrypt(validKey, ciphertext)
+		if err == nil {
+			t.Error("Decrypt should fail with corrupted ciphertext")
+		}
+	})
+
+	t.Run("Decrypt with wrong key", func(t *testing.T) {
+		ciphertext, _ := Encrypt(validKey, plaintext)
+		wrongKey := []byte("12345678901234567890123456789099") // different last byte
+		_, err := Decrypt(wrongKey, ciphertext)
+		if err == nil {
+			t.Error("Decrypt should fail with wrong key")
+		}
+	})
+}
+
+// TestEncryptDecryptECB tests AES-ECB encryption and decryption round-trip
+func TestEncryptDecryptECB(t *testing.T) {
+	key := generateValidKey()
+
+	testCases := []struct {
+		name      string
+		plaintext []byte
+	}{
+		{"empty data", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello, World!")},
+		{"medium message", []byte("The quick brown fox jumps over the lazy dog")},
+		{"long message", bytes.Repeat([]byte("X"), 1000)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}},
+		{"unicode data", []byte("你好世界🌍Hello World🚀")},
+		{"block aligned", make([]byte, aes.BlockSize*3)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Encrypt
+			ciphertext, err := EncryptECB(key, tc.plaintext)
+			if err != nil {
+				t.Fatalf("EncryptECB failed: %v", err)
+			}
+
+			// Decrypt
+			decrypted, err := DecryptECB(key, ciphertext)
+			if err != nil {
+				t.Fatalf("DecryptECB failed: %v", err)
+			}
+
+			// Verify round-trip
+			if !bytes.Equal(decrypted, tc.plaintext) {
+				t.Errorf("Decrypted data doesn't match original.\nGot:      %v\nExpected: %v", decrypted, tc.plaintext)
+			}
+		})
 	}
 }
 
-// Test function to attempt triggering rand.Reader errors (very rare)
-func TestRandomReaderErrorScenarios(t *testing.T) {
-	key := make([]byte, 32)
-	plaintext := []byte("test plaintext")
+// TestEncryptDecryptECBErrors tests error cases for ECB mode
+func TestEncryptDecryptECBErrors(t *testing.T) {
+	validKey := generateValidKey()
+	plaintext := []byte("test message")
 
-	// Try many iterations to potentially trigger rand.Reader errors
-	for i := 0; i < 100; i++ {
-		// Test functions that use rand.Reader
+	t.Run("EncryptECB with invalid key length", func(t *testing.T) {
+		invalidKey := []byte("short")
+		_, err := EncryptECB(invalidKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptECB with invalid key length", func(t *testing.T) {
+		ciphertext, _ := EncryptECB(validKey, plaintext)
+		invalidKey := []byte("short")
+		_, err := DecryptECB(invalidKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptECB with invalid block size", func(t *testing.T) {
+		// Create ciphertext with invalid length (not multiple of block size)
+		invalidCiphertext := make([]byte, aes.BlockSize+1)
+		_, err := DecryptECB(validKey, invalidCiphertext)
+		if err == nil {
+			t.Error("DecryptECB should fail with ciphertext not multiple of block size")
+		}
+		if err != nil && !strings.Contains(err.Error(), "not a multiple of the block size") {
+			t.Errorf("Expected block size error, got: %v", err)
+		}
+	})
+}
+
+// TestEncryptDecryptCBC tests AES-CBC encryption and decryption round-trip
+func TestEncryptDecryptCBC(t *testing.T) {
+	key := generateValidKey()
+
+	testCases := []struct {
+		name      string
+		plaintext []byte
+	}{
+		{"empty data", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello, World!")},
+		{"medium message", []byte("The quick brown fox jumps over the lazy dog")},
+		{"long message", bytes.Repeat([]byte("X"), 1000)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}},
+		{"unicode data", []byte("你好世界🌍Hello World🚀")},
+		{"block aligned", make([]byte, aes.BlockSize*3)},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Encrypt
+			ciphertext, err := EncryptCBC(key, tc.plaintext)
+			if err != nil {
+				t.Fatalf("EncryptCBC failed: %v", err)
+			}
+
+			// Decrypt
+			decrypted, err := DecryptCBC(key, ciphertext)
+			if err != nil {
+				t.Fatalf("DecryptCBC failed: %v", err)
+			}
+
+			// Verify round-trip
+			if !bytes.Equal(decrypted, tc.plaintext) {
+				t.Errorf("Decrypted data doesn't match original.\nGot:      %v\nExpected: %v", decrypted, tc.plaintext)
+			}
+		})
+	}
+}
+
+// TestEncryptDecryptCBCErrors tests error cases for CBC mode
+func TestEncryptDecryptCBCErrors(t *testing.T) {
+	validKey := generateValidKey()
+	plaintext := []byte("test message")
+
+	t.Run("EncryptCBC with invalid key length", func(t *testing.T) {
+		invalidKey := []byte("short")
+		_, err := EncryptCBC(invalidKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptCBC with invalid key length", func(t *testing.T) {
+		ciphertext, _ := EncryptCBC(validKey, plaintext)
+		invalidKey := []byte("short")
+		_, err := DecryptCBC(invalidKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptCBC with ciphertext too short", func(t *testing.T) {
+		shortCiphertext := []byte("short")
+		_, err := DecryptCBC(validKey, shortCiphertext)
+		if err == nil {
+			t.Error("DecryptCBC should fail with ciphertext too short")
+		}
+		if err != nil && !strings.Contains(err.Error(), "ciphertext too short") {
+			t.Errorf("Expected 'ciphertext too short' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptCBC with corrupted padding", func(t *testing.T) {
+		ciphertext, _ := EncryptCBC(validKey, plaintext)
+		// Corrupt the last block (where padding is)
+		ciphertext[len(ciphertext)-1] ^= 0xFF
+		_, err := DecryptCBC(validKey, ciphertext)
+		if err == nil {
+			t.Error("DecryptCBC should fail with corrupted padding")
+		}
+	})
+}
+
+// TestEncryptDecryptCFB tests AES-CFB encryption and decryption round-trip
+func TestEncryptDecryptCFB(t *testing.T) {
+	key := generateValidKey()
+
+	testCases := []struct {
+		name      string
+		plaintext []byte
+	}{
+		{"empty data", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello, World!")},
+		{"medium message", []byte("The quick brown fox jumps over the lazy dog")},
+		{"long message", bytes.Repeat([]byte("X"), 1000)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}},
+		{"unicode data", []byte("你好世界🌍Hello World🚀")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Encrypt
+			ciphertext, err := EncryptCFB(key, tc.plaintext)
+			if err != nil {
+				t.Fatalf("EncryptCFB failed: %v", err)
+			}
+
+			// Decrypt
+			decrypted, err := DecryptCFB(key, ciphertext)
+			if err != nil {
+				t.Fatalf("DecryptCFB failed: %v", err)
+			}
+
+			// Verify round-trip
+			if !bytes.Equal(decrypted, tc.plaintext) {
+				t.Errorf("Decrypted data doesn't match original.\nGot:      %v\nExpected: %v", decrypted, tc.plaintext)
+			}
+		})
+	}
+}
+
+// TestEncryptDecryptCFBErrors tests error cases for CFB mode
+func TestEncryptDecryptCFBErrors(t *testing.T) {
+	validKey := generateValidKey()
+	plaintext := []byte("test message")
+
+	t.Run("EncryptCFB with invalid key length", func(t *testing.T) {
+		invalidKey := []byte("short")
+		_, err := EncryptCFB(invalidKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptCFB with invalid key length", func(t *testing.T) {
+		ciphertext, _ := EncryptCFB(validKey, plaintext)
+		invalidKey := []byte("short")
+		_, err := DecryptCFB(invalidKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptCFB with ciphertext too short", func(t *testing.T) {
+		shortCiphertext := []byte("short")
+		_, err := DecryptCFB(validKey, shortCiphertext)
+		if err == nil {
+			t.Error("DecryptCFB should fail with ciphertext too short")
+		}
+		if err != nil && !strings.Contains(err.Error(), "ciphertext too short") {
+			t.Errorf("Expected 'ciphertext too short' error, got: %v", err)
+		}
+	})
+}
+
+// TestEncryptDecryptCTR tests AES-CTR encryption and decryption round-trip
+func TestEncryptDecryptCTR(t *testing.T) {
+	key := generateValidKey()
+
+	testCases := []struct {
+		name      string
+		plaintext []byte
+	}{
+		{"empty data", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello, World!")},
+		{"medium message", []byte("The quick brown fox jumps over the lazy dog")},
+		{"long message", bytes.Repeat([]byte("X"), 1000)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}},
+		{"unicode data", []byte("你好世界🌍Hello World🚀")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Encrypt
+			ciphertext, err := EncryptCTR(key, tc.plaintext)
+			if err != nil {
+				t.Fatalf("EncryptCTR failed: %v", err)
+			}
+
+			// Decrypt
+			decrypted, err := DecryptCTR(key, ciphertext)
+			if err != nil {
+				t.Fatalf("DecryptCTR failed: %v", err)
+			}
+
+			// Verify round-trip
+			if !bytes.Equal(decrypted, tc.plaintext) {
+				t.Errorf("Decrypted data doesn't match original.\nGot:      %v\nExpected: %v", decrypted, tc.plaintext)
+			}
+		})
+	}
+}
+
+// TestEncryptDecryptCTRErrors tests error cases for CTR mode
+func TestEncryptDecryptCTRErrors(t *testing.T) {
+	validKey := generateValidKey()
+	plaintext := []byte("test message")
+
+	t.Run("EncryptCTR with invalid key length", func(t *testing.T) {
+		invalidKey := []byte("short")
+		_, err := EncryptCTR(invalidKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptCTR with invalid key length", func(t *testing.T) {
+		ciphertext, _ := EncryptCTR(validKey, plaintext)
+		invalidKey := []byte("short")
+		_, err := DecryptCTR(invalidKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptCTR with ciphertext too short", func(t *testing.T) {
+		shortCiphertext := []byte("short")
+		_, err := DecryptCTR(validKey, shortCiphertext)
+		if err == nil {
+			t.Error("DecryptCTR should fail with ciphertext too short")
+		}
+		if err != nil && !strings.Contains(err.Error(), "ciphertext too short") {
+			t.Errorf("Expected 'ciphertext too short' error, got: %v", err)
+		}
+	})
+}
+
+// TestEncryptDecryptOFB tests AES-OFB encryption and decryption round-trip
+func TestEncryptDecryptOFB(t *testing.T) {
+	key := generateValidKey()
+
+	testCases := []struct {
+		name      string
+		plaintext []byte
+	}{
+		{"empty data", []byte("")},
+		{"single byte", []byte("A")},
+		{"short message", []byte("Hello, World!")},
+		{"medium message", []byte("The quick brown fox jumps over the lazy dog")},
+		{"long message", bytes.Repeat([]byte("X"), 1000)},
+		{"binary data", []byte{0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD, 0xFC}},
+		{"unicode data", []byte("你好世界🌍Hello World🚀")},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Encrypt
+			ciphertext, err := EncryptOFB(key, tc.plaintext)
+			if err != nil {
+				t.Fatalf("EncryptOFB failed: %v", err)
+			}
+
+			// Decrypt
+			decrypted, err := DecryptOFB(key, ciphertext)
+			if err != nil {
+				t.Fatalf("DecryptOFB failed: %v", err)
+			}
+
+			// Verify round-trip
+			if !bytes.Equal(decrypted, tc.plaintext) {
+				t.Errorf("Decrypted data doesn't match original.\nGot:      %v\nExpected: %v", decrypted, tc.plaintext)
+			}
+		})
+	}
+}
+
+// TestEncryptDecryptOFBErrors tests error cases for OFB mode
+func TestEncryptDecryptOFBErrors(t *testing.T) {
+	validKey := generateValidKey()
+	plaintext := []byte("test message")
+
+	t.Run("EncryptOFB with invalid key length", func(t *testing.T) {
+		invalidKey := []byte("short")
+		_, err := EncryptOFB(invalidKey, plaintext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptOFB with invalid key length", func(t *testing.T) {
+		ciphertext, _ := EncryptOFB(validKey, plaintext)
+		invalidKey := []byte("short")
+		_, err := DecryptOFB(invalidKey, ciphertext)
+		if err == nil || !strings.Contains(err.Error(), "invalid key length") {
+			t.Errorf("Expected 'invalid key length' error, got: %v", err)
+		}
+	})
+
+	t.Run("DecryptOFB with ciphertext too short", func(t *testing.T) {
+		shortCiphertext := []byte("short")
+		_, err := DecryptOFB(validKey, shortCiphertext)
+		if err == nil {
+			t.Error("DecryptOFB should fail with ciphertext too short")
+		}
+		if err != nil && !strings.Contains(err.Error(), "ciphertext too short") {
+			t.Errorf("Expected 'ciphertext too short' error, got: %v", err)
+		}
+	})
+}
+
+// TestPadPKCS7 tests PKCS#7 padding function
+func TestPadPKCS7(t *testing.T) {
+	testCases := []struct {
+		name      string
+		data      []byte
+		blockSize int
+		expected  int // expected length after padding
+	}{
+		{"empty data", []byte{}, 16, 16},
+		{"single byte", []byte{0x01}, 16, 16},
+		{"15 bytes", bytes.Repeat([]byte{0x01}, 15), 16, 16},
+		{"16 bytes (full block)", bytes.Repeat([]byte{0x01}, 16), 16, 32},
+		{"17 bytes", bytes.Repeat([]byte{0x01}, 17), 16, 32},
+		{"31 bytes", bytes.Repeat([]byte{0x01}, 31), 16, 32},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			padded := padPKCS7(tc.data, tc.blockSize)
+			if len(padded) != tc.expected {
+				t.Errorf("Expected length %d, got %d", tc.expected, len(padded))
+			}
+
+			// Verify padding is correct
+			paddingLen := int(padded[len(padded)-1])
+			if paddingLen == 0 || paddingLen > tc.blockSize {
+				t.Errorf("Invalid padding length: %d", paddingLen)
+			}
+
+			// Verify all padding bytes are the same
+			for i := len(padded) - paddingLen; i < len(padded); i++ {
+				if padded[i] != byte(paddingLen) {
+				t.Errorf("Padding byte at position %d is %d, expected %d", i, padded[i], paddingLen)
+				}
+			}
+		})
+	}
+}
+
+// TestUnpadPKCS7 tests PKCS#7 unpadding function
+func TestUnpadPKCS7(t *testing.T) {
+	blockSize := 16
+
+	t.Run("valid padding", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			original []byte
+		}{
+			{"empty data", []byte{}},
+			{"single byte", []byte{0x01}},
+			{"15 bytes", bytes.Repeat([]byte{0x01}, 15)},
+			{"16 bytes", bytes.Repeat([]byte{0x01}, 16)},
+			{"32 bytes", bytes.Repeat([]byte{0x01}, 32)},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				padded := padPKCS7(tc.original, blockSize)
+				unpadded, err := unpadPKCS7(padded)
+				if err != nil {
+					t.Fatalf("unpadPKCS7 failed: %v", err)
+				}
+				if !bytes.Equal(unpadded, tc.original) {
+					t.Errorf("Unpadded data doesn't match original.\nGot:      %v\nExpected: %v", unpadded, tc.original)
+				}
+			})
+		}
+	})
+
+	t.Run("invalid padding", func(t *testing.T) {
+		invalidCases := []struct {
+			name string
+			data []byte
+		}{
+			{"empty data", []byte{}},
+			{"zero padding", []byte{0x01, 0x02, 0x03, 0x00}},
+			{"padding too large", []byte{0x01, 0x02, 0x03, 0x20}},
+			{"inconsistent padding", []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x03}},
+		}
+
+		for _, tc := range invalidCases {
+			t.Run(tc.name, func(t *testing.T) {
+				_, err := unpadPKCS7(tc.data)
+				if err == nil {
+					t.Error("unpadPKCS7 should fail with invalid padding")
+				}
+			})
+		}
+	})
+}
+
+// TestDecryptECBBlockSizeValidation tests block size validation in DecryptECB
+func TestDecryptECBBlockSizeValidation(t *testing.T) {
+	key := generateValidKey()
+
+	invalidSizes := []int{1, 7, 15, 17, 23, 31, 33}
+	for _, size := range invalidSizes {
+		t.Run("size_"+string(rune(size+'0')), func(t *testing.T) {
+			invalidCiphertext := make([]byte, size)
+			_, err := DecryptECB(key, invalidCiphertext)
+			if err == nil {
+				t.Errorf("DecryptECB should fail with ciphertext size %d", size)
+			}
+			if err != nil && !strings.Contains(err.Error(), "not a multiple of the block size") {
+				t.Errorf("Expected block size error, got: %v", err)
+			}
+		})
+	}
+}
+
+// TestAESModeConsistency tests that same plaintext with same key produces different ciphertexts
+// due to random IV/nonce (except for deterministic ECB mode)
+func TestAESModeConsistency(t *testing.T) {
+	key := generateValidKey()
+	plaintext := []byte("test message for consistency check")
+
+	t.Run("GCM produces different ciphertexts", func(t *testing.T) {
+		ct1, _ := Encrypt(key, plaintext)
+		ct2, _ := Encrypt(key, plaintext)
+		if bytes.Equal(ct1, ct2) {
+			t.Error("GCM should produce different ciphertexts with random nonce")
+		}
+	})
+
+	t.Run("CBC produces different ciphertexts", func(t *testing.T) {
+		ct1, _ := EncryptCBC(key, plaintext)
+		ct2, _ := EncryptCBC(key, plaintext)
+		if bytes.Equal(ct1, ct2) {
+			t.Error("CBC should produce different ciphertexts with random IV")
+		}
+	})
+
+	t.Run("CFB produces different ciphertexts", func(t *testing.T) {
+		ct1, _ := EncryptCFB(key, plaintext)
+		ct2, _ := EncryptCFB(key, plaintext)
+		if bytes.Equal(ct1, ct2) {
+			t.Error("CFB should produce different ciphertexts with random IV")
+		}
+	})
+
+	t.Run("CTR produces different ciphertexts", func(t *testing.T) {
+		ct1, _ := EncryptCTR(key, plaintext)
+		ct2, _ := EncryptCTR(key, plaintext)
+		if bytes.Equal(ct1, ct2) {
+			t.Error("CTR should produce different ciphertexts with random IV")
+		}
+	})
+
+	t.Run("OFB produces different ciphertexts", func(t *testing.T) {
+		ct1, _ := EncryptOFB(key, plaintext)
+		ct2, _ := EncryptOFB(key, plaintext)
+		if bytes.Equal(ct1, ct2) {
+			t.Error("OFB should produce different ciphertexts with random IV")
+		}
+	})
+}
+
+// TestAESWithDifferentKeys tests that different keys produce different ciphertexts
+func TestAESWithDifferentKeys(t *testing.T) {
+	key1 := generateValidKey()
+	key2 := []byte("98765432109876543210987654321098") // different key
+	plaintext := []byte("test message")
+
+	modes := []struct {
+		name    string
+		encrypt func([]byte, []byte) ([]byte, error)
+	}{
+		{"GCM", Encrypt},
+		{"ECB", EncryptECB},
+		{"CBC", EncryptCBC},
+		{"CFB", EncryptCFB},
+		{"CTR", EncryptCTR},
+		{"OFB", EncryptOFB},
+	}
+
+	for _, mode := range modes {
+		t.Run(mode.name, func(t *testing.T) {
+			ct1, _ := mode.encrypt(key1, plaintext)
+			ct2, _ := mode.encrypt(key2, plaintext)
+
+			// For ECB, ciphertexts should be completely different
+			// For others, at least the encrypted part should differ (IV/nonce will be random)
+			if mode.name == "ECB" {
+				if bytes.Equal(ct1, ct2) {
+					t.Error("Different keys should produce different ciphertexts")
+				}
+			} else {
+				// For modes with IV, check that they're not identical
+				if bytes.Equal(ct1, ct2) {
+					t.Error("Different keys should produce different ciphertexts")
+				}
+			}
+		})
+	}
+}
+
+// TestEncryptErrorPaths tests error paths in encryption functions using dependency injection
+func TestEncryptErrorPaths(t *testing.T) {
+	key := generateValidKey()
+	plaintext := []byte("test message")
+
+	t.Run("Encrypt fails when newCipherFunc returns error", func(t *testing.T) {
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
 		_, err := Encrypt(key, plaintext)
-		if err != nil && err.Error() != "invalid key length: must be 32 bytes" {
-			t.Logf("Encrypt rand.Reader error: %v", err)
+		if err == nil {
+			t.Error("Encrypt should fail when newCipherFunc returns error")
 		}
+		if err != nil && !strings.Contains(err.Error(), "mock cipher error") {
+			t.Errorf("Expected mock cipher error, got: %v", err)
+		}
+	})
 
-		_, err = EncryptCBC(key, plaintext)
-		if err != nil && err.Error() != "invalid key length: must be 32 bytes" {
-			t.Logf("EncryptCBC rand.Reader error: %v", err)
+	t.Run("Encrypt fails when newGCMFunc returns error", func(t *testing.T) {
+		originalNewGCMFunc := newGCMFunc
+		newGCMFunc = func(cipher cipher.Block) (cipher.AEAD, error) {
+			return nil, errors.New("mock GCM error")
 		}
+		defer func() { newGCMFunc = originalNewGCMFunc }()
 
-		_, err = EncryptCFB(key, plaintext)
-		if err != nil && err.Error() != "invalid key length: must be 32 bytes" {
-			t.Logf("EncryptCFB rand.Reader error: %v", err)
+		_, err := Encrypt(key, plaintext)
+		if err == nil {
+			t.Error("Encrypt should fail when newGCMFunc returns error")
 		}
+		if err != nil && !strings.Contains(err.Error(), "mock GCM error") {
+			t.Errorf("Expected mock GCM error, got: %v", err)
+		}
+	})
 
-		_, err = EncryptCTR(key, plaintext)
-		if err != nil && err.Error() != "invalid key length: must be 32 bytes" {
-			t.Logf("EncryptCTR rand.Reader error: %v", err)
-		}
+	t.Run("Encrypt fails when randReader returns error", func(t *testing.T) {
+		originalRandReader := randReader
+		randReader = &failingReader{}
+		defer func() { randReader = originalRandReader }()
 
-		_, err = EncryptOFB(key, plaintext)
-		if err != nil && err.Error() != "invalid key length: must be 32 bytes" {
-			t.Logf("EncryptOFB rand.Reader error: %v", err)
+		_, err := Encrypt(key, plaintext)
+		if err == nil {
+			t.Error("Encrypt should fail when randReader returns error")
 		}
+		if err != nil && !strings.Contains(err.Error(), "mock random error") {
+			t.Errorf("Expected mock random error, got: %v", err)
+		}
+	})
+
+	t.Run("EncryptECB fails when newCipherFunc returns error", func(t *testing.T) {
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := EncryptECB(key, plaintext)
+		if err == nil {
+			t.Error("EncryptECB should fail when newCipherFunc returns error")
+		}
+	})
+
+	t.Run("EncryptCBC fails when newCipherFunc returns error", func(t *testing.T) {
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := EncryptCBC(key, plaintext)
+		if err == nil {
+			t.Error("EncryptCBC should fail when newCipherFunc returns error")
+		}
+	})
+
+	t.Run("EncryptCBC fails when randReader returns error", func(t *testing.T) {
+		originalRandReader := randReader
+		randReader = &failingReader{}
+		defer func() { randReader = originalRandReader }()
+
+		_, err := EncryptCBC(key, plaintext)
+		if err == nil {
+			t.Error("EncryptCBC should fail when randReader returns error")
+		}
+	})
+
+	t.Run("EncryptCFB fails when newCipherFunc returns error", func(t *testing.T) {
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := EncryptCFB(key, plaintext)
+		if err == nil {
+			t.Error("EncryptCFB should fail when newCipherFunc returns error")
+		}
+	})
+
+	t.Run("EncryptCFB fails when randReader returns error", func(t *testing.T) {
+		originalRandReader := randReader
+		randReader = &failingReader{}
+		defer func() { randReader = originalRandReader }()
+
+		_, err := EncryptCFB(key, plaintext)
+		if err == nil {
+			t.Error("EncryptCFB should fail when randReader returns error")
+		}
+	})
+
+	t.Run("EncryptCTR fails when newCipherFunc returns error", func(t *testing.T) {
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := EncryptCTR(key, plaintext)
+		if err == nil {
+			t.Error("EncryptCTR should fail when newCipherFunc returns error")
+		}
+	})
+
+	t.Run("EncryptCTR fails when randReader returns error", func(t *testing.T) {
+		originalRandReader := randReader
+		randReader = &failingReader{}
+		defer func() { randReader = originalRandReader }()
+
+		_, err := EncryptCTR(key, plaintext)
+		if err == nil {
+			t.Error("EncryptCTR should fail when randReader returns error")
+		}
+	})
+
+	t.Run("EncryptOFB fails when newCipherFunc returns error", func(t *testing.T) {
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := EncryptOFB(key, plaintext)
+		if err == nil {
+			t.Error("EncryptOFB should fail when newCipherFunc returns error")
+		}
+	})
+
+	t.Run("EncryptOFB fails when randReader returns error", func(t *testing.T) {
+		originalRandReader := randReader
+		randReader = &failingReader{}
+		defer func() { randReader = originalRandReader }()
+
+		_, err := EncryptOFB(key, plaintext)
+		if err == nil {
+			t.Error("EncryptOFB should fail when randReader returns error")
+		}
+	})
+}
+
+// TestDecryptErrorPaths tests error paths in decryption functions using dependency injection
+func TestDecryptErrorPaths(t *testing.T) {
+	key := generateValidKey()
+	plaintext := []byte("test message")
+
+	t.Run("Decrypt fails when newCipherFunc returns error", func(t *testing.T) {
+		// First create valid ciphertext
+		ciphertext, _ := Encrypt(key, plaintext)
+
+		// Then inject error
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := Decrypt(key, ciphertext)
+		if err == nil {
+			t.Error("Decrypt should fail when newCipherFunc returns error")
+		}
+	})
+
+	t.Run("Decrypt fails when newGCMFunc returns error", func(t *testing.T) {
+		ciphertext, _ := Encrypt(key, plaintext)
+
+		originalNewGCMFunc := newGCMFunc
+		newGCMFunc = func(cipher cipher.Block) (cipher.AEAD, error) {
+			return nil, errors.New("mock GCM error")
+		}
+		defer func() { newGCMFunc = originalNewGCMFunc }()
+
+		_, err := Decrypt(key, ciphertext)
+		if err == nil {
+			t.Error("Decrypt should fail when newGCMFunc returns error")
+		}
+	})
+
+	t.Run("DecryptECB fails when newCipherFunc returns error", func(t *testing.T) {
+		ciphertext, _ := EncryptECB(key, plaintext)
+
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := DecryptECB(key, ciphertext)
+		if err == nil {
+			t.Error("DecryptECB should fail when newCipherFunc returns error")
+		}
+	})
+
+	t.Run("DecryptCBC fails when newCipherFunc returns error", func(t *testing.T) {
+		ciphertext, _ := EncryptCBC(key, plaintext)
+
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := DecryptCBC(key, ciphertext)
+		if err == nil {
+			t.Error("DecryptCBC should fail when newCipherFunc returns error")
+		}
+	})
+
+	t.Run("DecryptCFB fails when newCipherFunc returns error", func(t *testing.T) {
+		ciphertext, _ := EncryptCFB(key, plaintext)
+
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := DecryptCFB(key, ciphertext)
+		if err == nil {
+			t.Error("DecryptCFB should fail when newCipherFunc returns error")
+		}
+	})
+
+	t.Run("DecryptCTR fails when newCipherFunc returns error", func(t *testing.T) {
+		ciphertext, _ := EncryptCTR(key, plaintext)
+
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := DecryptCTR(key, ciphertext)
+		if err == nil {
+			t.Error("DecryptCTR should fail when newCipherFunc returns error")
+		}
+	})
+
+	t.Run("DecryptOFB fails when newCipherFunc returns error", func(t *testing.T) {
+		ciphertext, _ := EncryptOFB(key, plaintext)
+
+		originalNewCipherFunc := newCipherFunc
+		newCipherFunc = func(key []byte) (cipher.Block, error) {
+			return nil, errors.New("mock cipher error")
+		}
+		defer func() { newCipherFunc = originalNewCipherFunc }()
+
+		_, err := DecryptOFB(key, ciphertext)
+		if err == nil {
+			t.Error("DecryptOFB should fail when newCipherFunc returns error")
+		}
+	})
+}
+
+// failingReader is a mock io.Reader that always returns an error
+type failingReader struct{}
+
+func (r *failingReader) Read(p []byte) (n int, err error) {
+	return 0, errors.New("mock random error")
+}
+
+// BenchmarkAESEncrypt benchmarks all encryption modes
+func BenchmarkAESEncryptGCM(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	for i := 0; i < b.N; i++ {
+		_, _ = Encrypt(key, plaintext)
 	}
 }
 
-// Test to verify the theoretical 100% coverage scenario
-// In practice, some error branches in Go stdlib are nearly impossible to trigger
-func TestTheoreticalFullCoverage(t *testing.T) {
-	// Document that we've tested all possible conditions that can be reasonably tested
-	// The remaining uncovered lines are:
-	// 1. aes.NewCipher() errors - only possible with invalid key sizes (already tested)
-	// 2. cipher.NewGCM() errors - only possible with invalid block ciphers (not possible with AES)
-	// 3. io.ReadFull(rand.Reader, ...) errors - only possible if system entropy is exhausted
-	// 4. Various other Go stdlib internal errors that are not practically triggerable
+func BenchmarkAESEncryptECB(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	for i := 0; i < b.N; i++ {
+		_, _ = EncryptECB(key, plaintext)
+	}
+}
 
-	// Mark test as successful since we've covered all reasonable test cases
-	t.Log("All reasonable error conditions have been tested")
-	t.Log("Remaining uncovered lines are Go stdlib internal error branches")
-	t.Log("that are not practically triggerable in normal testing environments")
+func BenchmarkAESEncryptCBC(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	for i := 0; i < b.N; i++ {
+		_, _ = EncryptCBC(key, plaintext)
+	}
+}
+
+func BenchmarkAESEncryptCFB(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	for i := 0; i < b.N; i++ {
+		_, _ = EncryptCFB(key, plaintext)
+	}
+}
+
+func BenchmarkAESEncryptCTR(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	for i := 0; i < b.N; i++ {
+		_, _ = EncryptCTR(key, plaintext)
+	}
+}
+
+func BenchmarkAESEncryptOFB(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	for i := 0; i < b.N; i++ {
+		_, _ = EncryptOFB(key, plaintext)
+	}
+}
+
+// BenchmarkAESDecrypt benchmarks all decryption modes
+func BenchmarkAESDecryptGCM(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	ciphertext, _ := Encrypt(key, plaintext)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = Decrypt(key, ciphertext)
+	}
+}
+
+func BenchmarkAESDecryptECB(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	ciphertext, _ := EncryptECB(key, plaintext)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = DecryptECB(key, ciphertext)
+	}
+}
+
+func BenchmarkAESDecryptCBC(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	ciphertext, _ := EncryptCBC(key, plaintext)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = DecryptCBC(key, ciphertext)
+	}
+}
+
+func BenchmarkAESDecryptCFB(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	ciphertext, _ := EncryptCFB(key, plaintext)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = DecryptCFB(key, ciphertext)
+	}
+}
+
+func BenchmarkAESDecryptCTR(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	ciphertext, _ := EncryptCTR(key, plaintext)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = DecryptCTR(key, ciphertext)
+	}
+}
+
+func BenchmarkAESDecryptOFB(b *testing.B) {
+	key := generateValidKey()
+	plaintext := []byte("benchmark message for AES testing")
+	ciphertext, _ := EncryptOFB(key, plaintext)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, _ = DecryptOFB(key, ciphertext)
+	}
 }

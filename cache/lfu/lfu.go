@@ -18,10 +18,10 @@ type Cache[K comparable, V any] struct {
 
 // entry represents a cache entry
 type entry[K comparable, V any] struct {
-	key       K
-	value     V
-	freq      int
-	element   *list.Element
+	key     K
+	value   V
+	freq    int
+	element *list.Element
 }
 
 // New creates a new LFU cache with the given capacity
@@ -29,7 +29,7 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 	if capacity <= 0 {
 		return nil, fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
-	
+
 	return &Cache[K, V]{
 		capacity:  capacity,
 		items:     make(map[K]*entry[K, V]),
@@ -52,12 +52,12 @@ func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache
 func (c *Cache[K, V]) Get(key K) (value V, ok bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	if entry, exists := c.items[key]; exists {
 		c.incrementFreq(entry)
 		return entry.value, true
 	}
-	
+
 	var zero V
 	return zero, false
 }
@@ -66,7 +66,7 @@ func (c *Cache[K, V]) Get(key K) (value V, ok bool) {
 func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	// Check if key already exists
 	if entry, exists := c.items[key]; exists {
 		// Update existing entry
@@ -74,20 +74,20 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 		c.incrementFreq(entry)
 		return false
 	}
-	
+
 	// Check if we need to evict
 	if len(c.items) >= c.capacity {
 		c.evictLFU()
 		evicted = true
 	}
-	
+
 	// Add new entry with frequency 1
 	entry := &entry[K, V]{
 		key:   key,
 		value: value,
 		freq:  1,
 	}
-	
+
 	// Add to frequency list
 	if c.freqLists[1] == nil {
 		c.freqLists[1] = list.New()
@@ -95,7 +95,7 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 	entry.element = c.freqLists[1].PushFront(entry)
 	c.items[key] = entry
 	c.minFreq = 1
-	
+
 	return evicted
 }
 
@@ -103,12 +103,12 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 func (c *Cache[K, V]) Remove(key K) (value V, ok bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	if entry, exists := c.items[key]; exists {
 		c.removeEntry(entry)
 		return entry.value, true
 	}
-	
+
 	var zero V
 	return zero, false
 }
@@ -117,7 +117,7 @@ func (c *Cache[K, V]) Remove(key K) (value V, ok bool) {
 func (c *Cache[K, V]) Contains(key K) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	_, exists := c.items[key]
 	return exists
 }
@@ -126,11 +126,11 @@ func (c *Cache[K, V]) Contains(key K) bool {
 func (c *Cache[K, V]) Peek(key K) (value V, ok bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	if entry, exists := c.items[key]; exists {
 		return entry.value, true
 	}
-	
+
 	var zero V
 	return zero, false
 }
@@ -139,7 +139,7 @@ func (c *Cache[K, V]) Peek(key K) (value V, ok bool) {
 func (c *Cache[K, V]) Len() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	return len(c.items)
 }
 
@@ -152,13 +152,13 @@ func (c *Cache[K, V]) Cap() int {
 func (c *Cache[K, V]) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	if c.onEvict != nil {
 		for _, entry := range c.items {
 			c.onEvict(entry.key, entry.value)
 		}
 	}
-	
+
 	c.items = make(map[K]*entry[K, V])
 	c.freqLists = make(map[int]*list.List)
 	c.minFreq = 1
@@ -168,7 +168,7 @@ func (c *Cache[K, V]) Clear() {
 func (c *Cache[K, V]) Keys() []K {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	keys := make([]K, 0, len(c.items))
 	for key := range c.items {
 		keys = append(keys, key)
@@ -180,7 +180,7 @@ func (c *Cache[K, V]) Keys() []K {
 func (c *Cache[K, V]) Values() []V {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	values := make([]V, 0, len(c.items))
 	for _, entry := range c.items {
 		values = append(values, entry.value)
@@ -192,7 +192,7 @@ func (c *Cache[K, V]) Values() []V {
 func (c *Cache[K, V]) Items() map[K]V {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	items := make(map[K]V, len(c.items))
 	for key, entry := range c.items {
 		items[key] = entry.value
@@ -205,12 +205,12 @@ func (c *Cache[K, V]) Resize(capacity int) error {
 	if capacity <= 0 {
 		return fmt.Errorf("capacity must be positive, got %d", capacity)
 	}
-	
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	c.capacity = capacity
-	
+
 	// Remove excess items if new capacity is smaller
 	for len(c.items) > c.capacity {
 		c.evictLFU()
@@ -222,7 +222,7 @@ func (c *Cache[K, V]) Resize(capacity int) error {
 func (c *Cache[K, V]) GetFreq(key K) int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	if entry, exists := c.items[key]; exists {
 		return entry.freq
 	}
@@ -233,16 +233,16 @@ func (c *Cache[K, V]) GetFreq(key K) int {
 func (c *Cache[K, V]) incrementFreq(entry *entry[K, V]) {
 	oldFreq := entry.freq
 	newFreq := oldFreq + 1
-	
+
 	// Remove from old frequency list
 	oldList := c.freqLists[oldFreq]
 	oldList.Remove(entry.element)
-	
+
 	// If this was the last item in the minimum frequency list, update minFreq
 	if oldFreq == c.minFreq && oldList.Len() == 0 {
 		c.minFreq++
 	}
-	
+
 	// Add to new frequency list
 	if c.freqLists[newFreq] == nil {
 		c.freqLists[newFreq] = list.New()
@@ -258,7 +258,7 @@ func (c *Cache[K, V]) evictLFU() {
 	if minFreqList == nil || minFreqList.Len() == 0 {
 		return
 	}
-	
+
 	// Remove the least recently used item among those with minimum frequency
 	element := minFreqList.Back()
 	if element != nil {
@@ -272,15 +272,15 @@ func (c *Cache[K, V]) removeEntry(entry *entry[K, V]) {
 	// Remove from frequency list
 	freqList := c.freqLists[entry.freq]
 	freqList.Remove(entry.element)
-	
+
 	// Update minFreq if necessary
 	if entry.freq == c.minFreq && freqList.Len() == 0 {
 		c.updateMinFreq()
 	}
-	
+
 	// Remove from items map
 	delete(c.items, entry.key)
-	
+
 	// Call eviction callback
 	if c.onEvict != nil {
 		c.onEvict(entry.key, entry.value)
@@ -293,7 +293,7 @@ func (c *Cache[K, V]) updateMinFreq() {
 		c.minFreq = 1
 		return
 	}
-	
+
 	// Find the new minimum frequency by checking all entries
 	minFreq := 0
 	for _, entry := range c.items {
@@ -301,7 +301,7 @@ func (c *Cache[K, V]) updateMinFreq() {
 			minFreq = entry.freq
 		}
 	}
-	
+
 	if minFreq > 0 {
 		c.minFreq = minFreq
 	} else {
@@ -313,26 +313,26 @@ func (c *Cache[K, V]) updateMinFreq() {
 func (c *Cache[K, V]) Stats() Stats {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	
+
 	freqDistribution := make(map[int]int)
 	for freq, list := range c.freqLists {
 		if list.Len() > 0 {
 			freqDistribution[freq] = list.Len()
 		}
 	}
-	
+
 	return Stats{
-		Size:               len(c.items),
-		Capacity:           c.capacity,
-		MinFreq:            c.minFreq,
-		FreqDistribution:   freqDistribution,
+		Size:             len(c.items),
+		Capacity:         c.capacity,
+		MinFreq:          c.minFreq,
+		FreqDistribution: freqDistribution,
 	}
 }
 
 // Stats represents cache statistics
 type Stats struct {
-	Size               int
-	Capacity           int
-	MinFreq            int
-	FreqDistribution   map[int]int
+	Size             int
+	Capacity         int
+	MinFreq          int
+	FreqDistribution map[int]int
 }

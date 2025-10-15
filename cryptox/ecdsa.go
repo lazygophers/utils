@@ -241,8 +241,12 @@ func ECDSASignatureFromBytes(data []byte) (r, s *big.Int, err error) {
 	}
 
 	seqLen := int(data[1])
-	if len(data) < seqLen+2 {
+	// 检查 seqLen 是否合理，防止越界
+	if seqLen < 0 || seqLen > len(data)-2 {
 		return nil, nil, errors.New("invalid DER signature: incorrect sequence length")
+	}
+	if len(data) < seqLen+2 {
+		return nil, nil, errors.New("invalid DER signature: data too short for declared sequence length")
 	}
 
 	data = data[2:] // 跳过 SEQUENCE 头部
@@ -253,8 +257,12 @@ func ECDSASignatureFromBytes(data []byte) (r, s *big.Int, err error) {
 	}
 
 	rLen := int(data[1])
-	if len(data) < rLen+2 {
+	// 检查 rLen 是否合理
+	if rLen < 0 || rLen > len(data)-2 {
 		return nil, nil, errors.New("invalid DER signature: incorrect r length")
+	}
+	if len(data) < rLen+2 {
+		return nil, nil, errors.New("invalid DER signature: data too short for r")
 	}
 
 	rBytes := data[2 : 2+rLen]
@@ -267,8 +275,12 @@ func ECDSASignatureFromBytes(data []byte) (r, s *big.Int, err error) {
 	}
 
 	sLen := int(data[1])
-	if len(data) < sLen+2 {
+	// 检查 sLen 是否合理
+	if sLen < 0 || sLen > len(data)-2 {
 		return nil, nil, errors.New("invalid DER signature: incorrect s length")
+	}
+	if len(data) < sLen+2 {
+		return nil, nil, errors.New("invalid DER signature: data too short for s")
 	}
 
 	sBytes := data[2 : 2+sLen]

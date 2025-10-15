@@ -205,7 +205,6 @@ func TestBooln(t *testing.T) {
 	})
 }
 
-
 func TestWeightedBool(t *testing.T) {
 	t.Run("weighted_bool_weight_greater_than_one", func(t *testing.T) {
 		// 测试权重>=1.0时总是返回true

@@ -11,7 +11,7 @@ import (
 // 全局默认配置变量
 var (
 	// defaultLocale 默认语言地区代码，用于格式化输出
-	defaultLocale    = "en"
+	defaultLocale = "en"
 	// defaultPrecision 默认精度，表示小数点后保留的位数
 	defaultPrecision = 1
 )
@@ -141,26 +141,26 @@ func formatByteSize(bytes int64, config Config) string {
 	if bytes == 0 {
 		return formatWithUnit(0, 0, config, "byte")
 	}
-	
+
 	absBytes := abs(bytes)
 	const unit = 1024
-	
+
 	locale, _ := GetLocaleConfig(config.Locale)
 	units := locale.ByteUnits
-	
+
 	if absBytes < unit {
 		return formatWithUnit(float64(bytes), 0, config, "byte")
 	}
-	
+
 	// 计算合适的单位级别
 	exp := int(math.Floor(math.Log(float64(absBytes)) / math.Log(unit)))
 	if exp >= len(units) {
 		exp = len(units) - 1
 	}
-	
+
 	// 计算数值
 	value := float64(bytes) / math.Pow(unit, float64(exp))
-	
+
 	return formatWithUnit(value, exp, config, "byte")
 }
 
@@ -169,26 +169,26 @@ func formatSpeed(bytesPerSecond int64, config Config) string {
 	if bytesPerSecond == 0 {
 		return formatWithUnit(0, 0, config, "speed")
 	}
-	
+
 	absBytes := abs(bytesPerSecond)
 	const unit = 1024
-	
+
 	locale, _ := GetLocaleConfig(config.Locale)
 	units := locale.SpeedUnits
-	
+
 	if absBytes < unit {
 		return formatWithUnit(float64(bytesPerSecond), 0, config, "speed")
 	}
-	
+
 	// 计算合适的单位级别
 	exp := int(math.Floor(math.Log(float64(absBytes)) / math.Log(unit)))
 	if exp >= len(units) {
 		exp = len(units) - 1
 	}
-	
+
 	// 计算数值
 	value := float64(bytesPerSecond) / math.Pow(unit, float64(exp))
-	
+
 	return formatWithUnit(value, exp, config, "speed")
 }
 
@@ -197,33 +197,33 @@ func formatBitSpeed(bitsPerSecond int64, config Config) string {
 	if bitsPerSecond == 0 {
 		return formatWithUnit(0, 0, config, "bitspeed")
 	}
-	
+
 	absBits := abs(bitsPerSecond)
 	const unit = 1000 // 网络速度通常使用十进制
-	
+
 	locale, _ := GetLocaleConfig(config.Locale)
 	units := locale.BitSpeedUnits
-	
+
 	if absBits < unit {
 		return formatWithUnit(float64(bitsPerSecond), 0, config, "bitspeed")
 	}
-	
+
 	// 计算合适的单位级别
 	exp := int(math.Floor(math.Log(float64(absBits)) / math.Log(unit)))
 	if exp >= len(units) {
 		exp = len(units) - 1
 	}
-	
+
 	// 计算数值
 	value := float64(bitsPerSecond) / math.Pow(unit, float64(exp))
-	
+
 	return formatWithUnit(value, exp, config, "bitspeed")
 }
 
 // formatWithUnit 格式化数值和单位
 func formatWithUnit(value float64, unitIndex int, config Config, unitType string) string {
 	locale, _ := GetLocaleConfig(config.Locale)
-	
+
 	var units []string
 	switch unitType {
 	case "byte":
@@ -235,13 +235,13 @@ func formatWithUnit(value float64, unitIndex int, config Config, unitType string
 	default:
 		return "-"
 	}
-	
+
 	if unitIndex >= len(units) {
 		unitIndex = len(units) - 1
 	}
-	
+
 	unit := units[unitIndex]
-	
+
 	// 格式化数值
 	var formattedValue string
 	if value == math.Trunc(value) {
@@ -253,12 +253,12 @@ func formatWithUnit(value float64, unitIndex int, config Config, unitType string
 		}
 		formattedValue = formatFloat(value, precision)
 	}
-	
+
 	// 紧凑模式不加空格
 	if config.Compact {
 		return formattedValue + unit
 	}
-	
+
 	return formattedValue + " " + unit
 }
 
@@ -290,22 +290,22 @@ func formatDuration(d time.Duration, config Config) string {
 		locale, _ := GetLocaleConfig(config.Locale)
 		return "0 " + locale.TimeUnits.Second
 	}
-	
+
 	// 时钟格式
 	if config.TimeFormat == "clock" {
 		return formatClockTime(d)
 	}
-	
+
 	locale, _ := GetLocaleConfig(config.Locale)
-	
+
 	// 处理负数
 	negative := d < 0
 	if negative {
 		d = -d
 	}
-	
+
 	var parts []string
-	
+
 	// 计算各个时间单位
 	days := d / (24 * time.Hour)
 	d %= 24 * time.Hour
@@ -314,7 +314,7 @@ func formatDuration(d time.Duration, config Config) string {
 	minutes := d / time.Minute
 	d %= time.Minute
 	seconds := d / time.Second
-	
+
 	// 根据最大的时间单位来决定显示精度
 	if days > 0 {
 		parts = append(parts, fmt.Sprintf("%d %s", days, getTimeUnit(locale, locale.TimeUnits.Day, int64(days))))
@@ -334,12 +334,12 @@ func formatDuration(d time.Duration, config Config) string {
 	} else {
 		parts = append(parts, fmt.Sprintf("%d %s", seconds, getTimeUnit(locale, locale.TimeUnits.Second, int64(seconds))))
 	}
-	
+
 	result := strings.Join(parts, " ")
 	if negative {
 		result = "-" + result
 	}
-	
+
 	return result
 }
 
@@ -350,12 +350,12 @@ func formatClockTime(d time.Duration) string {
 	if negative {
 		d = -d
 	}
-	
+
 	totalSeconds := int64(d.Seconds())
 	hours := totalSeconds / 3600
 	minutes := (totalSeconds % 3600) / 60
 	seconds := totalSeconds % 60
-	
+
 	var result string
 	if hours > 0 {
 		// 有小时：H:MM:SS 或 H:MM (如果秒数为0)
@@ -371,11 +371,11 @@ func formatClockTime(d time.Duration) string {
 		// 只有秒：0:SS
 		result = fmt.Sprintf("0:%02d", seconds)
 	}
-	
+
 	if negative {
 		result = "-" + result
 	}
-	
+
 	return result
 }
 
@@ -383,15 +383,15 @@ func formatClockTime(d time.Duration) string {
 func formatRelativeTime(t time.Time, config Config) string {
 	now := time.Now()
 	diff := now.Sub(t)
-	
+
 	locale, _ := GetLocaleConfig(config.Locale)
-	
+
 	// 处理未来时间
 	if diff < 0 {
 		diff = -diff
 		return formatFutureTime(diff, locale)
 	}
-	
+
 	// 处理过去时间
 	return formatPastTime(diff, locale)
 }
@@ -401,37 +401,37 @@ func formatPastTime(diff time.Duration, locale *Locale) string {
 	if diff < 10*time.Second {
 		return locale.RelativeTime.JustNow
 	}
-	
+
 	if diff < time.Minute {
 		seconds := int(diff.Seconds())
 		return fmt.Sprintf(locale.RelativeTime.SecondsAgo, seconds)
 	}
-	
+
 	if diff < time.Hour {
 		minutes := int(diff.Minutes())
 		return fmt.Sprintf(locale.RelativeTime.MinutesAgo, minutes)
 	}
-	
+
 	if diff < 24*time.Hour {
 		hours := int(diff.Hours())
 		return fmt.Sprintf(locale.RelativeTime.HoursAgo, hours)
 	}
-	
+
 	if diff < 7*24*time.Hour {
 		days := int(diff.Hours() / 24)
 		return fmt.Sprintf(locale.RelativeTime.DaysAgo, days)
 	}
-	
+
 	if diff < 30*24*time.Hour {
 		weeks := int(diff.Hours() / (7 * 24))
 		return fmt.Sprintf(locale.RelativeTime.WeeksAgo, weeks)
 	}
-	
+
 	if diff < 365*24*time.Hour {
 		months := int(diff.Hours() / (30 * 24))
 		return fmt.Sprintf(locale.RelativeTime.MonthsAgo, months)
 	}
-	
+
 	years := int(diff.Hours() / (365 * 24))
 	return fmt.Sprintf(locale.RelativeTime.YearsAgo, years)
 }
@@ -442,32 +442,32 @@ func formatFutureTime(diff time.Duration, locale *Locale) string {
 		seconds := int(diff.Seconds())
 		return fmt.Sprintf(locale.RelativeTime.SecondsLater, seconds)
 	}
-	
+
 	if diff < time.Hour {
 		minutes := int(diff.Minutes())
 		return fmt.Sprintf(locale.RelativeTime.MinutesLater, minutes)
 	}
-	
+
 	if diff < 24*time.Hour {
 		hours := int(diff.Hours())
 		return fmt.Sprintf(locale.RelativeTime.HoursLater, hours)
 	}
-	
+
 	if diff < 7*24*time.Hour {
 		days := int(diff.Hours() / 24)
 		return fmt.Sprintf(locale.RelativeTime.DaysLater, days)
 	}
-	
+
 	if diff < 30*24*time.Hour {
 		weeks := int(diff.Hours() / (7 * 24))
 		return fmt.Sprintf(locale.RelativeTime.WeeksLater, weeks)
 	}
-	
+
 	if diff < 365*24*time.Hour {
 		months := int(diff.Hours() / (30 * 24))
 		return fmt.Sprintf(locale.RelativeTime.MonthsLater, months)
 	}
-	
+
 	years := int(diff.Hours() / (365 * 24))
 	return fmt.Sprintf(locale.RelativeTime.YearsLater, years)
 }
