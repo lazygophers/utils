@@ -1221,3 +1221,262 @@ func TestDeepEqualComplexScenarios(t *testing.T) {
 		}
 	})
 }
+
+// TestDeepCopyPanicCases 测试会引发 panic 的情况
+func TestDeepCopyPanicCases(t *testing.T) {
+	t.Run("type mismatch should panic", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("DeepCopy with type mismatch should panic")
+			}
+		}()
+
+		src := 42
+		var dst string
+		DeepCopy(src, &dst)
+	})
+
+	t.Run("unsupported type should panic", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("DeepCopy with unsupported type should panic")
+			}
+		}()
+
+		type Unsupported struct {
+			Ch chan int
+		}
+		src := Unsupported{Ch: make(chan int)}
+		var dst Unsupported
+		DeepCopy(src, &dst)
+	})
+
+	t.Run("function type should panic", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("DeepCopy with function type should panic")
+			}
+		}()
+
+		type Container struct {
+			Fn func()
+		}
+		src := Container{Fn: func() {}}
+		var dst Container
+		DeepCopy(src, &dst)
+	})
+}
+
+// TestDeepCopyInvalidValues 测试 invalid 值的处理
+func TestDeepCopyInvalidValues(t *testing.T) {
+	t.Run("copy with invalid source", func(t *testing.T) {
+		// Create an invalid reflect.Value
+		var invalidVal interface{}
+		var dst int
+		DeepCopy(invalidVal, &dst)
+		// Should not panic, just return without doing anything
+	})
+
+	t.Run("copy all integer types", func(t *testing.T) {
+		// Test int8
+		var srcInt8 int8 = 127
+		var dstInt8 int8
+		DeepCopy(srcInt8, &dstInt8)
+		if dstInt8 != 127 {
+			t.Errorf("int8 copy failed")
+		}
+
+		// Test int16
+		var srcInt16 int16 = 32767
+		var dstInt16 int16
+		DeepCopy(srcInt16, &dstInt16)
+		if dstInt16 != 32767 {
+			t.Errorf("int16 copy failed")
+		}
+
+		// Test int32
+		var srcInt32 int32 = 2147483647
+		var dstInt32 int32
+		DeepCopy(srcInt32, &dstInt32)
+		if dstInt32 != 2147483647 {
+			t.Errorf("int32 copy failed")
+		}
+
+		// Test int64
+		var srcInt64 int64 = 9223372036854775807
+		var dstInt64 int64
+		DeepCopy(srcInt64, &dstInt64)
+		if dstInt64 != 9223372036854775807 {
+			t.Errorf("int64 copy failed")
+		}
+	})
+
+	t.Run("copy all unsigned integer types", func(t *testing.T) {
+		// Test uint8
+		var srcUint8 uint8 = 255
+		var dstUint8 uint8
+		DeepCopy(srcUint8, &dstUint8)
+		if dstUint8 != 255 {
+			t.Errorf("uint8 copy failed")
+		}
+
+		// Test uint16
+		var srcUint16 uint16 = 65535
+		var dstUint16 uint16
+		DeepCopy(srcUint16, &dstUint16)
+		if dstUint16 != 65535 {
+			t.Errorf("uint16 copy failed")
+		}
+
+		// Test uint32
+		var srcUint32 uint32 = 4294967295
+		var dstUint32 uint32
+		DeepCopy(srcUint32, &dstUint32)
+		if dstUint32 != 4294967295 {
+			t.Errorf("uint32 copy failed")
+		}
+
+		// Test uint64
+		var srcUint64 uint64 = 18446744073709551615
+		var dstUint64 uint64
+		DeepCopy(srcUint64, &dstUint64)
+		if dstUint64 != 18446744073709551615 {
+			t.Errorf("uint64 copy failed")
+		}
+	})
+
+	t.Run("copy complex64", func(t *testing.T) {
+		var srcComplex64 complex64 = complex(float32(1.5), float32(2.5))
+		var dstComplex64 complex64
+		DeepCopy(srcComplex64, &dstComplex64)
+		if dstComplex64 != srcComplex64 {
+			t.Errorf("complex64 copy failed")
+		}
+	})
+
+	t.Run("copy pointer to nil pointer", func(t *testing.T) {
+		var nilPtr *int
+		var dst *int
+		DeepCopy(&nilPtr, &dst)
+		if dst != nil {
+			t.Errorf("copy pointer to nil pointer should result in nil")
+		}
+	})
+
+	t.Run("copy invalid kind in struct", func(t *testing.T) {
+		// Test the Invalid kind branch
+		type Container struct {
+			Valid int
+		}
+		src := Container{Valid: 42}
+		var dst Container
+		DeepCopy(src, &dst)
+		if dst.Valid != 42 {
+			t.Errorf("copy struct with valid fields failed")
+		}
+	})
+}
+
+// TestDeepEqualInvalidValues 测试 DeepEqual 的 invalid 值处理
+func TestDeepEqualInvalidValues(t *testing.T) {
+	t.Run("compare invalid values", func(t *testing.T) {
+		var a, b interface{}
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual nil interfaces should be true")
+		}
+	})
+
+	t.Run("compare one invalid value", func(t *testing.T) {
+		var a interface{}
+		var b interface{} = 42
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual nil vs value should be false")
+		}
+	})
+}
+
+// TestTypedSliceCopyAllTypes 测试所有基本类型的切片复制
+func TestTypedSliceCopyAllTypes(t *testing.T) {
+	t.Run("copy bool slice", func(t *testing.T) {
+		src := []bool{true, false, true}
+		dst := TypedSliceCopy(src)
+		if len(dst) != 3 || dst[0] != true || dst[1] != false {
+			t.Errorf("bool slice copy failed")
+		}
+	})
+
+	t.Run("copy uint slice", func(t *testing.T) {
+		src := []uint{1, 2, 3}
+		dst := TypedSliceCopy(src)
+		if len(dst) != 3 || dst[0] != 1 {
+			t.Errorf("uint slice copy failed")
+		}
+	})
+
+	t.Run("copy float32 slice", func(t *testing.T) {
+		src := []float32{1.1, 2.2, 3.3}
+		dst := TypedSliceCopy(src)
+		if len(dst) != 3 || dst[0] != 1.1 {
+			t.Errorf("float32 slice copy failed")
+		}
+	})
+
+	t.Run("copy float64 slice", func(t *testing.T) {
+		src := []float64{1.1, 2.2, 3.3}
+		dst := TypedSliceCopy(src)
+		if len(dst) != 3 || dst[0] != 1.1 {
+			t.Errorf("float64 slice copy failed")
+		}
+	})
+
+	t.Run("copy complex128 slice", func(t *testing.T) {
+		src := []complex128{complex(1, 2), complex(3, 4)}
+		dst := TypedSliceCopy(src)
+		if len(dst) != 2 || dst[0] != complex(1, 2) {
+			t.Errorf("complex128 slice copy failed")
+		}
+	})
+}
+
+// TestTypedMapCopyAllTypes 测试所有基本类型的 map 复制
+func TestTypedMapCopyAllTypes(t *testing.T) {
+	t.Run("copy bool value map", func(t *testing.T) {
+		src := map[string]bool{"a": true, "b": false}
+		dst := TypedMapCopy(src)
+		if len(dst) != 2 || dst["a"] != true {
+			t.Errorf("bool value map copy failed")
+		}
+	})
+
+	t.Run("copy uint value map", func(t *testing.T) {
+		src := map[string]uint{"a": 1, "b": 2}
+		dst := TypedMapCopy(src)
+		if len(dst) != 2 || dst["a"] != 1 {
+			t.Errorf("uint value map copy failed")
+		}
+	})
+
+	t.Run("copy float32 value map", func(t *testing.T) {
+		src := map[string]float32{"a": 1.1, "b": 2.2}
+		dst := TypedMapCopy(src)
+		if len(dst) != 2 || dst["a"] != 1.1 {
+			t.Errorf("float32 value map copy failed")
+		}
+	})
+
+	t.Run("copy float64 value map", func(t *testing.T) {
+		src := map[string]float64{"a": 1.1, "b": 2.2}
+		dst := TypedMapCopy(src)
+		if len(dst) != 2 || dst["a"] != 1.1 {
+			t.Errorf("float64 value map copy failed")
+		}
+	})
+
+	t.Run("copy complex128 value map", func(t *testing.T) {
+		src := map[string]complex128{"a": complex(1, 2)}
+		dst := TypedMapCopy(src)
+		if len(dst) != 1 || dst["a"] != complex(1, 2) {
+			t.Errorf("complex128 value map copy failed")
+		}
+	})
+}
