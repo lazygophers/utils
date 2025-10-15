@@ -663,3 +663,90 @@ func TestECDSASpecificCoveragePaths(t *testing.T) {
 		t.Error("Expected error for invalid PEM data")
 	}
 }
+
+// TestECDSASignatureFromBytesBoundaryChecks tests that ECDSASignatureFromBytes
+// properly validates DER data and doesn't panic on invalid inputs
+func TestECDSASignatureFromBytesBoundaryChecks(t *testing.T) {
+	testCases := []struct {
+		name string
+		data []byte
+		desc string
+	}{
+		{
+			name: "empty data",
+			data: []byte{},
+			desc: "empty byte array",
+		},
+		{
+			name: "too short",
+			data: []byte{0x30, 0x06},
+			desc: "data too short (less than 6 bytes)",
+		},
+		{
+			name: "invalid sequence tag",
+			data: []byte{0x31, 0x08, 0x02, 0x02, 0x01, 0x02, 0x02, 0x02, 0x03, 0x04},
+			desc: "wrong SEQUENCE tag",
+		},
+		{
+			name: "sequence length overflow",
+			data: []byte{0x30, 0xFF, 0x02, 0x02, 0x01, 0x02},
+			desc: "sequence length exceeds data",
+		},
+		{
+			name: "missing r integer tag",
+			data: []byte{0x30, 0x08, 0x03, 0x02, 0x01, 0x02, 0x02, 0x02, 0x03, 0x04},
+			desc: "wrong INTEGER tag for r",
+		},
+		{
+			name: "r length overflow",
+			data: []byte{0x30, 0x08, 0x02, 0xFF, 0x01, 0x02, 0x02, 0x02, 0x03, 0x04},
+			desc: "r length exceeds data",
+		},
+		{
+			name: "missing s integer tag",
+			data: []byte{0x30, 0x08, 0x02, 0x02, 0x01, 0x02, 0x03, 0x02, 0x03, 0x04},
+			desc: "wrong INTEGER tag for s",
+		},
+		{
+			name: "s length overflow",
+			data: []byte{0x30, 0x08, 0x02, 0x02, 0x01, 0x02, 0x02, 0xFF, 0x03, 0x04},
+			desc: "s length exceeds data",
+		},
+		{
+			name: "negative sequence length",
+			data: []byte{0x30, 0x00, 0x02, 0x02, 0x01, 0x02},
+			desc: "zero sequence length",
+		},
+		{
+			name: "truncated r data",
+			data: []byte{0x30, 0x08, 0x02, 0x04, 0x01, 0x02},
+			desc: "r data truncated",
+		},
+		{
+			name: "truncated s data",
+			data: []byte{0x30, 0x08, 0x02, 0x02, 0x01, 0x02, 0x02, 0x04},
+			desc: "s data truncated",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, _, err := ECDSASignatureFromBytes(tc.data)
+			if err == nil {
+				t.Errorf("Expected error for %s, but got none", tc.desc)
+			}
+			// Verify it doesn't panic (the test passing means no panic occurred)
+			t.Logf("Correctly returned error: %v", err)
+		})
+	}
+
+	// Test with valid DER signature to ensure we didn't break normal operation
+	validDER := []byte{0x30, 0x08, 0x02, 0x02, 0x01, 0x23, 0x02, 0x02, 0x45, 0x67}
+	r, s, err := ECDSASignatureFromBytes(validDER)
+	if err != nil {
+		t.Errorf("Valid DER should not produce error: %v", err)
+	}
+	if r == nil || s == nil {
+		t.Error("Valid DER should produce non-nil r and s")
+	}
+}

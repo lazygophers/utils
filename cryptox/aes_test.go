@@ -1123,3 +1123,46 @@ func TestTheoreticalFullCoverage(t *testing.T) {
 	t.Log("Remaining uncovered lines are Go stdlib internal error branches")
 	t.Log("that are not practically triggerable in normal testing environments")
 }
+
+// TestDecryptECBBlockSizeValidation tests that DecryptECB properly validates
+// that ciphertext length is a multiple of block size
+func TestDecryptECBBlockSizeValidation(t *testing.T) {
+	key := make([]byte, 32)
+	_, err := io.ReadFull(rand.Reader, key)
+	if err != nil {
+		t.Fatalf("failed to generate random key: %v", err)
+	}
+
+	// Test with ciphertext that's not a multiple of block size (AES block size is 16 bytes)
+	testCases := []struct {
+		name   string
+		length int
+	}{
+		{"1 byte", 1},
+		{"7 bytes", 7},
+		{"15 bytes", 15},
+		{"17 bytes", 17},
+		{"31 bytes", 31},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			invalidCiphertext := make([]byte, tc.length)
+			_, err := DecryptECB(key, invalidCiphertext)
+			if err == nil {
+				t.Errorf("Expected error for ciphertext length %d (not a multiple of 16)", tc.length)
+			}
+			expectedError := "ciphertext is not a multiple of the block size"
+			if err != nil && err.Error() != expectedError {
+				t.Errorf("Expected error message '%s', got '%s'", expectedError, err.Error())
+			}
+		})
+	}
+
+	// Test with valid block size (should pass block size check, may fail on padding)
+	validBlockSizeData := make([]byte, 32) // 2 blocks
+	_, err = DecryptECB(key, validBlockSizeData)
+	// This should not panic and should either succeed or fail on padding
+	// We don't check the error here because it depends on padding validation
+	t.Logf("Valid block size test completed (error: %v)", err)
+}
