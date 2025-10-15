@@ -1,76 +1,178 @@
 # Candy Package - Go Syntactic Sugar Utilities
 
 ## Overview
-The candy package provides syntactic sugar utilities for Go, offering type-safe generic functions that simplify common programming operations.
+The candy package provides a comprehensive collection of utility functions that simplify common programming operations in Go. It leverages Go generics to offer type-safe, high-performance operations for type conversions, collection manipulations, and data transformations.
 
-## Key Functions
+## Core Function Categories
+
+### Type Conversion Functions
+Flexible type conversion utilities supporting multiple input types:
+
+- **ToInt/ToInt8/ToInt16/ToInt32/ToInt64**: Convert any type to signed integers
+- **ToUint/ToUint8/ToUint16/ToUint32/ToUint64**: Convert any type to unsigned integers
+- **ToFloat32/ToFloat64**: Convert any type to floating-point numbers
+- **ToBool**: Convert any type to boolean
+- **ToString**: Convert any type to string
+- **ToBytes**: Convert any type to byte slice
+- **ToSlice**: Convert any type to slice
+- **ToMap**: Convert any type to map
+- **ToPtr**: Convert value to pointer
+
+Supported conversion sources:
+- Boolean values
+- All integer types (signed/unsigned)
+- All floating-point types
+- String and byte slices
+- Time values
+- Complex types (maps, slices, structs)
+
+### Collection Operations
+Functional programming utilities for slice manipulation:
+
+- **All**: Check if all elements satisfy a condition
+- **Any**: Check if any element satisfies a condition
+- **Each**: Iterate over elements with a callback
+- **EachReverse**: Reverse iterate over elements
+- **Map**: Transform each element using a function
+- **Reduce**: Reduce slice to a single value
+- **Filter**: Filter elements by predicate
+- **Find**: Find first element matching condition
+- **Contains**: Check if slice contains an element
+- **Count**: Count elements matching condition
+- **GroupBy**: Group elements by key function
+
+### Slice Operations
+Advanced slice manipulation utilities:
+
+- **Spare**: Return elements in one slice but not in another (set difference)
+- **Remove**: Remove specified elements from slice
+- **RemoveIndex**: Remove element at specific index
+- **Reverse**: Reverse slice order
+- **Chunk**: Split slice into chunks of specified size
+- **Flatten**: Flatten nested slices
+- **Concat**: Concatenate multiple slices
+- **Shuffle**: Randomly shuffle slice elements
 
 ### Mathematical Operations
-- **Abs[T]**: Calculate absolute value for numeric types
-- **Sqrt[T]**: Square root calculation for floating-point types  
-- **Cbrt[T]**: Cube root calculation for floating-point types
-- **Pow[T]**: Power calculation with base and exponent
+Aggregate and comparison functions:
 
-### Collection Utilities
-- **Chunk[T]**: Split slice into smaller chunks of specified size
-- **Contains[T]**: Check if slice contains a specific element
-- **Each[T]**: Apply function to each element in slice
-- **Reduce[T, R]**: Reduce slice to single value using accumulator function
-- **All[T]**: Check if all elements match predicate
-- **Any[T]**: Check if any element matches predicate
-- **Bottom[T]**: Get N smallest elements from slice
+- **Max**: Find maximum value in slice
+- **Min**: Find minimum value in slice
+- **Sum**: Calculate sum of numeric values
+- **Average**: Calculate average of numeric values
+- **Median**: Calculate median value
+- **Mode**: Find most frequent value
 
-### Statistical Functions
-- **Average[T]**: Calculate arithmetic mean of numeric slice
-- **Max[T]**: Find maximum value in slice
-- **Min[T]**: Find minimum value in slice
+### Data Extraction and Transformation
 
-### Sorting and Selection
-- **SortUsing[T]**: Sort slice using custom comparison function
-- **Random[T]**: Select random element from slice
+- **Pluck**: Extract field values from struct slices (type-safe)
+- **PluckPtr**: Extract fields from pointer slices with nil handling
+- **PluckFilter**: Extract and filter field values
+- **PluckReflect**: Extract fields using reflection for dynamic scenarios
+- **SliceToMap**: Convert slice to map with key/value selectors
+
+### Utility Functions
+
+- **Unique**: Remove duplicate elements while preserving order
+- **Top**: Get first N elements from slice
+- **DeepCopy**: Deep copy any data structure (maps, slices, structs)
+- **Clone**: Shallow copy for basic types
 
 ## Code Examples
 
 ```go
 import "github.com/lazygophers/utils/candy"
 
-// Mathematical operations
-abs := candy.Abs(-42)           // Returns 42
-sqrt := candy.Sqrt(16.0)        // Returns 4.0
-power := candy.Pow(2, 3)        // Returns 8
+// Type Conversions
+intVal := candy.ToInt("123")        // 123
+boolVal := candy.ToBool("true")     // true
+floatVal := candy.ToFloat64("3.14") // 3.14
+strVal := candy.ToString(123)       // "123"
 
-// Collection operations
-numbers := []int{1, 2, 3, 4, 5, 6}
-chunks := candy.Chunk(numbers, 2)  // [[1,2], [3,4], [5,6]]
-exists := candy.Contains([]string{"a", "b"}, "b")  // true
+// Collection Operations
+numbers := []int{1, 2, 3, 4, 5}
 
-// Statistical functions
-avg := candy.Average([]float64{1, 2, 3, 4})  // 2.5
-max := candy.Max([]int{3, 7, 2, 9, 1})       // 9
+// Check if all elements are positive
+allPositive := candy.All(numbers, func(n int) bool { return n > 0 }) // true
 
-// Reduce example
-sum := candy.Reduce([]int{1,2,3,4}, 0, func(acc, v int) int {
-    return acc + v
-})  // Returns 10
+// Transform elements
+doubled := candy.Map(numbers, func(n int) int { return n * 2 })
+// doubled = []int{2, 4, 6, 8, 10}
+
+// Filter elements
+evens := candy.Filter(numbers, func(n int) bool { return n%2 == 0 })
+// evens = []int{2, 4}
+
+// Reduce to sum
+sum := candy.Reduce(numbers, func(a, b int) int { return a + b })
+// sum = 15
+
+// Slice Operations
+slice1 := []int{1, 2, 3}
+slice2 := []int{2, 3, 4, 5}
+
+// Set difference
+diff := candy.Spare(slice1, slice2) // [4, 5]
+
+// Remove elements
+result := candy.Remove(slice1, []int{2}) // [1, 3]
+
+// Remove duplicates
+unique := candy.Unique([]int{1, 2, 2, 3, 3, 3}) // [1, 2, 3]
+
+// Mathematical Operations
+numbers := []int{3, 1, 4, 1, 5, 9, 2, 6}
+maxVal := candy.Max(numbers)  // 9
+minVal := candy.Min(numbers)  // 1
+sumVal := candy.Sum(numbers)  // 31
+
+// Data Extraction
+type Person struct {
+    Name string
+    Age  int
+}
+
+people := []Person{
+    {Name: "Alice", Age: 30},
+    {Name: "Bob", Age: 25},
+}
+
+// Extract names using type-safe selector
+names := candy.Pluck(people, func(p Person) string { return p.Name })
+// names = []string{"Alice", "Bob"}
+
+// Deep Copy
+original := map[string]interface{}{
+    "name": "Alice",
+    "data": []int{1, 2, 3},
+}
+copied := candy.DeepCopy(original)
 ```
 
-## Type Constraints
-- Uses `golang.org/x/exp/constraints` for type safety
-- Supports Integer and Float constraints for mathematical operations
-- Generic functions work with comparable types for collections
+## Design Principles
 
-## Dependencies
-- `golang.org/x/exp/constraints` - Type constraints
-- `math/rand` - Random number generation
-- Standard library packages for mathematical operations
-
-## Usage Patterns
-1. **Pipeline Processing**: Chain operations for data transformation
-2. **Statistical Analysis**: Compute metrics on numeric data
-3. **Collection Management**: Split, filter, and process slices
-4. **Type-Safe Operations**: Leverage generics for compile-time safety
+1. **Type Safety**: Extensive use of Go generics for compile-time type checking
+2. **Performance**: Optimized algorithms with minimal allocations
+3. **Nil Safety**: Proper handling of nil values and empty collections
+4. **Consistency**: Uniform API design across all functions
+5. **Zero Dependencies**: Uses only standard library (except for logging utilities)
 
 ## Performance Notes
-- Mathematical operations are optimized for their respective types
-- Collection operations work efficiently with Go's slice semantics
-- Random operations use Go's standard random number generator
+
+- Map operations preallocate result slices to avoid repeated allocations
+- Set operations use map-based lookups for O(1) membership testing
+- Deep copy uses reflection efficiently with caching for repeated operations
+- All slice operations avoid unnecessary copies when possible
+
+## Use Cases
+
+1. **Data Transformation**: Converting between different data formats and types
+2. **Collection Processing**: Functional-style operations on slices and maps
+3. **Data Validation**: Checking conditions across collections
+4. **API Response Processing**: Extracting and transforming fields from struct slices
+5. **Configuration Handling**: Converting configuration values to appropriate types
+6. **Data Aggregation**: Computing statistics and aggregates from numeric data
+
+## Thread Safety
+
+Most functions are thread-safe for read-only operations. For concurrent modifications, use appropriate synchronization mechanisms.
