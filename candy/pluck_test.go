@@ -694,4 +694,44 @@ func TestReflectionBasedPluckAdvanced(t *testing.T) {
 			t.Errorf("PluckInt with valid pointers failed")
 		}
 	})
+
+	t.Run("pluck from nested arrays/slices", func(t *testing.T) {
+		// Test the nested slice/array handling branch
+		type Container struct {
+			Items [][]int
+		}
+		// This should test the case where element type is slice/array
+		// Need to create slice of slices
+		outerSlice := [][][]int{
+			{{1, 2}, {3, 4}},
+			{{5, 6}, {7, 8}},
+		}
+		
+		// This will exercise the nested slice handling code
+		result := pluck(outerSlice, "", nil)
+		if result == nil {
+			t.Error("pluck nested arrays should not return nil")
+		}
+	})
+
+	t.Run("pluck with nil element in pointer slice panics", func(t *testing.T) {
+		type TestStruct struct {
+			Value int
+		}
+		// Create a slice with a nil pointer to test the panic behavior
+		var nilPtr *TestStruct
+		slice := []*TestStruct{
+			{Value: 1},
+			nilPtr, // This is nil and will cause panic when dereferenced
+			{Value: 3},
+		}
+		
+		// This should panic because reflection will hit the nil pointer
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("PluckInt with nil pointer should panic")
+			}
+		}()
+		PluckInt(slice, "Value")
+	})
 }
