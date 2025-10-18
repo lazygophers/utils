@@ -1,11 +1,11 @@
 package candy
 
 import (
-	"cmp"
+	"golang.org/x/exp/constraints"
 	"reflect"
 )
 
-func MapKeys[K cmp.Ordered, V any](m map[K]V) []K {
+func MapKeys[K constraints.Ordered, V any](m map[K]V) []K {
 	keys := make([]K, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
