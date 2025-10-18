@@ -1,7 +1,7 @@
 package candy
 
 import (
-	"cmp"
+	"time"
 
 	"golang.org/x/exp/constraints"
 )
@@ -41,7 +41,7 @@ import (
 //	empty := []int{}
 //	result := Max(empty)
 //	// result = 0 (int类型的零值)
-func Max[T cmp.Ordered](ss []T) (max T) {
+func Max[T constraints.Ordered](ss []T) (max T) {
 	if len(ss) == 0 {
 		return
 	}
@@ -89,7 +89,7 @@ func Max[T cmp.Ordered](ss []T) (max T) {
 //	empty := []int{}
 //	result := Min(empty)
 //	// result = 0 (int类型的零值)
-func Min[T cmp.Ordered](ss []T) (min T) {
+func Min[T constraints.Ordered](ss []T) (min T) {
 	if len(ss) == 0 {
 		return
 	}
@@ -115,9 +115,7 @@ func Min[T cmp.Ordered](ss []T) (min T) {
 //
 //	sum := Sum([]int{1, 2, 3})  // 返回 6
 //	sum := Sum([]float64{1.5, 2.5})  // 返回 4.0
-func Sum[T interface {
-	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
-}](ss ...T) (ret T) {
+func Sum[T constraints.Ordered](ss ...T) (ret T) {
 	for _, s := range ss {
 		ret += s
 	}
@@ -126,22 +124,13 @@ func Sum[T interface {
 }
 
 // Average 计算数值切片的平均值
-func Average[T constraints.Integer | constraints.Float](ss ...T) (ret T) {
-	if len(ss) == 0 {
-		return
-	}
-
-	var sum float64
-	for _, s := range ss {
-		sum += float64(s)
-	}
-	return T(sum / float64(len(ss)))
+func Average[T constraints.Integer | constraints.Float | time.Duration](ss ...T) (ret T) {
+	ret = Sum(ss...) / T(len(ss))
+	return
 }
 
 // Abs 计算数值的绝对值
-func Abs[T interface {
-	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
-}](s T) T {
+func Abs[T constraints.Integer | constraints.Float](s T) T {
 	if s < 0 {
 		return -s
 	}

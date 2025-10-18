@@ -1,8 +1,9 @@
 package candy
 
 import (
-	"cmp"
 	"reflect"
+
+	"golang.org/x/exp/constraints"
 )
 
 // Spare 返回在 against 中但不在 ss 中的元素
@@ -21,7 +22,7 @@ import (
 //	ss := []int{1, 2, 3}
 //	against := []int{2, 3, 4, 5}
 //	result := Spare(ss, against) // 返回 [4, 5]
-func Spare[T cmp.Ordered](ss []T, against []T) (result []T) {
+func Spare[T constraints.Ordered](ss []T, against []T) (result []T) {
 	// 使用 make 初始化，确保返回空切片而非 nil
 	result = make([]T, 0)
 	set := make(map[T]struct{}, len(ss))
@@ -56,7 +57,7 @@ func Spare[T cmp.Ordered](ss []T, against []T) (result []T) {
 //	toRemove := []int{2, 4, 6}
 //	result := Remove(ss, toRemove)
 //	// result = [1, 3, 5]
-func Remove[T cmp.Ordered](ss []T, toRemove []T) (result []T) {
+func Remove[T constraints.Ordered](ss []T, toRemove []T) (result []T) {
 	// 使用 make 初始化，确保返回空切片而非 nil
 	result = make([]T, 0)
 	removeSet := make(map[T]struct{}, len(toRemove))
@@ -155,7 +156,7 @@ func RemoveSlice(src interface{}, rm interface{}) interface{} {
 //	added, removed := Diff(ss, against)
 //	// added = [4]
 //	// removed = [1]
-func Diff[T cmp.Ordered](ss []T, against []T) (added, removed []T) {
+func Diff[T constraints.Ordered](ss []T, against []T) (added, removed []T) {
 	removed = Remove(ss, against)
 	added = Remove(against, ss)
 
@@ -308,7 +309,7 @@ func LastOr[T any](ss []T, or T) (ret T) {
 // Index 返回元素 sub 在切片 ss 中的索引位置
 // 如果未找到，返回 -1
 // 这是一个泛型函数，支持所有可排序的类型
-func Index[T cmp.Ordered](ss []T, sub T) int {
+func Index[T constraints.Ordered](ss []T, sub T) int {
 	if len(ss) == 0 {
 		return -1
 	}
@@ -324,7 +325,7 @@ func Index[T cmp.Ordered](ss []T, sub T) int {
 
 // Same 返回在 against 和 ss 中都存在的元素
 // 用于查找两个有序集合的交集
-func Same[T cmp.Ordered](against []T, ss []T) (result []T) {
+func Same[T constraints.Ordered](against []T, ss []T) (result []T) {
 	// 使用 make 初始化，确保返回空切片而非 nil
 	result = make([]T, 0)
 	set := make(map[T]struct{}, len(ss))
@@ -499,7 +500,7 @@ func FilterNot[T any](ss []T, f func(T) bool) []T {
 }
 
 // Contains 检查切片中是否包含指定元素
-func Contains[T cmp.Ordered](ss []T, s T) bool {
+func Contains[T constraints.Ordered](ss []T, s T) bool {
 	return ContainsUsing(ss, func(v T) bool {
 		return s == v
 	})
