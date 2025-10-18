@@ -1,8 +1,9 @@
 package candy
 
 import (
-	"golang.org/x/exp/constraints"
 	"reflect"
+
+	"golang.org/x/exp/constraints"
 )
 
 func MapKeys[K constraints.Ordered, V any](m map[K]V) []K {
@@ -234,4 +235,12 @@ func MapKeysAny(m interface{}) []interface{} {
 		keys = append(keys, key.Interface())
 	}
 	return keys
+}
+
+func MapValues[K constraints.Ordered, V any](m map[K]V) []V {
+	values := make([]V, 0, len(m))
+	for _, value := range m {
+		values = append(values, value)
+	}
+	return values
 }
