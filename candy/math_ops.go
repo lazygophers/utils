@@ -1,6 +1,10 @@
 package candy
 
-import "cmp"
+import (
+	"cmp"
+
+	"golang.org/x/exp/constraints"
+)
 
 // Max 返回切片中的最大值
 //
@@ -122,9 +126,7 @@ func Sum[T interface {
 }
 
 // Average 计算数值切片的平均值
-func Average[T interface {
-	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
-}](ss ...T) (ret T) {
+func Average[T constraints.Integer | constraints.Float](ss ...T) (ret T) {
 	if len(ss) == 0 {
 		return
 	}
