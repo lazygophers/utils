@@ -1,11 +1,11 @@
 package candy
 
 import (
-	"cmp"
 	"sort"
 	"strings"
 
 	"github.com/lazygophers/utils/randx"
+	"golang.org/x/exp/constraints"
 )
 
 // All 检查切片中的所有元素是否都满足指定条件
@@ -164,9 +164,9 @@ func Shuffle[T any](ss []T) []T {
 }
 
 // Sort 对有序类型的切片进行排序
-// 接受一个实现了 cmp.Ordered 接口的切片，返回一个新的已排序切片
+// 接受一个实现了 constraints.Ordered 接口的切片，返回一个新的已排序切片
 // 原始切片不会被修改，返回的是排序后的副本
-func Sort[T cmp.Ordered](ss []T) []T {
+func Sort[T constraints.Ordered](ss []T) []T {
 	// 如果切片长度小于2，直接返回副本
 	if len(ss) < 2 {
 		return ss
@@ -201,11 +201,11 @@ func SortUsing[T any](slice []T, less func(T, T) bool) []T {
 }
 
 // Join 将有序类型的切片按指定分隔符连接成字符串
-// 该函数提供了通用的切片连接功能，支持所有实现了 cmp.Ordered 接口的类型
+// 该函数提供了通用的切片连接功能，支持所有实现了 constraints.Ordered 接口的类型
 // 包括整数、浮点数和字符串等基本类型
 //
 // 参数:
-//   - ss: 输入切片，类型为 []T，其中 T 必须实现 cmp.Ordered 接口
+//   - ss: 输入切片，类型为 []T，其中 T 必须实现 constraints.Ordered 接口
 //   - glue: 可选参数，指定连接分隔符，默认为 ","
 //
 // 返回:
@@ -220,7 +220,7 @@ func SortUsing[T any](slice []T, less func(T, T) bool) []T {
 //	words := []string{"Hello", "World", "Go"}
 //	result := Join(words, " ")
 //	// result 为 "Hello World Go"
-func Join[T cmp.Ordered](ss []T, glue ...string) string {
+func Join[T constraints.Ordered](ss []T, glue ...string) string {
 	// 设置默认分隔符
 	seq := ","
 	if len(glue) > 0 {

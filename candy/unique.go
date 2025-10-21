@@ -2,7 +2,7 @@
 package candy
 
 import (
-	"cmp"
+	"golang.org/x/exp/constraints"
 )
 
 // Unique 返回切片中的唯一元素，保持原始顺序
@@ -38,7 +38,7 @@ import (
 //	floats := []float64{1.1, 2.2, 1.1, 3.3, 2.2}
 //	uniqueFloats := Unique(floats)
 //	// uniqueFloats 的值为 []float64{1.1, 2.2, 3.3}
-func Unique[T cmp.Ordered](ss []T) (ret []T) {
+func Unique[T constraints.Ordered](ss []T) (ret []T) {
 	// 使用 make 初始化，确保返回空切片而非 nil
 	ret = make([]T, 0)
 	m := make(map[T]struct{}, len(ss))
