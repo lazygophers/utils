@@ -22,7 +22,6 @@ type Company struct {
 
 // CompanyName 生成公司名称
 func (f *Faker) CompanyName() string {
-	f.incrementCallCount()
 
 	// 尝试从数据文件加载
 	names, weights, err := getWeightedItems(f.language, "companies", "names")
@@ -31,7 +30,6 @@ func (f *Faker) CompanyName() string {
 		return f.generateCompanyName()
 	}
 
-	f.incrementGeneratedData()
 	return randx.WeightedChoose(names, weights)
 }
 
@@ -120,7 +118,6 @@ func (f *Faker) getCompanySuffixes() []string {
 
 // CompanySuffix 生成公司后缀
 func (f *Faker) CompanySuffix() string {
-	f.incrementCallCount()
 
 	suffixes, weights, err := getWeightedItems(f.language, "companies", "suffixes")
 	if err != nil {
@@ -128,13 +125,11 @@ func (f *Faker) CompanySuffix() string {
 		return randx.Choose(suffixes)
 	}
 
-	f.incrementGeneratedData()
 	return randx.WeightedChoose(suffixes, weights)
 }
 
 // Industry 生成行业名称
 func (f *Faker) Industry() string {
-	f.incrementCallCount()
 
 	industries := []string{
 		"Technology", "Healthcare", "Finance", "Education", "Manufacturing",
@@ -154,7 +149,6 @@ func (f *Faker) Industry() string {
 
 // JobTitle 生成职位名称
 func (f *Faker) JobTitle() string {
-	f.incrementCallCount()
 
 	// 职位级别
 	levels := []string{"", "Junior", "Senior", "Lead", "Principal", "Staff", "Chief"}
@@ -198,7 +192,6 @@ func (f *Faker) JobTitle() string {
 
 // Department 生成部门名称
 func (f *Faker) Department() string {
-	f.incrementCallCount()
 
 	departments := []string{
 		"Engineering", "Development", "Design", "Product", "Marketing", "Sales",
@@ -217,7 +210,6 @@ func (f *Faker) Department() string {
 
 // CompanyInfo 生成完整公司信息
 func (f *Faker) CompanyInfo() *Company {
-	f.incrementCallCount()
 
 	name := f.CompanyName()
 	industry := f.Industry()
@@ -280,7 +272,6 @@ func (f *Faker) CompanyInfo() *Company {
 
 // BS 生成商业术语/废话（Business Speak）
 func (f *Faker) BS() string {
-	f.incrementCallCount()
 
 	verbs := []string{
 		"implement", "utilize", "integrate", "streamline", "optimize", "leverage",
@@ -338,7 +329,6 @@ func (f *Faker) BS() string {
 
 // Catchphrase 生成公司口号
 func (f *Faker) Catchphrase() string {
-	f.incrementCallCount()
 
 	patterns := []string{
 		"Think %s, Act %s",

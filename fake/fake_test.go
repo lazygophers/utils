@@ -70,27 +70,6 @@ func TestWithContext(t *testing.T) {
 	}
 }
 
-// TestStats 测试统计功能
-func TestStats(t *testing.T) {
-	faker := New()
-
-	// 初始统计应该为0
-	stats := faker.Stats()
-	if stats["call_count"] != 0 {
-		t.Errorf("Expected initial call_count 0, got %d", stats["call_count"])
-	}
-
-	// 调用一些方法
-	_ = faker.Name()
-	_ = faker.Email()
-
-	stats = faker.Stats()
-	// 由于 Name() 和 Email() 内部可能调用其他方法，所以计数可能大于2
-	if stats["call_count"] < 2 {
-		t.Errorf("Expected call_count >= 2, got %d", stats["call_count"])
-	}
-}
-
 // TestClone 测试克隆功能
 func TestClone(t *testing.T) {
 	original := New(WithLanguage(LanguageChineseSimplified))
@@ -100,13 +79,12 @@ func TestClone(t *testing.T) {
 		t.Error("Clone should preserve language")
 	}
 
-	// 克隆应该有独立的统计
-	_ = original.Name()
-	originalStats := original.Stats()
-	cloneStats := clone.Stats()
+	// 验证克隆后的实例可以独立工作
+	originalName := original.Name()
+	cloneName := clone.Name()
 
-	if originalStats["call_count"] == cloneStats["call_count"] {
-		t.Error("Clone should have independent stats")
+	if originalName == "" || cloneName == "" {
+		t.Error("Both original and clone should generate valid names")
 	}
 }
 
@@ -363,8 +341,7 @@ func TestNoMemoryLeaks(t *testing.T) {
 	}
 
 	// 如果到这里没有崩溃，说明基本没有严重的内存问题
-	stats := faker.Stats()
-	t.Logf("Stats after 10k generations: %+v", stats)
+	t.Log("Successfully generated 10k data items without memory issues")
 }
 
 // TestRandomUserAgent 测试用户代理生成

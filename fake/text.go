@@ -9,7 +9,6 @@ import (
 
 // Word 生成单词
 func (f *Faker) Word() string {
-	f.incrementCallCount()
 
 	values, weights, err := getWeightedItems(f.language, "texts", "lorem")
 	if err != nil {
@@ -17,7 +16,6 @@ func (f *Faker) Word() string {
 		return f.getDefaultWord()
 	}
 
-	f.incrementGeneratedData()
 	return randx.WeightedChoose(values, weights)
 }
 
@@ -37,7 +35,6 @@ func (f *Faker) getDefaultWord() string {
 
 // Words 生成多个单词
 func (f *Faker) Words(count int) []string {
-	f.incrementCallCount()
 
 	if count <= 0 {
 		return []string{}
@@ -53,7 +50,6 @@ func (f *Faker) Words(count int) []string {
 
 // Sentence 生成句子
 func (f *Faker) Sentence() string {
-	f.incrementCallCount()
 
 	wordCount := randx.Intn(10) + 6 // 6-15个单词
 	words := f.Words(wordCount)
@@ -90,7 +86,6 @@ func (f *Faker) Sentences(count int) []string {
 
 // Paragraph 生成段落
 func (f *Faker) Paragraph() string {
-	f.incrementCallCount()
 
 	sentenceCount := randx.Intn(5) + 3 // 3-7个句子
 	sentences := f.Sentences(sentenceCount)
@@ -100,7 +95,6 @@ func (f *Faker) Paragraph() string {
 
 // Paragraphs 生成多个段落
 func (f *Faker) Paragraphs(count int) []string {
-	f.incrementCallCount()
 
 	if count <= 0 {
 		return []string{}
@@ -116,7 +110,6 @@ func (f *Faker) Paragraphs(count int) []string {
 
 // Text 生成指定长度的文本（字符数）
 func (f *Faker) Text(maxChars int) string {
-	f.incrementCallCount()
 
 	if maxChars <= 0 {
 		return ""
@@ -154,7 +147,6 @@ func (f *Faker) Text(maxChars int) string {
 
 // Title 生成标题
 func (f *Faker) Title() string {
-	f.incrementCallCount()
 
 	wordCount := randx.Intn(5) + 2 // 2-6个单词
 	words := f.Words(wordCount)
@@ -169,7 +161,6 @@ func (f *Faker) Title() string {
 
 // Quote 生成引用
 func (f *Faker) Quote() string {
-	f.incrementCallCount()
 
 	quote := f.Sentence()
 
@@ -183,14 +174,12 @@ func (f *Faker) Quote() string {
 
 // Lorem 生成Lorem Ipsum文本
 func (f *Faker) Lorem() string {
-	f.incrementCallCount()
 
 	return "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 }
 
 // LoremWords 生成Lorem Ipsum单词
 func (f *Faker) LoremWords(count int) string {
-	f.incrementCallCount()
 
 	words := f.Words(count)
 	return strings.Join(words, " ")
@@ -198,7 +187,6 @@ func (f *Faker) LoremWords(count int) string {
 
 // LoremSentences 生成Lorem Ipsum句子
 func (f *Faker) LoremSentences(count int) string {
-	f.incrementCallCount()
 
 	sentences := f.Sentences(count)
 	return strings.Join(sentences, " ")
@@ -206,7 +194,6 @@ func (f *Faker) LoremSentences(count int) string {
 
 // LoremParagraphs 生成Lorem Ipsum段落
 func (f *Faker) LoremParagraphs(count int) string {
-	f.incrementCallCount()
 
 	paragraphs := f.Paragraphs(count)
 	return strings.Join(paragraphs, "\n\n")
@@ -214,7 +201,6 @@ func (f *Faker) LoremParagraphs(count int) string {
 
 // Article 生成文章
 func (f *Faker) Article() string {
-	f.incrementCallCount()
 
 	title := f.Title()
 	paragraphCount := randx.Intn(5) + 3 // 3-7个段落
@@ -236,7 +222,6 @@ func (f *Faker) Article() string {
 
 // Slug 生成URL slug
 func (f *Faker) Slug() string {
-	f.incrementCallCount()
 
 	wordCount := randx.Intn(4) + 2 // 2-5个单词
 	words := f.Words(wordCount)
@@ -251,7 +236,6 @@ func (f *Faker) Slug() string {
 
 // HashTag 生成标签
 func (f *Faker) HashTag() string {
-	f.incrementCallCount()
 
 	word := f.Word()
 	return fmt.Sprintf("#%s", strings.ToLower(word))
@@ -259,7 +243,6 @@ func (f *Faker) HashTag() string {
 
 // HashTags 生成多个标签
 func (f *Faker) HashTags(count int) []string {
-	f.incrementCallCount()
 
 	if count <= 0 {
 		return []string{}
@@ -275,7 +258,6 @@ func (f *Faker) HashTags(count int) []string {
 
 // Tweet 生成类似推特的短消息
 func (f *Faker) Tweet() string {
-	f.incrementCallCount()
 
 	// 推特限制280字符
 	text := f.Text(200) // 留出空间给标签和链接
@@ -301,7 +283,6 @@ func (f *Faker) Tweet() string {
 
 // Review 生成评论/评价
 func (f *Faker) Review() string {
-	f.incrementCallCount()
 
 	// 评价通常比较简短
 	sentenceCount := randx.Intn(4) + 1 // 1-4个句子
@@ -353,7 +334,6 @@ func (f *Faker) BatchTitles(count int) []string {
 
 // 修复函数名拼写错误
 func (f *Faker) incrementCallOut() {
-	f.incrementCallCount()
 }
 
 // 全局便捷函数

@@ -61,14 +61,6 @@ type Faker struct {
 	dataMu sync.RWMutex
 	data   map[string]interface{}
 
-	// 性能统计
-	stats struct {
-		sync.RWMutex
-		callCount     int64
-		cacheHits     int64
-		generatedData int64
-	}
-
 	// 高性能优化数据
 	fastData *FastData
 }
@@ -194,45 +186,9 @@ func SetDefaults(opts ...FakerOption) {
 	}
 }
 
-// GetDefaultStats 获取默认实例的性能统计信息
-func GetDefaultStats() map[string]int64 {
-	return getDefaultFaker().Stats()
-}
-
 // ClearDefaultCache 清空默认实例的数据缓存
 func ClearDefaultCache() {
 	getDefaultFaker().ClearCache()
-}
-
-// 性能统计方法
-func (f *Faker) incrementCallCount() {
-	f.stats.Lock()
-	f.stats.callCount++
-	f.stats.Unlock()
-}
-
-func (f *Faker) incrementCacheHit() {
-	f.stats.Lock()
-	f.stats.cacheHits++
-	f.stats.Unlock()
-}
-
-func (f *Faker) incrementGeneratedData() {
-	f.stats.Lock()
-	f.stats.generatedData++
-	f.stats.Unlock()
-}
-
-// Stats 获取性能统计信息
-func (f *Faker) Stats() map[string]int64 {
-	f.stats.RLock()
-	defer f.stats.RUnlock()
-
-	return map[string]int64{
-		"call_count":     f.stats.callCount,
-		"cache_hits":     f.stats.cacheHits,
-		"generated_data": f.stats.generatedData,
-	}
 }
 
 // ClearCache 清空数据缓存
@@ -251,9 +207,6 @@ func (f *Faker) getCachedData(key string) (interface{}, bool) {
 	defer f.dataMu.RUnlock()
 
 	data, exists := f.data[key]
-	if exists {
-		f.incrementCacheHit()
-	}
 	return data, exists
 }
 
@@ -402,14 +355,11 @@ func (f *Faker) Clone() *Faker {
 
 // UserAgent 生成用户代理字符串
 func (f *Faker) UserAgent() string {
-	f.incrementCallCount()
 	// 使用新的智能生成器替代静态列表
 	return f.GenerateRandomUserAgent()
 }
 
 // RandomUserAgent 返回随机的用户代理字符串
 func RandomUserAgent() string {
-	f := getDefaultFaker()
-	f.incrementCallCount()
-	return f.UserAgent()
+	return getDefaultFaker().UserAgent()
 }

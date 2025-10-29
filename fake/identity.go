@@ -32,7 +32,6 @@ type CreditCard struct {
 
 // SSN 生成美国社会安全号码
 func (f *Faker) SSN() string {
-	f.incrementCallCount()
 
 	// SSN格式: XXX-XX-XXXX
 	// 第一部分: 001-899 (避免 000, 666, 900-999)
@@ -52,7 +51,6 @@ func (f *Faker) SSN() string {
 
 // ChineseIDNumber 生成中国身份证号码
 func (f *Faker) ChineseIDNumber() string {
-	f.incrementCallCount()
 
 	// 地区代码 (前6位)
 	areaCodes := []string{
@@ -104,7 +102,6 @@ func (f *Faker) calculateChineseIDChecksum(id17 string) string {
 
 // Passport 生成护照号码
 func (f *Faker) Passport() string {
-	f.incrementCallCount()
 
 	switch f.country {
 	case CountryUS:
@@ -138,7 +135,6 @@ func (f *Faker) Passport() string {
 
 // DriversLicense 生成驾照号码
 func (f *Faker) DriversLicense() string {
-	f.incrementCallCount()
 
 	switch f.country {
 	case CountryUS:
@@ -163,7 +159,6 @@ func (f *Faker) DriversLicense() string {
 
 // IdentityDoc 生成身份证件信息
 func (f *Faker) IdentityDoc() *IdentityDocument {
-	f.incrementCallCount()
 
 	docTypes := []string{"ID Card", "Passport", "Driver License", "Social Security"}
 	docType := randx.Choose(docTypes)
@@ -200,7 +195,6 @@ func (f *Faker) IdentityDoc() *IdentityDocument {
 
 // CreditCardNumber 生成信用卡号码
 func (f *Faker) CreditCardNumber() string {
-	f.incrementCallCount()
 
 	// 信用卡品牌前缀
 	prefixes := map[string][]string{
@@ -265,7 +259,6 @@ func (f *Faker) calculateLuhnCheckDigit(number string) int {
 
 // CVV 生成信用卡CVV码
 func (f *Faker) CVV() string {
-	f.incrementCallCount()
 
 	// 大部分卡是3位，American Express是4位
 	if randx.Float32() < 0.1 { // 10% 概率是4位
@@ -276,7 +269,6 @@ func (f *Faker) CVV() string {
 
 // BankAccount 生成银行账号
 func (f *Faker) BankAccount() string {
-	f.incrementCallCount()
 
 	switch f.country {
 	case CountryUS:
@@ -298,7 +290,6 @@ func (f *Faker) BankAccount() string {
 
 // IBAN 生成国际银行账号 (International Bank Account Number)
 func (f *Faker) IBAN() string {
-	f.incrementCallCount()
 
 	countryCodes := map[Country]string{
 		CountryGermany: "DE",
@@ -325,7 +316,6 @@ func (f *Faker) IBAN() string {
 
 // CreditCardInfo 生成完整信用卡信息
 func (f *Faker) CreditCardInfo() *CreditCard {
-	f.incrementCallCount()
 
 	number := f.CreditCardNumber()
 	cvv := f.CVV()
@@ -383,7 +373,6 @@ func (f *Faker) CreditCardInfo() *CreditCard {
 
 // SafeCreditCardNumber 生成测试用的安全信用卡号码
 func (f *Faker) SafeCreditCardNumber() string {
-	f.incrementCallCount()
 
 	// 使用测试卡号前缀，这些不是真实的信用卡号码
 	testPrefixes := []string{

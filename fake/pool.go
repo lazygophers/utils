@@ -86,12 +86,6 @@ func putIntSlice(slice []int) {
 // GetFaker 从池中获取Faker实例（并发安全）
 func GetFaker() *Faker {
 	faker := fakerPool.Get().(*Faker)
-	// 重置统计数据
-	faker.stats.Lock()
-	faker.stats.callCount = 0
-	faker.stats.cacheHits = 0
-	faker.stats.generatedData = 0
-	faker.stats.Unlock()
 	return faker
 }
 
@@ -236,11 +230,6 @@ func (f *Faker) BatchNamesOptimized(count int) []string {
 		}
 	}
 
-	f.stats.Lock()
-	f.stats.callCount++
-	f.stats.generatedData += int64(count)
-	f.stats.Unlock()
-
 	return results
 }
 
@@ -295,11 +284,6 @@ func (f *Faker) BatchEmailsOptimized(count int) []string {
 
 		results[i] = sb.String()
 	}
-
-	f.stats.Lock()
-	f.stats.callCount++
-	f.stats.generatedData += int64(count)
-	f.stats.Unlock()
 
 	return results
 }

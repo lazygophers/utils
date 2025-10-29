@@ -48,7 +48,6 @@ const (
 
 // DeviceInfo 生成设备信息
 func (f *Faker) DeviceInfo() *Device {
-	f.incrementCallCount()
 
 	deviceTypes := []DeviceType{
 		DeviceTypeDesktop, DeviceTypeLaptop, DeviceTypeTablet,
@@ -381,7 +380,6 @@ func (f *Faker) generateUserAgentForDevice(platform Platform, os, osVersion, bro
 
 // MobileUserAgent 生成移动端用户代理
 func (f *Faker) MobileUserAgent() string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		DeviceType: DeviceTypeMobile,
 		Mobile:     true,
@@ -391,7 +389,6 @@ func (f *Faker) MobileUserAgent() string {
 
 // DesktopUserAgent 生成桌面端用户代理
 func (f *Faker) DesktopUserAgent() string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		DeviceType: DeviceTypeDesktop,
 		Mobile:     false,
@@ -401,14 +398,12 @@ func (f *Faker) DesktopUserAgent() string {
 
 // Browser 生成浏览器名称
 func (f *Faker) Browser() string {
-	f.incrementCallCount()
 	browsers := []string{"Chrome", "Firefox", "Safari", "Edge", "Opera", "Internet Explorer", "Brave", "Vivaldi"}
 	return randx.Choose(browsers)
 }
 
 // OS 生成操作系统名称
 func (f *Faker) OS() string {
-	f.incrementCallCount()
 	systems := []string{"Windows", "macOS", "Linux", "Android", "iOS", "Unix", "FreeBSD", "Ubuntu", "Fedora", "CentOS"}
 	return randx.Choose(systems)
 }
