@@ -146,7 +146,6 @@ func (f *Faker) fastBatchNames(count int) []string {
 
 	// 无锁生成
 	for i := 0; i < count; i++ {
-		f.incrementCallCount()
 
 		var firstName, lastName string
 

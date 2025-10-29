@@ -352,13 +352,11 @@ var defaultUserAgentGen = NewUserAgentGenerator()
 
 // GenerateUserAgent 使用默认生成器生成用户代理
 func (f *Faker) GenerateUserAgent(opts UserAgentOptions) string {
-	f.incrementCallCount()
 	return defaultUserAgentGen.GenerateUserAgent(opts)
 }
 
 // GenerateRandomUserAgent 生成随机用户代理
 func (f *Faker) GenerateRandomUserAgent() string {
-	f.incrementCallCount()
 
 	// 随机选择设备类型
 	deviceTypes := []DeviceType{DeviceTypeDesktop, DeviceTypeLaptop, DeviceTypeMobile, DeviceTypeTablet}
@@ -377,7 +375,6 @@ func (f *Faker) GenerateRandomUserAgent() string {
 
 // 便捷方法 - 指定浏览器生成用户代理
 func (f *Faker) UserAgentFor(browser string) string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		Browser: browser,
 	}
@@ -386,7 +383,6 @@ func (f *Faker) UserAgentFor(browser string) string {
 
 // 便捷方法 - 指定平台生成用户代理
 func (f *Faker) UserAgentForPlatform(platform Platform) string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		Platform: platform,
 	}
@@ -395,7 +391,6 @@ func (f *Faker) UserAgentForPlatform(platform Platform) string {
 
 // 便捷方法 - 指定设备类型生成用户代理
 func (f *Faker) UserAgentForDevice(deviceType DeviceType) string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		DeviceType: deviceType,
 		Mobile:     deviceType == DeviceTypeMobile || deviceType == DeviceTypeTablet,
@@ -405,7 +400,6 @@ func (f *Faker) UserAgentForDevice(deviceType DeviceType) string {
 
 // 便捷方法 - Chrome用户代理
 func (f *Faker) ChromeUserAgent() string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		Browser: "Chrome",
 	}
@@ -414,7 +408,6 @@ func (f *Faker) ChromeUserAgent() string {
 
 // 便捷方法 - Firefox用户代理
 func (f *Faker) FirefoxUserAgent() string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		Browser: "Firefox",
 	}
@@ -423,7 +416,6 @@ func (f *Faker) FirefoxUserAgent() string {
 
 // 便捷方法 - Safari用户代理
 func (f *Faker) SafariUserAgent() string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		Browser: "Safari",
 	}
@@ -432,7 +424,6 @@ func (f *Faker) SafariUserAgent() string {
 
 // 便捷方法 - Edge用户代理
 func (f *Faker) EdgeUserAgent() string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		Browser: "Edge",
 	}
@@ -441,7 +432,6 @@ func (f *Faker) EdgeUserAgent() string {
 
 // 便捷方法 - Android设备用户代理
 func (f *Faker) AndroidUserAgent() string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		Platform:   PlatformAndroid,
 		DeviceType: DeviceTypeMobile,
@@ -452,7 +442,6 @@ func (f *Faker) AndroidUserAgent() string {
 
 // 便捷方法 - iOS设备用户代理
 func (f *Faker) IOSUserAgent() string {
-	f.incrementCallCount()
 	opts := UserAgentOptions{
 		Platform:   PlatformIOS,
 		DeviceType: DeviceTypeMobile,

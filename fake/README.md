@@ -341,7 +341,7 @@ go build -tags fake_multi
 go build
 ```
 
-## 统计和监控
+## 缓存管理
 
 ```go
 faker := fake.New()
@@ -350,12 +350,6 @@ faker := fake.New()
 faker.Name()
 faker.Email()
 faker.PhoneNumber()
-
-// 获取统计信息
-stats := faker.Stats()
-fmt.Printf("调用次数: %d\\n", stats["call_count"])
-fmt.Printf("缓存命中: %d\\n", stats["cache_hits"])
-fmt.Printf("生成数据: %d\\n", stats["generated_data"])
 
 // 清理缓存
 faker.ClearCache()

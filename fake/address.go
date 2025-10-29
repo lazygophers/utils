@@ -19,7 +19,6 @@ type Address struct {
 
 // Street 生成街道地址
 func (f *Faker) Street() string {
-	f.incrementCallCount()
 
 	values, weights, err := getWeightedItems(f.language, "addresses", "streets")
 	if err != nil {
@@ -32,7 +31,6 @@ func (f *Faker) Street() string {
 		}
 	}
 
-	f.incrementGeneratedData()
 	street := randx.WeightedChoose(values, weights)
 
 	// 生成街道号码
@@ -43,7 +41,6 @@ func (f *Faker) Street() string {
 
 // City 生成城市名称
 func (f *Faker) City() string {
-	f.incrementCallCount()
 
 	values, weights, err := getWeightedItems(f.language, "addresses", "cities")
 	if err != nil {
@@ -56,13 +53,11 @@ func (f *Faker) City() string {
 		}
 	}
 
-	f.incrementGeneratedData()
 	return randx.WeightedChoose(values, weights)
 }
 
 // State 生成州/省份名称
 func (f *Faker) State() string {
-	f.incrementCallCount()
 
 	switch f.country {
 	case CountryUS:
@@ -121,7 +116,6 @@ func (f *Faker) generateGenericState() string {
 
 // ZipCode 生成邮政编码
 func (f *Faker) ZipCode() string {
-	f.incrementCallCount()
 
 	switch f.country {
 	case CountryUS:
@@ -155,7 +149,6 @@ func (f *Faker) ZipCode() string {
 
 // CountryName 生成国家名称
 func (f *Faker) CountryName() string {
-	f.incrementCallCount()
 
 	switch f.language {
 	case LanguageEnglish:
@@ -213,7 +206,6 @@ func (f *Faker) generateTraditionalChineseCountryName() string {
 
 // FullAddress 生成完整地址
 func (f *Faker) FullAddress() *Address {
-	f.incrementCallCount()
 
 	street := f.Street()
 	city := f.City()
@@ -251,7 +243,6 @@ func (f *Faker) FullAddress() *Address {
 
 // AddressLine 生成地址行（不包含国家）
 func (f *Faker) AddressLine() string {
-	f.incrementCallCount()
 
 	street := f.Street()
 	city := f.City()
@@ -274,19 +265,16 @@ func (f *Faker) AddressLine() string {
 
 // Latitude 生成纬度
 func (f *Faker) Latitude() float64 {
-	f.incrementCallCount()
 	return (randx.Float64() - 0.5) * 180
 }
 
 // Longitude 生成经度
 func (f *Faker) Longitude() float64 {
-	f.incrementCallCount()
 	return (randx.Float64() - 0.5) * 360
 }
 
 // Coordinate 生成坐标对
 func (f *Faker) Coordinate() (float64, float64) {
-	f.incrementCallCount()
 	return f.Latitude(), f.Longitude()
 }
 

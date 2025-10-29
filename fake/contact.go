@@ -9,7 +9,6 @@ import (
 
 // PhoneNumber 生成电话号码
 func (f *Faker) PhoneNumber() string {
-	f.incrementCallCount()
 
 	switch f.country {
 	case CountryUS, CountryCanada:
@@ -109,7 +108,6 @@ func (f *Faker) generateKoreanPhone() string {
 
 // MobileNumber 生成手机号码
 func (f *Faker) MobileNumber() string {
-	f.incrementCallCount()
 
 	switch f.country {
 	case CountryUS, CountryCanada:
@@ -130,7 +128,6 @@ func (f *Faker) MobileNumber() string {
 
 // Email 生成邮箱地址
 func (f *Faker) Email() string {
-	f.incrementCallCount()
 
 	username := f.generateEmailUsername()
 	domain := f.generateEmailDomain()
@@ -194,7 +191,6 @@ func (f *Faker) generateEmailDomain() string {
 
 // CompanyEmail 生成企业邮箱地址
 func (f *Faker) CompanyEmail() string {
-	f.incrementCallCount()
 
 	username := f.generateEmailUsername()
 	domain := f.generateCompanyEmailDomain()
@@ -216,7 +212,6 @@ func (f *Faker) generateCompanyEmailDomain() string {
 
 // SafeEmail 生成安全的邮箱地址（使用example.com等域名）
 func (f *Faker) SafeEmail() string {
-	f.incrementCallCount()
 
 	username := f.generateEmailUsername()
 	domains := []string{"example.com", "example.org", "example.net", "test.com", "sample.org"}
@@ -227,7 +222,6 @@ func (f *Faker) SafeEmail() string {
 
 // URL 生成网址
 func (f *Faker) URL() string {
-	f.incrementCallCount()
 
 	protocols := []string{"http", "https"}
 	protocol := randx.Choose(protocols)
@@ -274,7 +268,6 @@ func (f *Faker) generateURLPath() string {
 
 // IPv4 生成IPv4地址
 func (f *Faker) IPv4() string {
-	f.incrementCallCount()
 
 	return fmt.Sprintf("%d.%d.%d.%d",
 		randx.Intn(256),
@@ -285,7 +278,6 @@ func (f *Faker) IPv4() string {
 
 // IPv6 生成IPv6地址
 func (f *Faker) IPv6() string {
-	f.incrementCallCount()
 
 	parts := make([]string, 8)
 	for i := range parts {
@@ -297,7 +289,6 @@ func (f *Faker) IPv6() string {
 
 // MAC 生成MAC地址
 func (f *Faker) MAC() string {
-	f.incrementCallCount()
 
 	parts := make([]string, 6)
 	for i := range parts {
