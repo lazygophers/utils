@@ -286,19 +286,35 @@ func (c *Calendar) calculateSeason() SeasonInfo {
 	switch {
 	case month >= 2 && month <= 4: // 春季
 		season = "春"
-		currentTerm = []string{"立春", "雨水", "惊蛰", "春分", "清明", "谷雨"}[(month-2)*2+now.Day()/15]
+		idx := (month-2)*2 + now.Day()/15
+		if idx > 5 {
+			idx = 5
+		}
+		currentTerm = []string{"立春", "雨水", "惊蛰", "春分", "清明", "谷雨"}[idx]
 		seasonProgress = float64(month-2)/3.0 + float64(now.Day())/90.0
 	case month >= 5 && month <= 7: // 夏季
 		season = "夏"
-		currentTerm = []string{"立夏", "小满", "芒种", "夏至", "小暑", "大暑"}[(month-5)*2+now.Day()/15]
+		idx := (month-5)*2 + now.Day()/15
+		if idx > 5 {
+			idx = 5
+		}
+		currentTerm = []string{"立夏", "小满", "芒种", "夏至", "小暑", "大暑"}[idx]
 		seasonProgress = float64(month-5)/3.0 + float64(now.Day())/90.0
 	case month >= 8 && month <= 10: // 秋季
 		season = "秋"
-		currentTerm = []string{"立秋", "处暑", "白露", "秋分", "寒露", "霜降"}[(month-8)*2+now.Day()/15]
+		idx := (month-8)*2 + now.Day()/15
+		if idx > 5 {
+			idx = 5
+		}
+		currentTerm = []string{"立秋", "处暑", "白露", "秋分", "寒露", "霜降"}[idx]
 		seasonProgress = float64(month-8)/3.0 + float64(now.Day())/90.0
 	default: // 冬季
 		season = "冬"
-		currentTerm = []string{"立冬", "小雪", "大雪", "冬至", "小寒", "大寒"}[((month+9)%12)*2+now.Day()/15]
+		idx := ((month+9)%12)*2 + now.Day()/15
+		if idx > 5 {
+			idx = 5
+		}
+		currentTerm = []string{"立冬", "小雪", "大雪", "冬至", "小寒", "大寒"}[idx]
 		seasonProgress = float64((month+9)%12)/3.0 + float64(now.Day())/90.0
 	}
 

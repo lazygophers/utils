@@ -125,6 +125,9 @@ func Sum[T constraints.Ordered](ss ...T) (ret T) {
 
 // Average 计算数值切片的平均值
 func Average[T constraints.Integer | constraints.Float | time.Duration](ss ...T) (ret T) {
+	if len(ss) == 0 {
+		return 0
+	}
 	ret = Sum(ss...) / T(len(ss))
 	return
 }
