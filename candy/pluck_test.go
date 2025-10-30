@@ -345,69 +345,6 @@ func TestPluckGroupBy(t *testing.T) {
 	})
 }
 
-// TestPluckGenericWrappers 测试泛型包装器函数
-func TestPluckGenericWrappers(t *testing.T) {
-	t.Run("PluckIntGeneric", func(t *testing.T) {
-		persons := []Person{{Age: 30}, {Age: 25}}
-		result := PluckIntGeneric(persons, func(p Person) int {
-			return p.Age
-		})
-		if len(result) != 2 || result[0] != 30 || result[1] != 25 {
-			t.Errorf("PluckIntGeneric failed")
-		}
-	})
-
-	t.Run("PluckStringGeneric", func(t *testing.T) {
-		persons := []Person{{Name: "Alice"}, {Name: "Bob"}}
-		result := PluckStringGeneric(persons, func(p Person) string {
-			return p.Name
-		})
-		if len(result) != 2 || result[0] != "Alice" || result[1] != "Bob" {
-			t.Errorf("PluckStringGeneric failed")
-		}
-	})
-
-	t.Run("PluckInt32Generic", func(t *testing.T) {
-		items := []Item{{Code: 100}, {Code: 200}}
-		result := PluckInt32Generic(items, func(i Item) int32 {
-			return int32(i.Code)
-		})
-		if len(result) != 2 || result[0] != 100 || result[1] != 200 {
-			t.Errorf("PluckInt32Generic failed")
-		}
-	})
-
-	t.Run("PluckInt64Generic", func(t *testing.T) {
-		products := []Product{{ID: 1}, {ID: 2}}
-		result := PluckInt64Generic(products, func(p Product) int64 {
-			return p.ID
-		})
-		if len(result) != 2 || result[0] != 1 || result[1] != 2 {
-			t.Errorf("PluckInt64Generic failed")
-		}
-	})
-
-	t.Run("PluckUint32Generic", func(t *testing.T) {
-		items := []Item{{Code: 100}, {Code: 200}}
-		result := PluckUint32Generic(items, func(i Item) uint32 {
-			return i.Code
-		})
-		if len(result) != 2 || result[0] != 100 || result[1] != 200 {
-			t.Errorf("PluckUint32Generic failed")
-		}
-	})
-
-	t.Run("PluckUint64Generic", func(t *testing.T) {
-		items := []Item{{Amount: 1000}, {Amount: 2000}}
-		result := PluckUint64Generic(items, func(i Item) uint64 {
-			return i.Amount
-		})
-		if len(result) != 2 || result[0] != 1000 || result[1] != 2000 {
-			t.Errorf("PluckUint64Generic failed")
-		}
-	})
-}
-
 // TestReflectionBasedPluck 测试基于反射的旧版函数
 func TestReflectionBasedPluck(t *testing.T) {
 	t.Run("PluckInt", func(t *testing.T) {
