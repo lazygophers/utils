@@ -37,21 +37,6 @@ func PluckPtr[T any, U any](slice []*T, selector func(*T) U, defaultVal U) []U {
 	return result
 }
 
-// PluckFilter 从结构体切片中提取字段值，同时进行过滤
-func PluckFilter[T any, U any](slice []T, selector func(T) U, filter func(T) bool) []U {
-	if len(slice) == 0 {
-		return nil
-	}
-
-	var result []U
-	for _, item := range slice {
-		if filter(item) {
-			result = append(result, selector(item))
-		}
-	}
-	return result
-}
-
 // PluckUnique 从结构体切片中提取字段值并去重
 func PluckUnique[T any, U comparable](slice []T, selector func(T) U) []U {
 	if len(slice) == 0 {

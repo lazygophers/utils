@@ -67,7 +67,6 @@ Aggregate and comparison functions:
 
 - **Pluck**: Extract field values from struct slices (type-safe)
 - **PluckPtr**: Extract fields from pointer slices with nil handling
-- **PluckFilter**: Extract and filter field values
 - **PluckReflect**: Extract fields using reflection for dynamic scenarios
 - **SliceToMap**: Convert slice to map with key/value selectors
 
