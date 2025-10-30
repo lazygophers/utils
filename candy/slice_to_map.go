@@ -12,17 +12,3 @@ func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
 
 	return m
 }
-
-// Slice2MapWithIndex converts a slice to a map where values are indices
-func Slice2MapWithIndex[T comparable](list []T) map[T]int {
-	if list == nil {
-		return nil
-	}
-
-	result := make(map[T]int, len(list))
-	for i, item := range list {
-		result[item] = i
-	}
-
-	return result
-}
