@@ -85,38 +85,6 @@ func PluckGroupBy[T any, K comparable](slice []T, keySelector func(T) K) map[K][
 	return result
 }
 
-// 为向后兼容性保留的函数，使用新的泛型实现
-
-// PluckIntGeneric 从结构体切片中提取 int 字段（泛型版本）
-func PluckIntGeneric[T any](slice []T, selector func(T) int) []int {
-	return Pluck(slice, selector)
-}
-
-// PluckStringGeneric 从结构体切片中提取 string 字段（泛型版本）
-func PluckStringGeneric[T any](slice []T, selector func(T) string) []string {
-	return Pluck(slice, selector)
-}
-
-// PluckInt32Generic 从结构体切片中提取 int32 字段（泛型版本）
-func PluckInt32Generic[T any](slice []T, selector func(T) int32) []int32 {
-	return Pluck(slice, selector)
-}
-
-// PluckInt64Generic 从结构体切片中提取 int64 字段（泛型版本）
-func PluckInt64Generic[T any](slice []T, selector func(T) int64) []int64 {
-	return Pluck(slice, selector)
-}
-
-// PluckUint32Generic 从结构体切片中提取 uint32 字段（泛型版本）
-func PluckUint32Generic[T any](slice []T, selector func(T) uint32) []uint32 {
-	return Pluck(slice, selector)
-}
-
-// PluckUint64Generic 从结构体切片中提取 uint64 字段（泛型版本）
-func PluckUint64Generic[T any](slice []T, selector func(T) uint64) []uint64 {
-	return Pluck(slice, selector)
-}
-
 // 基于反射的旧版 Pluck 实现，用于向后兼容
 
 func pluck(list interface{}, fieldName string, deferVal interface{}) interface{} {
