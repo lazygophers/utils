@@ -60,7 +60,7 @@ func TestSlice2Map(t *testing.T) {
 func TestSliceToMapWithIndex(t *testing.T) {
 	t.Run("nil slice", func(t *testing.T) {
 		var input []string
-		result := SliceToMapWithIndex(input)
+		result := Slice2MapWithIndex(input)
 
 		if result != nil {
 			t.Errorf("SliceToMapWithIndex() = %v, want nil", result)
@@ -69,7 +69,7 @@ func TestSliceToMapWithIndex(t *testing.T) {
 
 	t.Run("empty slice", func(t *testing.T) {
 		input := []string{}
-		result := SliceToMapWithIndex(input)
+		result := Slice2MapWithIndex(input)
 		expected := map[string]int{}
 
 		if !reflect.DeepEqual(result, expected) {
@@ -79,7 +79,7 @@ func TestSliceToMapWithIndex(t *testing.T) {
 
 	t.Run("string slice", func(t *testing.T) {
 		input := []string{"a", "b", "c"}
-		result := SliceToMapWithIndex(input)
+		result := Slice2MapWithIndex(input)
 		expected := map[string]int{"a": 0, "b": 1, "c": 2}
 
 		if !reflect.DeepEqual(result, expected) {
@@ -89,7 +89,7 @@ func TestSliceToMapWithIndex(t *testing.T) {
 
 	t.Run("integer slice", func(t *testing.T) {
 		input := []int{10, 20, 30}
-		result := SliceToMapWithIndex(input)
+		result := Slice2MapWithIndex(input)
 		expected := map[int]int{10: 0, 20: 1, 30: 2}
 
 		if !reflect.DeepEqual(result, expected) {
@@ -99,7 +99,7 @@ func TestSliceToMapWithIndex(t *testing.T) {
 
 	t.Run("slice with duplicates", func(t *testing.T) {
 		input := []string{"a", "b", "a", "c"}
-		result := SliceToMapWithIndex(input)
+		result := Slice2MapWithIndex(input)
 		expected := map[string]int{"a": 2, "b": 1, "c": 3}
 
 		if !reflect.DeepEqual(result, expected) {
@@ -109,7 +109,7 @@ func TestSliceToMapWithIndex(t *testing.T) {
 
 	t.Run("single element", func(t *testing.T) {
 		input := []int{42}
-		result := SliceToMapWithIndex(input)
+		result := Slice2MapWithIndex(input)
 		expected := map[int]int{42: 0}
 
 		if !reflect.DeepEqual(result, expected) {
@@ -119,7 +119,7 @@ func TestSliceToMapWithIndex(t *testing.T) {
 
 	t.Run("float64 slice", func(t *testing.T) {
 		input := []float64{1.1, 2.2, 3.3}
-		result := SliceToMapWithIndex(input)
+		result := Slice2MapWithIndex(input)
 		expected := map[float64]int{1.1: 0, 2.2: 1, 3.3: 2}
 
 		if !reflect.DeepEqual(result, expected) {

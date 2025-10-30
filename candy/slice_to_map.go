@@ -13,8 +13,8 @@ func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
 	return m
 }
 
-// SliceToMapWithIndex converts a slice to a map where values are indices
-func SliceToMapWithIndex[T comparable](list []T) map[T]int {
+// Slice2MapWithIndex converts a slice to a map where values are indices
+func Slice2MapWithIndex[T comparable](list []T) map[T]int {
 	if list == nil {
 		return nil
 	}
