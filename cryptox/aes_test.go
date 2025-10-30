@@ -67,10 +67,10 @@ func TestEncryptDecryptGCMErrors(t *testing.T) {
 
 	t.Run("Encrypt with invalid key length", func(t *testing.T) {
 		invalidKeys := [][]byte{
-			[]byte("short"),           // too short
-			[]byte("1234567890123456"), // 16 bytes (AES-128, but we require AES-256)
+			[]byte("short"),                    // too short
+			[]byte("1234567890123456"),         // 16 bytes (AES-128, but we require AES-256)
 			[]byte("123456789012345678901234"), // 24 bytes (AES-192, but we require AES-256)
-			make([]byte, 64),          // too long
+			make([]byte, 64),                   // too long
 		}
 
 		for _, key := range invalidKeys {
@@ -538,7 +538,7 @@ func TestPadPKCS7(t *testing.T) {
 			// Verify all padding bytes are the same
 			for i := len(padded) - paddingLen; i < len(padded); i++ {
 				if padded[i] != byte(paddingLen) {
-				t.Errorf("Padding byte at position %d is %d, expected %d", i, padded[i], paddingLen)
+					t.Errorf("Padding byte at position %d is %d, expected %d", i, padded[i], paddingLen)
 				}
 			}
 		})

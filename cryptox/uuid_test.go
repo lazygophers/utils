@@ -88,7 +88,7 @@ func TestUUIDConcurrency(t *testing.T) {
 	const uuidsPerGoroutine = 10
 
 	results := make(chan string, goroutines*uuidsPerGoroutine)
-	
+
 	// Launch multiple goroutines generating UUIDs
 	for i := 0; i < goroutines; i++ {
 		go func() {
@@ -102,16 +102,16 @@ func TestUUIDConcurrency(t *testing.T) {
 	seen := make(map[string]bool, goroutines*uuidsPerGoroutine)
 	for i := 0; i < goroutines*uuidsPerGoroutine; i++ {
 		uuid := <-results
-		
+
 		// Check basic properties
 		if len(uuid) != 32 {
 			t.Errorf("UUID has wrong length: %d (expected 32)", len(uuid))
 		}
-		
+
 		if strings.Contains(uuid, "-") {
 			t.Error("UUID contains dashes")
 		}
-		
+
 		// Check for collisions
 		if seen[uuid] {
 			t.Errorf("UUID collision in concurrent test: %s", uuid)

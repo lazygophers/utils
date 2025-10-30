@@ -280,7 +280,7 @@ func TestFNV1vsFNV1a(t *testing.T) {
 			if input != "" {
 				hash32 := Hash32(input)
 				hash32a := Hash32a(input)
-				
+
 				// Note: It's possible (though unlikely) for them to be equal
 				// but typically they should differ
 				if hash32 == hash32a {
@@ -289,7 +289,7 @@ func TestFNV1vsFNV1a(t *testing.T) {
 
 				hash64 := Hash64(input)
 				hash64a := Hash64a(input)
-				
+
 				if hash64 == hash64a {
 					t.Logf("Warning: Hash64 and Hash64a produced same result for '%s' (this is rare but possible)", input)
 				}

@@ -813,14 +813,14 @@ func BenchmarkECDHKeyExchange(b *testing.B) {
 func TestValidateECDHKeyPairXCoordinateMismatch(t *testing.T) {
 	keyPair1, _ := GenerateECDHP256Key()
 	keyPair2, _ := GenerateECDHP256Key()
-	
+
 	// Replace public key with one that has same curve but different X coordinate
 	keyPair1.PublicKey = &ecdsa.PublicKey{
 		Curve: keyPair1.PrivateKey.Curve,
 		X:     keyPair2.PublicKey.X, // Different X
 		Y:     keyPair1.PublicKey.Y, // Keep original Y
 	}
-	
+
 	// This should fail because X doesn't match
 	err := ValidateECDHKeyPair(keyPair1)
 	if err == nil {
@@ -828,18 +828,18 @@ func TestValidateECDHKeyPairXCoordinateMismatch(t *testing.T) {
 	}
 }
 
-// TestValidateECDHKeyPairYCoordinateMismatch tests validation when only Y coordinate is wrong  
+// TestValidateECDHKeyPairYCoordinateMismatch tests validation when only Y coordinate is wrong
 func TestValidateECDHKeyPairYCoordinateMismatch(t *testing.T) {
 	keyPair1, _ := GenerateECDHP256Key()
 	keyPair2, _ := GenerateECDHP256Key()
-	
+
 	// Replace public key with one that has same curve but different Y coordinate
 	keyPair1.PublicKey = &ecdsa.PublicKey{
 		Curve: keyPair1.PrivateKey.Curve,
 		X:     keyPair1.PublicKey.X, // Keep original X
 		Y:     keyPair2.PublicKey.Y, // Different Y
 	}
-	
+
 	// This should fail because Y doesn't match
 	err := ValidateECDHKeyPair(keyPair1)
 	if err == nil {
@@ -853,13 +853,13 @@ func TestECDHSharedSecretTestByteByByteMismatch(t *testing.T) {
 	alice, _ := GenerateECDHP256Key()
 	bob, _ := GenerateECDHP256Key()
 	charlie, _ := GenerateECDHP256Key()
-	
+
 	// Create a modified Bob with mismatched public key
 	modifiedBob := &ECDHKeyPair{
 		PrivateKey: bob.PrivateKey,
 		PublicKey:  charlie.PublicKey, // Use Charlie's public key
 	}
-	
+
 	// Alice-ModifiedBob exchange should produce different secrets
 	// This will trigger the byte-by-byte comparison that returns false
 	match, err := ECDHSharedSecretTest(alice, modifiedBob)
@@ -874,21 +874,21 @@ func TestECDHSharedSecretTestByteByByteMismatch(t *testing.T) {
 // TestECDHComputeSharedAllErrorPaths ensures all error paths are covered
 func TestECDHComputeSharedAllErrorPaths(t *testing.T) {
 	alice, _ := GenerateECDHP256Key()
-	
+
 	t.Run("nil private key", func(t *testing.T) {
 		_, err := ECDHComputeShared(nil, alice.PublicKey)
 		if err == nil || err.Error() != "private key cannot be nil" {
 			t.Errorf("Expected 'private key cannot be nil', got: %v", err)
 		}
 	})
-	
+
 	t.Run("nil public key", func(t *testing.T) {
 		_, err := ECDHComputeShared(alice.PrivateKey, nil)
 		if err == nil || err.Error() != "public key cannot be nil" {
 			t.Errorf("Expected 'public key cannot be nil', got: %v", err)
 		}
 	})
-	
+
 	t.Run("public key not on curve", func(t *testing.T) {
 		invalidPubKey := &ecdsa.PublicKey{
 			Curve: elliptic.P256(),
@@ -900,7 +900,7 @@ func TestECDHComputeSharedAllErrorPaths(t *testing.T) {
 			t.Errorf("Expected 'public key is not on the curve', got: %v", err)
 		}
 	})
-	
+
 	t.Run("curve mismatch", func(t *testing.T) {
 		// Create a public key that IS on P-256 curve but has P-384 curve parameter
 		// Use alice's coordinates but set curve to P-384
@@ -909,7 +909,7 @@ func TestECDHComputeSharedAllErrorPaths(t *testing.T) {
 			X:     alice.PublicKey.X,
 			Y:     alice.PublicKey.Y,
 		}
-		
+
 		// This should trigger curve mismatch
 		_, err := ECDHComputeShared(alice.PrivateKey, mismatchedPubKey)
 		if err == nil {
@@ -936,19 +936,19 @@ func TestECDHSharedSecretTestBothNilKeyPairs(t *testing.T) {
 // TestECDHSharedSecretTestErrorPropagation tests error propagation from ECDHComputeShared
 func TestECDHSharedSecretTestErrorPropagation(t *testing.T) {
 	alice, _ := GenerateECDHP256Key()
-	
+
 	// Create an invalid key pair with nil private key
 	invalidKeyPair := &ECDHKeyPair{
 		PrivateKey: nil,
 		PublicKey:  alice.PublicKey,
 	}
-	
+
 	// Should fail when computing first secret
 	_, err := ECDHSharedSecretTest(alice, invalidKeyPair)
 	if err == nil {
 		t.Error("Should fail when first ECDHComputeShared fails")
 	}
-	
+
 	// Should also fail when computing second secret
 	_, err = ECDHSharedSecretTest(invalidKeyPair, alice)
 	if err == nil {
