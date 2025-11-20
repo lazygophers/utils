@@ -2,6 +2,7 @@ package fake
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 
@@ -106,15 +107,15 @@ func (f *Faker) Passport() string {
 	switch f.country {
 	case CountryUS:
 		// 美国护照: 9位数字
-		return fmt.Sprintf("%09d", randx.Intn(999999999))
+		return fmt.Sprintf("%09d", randx.Intn(math.MaxInt))
 
 	case CountryUK:
 		// 英国护照: 9位数字
-		return fmt.Sprintf("%09d", randx.Intn(999999999))
+		return fmt.Sprintf("%09d", randx.Intn(math.MaxInt))
 
 	case CountryChina:
 		// 中国护照: E + 8位数字
-		return fmt.Sprintf("E%08d", randx.Intn(99999999))
+		return fmt.Sprintf("E%08d", randx.Intn(math.MaxInt))
 
 	case CountryCanada:
 		// 加拿大护照: 2个字母 + 6位数字
@@ -122,14 +123,14 @@ func (f *Faker) Passport() string {
 		return fmt.Sprintf("%c%c%06d",
 			letters[randx.Intn(len(letters))],
 			letters[randx.Intn(len(letters))],
-			randx.Intn(999999))
+			randx.Intn(math.MaxInt))
 
 	default:
 		// 通用格式: 字母 + 数字
 		letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		return fmt.Sprintf("%c%08d",
 			letters[randx.Intn(len(letters))],
-			randx.Intn(99999999))
+			randx.Intn(math.MaxInt))
 	}
 }
 
@@ -140,7 +141,7 @@ func (f *Faker) DriversLicense() string {
 	case CountryUS:
 		// 美国驾照格式因州而异，使用通用格式
 		letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		digits := randx.Intn(99999999)
+		digits := randx.Intn(math.MaxInt)
 		return fmt.Sprintf("%c%c%08d",
 			letters[randx.Intn(len(letters))],
 			letters[randx.Intn(len(letters))],
@@ -150,10 +151,10 @@ func (f *Faker) DriversLicense() string {
 		// 中国驾照: 地区码 + 12位数字
 		areaCodes := []string{"1101", "3101", "4401", "4403", "1201", "5001"}
 		areaCode := randx.Choose(areaCodes)
-		return fmt.Sprintf("%s%012d", areaCode, randx.Intn(999999999999))
+		return fmt.Sprintf("%s%012d", areaCode, randx.Intn(math.MaxInt))
 
 	default:
-		return fmt.Sprintf("%012d", randx.Intn(999999999999))
+		return fmt.Sprintf("%012d", randx.Intn(math.MaxInt))
 	}
 }
 
@@ -305,8 +306,8 @@ func (f *Faker) IBAN() string {
 	}
 
 	// 生成银行代码和账号
-	bankCode := fmt.Sprintf("%08d", randx.Intn(99999999))
-	accountNumber := fmt.Sprintf("%010d", randx.Intn(9999999999))
+	bankCode := fmt.Sprintf("%08d", randx.Intn(math.MaxInt))
+	accountNumber := fmt.Sprintf("%010d", randx.Intn(math.MaxInt))
 
 	// IBAN校验码计算简化版本
 	checkDigits := fmt.Sprintf("%02d", randx.Intn(100))
