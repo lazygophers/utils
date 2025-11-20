@@ -275,17 +275,29 @@ func (f *Faker) BankAccount() string {
 	case CountryUS:
 		// 美国银行账号: 8-17位数字
 		length := randx.Intn(10) + 8
-		return fmt.Sprintf("%0*d", length, randx.Intn(int(1e17)))
+		max := int64(1)
+		for i := 0; i < length; i++ {
+			max *= 10
+		}
+		return fmt.Sprintf("%0*d", length, randx.Int64n(max))
 
 	case CountryChina:
 		// 中国银行账号: 16-19位数字
 		length := randx.Intn(4) + 16
-		return fmt.Sprintf("%0*d", length, randx.Intn(int(1e18)))
+		max := int64(1)
+		for i := 0; i < length; i++ {
+			max *= 10
+		}
+		return fmt.Sprintf("%0*d", length, randx.Int64n(max))
 
 	default:
 		// 通用格式: 10-16位数字
 		length := randx.Intn(7) + 10
-		return fmt.Sprintf("%0*d", length, randx.Intn(int(1e15)))
+		max := int64(1)
+		for i := 0; i < length; i++ {
+			max *= 10
+		}
+		return fmt.Sprintf("%0*d", length, randx.Int64n(max))
 	}
 }
 
