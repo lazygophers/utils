@@ -97,7 +97,21 @@ func deepCopyValue(v1, v2 reflect.Value) {
 	case reflect.Struct:
 		// 遍历 Struct 并递归拷贝每一个字段
 		for i := 0; i < v1.NumField(); i++ {
-			deepCopyValue(v1.Field(i), v2.Field(i))
+			srcField := v1.Field(i)
+			dstField := v2.Field(i)
+
+			// 跳过不可设置的字段（通常是未导出字段）
+			if !dstField.CanSet() {
+				// 对于未导出字段，尝试使用 unsafe 包强制设置
+				if srcField.CanInterface() {
+					dstField = reflect.NewAt(dstField.Type(), unsafe.Pointer(dstField.UnsafeAddr())).Elem()
+				} else {
+					// 如果无法访问，跳过该字段
+					continue
+				}
+			}
+
+			deepCopyValue(srcField, dstField)
 		}
 
 	// 拷贝 Interface

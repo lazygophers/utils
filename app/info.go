@@ -36,5 +36,3 @@ func (p ReleaseType) String() string {
 func (p ReleaseType) Debug() string {
 	return p.String()
 }
-
-var PackageType ReleaseType

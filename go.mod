@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/jinzhu/now v1.1.5
-	github.com/lazygophers/log v0.0.0-20250921073910-e5ecde8b16f4
+	github.com/lazygophers/log v0.0.0-20251203122723-c138cc7bb250
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/petermattis/goid v0.0.0-20250904145737-900bdf8bb490
 	github.com/pkg/errors v0.9.1
@@ -33,11 +33,11 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/zclconf/go-cty v1.17.0 // indirect
 	golang.org/x/arch v0.22.0 // indirect
-	golang.org/x/crypto v0.42.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/mod v0.29.0 // indirect
-	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/tools v0.38.0 // indirect
 )
 
