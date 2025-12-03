@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/jinzhu/now v1.1.5
-	github.com/lazygophers/log v0.0.0-20250921073910-e5ecde8b16f4
+	github.com/lazygophers/log v0.0.0-20251203122723-c138cc7bb250
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/petermattis/goid v0.0.0-20250904145737-900bdf8bb490
 	github.com/pkg/errors v0.9.1

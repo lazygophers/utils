@@ -1,5 +1,10 @@
 package app
 
+import (
+	"os"
+	"strings"
+)
+
 var (
 	Commit      string
 	ShortCommit string
@@ -18,3 +23,19 @@ var (
 
 	Description string
 )
+
+// 通过环境变量设置日志级别
+func init() {
+	switch strings.ToLower(os.Getenv("APP_ENV")) {
+	case "dev", "development":
+		PackageType = Debug
+	case "test", "canary":
+		PackageType = Test
+	case "prod", "release", "production":
+		PackageType = Release
+	case "alpha":
+		PackageType = Alpha
+	case "beta":
+		PackageType = Beta
+	}
+}

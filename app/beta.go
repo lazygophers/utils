@@ -2,6 +2,4 @@
 
 package app
 
-func init() {
-	PackageType = Beta
-}
+var PackageType = Beta
