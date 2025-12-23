@@ -9,9 +9,9 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/jinzhu/now v1.1.5
-	github.com/lazygophers/log v0.0.0-20251203122723-c138cc7bb250
+	github.com/lazygophers/log v0.0.0-20251223085513-ddd669847c1d
 	github.com/pelletier/go-toml/v2 v2.2.4
-	github.com/petermattis/goid v0.0.0-20250904145737-900bdf8bb490
+	github.com/petermattis/goid v0.0.0-20251121121749-a11dd1a45f9a
 	github.com/pkg/errors v0.9.1
 	go.uber.org/atomic v1.11.0
 	gopkg.in/yaml.v3 v3.0.1
