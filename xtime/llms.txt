@@ -1,5 +1,11 @@
 # XTime Package - Enhanced Time Operations
 
+> 这是 xtime 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 xtime 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 The xtime package provides enhanced time operations including specialized work schedule utilities and extended time formatting capabilities.
 

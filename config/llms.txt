@@ -1,5 +1,11 @@
 # Config Package - Configuration Management
 
+> 这是 config 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 config 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 The config package provides comprehensive configuration management with support for multiple file formats, environment variables, and validation.
 

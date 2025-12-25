@@ -1,5 +1,11 @@
 # JSON Package - High-Performance JSON Processing
 
+> 这是 json 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 json 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 The json package provides high-performance JSON processing utilities with enhanced error handling and optimized serialization/deserialization operations.
 

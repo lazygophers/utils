@@ -1,5 +1,11 @@
 # Defaults Module
 
+> 这是 defaults 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 defaults 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 LazyGophers Utils defaults module provides comprehensive struct default value handling with advanced configuration options. Supports complex data types, custom default functions, and multiple error handling strategies for robust application initialization.
 

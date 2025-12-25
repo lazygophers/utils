@@ -1,5 +1,11 @@
 # Cryptox Package - Comprehensive Cryptographic Utilities
 
+> 这是 cryptox 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 cryptox 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Package Overview
 
 The `cryptox` package provides a comprehensive suite of cryptographic utilities for Go applications, offering simplified interfaces for common cryptographic operations including symmetric encryption, asymmetric encryption, digital signatures, hashing, and checksums.

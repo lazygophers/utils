@@ -1,5 +1,11 @@
 # Event Module
 
+> 这是 event 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 event 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 LazyGophers Utils event module provides a lightweight event-driven programming system with synchronous and asynchronous event handling. Designed for decoupled application architecture with automatic panic recovery and goroutine management.
 

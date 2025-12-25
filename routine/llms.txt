@@ -1,5 +1,11 @@
 # Routine Package - Enhanced Goroutine Management
 
+> 这是 routine 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 routine 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 The routine package provides enhanced goroutine management utilities with error handling, recovery mechanisms, and structured concurrent programming support.
 

@@ -1,5 +1,11 @@
 # Network Module
 
+> 这是 network 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 network 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 LazyGophers Utils network module provides essential network utilities for IP detection, interface management, and HTTP header processing. Designed for microservice and web application environments where reliable network information extraction is critical.
 

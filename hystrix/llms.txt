@@ -1,5 +1,11 @@
 # Hystrix Package - Circuit Breaker Pattern
 
+> 这是 hystrix 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 hystrix 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 The hystrix package provides circuit breaker pattern implementation for fault tolerance and resilience in distributed systems.
 

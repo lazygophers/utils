@@ -1,5 +1,11 @@
 # atexit - Graceful Shutdown Handling
 
+> 这是 atexit 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 atexit 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 The atexit package provides cross-platform graceful shutdown handling with signal interception, callback registration, and automatic panic recovery for Go applications.
 
 ## Key Features

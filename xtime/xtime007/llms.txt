@@ -1,5 +1,11 @@
 # XTime007 - 24/7 Operations Module
 
+> 这是 xtime007 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 xtime007 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 The xtime007 subpackage provides utilities for 24/7 continuous operation scheduling and always-on service management.
 

@@ -1,5 +1,11 @@
 # URLx Module
 
+> 这是 urlx 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 urlx 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 LazyGophers Utils urlx module provides URL manipulation and query parameter processing utilities. Focuses on reliable URL parameter normalization and sorting for consistent API interactions and caching keys.
 

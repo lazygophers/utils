@@ -1,5 +1,11 @@
 # XTime955 - Standard Work Schedule Module (9-5, 5 Days)
 
+> 这是 xtime955 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 xtime955 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 The xtime955 subpackage provides utilities for standard business hour operations following a 9 AM to 5 PM, Monday through Friday work schedule.
 

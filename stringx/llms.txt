@@ -1,5 +1,11 @@
 # stringx - Advanced String Manipulation Utilities
 
+> 这是 stringx 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 stringx 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 The stringx package provides high-performance string manipulation utilities with zero-copy optimizations, Unicode support, and advanced string processing functions.
 
 ## Key Features

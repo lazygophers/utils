@@ -1,5 +1,11 @@
 # anyx - Generic Type Utilities and Map Operations
 
+> 这是 anyx 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 anyx 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 The anyx package provides powerful generic utilities for working with dynamic maps and type operations. It features a thread-safe MapAny implementation for handling heterogeneous data structures and comprehensive map utility functions.
 

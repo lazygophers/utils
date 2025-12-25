@@ -1,5 +1,11 @@
 # app - Application Lifecycle and Environment Management
 
+> 这是 app 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 app 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 The app package provides build-time application metadata management and release type configuration through Go build tags. It enables applications to determine their build environment and access build-time information.
 

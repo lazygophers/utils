@@ -1,5 +1,11 @@
 # Candy Package - Go Syntactic Sugar Utilities
 
+> 这是 candy 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
+这是 candy 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+
+
 ## Overview
 The candy package provides a comprehensive collection of utility functions that simplify common programming operations in Go. It leverages Go generics to offer type-safe, high-performance operations for type conversions, collection manipulations, and data transformations.
 
