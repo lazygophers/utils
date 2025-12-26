@@ -305,8 +305,8 @@ func (g *UserAgentGenerator) buildAndroidUserAgent(opts UserAgentOptions, browse
 		if opts.Mobile {
 			mobileStr = " Mobile"
 		}
-		return fmt.Sprintf("Mozilla/5.0 (Mobile; rv:%s) Gecko/%s Firefox/%s%s",
-			browserVersion, engine.Version, browserVersion, mobileStr)
+		return fmt.Sprintf("Mozilla/5.0 (Android %s; Mobile; rv:%s; %s) Gecko/%s Firefox/%s%s",
+			opts.OSVersion, browserVersion, deviceModel, engine.Version, browserVersion, mobileStr)
 	default:
 		return fmt.Sprintf("Mozilla/5.0 (Linux; Android %s; %s) %s/%s",
 			opts.OSVersion, deviceModel, opts.Browser, browserVersion)
