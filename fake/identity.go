@@ -265,7 +265,7 @@ func (f *Faker) CVV() string {
 	if randx.Float32() < 0.1 { // 10% 概率是4位
 		return fmt.Sprintf("%04d", randx.Intn(10000))
 	}
-	return fmt.Sprintf("%03d", randx.Int64n(math.MaxInt32))
+	return fmt.Sprintf("%03d", randx.Intn(1000))
 }
 
 // BankAccount 生成银行账号

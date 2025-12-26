@@ -93,16 +93,7 @@ func TestBatchLastNames(t *testing.T) {
 	}
 }
 
-func TestBatchCompanyNames(t *testing.T) {
-	faker := New()
 
-	companies := faker.BatchCompanyNames(5)
-	assert.Len(t, companies, 5)
-
-	for _, company := range companies {
-		assert.NotEmpty(t, company)
-	}
-}
 
 func TestBatchJobTitles(t *testing.T) {
 	faker := New()

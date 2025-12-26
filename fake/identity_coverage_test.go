@@ -1,191 +1,282 @@
 package fake
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-// TestGlobalIdentityFunctionsAdditional 测试identity.go中的全局便捷函数
-func TestGlobalIdentityFunctionsAdditional(t *testing.T) {
-	// 测试SSN全局函数
+// 测试美国社会安全号码生成
+func TestSSN(t *testing.T) {
+	f := New()
+	ssn := f.SSN()
+	assert.NotEmpty(t, ssn)
+	assert.Len(t, ssn, 11) // XXX-XX-XXXX格式
+	assert.Contains(t, ssn, "-")
+}
+
+// 测试中国身份证号码生成
+func TestChineseIDNumber(t *testing.T) {
+	f := New()
+	id := f.ChineseIDNumber()
+	assert.NotEmpty(t, id)
+	assert.Len(t, id, 18) // 中国身份证18位
+}
+
+// 测试护照号码生成
+func TestPassport(t *testing.T) {
+	f := New()
+	passport := f.Passport()
+	assert.NotEmpty(t, passport)
+
+	// 测试不同国家的护照格式
+	f = New(WithCountry(CountryUS))
+	usPassport := f.Passport()
+	assert.NotEmpty(t, usPassport)
+
+	f = New(WithCountry(CountryChina))
+	chinaPassport := f.Passport()
+	assert.NotEmpty(t, chinaPassport)
+	assert.Contains(t, chinaPassport, "E") // 中国护照以E开头
+
+	f = New(WithCountry(CountryCanada))
+	canadaPassport := f.Passport()
+	assert.NotEmpty(t, canadaPassport)
+}
+
+// 测试驾照号码生成
+func TestDriversLicense(t *testing.T) {
+	f := New()
+	license := f.DriversLicense()
+	assert.NotEmpty(t, license)
+
+	// 测试不同国家的驾照格式
+	f = New(WithCountry(CountryUS))
+	usLicense := f.DriversLicense()
+	assert.NotEmpty(t, usLicense)
+
+	f = New(WithCountry(CountryChina))
+	chinaLicense := f.DriversLicense()
+	assert.NotEmpty(t, chinaLicense)
+}
+
+// 测试身份证件信息生成
+func TestIdentityDoc(t *testing.T) {
+	f := New()
+	doc := f.IdentityDoc()
+	assert.NotNil(t, doc)
+	assert.NotEmpty(t, doc.Type)
+	assert.NotEmpty(t, doc.Number)
+	assert.NotEmpty(t, doc.Country)
+	assert.NotEmpty(t, doc.IssuedDate)
+	assert.NotEmpty(t, doc.ExpiryDate)
+
+	// 测试不同国家的身份证件
+	f = New(WithCountry(CountryChina))
+	chinaDoc := f.IdentityDoc()
+	assert.NotNil(t, chinaDoc)
+	assert.Equal(t, string(CountryChina), chinaDoc.Country)
+}
+
+// 测试信用卡号码生成
+func TestCreditCardNumber(t *testing.T) {
+	f := New()
+	cardNumber := f.CreditCardNumber()
+	assert.NotEmpty(t, cardNumber)
+	// 信用卡号码长度应为15或16位
+	assert.True(t, len(cardNumber) == 15 || len(cardNumber) == 16)
+}
+
+// 测试信用卡CVV码生成
+func TestCVV(t *testing.T) {
+	f := New()
+	cvv := f.CVV()
+	assert.NotEmpty(t, cvv)
+	// CVV应为3或4位
+	assert.True(t, (len(cvv) == 3 || len(cvv) == 4), "CVV长度应为3或4位，实际为%d位: %s", len(cvv), cvv)
+}
+
+// 测试银行账号生成
+func TestIdentityBankAccount(t *testing.T) {
+	f := New()
+	account := f.BankAccount()
+	assert.NotEmpty(t, account)
+
+	// 测试美国银行账号
+	f = New(WithCountry(CountryUS))
+	usAccount := f.BankAccount()
+	assert.NotEmpty(t, usAccount)
+
+	// 测试中国银行账号
+	f = New(WithCountry(CountryChina))
+	chinaAccount := f.BankAccount()
+	assert.NotEmpty(t, chinaAccount)
+
+	// 测试其他国家银行账号
+	f = New(WithCountry(CountryUK))
+	ukAccount := f.BankAccount()
+	assert.NotEmpty(t, ukAccount)
+}
+
+// 测试国际银行账号生成
+func TestIdentityIBAN(t *testing.T) {
+	f := New()
+	iban := f.IBAN()
+	assert.NotEmpty(t, iban)
+	// 标准IBAN长度在15-34位之间
+	assert.True(t, len(iban) >= 15 && len(iban) <= 34, "IBAN长度应在15-34位之间，实际为%d位: %s", len(iban), iban)
+
+	// 测试不同国家的IBAN格式
+	f = New(WithCountry(CountryGermany))
+	deIBAN := f.IBAN()
+	assert.NotEmpty(t, deIBAN)
+	assert.True(t, strings.HasPrefix(deIBAN, "DE"))
+
+	f = New(WithCountry(CountryFrance))
+	frIBAN := f.IBAN()
+	assert.NotEmpty(t, frIBAN)
+	assert.True(t, strings.HasPrefix(frIBAN, "FR"))
+
+	f = New(WithCountry(CountryUK))
+	gbIBAN := f.IBAN()
+	assert.NotEmpty(t, gbIBAN)
+	assert.True(t, strings.HasPrefix(gbIBAN, "GB"))
+}
+
+// 测试完整信用卡信息生成
+func TestIdentityCreditCardInfo(t *testing.T) {
+	f := New()
+	cardInfo := f.CreditCardInfo()
+	assert.NotNil(t, cardInfo)
+	assert.NotEmpty(t, cardInfo.Number)
+	assert.NotEmpty(t, cardInfo.Type)
+	assert.NotEmpty(t, cardInfo.Brand)
+	assert.NotEmpty(t, cardInfo.CVV)
+	assert.Greater(t, cardInfo.ExpiryMonth, 0)
+	assert.LessOrEqual(t, cardInfo.ExpiryMonth, 12)
+	assert.Greater(t, cardInfo.ExpiryYear, 0)
+	assert.NotEmpty(t, cardInfo.HolderName)
+
+	// 测试不同品牌信用卡的识别
+	for i := 0; i < 10; i++ {
+		cardInfo := f.CreditCardInfo()
+		assert.NotNil(t, cardInfo)
+		assert.NotEmpty(t, cardInfo.Brand)
+	}
+}
+
+// 测试安全信用卡号码生成
+func TestIdentitySafeCreditCardNumber(t *testing.T) {
+	f := New()
+	safeCardNumber := f.SafeCreditCardNumber()
+	assert.NotEmpty(t, safeCardNumber)
+	// 安全信用卡号码应为15或16位
+	assert.True(t, len(safeCardNumber) == 15 || len(safeCardNumber) == 16)
+
+	// 测试多次调用，确保返回不同的测试卡号
+	cardNumbers := make(map[string]bool)
+	for i := 0; i < 5; i++ {
+		cardNumber := f.SafeCreditCardNumber()
+		cardNumbers[cardNumber] = true
+	}
+	assert.Greater(t, len(cardNumbers), 1) // 至少返回两种不同的卡号
+}
+
+// 测试批量生成函数
+func TestIdentityBatchSSNs(t *testing.T) {
+	f := New()
+	ssns := f.BatchSSNs(5)
+	assert.Len(t, ssns, 5)
+	for _, ssn := range ssns {
+		assert.NotEmpty(t, ssn)
+		assert.Len(t, ssn, 11)
+	}
+}
+
+func TestIdentityBatchCreditCardNumbers(t *testing.T) {
+	f := New()
+	cardNumbers := f.BatchCreditCardNumbers(5)
+	assert.Len(t, cardNumbers, 5)
+	for _, cardNumber := range cardNumbers {
+		assert.NotEmpty(t, cardNumber)
+	}
+}
+
+func TestIdentityBatchCreditCardInfos(t *testing.T) {
+	f := New()
+	cardInfos := f.BatchCreditCardInfos(5)
+	assert.Len(t, cardInfos, 5)
+	for _, cardInfo := range cardInfos {
+		assert.NotNil(t, cardInfo)
+	}
+}
+
+// 测试全局函数
+func TestGlobalIdentityFunctions(t *testing.T) {
+	// 测试全局SSN函数
 	ssn := SSN()
-	if ssn == "" {
-		t.Error("Global SSN() should not return empty string")
-	}
+	assert.NotEmpty(t, ssn)
 
-	// 测试ChineseIDNumber全局函数
+	// 测试全局ChineseIDNumber函数
 	chineseID := ChineseIDNumber()
-	if chineseID == "" {
-		t.Error("Global ChineseIDNumber() should not return empty string")
-	}
+	assert.NotEmpty(t, chineseID)
 
-	// 测试Passport全局函数
+	// 测试全局Passport函数
 	passport := Passport()
-	if passport == "" {
-		t.Error("Global Passport() should not return empty string")
-	}
+	assert.NotEmpty(t, passport)
 
-	// 测试DriversLicense全局函数
-	driversLicense := DriversLicense()
-	if driversLicense == "" {
-		t.Error("Global DriversLicense() should not return empty string")
-	}
+	// 测试全局DriversLicense函数
+	license := DriversLicense()
+	assert.NotEmpty(t, license)
 
-	// 测试IdentityDoc全局函数
+	// 测试全局IdentityDoc函数
 	identityDoc := IdentityDoc()
-	if identityDoc == nil {
-		t.Error("Global IdentityDoc() should not return nil")
-	} else if identityDoc.Number == "" {
-		t.Error("Global IdentityDoc() should return a document with a number")
-	}
+	assert.NotNil(t, identityDoc)
 
-	// 测试CreditCardNumber全局函数
+	// 测试全局CreditCardNumber函数
 	creditCardNumber := CreditCardNumber()
-	if creditCardNumber == "" {
-		t.Error("Global CreditCardNumber() should not return empty string")
-	}
+	assert.NotEmpty(t, creditCardNumber)
 
-	// 测试CVV全局函数
+	// 测试全局CVV函数
 	cvv := CVV()
-	if cvv == "" {
-		t.Error("Global CVV() should not return empty string")
-	}
+	assert.NotEmpty(t, cvv)
 
-	// 测试BankAccount全局函数
+	// 测试全局BankAccount函数
 	bankAccount := BankAccount()
-	if bankAccount == "" {
-		t.Error("Global BankAccount() should not return empty string")
-	}
+	assert.NotEmpty(t, bankAccount)
 
-	// 测试IBAN全局函数
+	// 测试全局IBAN函数
 	iban := IBAN()
-	if iban == "" {
-		t.Error("Global IBAN() should not return empty string")
-	}
+	assert.NotEmpty(t, iban)
 
-	// 测试CreditCardInfo全局函数
+	// 测试全局CreditCardInfo函数
 	creditCardInfo := CreditCardInfo()
-	if creditCardInfo == nil {
-		t.Error("Global CreditCardInfo() should not return nil")
-	} else if creditCardInfo.Number == "" {
-		t.Error("Global CreditCardInfo() should return a credit card with a number")
-	}
+	assert.NotNil(t, creditCardInfo)
 
-	// 测试SafeCreditCardNumber全局函数
+	// 测试全局SafeCreditCardNumber函数
 	safeCreditCardNumber := SafeCreditCardNumber()
-	if safeCreditCardNumber == "" {
-		t.Error("Global SafeCreditCardNumber() should not return empty string")
-	}
+	assert.NotEmpty(t, safeCreditCardNumber)
 }
 
-// TestIdentityMethodsAdditional 测试identity.go中的实例方法
-func TestIdentityMethodsAdditional(t *testing.T) {
-	faker := New()
+// 测试Luhn校验位计算
+func TestCalculateLuhnCheckDigit(t *testing.T) {
+	f := New()
+	// 使用已知的有效卡号前缀测试
+	checkDigit := f.calculateLuhnCheckDigit("411111111111111")
+	assert.Equal(t, 1, checkDigit) // 4111111111111111是有效的Visa卡号
 
-	// 测试SSN方法
-	ssn := faker.SSN()
-	if ssn == "" {
-		t.Error("SSN() should not return empty string")
-	}
-
-	// 测试ChineseIDNumber方法
-	chineseID := faker.ChineseIDNumber()
-	if chineseID == "" {
-		t.Error("ChineseIDNumber() should not return empty string")
-	}
-
-	// 测试Passport方法
-	passport := faker.Passport()
-	if passport == "" {
-		t.Error("Passport() should not return empty string")
-	}
-
-	// 测试DriversLicense方法
-	driversLicense := faker.DriversLicense()
-	if driversLicense == "" {
-		t.Error("DriversLicense() should not return empty string")
-	}
-
-	// 测试IdentityDoc方法
-	identityDoc := faker.IdentityDoc()
-	if identityDoc == nil {
-		t.Error("IdentityDoc() should not return nil")
-	} else if identityDoc.Number == "" {
-		t.Error("IdentityDoc() should return a document with a number")
-	}
-
-	// 测试CreditCardNumber方法
-	creditCardNumber := faker.CreditCardNumber()
-	if creditCardNumber == "" {
-		t.Error("CreditCardNumber() should not return empty string")
-	}
-
-	// 测试CVV方法
-	cvv := faker.CVV()
-	if cvv == "" {
-		t.Error("CVV() should not return empty string")
-	}
-
-	// 测试BankAccount方法
-	bankAccount := faker.BankAccount()
-	if bankAccount == "" {
-		t.Error("BankAccount() should not return empty string")
-	}
-
-	// 测试IBAN方法
-	iban := faker.IBAN()
-	if iban == "" {
-		t.Error("IBAN() should not return empty string")
-	}
-
-	// 测试CreditCardInfo方法
-	creditCardInfo := faker.CreditCardInfo()
-	if creditCardInfo == nil {
-		t.Error("CreditCardInfo() should not return nil")
-	} else if creditCardInfo.Number == "" {
-		t.Error("CreditCardInfo() should return a credit card with a number")
-	}
-
-	// 测试SafeCreditCardNumber方法
-	safeCreditCardNumber := faker.SafeCreditCardNumber()
-	if safeCreditCardNumber == "" {
-		t.Error("SafeCreditCardNumber() should not return empty string")
-	}
+	checkDigit = f.calculateLuhnCheckDigit("555555555555444")
+	assert.Equal(t, 4, checkDigit) // 5555555555554444是有效的MasterCard卡号
 }
 
-// TestBatchIdentityFunctionsAdditional 测试批量生成函数
-func TestBatchIdentityFunctionsAdditional(t *testing.T) {
-	faker := New()
-
-	// 测试BatchSSNs方法
-	ssns := faker.BatchSSNs(5)
-	if len(ssns) != 5 {
-		t.Errorf("BatchSSNs(5) should return 5 items, got %d", len(ssns))
-	}
-	for i, ssn := range ssns {
-		if ssn == "" {
-			t.Errorf("SSN at index %d should not be empty", i)
-		}
-	}
-
-	// 测试BatchCreditCardNumbers方法
-	creditCardNumbers := faker.BatchCreditCardNumbers(5)
-	if len(creditCardNumbers) != 5 {
-		t.Errorf("BatchCreditCardNumbers(5) should return 5 items, got %d", len(creditCardNumbers))
-	}
-	for i, cc := range creditCardNumbers {
-		if cc == "" {
-			t.Errorf("Credit card number at index %d should not be empty", i)
-		}
-	}
-
-	// 测试BatchCreditCardInfos方法
-	creditCardInfos := faker.BatchCreditCardInfos(5)
-	if len(creditCardInfos) != 5 {
-		t.Errorf("BatchCreditCardInfos(5) should return 5 items, got %d", len(creditCardInfos))
-	}
-	for i, cci := range creditCardInfos {
-		if cci == nil || cci.Number == "" {
-			t.Errorf("Credit card info at index %d should not be nil or have empty number", i)
-		}
-	}
+// 测试中国身份证校验码计算
+func TestCalculateChineseIDChecksum(t *testing.T) {
+	f := New()
+	// 使用已知的前17位身份证号码测试
+	id17 := "11010119900307123"
+	checksum := f.calculateChineseIDChecksum(id17)
+	// 计算结果应该是一个有效的校验码
+	assert.NotEmpty(t, checksum)
+	assert.Len(t, checksum, 1)
 }
