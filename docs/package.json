@@ -1,0 +1,19 @@
+{
+  "name": "lazygophers-utils-docs",
+  "version": "1.0.0",
+  "description": "Documentation for LazyGophers Utils",
+  "scripts": {
+    "dev": "rspress dev",
+    "build": "rspress build",
+    "preview": "rspress preview"
+  },
+  "keywords": [
+    "documentation",
+    "rspress"
+  ],
+  "author": "LazyGophers",
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "rspress": "^1.0.0"
+  }
+}

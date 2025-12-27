@@ -13,6 +13,7 @@ coverage_*.out
 .claude/
 CLAUDE.md
 *.claude
+.beads/
 
 # Additional temporary and build files
 *.prof
@@ -23,8 +24,10 @@ CLAUDE.md
 debug
 dist/
 build/
+docs/doc_build/
 vendor/
 node_modules/
+docs/node_modules/
 
 # IDE and editor files
 .vscode/
