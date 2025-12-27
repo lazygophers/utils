@@ -23,7 +23,6 @@ linters:
     - goconst
     - gocyclo
     - godot
-    - gosec
     - ireturn
     - lll
     - nakedret
@@ -47,6 +46,7 @@ linters:
     - grouper
     - importas
     - usestdlibvars
+    - gosec
 
 issues:
   max-issues-per-linter: 0
