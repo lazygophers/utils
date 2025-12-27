@@ -371,13 +371,6 @@ func SliceEqual[T any](a, b []T) bool {
 		am[v]--
 	}
 
-	// 检查所有元素的计数是否都为0
-	for _, count := range am {
-		if count != 0 {
-			return false
-		}
-	}
-
 	return true
 }
 

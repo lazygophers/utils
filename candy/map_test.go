@@ -812,8 +812,23 @@ func TestMapKeysBytes(t *testing.T) {
 			want: nil,
 		},
 		{
+			name: "empty bytes map",
+			m:    map[string]int{},
+			want: [][]byte{},
+		},
+		{
 			name: "map with non-bytes keys",
 			m:    map[string]int{"a": 1, "b": 2},
+			want: [][]byte{},
+		},
+		{
+			name: "map with slice keys that are not uint8",
+			m:    map[interface{}]int{"key2": 2, 3: 3},
+			want: [][]byte{},
+		},
+		{
+			name: "map with mixed key types",
+			m:    map[interface{}]int{"key2": 2, 3: 3},
 			want: [][]byte{},
 		},
 	}
@@ -901,6 +916,54 @@ func TestMapKeysAny(t *testing.T) {
 
 			if !reflect.DeepEqual(gotMap, wantMap) {
 				t.Errorf("MapKeysAny() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMapValues(t *testing.T) {
+	tests := []struct {
+		name  string
+		m     map[int]string
+		want  []string
+		check func([]string, []string) bool
+	}{
+		{
+			name: "empty map",
+			m:    map[int]string{},
+			want: []string{},
+		},
+		{
+			name: "single element",
+			m:    map[int]string{1: "a"},
+			want: []string{"a"},
+		},
+		{
+			name: "multiple elements",
+			m:    map[int]string{1: "a", 2: "b", 3: "c"},
+			want: []string{"a", "b", "c"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := MapValues(tt.m)
+			if len(got) != len(tt.want) {
+				t.Errorf("MapValues() length = %v, want %v", len(got), len(tt.want))
+				return
+			}
+
+			gotMap := make(map[string]bool)
+			wantMap := make(map[string]bool)
+			for _, v := range got {
+				gotMap[v] = true
+			}
+			for _, v := range tt.want {
+				wantMap[v] = true
+			}
+
+			if !reflect.DeepEqual(gotMap, wantMap) {
+				t.Errorf("MapValues() = %v, want %v", got, tt.want)
 			}
 		})
 	}

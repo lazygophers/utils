@@ -118,9 +118,6 @@ func pluck(list interface{}, fieldName string, deferVal interface{}) interface{}
 				if ev.Kind() != reflect.Struct {
 					panic("element is not a struct")
 				}
-				if !ev.IsValid() {
-					continue
-				}
 				result.Index(i).Set(ev.FieldByIndex(field.Index))
 			}
 

@@ -105,10 +105,102 @@ func TestSliceField2MapString(t *testing.T) {
 		}
 	})
 
+	t.Run("with pointer slice", func(t *testing.T) {
+		input := []*TestItem{
+			{Name: "Alice"},
+			{Name: "Bob"},
+		}
+		result := SliceField2MapString(input, "Name")
+		expected := map[string]bool{"Alice": true, "Bob": true}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("SliceField2MapString() = %v, want %v", result, expected)
+		}
+	})
+
+	t.Run("with double pointer slice", func(t *testing.T) {
+		type NestedItem struct {
+			Name string
+		}
+		item1 := NestedItem{Name: "Alice"}
+		item2 := NestedItem{Name: "Bob"}
+		ptr1 := &item1
+		ptr2 := &item2
+		input := []*NestedItem{ptr1, ptr2}
+		result := SliceField2MapString(input, "Name")
+		expected := map[string]bool{"Alice": true, "Bob": true}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("SliceField2MapString() = %v, want %v", result, expected)
+		}
+	})
+
+	t.Run("panic on non-existent field", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Expected panic but didn't get one")
+			}
+		}()
+
+		type TestItem struct {
+			Name string
+		}
+		input := []TestItem{{Name: "Alice"}}
+		SliceField2MapString(input, "InvalidField")
+	})
+
+	t.Run("panic on wrong field type", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Expected panic but didn't get one")
+			}
+		}()
+
+		type TestItem struct {
+			Name string
+		}
+		input := []TestItem{{Name: "Alice"}}
+		SliceField2MapInt(input, "Name") // Name is string, not int
+	})
+
+	t.Run("panic on non-struct element", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Expected panic but didn't get one")
+			}
+		}()
+
+		input := []int{1, 2, 3}
+		SliceField2MapInt(input, "Invalid")
+	})
+
+	t.Run("panic on pointer to non-struct", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Expected panic but didn't get one")
+			}
+		}()
+
+		input := []*int{new(int), new(int)}
+		SliceField2MapInt(input, "Invalid")
+	})
+
+	t.Run("panic on invalid field", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Expected panic but didn't get one")
+			}
+		}()
+
+		type TestItem struct {
+			Name string
+		}
+
+		input := []TestItem{{Name: "Alice"}}
+		SliceField2MapInt(input, "InvalidField")
+	})
+
 	t.Run("empty slice", func(t *testing.T) {
 		input := []TestItem{}
 		result := SliceField2MapString(input, "Name")
-
 		if result != nil {
 			t.Errorf("SliceField2MapString() = %v, want nil", result)
 		}

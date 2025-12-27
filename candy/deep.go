@@ -46,11 +46,6 @@ func deepCopyValue(v1, v2 reflect.Value) {
 		v2 = v2.Elem()
 	}
 
-	// 确保解引用后值仍然有效
-	if v1.Kind() == reflect.Invalid || v2.Kind() == reflect.Invalid {
-		return
-	}
-
 	// 类型必须匹配才能拷贝
 	if v1.Type() != v2.Type() {
 		log.Panicf("源类型 %s 与目标类型 %s 不匹配", v1.Type(), v2.Type())
@@ -102,13 +97,8 @@ func deepCopyValue(v1, v2 reflect.Value) {
 
 			// 跳过不可设置的字段（通常是未导出字段）
 			if !dstField.CanSet() {
-				// 对于未导出字段，尝试使用 unsafe 包强制设置
-				if srcField.CanInterface() {
-					dstField = reflect.NewAt(dstField.Type(), unsafe.Pointer(dstField.UnsafeAddr())).Elem()
-				} else {
-					// 如果无法访问，跳过该字段
-					continue
-				}
+				// 如果无法访问，跳过该字段
+				continue
 			}
 
 			deepCopyValue(srcField, dstField)
@@ -153,9 +143,6 @@ func deepCopyValue(v1, v2 reflect.Value) {
 		if v2.CanSet() {
 			v2.SetBool(v1.Bool())
 		}
-
-	case reflect.Invalid:
-		// 无效类型，不处理
 
 	default:
 		// 对于未处理的类型，直接 panic

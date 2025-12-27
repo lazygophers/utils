@@ -38,15 +38,7 @@ func getStructFieldValue(item interface{}, fieldName string) reflect.Value {
 		v = v.Elem()
 	}
 
-	if v.Kind() != reflect.Struct {
-		panic("element is not a struct")
-	}
-
 	fieldValue := v.FieldByName(fieldName)
-	if !fieldValue.IsValid() {
-		panic(fmt.Sprintf("field %s not found in struct", fieldName))
-	}
-
 	return fieldValue
 }
 

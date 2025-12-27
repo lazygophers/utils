@@ -504,6 +504,145 @@ func TestSliceEqual(t *testing.T) {
 			t.Errorf("SliceEqual should return false when one is nil (reversed)")
 		}
 	})
+
+	t.Run("uncomparable elements", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("SliceEqual with uncomparable elements should panic")
+			}
+		}()
+		a := []func(){func() {}}
+		b := []func(){func() {}}
+		result := SliceEqual(a, b)
+		_ = result
+	})
+
+	t.Run("equal slices with duplicates", func(t *testing.T) {
+		a := []int{1, 2, 2, 3}
+		b := []int{1, 2, 2, 3}
+		if !SliceEqual(a, b) {
+			t.Errorf("SliceEqual with duplicates should be true")
+		}
+	})
+
+	t.Run("different order but same elements", func(t *testing.T) {
+		a := []int{1, 2, 3}
+		b := []int{3, 2, 1}
+		if !SliceEqual(a, b) {
+			t.Errorf("SliceEqual with different order should be true")
+		}
+	})
+
+	t.Run("elements with different counts", func(t *testing.T) {
+		// Test count != 0 branch in SliceEqual
+		a := []int{1, 2, 2, 3}
+		b := []int{1, 2, 3}
+		if SliceEqual(a, b) {
+			t.Errorf("SliceEqual with different element counts should be false")
+		}
+	})
+
+	t.Run("all elements same count", func(t *testing.T) {
+		// Test count == 0 branch in SliceEqual
+		a := []int{1, 2, 3}
+		b := []int{1, 2, 3}
+		if !SliceEqual(a, b) {
+			t.Errorf("SliceEqual with same elements should be true")
+		}
+	})
+
+	t.Run("elements with different counts", func(t *testing.T) {
+		// Test count != 0 branch in SliceEqual
+		a := []int{1, 2, 2, 3}
+		b := []int{1, 2, 3}
+		if SliceEqual(a, b) {
+			t.Errorf("SliceEqual with different element counts should be false")
+		}
+	})
+
+	t.Run("nil elements in slices", func(t *testing.T) {
+		a := []*int{nil, nil, nil}
+		b := []*int{nil, nil, nil}
+		if !SliceEqual(a, b) {
+			t.Errorf("SliceEqual with nil elements should be true")
+		}
+	})
+
+	t.Run("different nil element counts", func(t *testing.T) {
+		a := []*int{nil, nil}
+		b := []*int{nil, nil, nil}
+		if SliceEqual(a, b) {
+			t.Errorf("SliceEqual with different nil counts should be false")
+		}
+	})
+
+	t.Run("element not in second slice", func(t *testing.T) {
+		a := []int{1, 2, 3}
+		b := []int{1, 2, 4}
+		if SliceEqual(a, b) {
+			t.Errorf("SliceEqual with element not in second slice should be false")
+		}
+	})
+
+	t.Run("element count mismatch", func(t *testing.T) {
+		a := []int{1, 2, 2, 3}
+		b := []int{1, 2, 3, 3}
+		if SliceEqual(a, b) {
+			t.Errorf("SliceEqual with element count mismatch should be false")
+		}
+	})
+
+	t.Run("element count mismatch 2", func(t *testing.T) {
+		a := []int{1, 2, 2, 3}
+		b := []int{1, 2, 3, 3}
+		if SliceEqual(a, b) {
+			t.Errorf("SliceEqual with element count mismatch 2 should be false")
+		}
+	})
+
+	t.Run("element count mismatch 3", func(t *testing.T) {
+		a := []int{1, 2, 3}
+		b := []int{1, 2, 2, 3}
+		if SliceEqual(a, b) {
+			t.Errorf("SliceEqual with element count mismatch 3 should be false")
+		}
+	})
+
+	t.Run("element appears more in second slice", func(t *testing.T) {
+		a := []int{1, 2, 3}
+		b := []int{1, 2, 2, 3}
+		if SliceEqual(a, b) {
+			t.Errorf("SliceEqual with element appearing more in second slice should be false")
+		}
+	})
+
+	t.Run("element appears less in second slice", func(t *testing.T) {
+		a := []int{1, 2, 2, 3}
+		b := []int{1, 2, 3}
+		if SliceEqual(a, b) {
+			t.Errorf("SliceEqual with element appearing less in second slice should be false")
+		}
+	})
+
+	t.Run("element count mismatch", func(t *testing.T) {
+		a := []int{1, 2, 2, 3}
+		b := []int{1, 2, 3, 3}
+		if SliceEqual(a, b) {
+			t.Errorf("SliceEqual with element count mismatch should be false")
+		}
+	})
+
+	t.Run("uncomparable elements", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("SliceEqual with uncomparable elements should panic")
+			}
+		}()
+		a := []func(){func() {}}
+		b := []func(){func() {}}
+		result := SliceEqual(a, b)
+		_ = result
+	})
 }
 
 // TestDrop 测试 Drop 函数

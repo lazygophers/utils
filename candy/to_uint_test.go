@@ -20,6 +20,14 @@ func TestToUint(t *testing.T) {
 		assert.Equal(t, uint(123), ToUint(int64(123)))
 	})
 
+	t.Run("negative int types", func(t *testing.T) {
+		assert.Equal(t, uint(0), ToUint(-1))
+		assert.Equal(t, uint(0), ToUint(int8(-1)))
+		assert.Equal(t, uint(0), ToUint(int16(-100)))
+		assert.Equal(t, uint(0), ToUint(int32(-500)))
+		assert.Equal(t, uint(0), ToUint(int64(-999)))
+	})
+
 	t.Run("uint types", func(t *testing.T) {
 		assert.Equal(t, uint(42), ToUint(uint(42)))
 		assert.Equal(t, uint(255), ToUint(uint8(255)))
@@ -31,6 +39,11 @@ func TestToUint(t *testing.T) {
 	t.Run("float types", func(t *testing.T) {
 		assert.Equal(t, uint(42), ToUint(float32(42.7)))
 		assert.Equal(t, uint(123), ToUint(float64(123.9)))
+	})
+
+	t.Run("negative float types", func(t *testing.T) {
+		assert.Equal(t, uint(0), ToUint(float32(-42.7)))
+		assert.Equal(t, uint(0), ToUint(float64(-123.9)))
 	})
 
 	t.Run("string values", func(t *testing.T) {
@@ -65,6 +78,14 @@ func TestToUint8(t *testing.T) {
 		assert.Equal(t, uint8(100), ToUint8(int16(100)))
 		assert.Equal(t, uint8(50), ToUint8(int32(50)))
 		assert.Equal(t, uint8(75), ToUint8(int64(75)))
+	})
+
+	t.Run("negative int types", func(t *testing.T) {
+		assert.Equal(t, uint8(0), ToUint8(-1))
+		assert.Equal(t, uint8(0), ToUint8(int8(-1)))
+		assert.Equal(t, uint8(0), ToUint8(int16(-100)))
+		assert.Equal(t, uint8(0), ToUint8(int32(-50)))
+		assert.Equal(t, uint8(0), ToUint8(int64(-75)))
 	})
 
 	t.Run("uint types", func(t *testing.T) {
@@ -113,6 +134,14 @@ func TestToUint16(t *testing.T) {
 		assert.Equal(t, uint16(2000), ToUint16(int64(2000)))
 	})
 
+	t.Run("negative int types", func(t *testing.T) {
+		assert.Equal(t, uint16(0), ToUint16(-1))
+		assert.Equal(t, uint16(0), ToUint16(int8(-1)))
+		assert.Equal(t, uint16(0), ToUint16(int16(-100)))
+		assert.Equal(t, uint16(0), ToUint16(int32(-500)))
+		assert.Equal(t, uint16(0), ToUint16(int64(-999)))
+	})
+
 	t.Run("uint types", func(t *testing.T) {
 		assert.Equal(t, uint16(42), ToUint16(uint(42)))
 		assert.Equal(t, uint16(255), ToUint16(uint8(255)))
@@ -159,6 +188,14 @@ func TestToUint32(t *testing.T) {
 		assert.Equal(t, uint32(123456), ToUint32(int64(123456)))
 	})
 
+	t.Run("negative int types", func(t *testing.T) {
+		assert.Equal(t, uint32(0), ToUint32(-1))
+		assert.Equal(t, uint32(0), ToUint32(int8(-1)))
+		assert.Equal(t, uint32(0), ToUint32(int16(-100)))
+		assert.Equal(t, uint32(0), ToUint32(int32(-500)))
+		assert.Equal(t, uint32(0), ToUint32(int64(-999)))
+	})
+
 	t.Run("uint types", func(t *testing.T) {
 		assert.Equal(t, uint32(42), ToUint32(uint(42)))
 		assert.Equal(t, uint32(255), ToUint32(uint8(255)))
@@ -203,6 +240,14 @@ func TestToUint64(t *testing.T) {
 		assert.Equal(t, uint64(32767), ToUint64(int16(32767)))
 		assert.Equal(t, uint64(2147483647), ToUint64(int32(2147483647)))
 		assert.Equal(t, uint64(9223372036854775807), ToUint64(int64(9223372036854775807)))
+	})
+
+	t.Run("negative int types", func(t *testing.T) {
+		assert.Equal(t, uint64(0), ToUint64(-1))
+		assert.Equal(t, uint64(0), ToUint64(int8(-1)))
+		assert.Equal(t, uint64(0), ToUint64(int16(-100)))
+		assert.Equal(t, uint64(0), ToUint64(int32(-500)))
+		assert.Equal(t, uint64(0), ToUint64(int64(-999)))
 	})
 
 	t.Run("uint types", func(t *testing.T) {

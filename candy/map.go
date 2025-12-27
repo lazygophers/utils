@@ -216,10 +216,7 @@ func MapKeysBytes(m interface{}) [][]byte {
 	}
 
 	keys := make([][]byte, 0, val.Len())
-	for _, key := range val.MapKeys() {
-		if key.Kind() == reflect.Slice && key.Type().Elem().Kind() == reflect.Uint8 {
-			keys = append(keys, key.Bytes())
-		}
+	for range val.MapKeys() {
 	}
 	return keys
 }

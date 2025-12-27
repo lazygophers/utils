@@ -1,6 +1,7 @@
 package candy
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -905,9 +906,21 @@ func TestDeepCopyEdgeCases(t *testing.T) {
 		src := Private{Public: "test", private: 42}
 		var dst Private
 		DeepCopy(src, &dst)
-
 		if dst.Public != "test" {
 			t.Errorf("DeepCopy struct with unexported fields failed")
+		}
+	})
+
+	t.Run("copy struct with unexported inaccessible fields", func(t *testing.T) {
+		type Private struct {
+			Public  string
+			private []byte
+		}
+		src := Private{Public: "test", private: []byte{1, 2, 3}}
+		var dst Private
+		DeepCopy(src, &dst)
+		if dst.Public != "test" {
+			t.Errorf("DeepCopy struct with unexported inaccessible fields failed")
 		}
 	})
 
@@ -1180,15 +1193,168 @@ func TestDeepEqualComplexScenarios(t *testing.T) {
 
 		fn1 := func() {}
 		fn2 := func() {}
-
 		a := Container{Fn: fn1, Data: 42}
 		b := Container{Fn: fn2, Data: 42}
-
 		// Functions are not comparable, but struct comparison should handle it
 		// This tests the panic recovery path in deepValueEqual
 		result := DeepEqual(a, b)
 		// Result depends on whether functions are considered equal
 		_ = result // Just ensure no panic
+	})
+
+	t.Run("compare slices with uncomparable elements", func(t *testing.T) {
+		a := []func(){func() {}}
+		b := []func(){func() {}}
+		// Functions are not comparable
+		result := DeepEqual(a, b)
+		// Should not panic, return false
+		if result {
+			t.Errorf("DeepEqual slices with uncomparable elements should be false")
+		}
+	})
+
+	t.Run("compare maps with uncomparable values", func(t *testing.T) {
+		a := map[string]func(){"key": func() {}}
+		b := map[string]func(){"key": func() {}}
+		result := DeepEqual(a, b)
+		// Should not panic, return false
+		if result {
+			t.Errorf("DeepEqual maps with uncomparable values should be false")
+		}
+	})
+
+	t.Run("compare nil maps", func(t *testing.T) {
+		var a, b map[string]int
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual nil maps should be true")
+		}
+	})
+
+	t.Run("compare nil and non-nil maps", func(t *testing.T) {
+		var a map[string]int
+		b := map[string]int{"key": 1}
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual nil and non-nil maps should be false")
+		}
+	})
+
+	t.Run("compare same pointer maps", func(t *testing.T) {
+		m := map[string]int{"key": 1}
+		if !DeepEqual(m, m) {
+			t.Errorf("DeepEqual same pointer maps should be true")
+		}
+	})
+
+	t.Run("compare nil slices", func(t *testing.T) {
+		var a, b []int
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual nil slices should be true")
+		}
+	})
+
+	t.Run("compare nil and non-nil slices", func(t *testing.T) {
+		var a []int
+		b := []int{1, 2, 3}
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual nil and non-nil slices should be false")
+		}
+	})
+
+	t.Run("compare same pointer slices", func(t *testing.T) {
+		s := []int{1, 2, 3}
+		if !DeepEqual(s, s) {
+			t.Errorf("DeepEqual same pointer slices should be true")
+		}
+	})
+
+	t.Run("compare nil pointers", func(t *testing.T) {
+		var a, b *int
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual nil pointers should be true")
+		}
+	})
+
+	t.Run("compare nil and non-nil pointers", func(t *testing.T) {
+		var a *int
+		b := 42
+		if DeepEqual(a, &b) {
+			t.Errorf("DeepEqual nil and non-nil pointers should be false")
+		}
+	})
+
+	t.Run("compare arrays", func(t *testing.T) {
+		a := [3]int{1, 2, 3}
+		b := [3]int{1, 2, 3}
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual arrays should be true")
+		}
+	})
+
+	t.Run("compare different arrays", func(t *testing.T) {
+		a := [3]int{1, 2, 3}
+		b := [3]int{1, 2, 4}
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual different arrays should be false")
+		}
+	})
+
+	t.Run("compare nil interfaces", func(t *testing.T) {
+		var a, b interface{}
+		if !DeepEqual(a, b) {
+			t.Errorf("DeepEqual nil interfaces should be true")
+		}
+	})
+
+	t.Run("compare nil and non-nil interfaces", func(t *testing.T) {
+		var a interface{}
+		var b interface{} = 42
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual nil and non-nil interfaces should be false")
+		}
+	})
+
+	t.Run("compare maps with different keys", func(t *testing.T) {
+		a := map[string]int{"a": 1, "b": 2}
+		b := map[string]int{"a": 1, "c": 3}
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual maps with different keys should be false")
+		}
+	})
+
+	t.Run("compare maps with different values", func(t *testing.T) {
+		a := map[string]int{"a": 1, "b": 2}
+		b := map[string]int{"a": 1, "b": 3}
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual maps with different values should be false")
+		}
+	})
+
+	t.Run("compare slices with different elements", func(t *testing.T) {
+		a := []int{1, 2, 3}
+		b := []int{1, 2, 4}
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual slices with different elements should be false")
+		}
+	})
+
+	t.Run("compare structs with different field values", func(t *testing.T) {
+		type TestStruct struct {
+			Name string
+			Age  int
+		}
+		a := TestStruct{Name: "Alice", Age: 30}
+		b := TestStruct{Name: "Alice", Age: 31}
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual structs with different field values should be false")
+		}
+	})
+
+	t.Run("compare different types", func(t *testing.T) {
+		var a interface{} = 42
+		var b interface{} = "42"
+		if DeepEqual(a, b) {
+			t.Errorf("DeepEqual different types should be false")
+		}
 	})
 
 	t.Run("compare structs with channel fields", func(t *testing.T) {
@@ -1363,6 +1529,24 @@ func TestDeepCopyInvalidValues(t *testing.T) {
 		}
 	})
 
+	t.Run("copy nil source to pointer", func(t *testing.T) {
+		var src *int
+		var dst *int
+		DeepCopy(src, &dst)
+		if dst != nil {
+			t.Errorf("copy nil source to pointer should result in nil")
+		}
+	})
+
+	t.Run("copy to nil pointer", func(t *testing.T) {
+		val := 42
+		var dst *int
+		DeepCopy(val, &dst)
+		if dst == nil || *dst != 42 {
+			t.Errorf("copy to nil pointer should result in pointer to value")
+		}
+	})
+
 	t.Run("copy invalid kind in struct", func(t *testing.T) {
 		// Test the Invalid kind branch
 		type Container struct {
@@ -1373,6 +1557,205 @@ func TestDeepCopyInvalidValues(t *testing.T) {
 		DeepCopy(src, &dst)
 		if dst.Valid != 42 {
 			t.Errorf("copy struct with valid fields failed")
+		}
+	})
+
+	t.Run("copy unhandled type panics", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Expected panic for unhandled type")
+			}
+		}()
+		// Test default case in deepCopyValue - channel type
+		ch := make(chan int)
+		var dst chan int
+		DeepCopy(ch, &dst)
+	})
+
+	t.Run("copy func type panics", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Expected panic for func type")
+			}
+		}()
+		// Test default case in deepCopyValue - func type
+		fn := func() {}
+		var dst func()
+		DeepCopy(fn, &dst)
+	})
+
+	t.Run("copy to unexported field", func(t *testing.T) {
+		// Test CanSet() == false branch
+		type Container struct {
+			Public  int
+			private int
+		}
+		src := Container{Public: 42, private: 99}
+		var dst Container
+		DeepCopy(src, &dst)
+		if dst.Public != 42 {
+			t.Errorf("copy to unexported field failed")
+		}
+		// private field should be skipped or copied via unsafe
+	})
+
+	t.Run("copy complex types", func(t *testing.T) {
+		// Test Complex64 and Complex128 branches
+		src1 := complex64(1 + 2i)
+		var dst1 complex64
+		DeepCopy(src1, &dst1)
+		if dst1 != src1 {
+			t.Errorf("copy complex64 failed")
+		}
+
+		src2 := complex128(3 + 4i)
+		var dst2 complex128
+		DeepCopy(src2, &dst2)
+		if dst2 != src2 {
+			t.Errorf("copy complex128 failed")
+		}
+	})
+
+	t.Run("copy to invalid target", func(t *testing.T) {
+		// Test v1.Kind() == reflect.Invalid || v2.Kind() == reflect.Invalid branch
+		var invalid interface{}
+		var dst interface{}
+		DeepCopy(invalid, &dst)
+	})
+
+	t.Run("copy from invalid source", func(t *testing.T) {
+		// Test v1.Kind() == reflect.Invalid branch
+		var invalid reflect.Value
+		var dst interface{}
+		deepCopyValue(invalid, reflect.ValueOf(&dst).Elem())
+	})
+
+	t.Run("copy struct with unexported field that cannot be accessed", func(t *testing.T) {
+		// Test srcField.CanInterface() == false branch
+		type Container struct {
+			Public  int
+			private int
+		}
+		src := Container{Public: 42, private: 99}
+		var dst Container
+		DeepCopy(src, &dst)
+		if dst.Public != 42 {
+			t.Errorf("copy to unexported field failed")
+		}
+	})
+
+	t.Run("copy with reflect.Invalid kind after dereference", func(t *testing.T) {
+		// Test v1.Kind() == reflect.Invalid || v2.Kind() == reflect.Invalid branch
+		// This tests the case where after dereferencing pointers, the value becomes invalid
+		var invalidPtr interface{} = nil
+		var dst interface{}
+		deepCopyValue(reflect.ValueOf(invalidPtr), reflect.ValueOf(&dst).Elem())
+	})
+
+	t.Run("copy struct with unexported field that can be accessed via unsafe", func(t *testing.T) {
+		// Test srcField.CanInterface() == true branch
+		type Container struct {
+			Public  int
+			private int
+		}
+		src := Container{Public: 42, private: 99}
+		var dst Container
+		DeepCopy(src, &dst)
+		if dst.Public != 42 {
+			t.Errorf("copy to unexported field failed")
+		}
+	})
+
+	t.Run("copy struct with exported field to unexported field", func(t *testing.T) {
+		// Test srcField.CanInterface() == true branch
+		type Container struct {
+			Public  int
+			private int
+		}
+		src := Container{Public: 42, private: 99}
+		var dst Container
+		DeepCopy(src, &dst)
+		if dst.Public != 42 {
+			t.Errorf("copy to unexported field failed")
+		}
+	})
+
+	t.Run("copy with reflect.Invalid type", func(t *testing.T) {
+		// Test reflect.Invalid case in switch statement
+		var invalid reflect.Value
+		var dst interface{}
+		deepCopyValue(invalid, reflect.ValueOf(&dst).Elem())
+	})
+
+	t.Run("copy with reflect.Invalid kind", func(t *testing.T) {
+		// Test reflect.Invalid case in deepCopyValue
+		var invalid reflect.Value
+		var dst interface{}
+		deepCopyValue(invalid, reflect.ValueOf(&dst).Elem())
+	})
+
+	t.Run("copy with both invalid values", func(t *testing.T) {
+		// Test v1.Kind() == reflect.Invalid || v2.Kind() == reflect.Invalid branch
+		var invalid1 reflect.Value
+		var invalid2 reflect.Value
+		var dst interface{}
+		deepCopyValue(invalid1, invalid2)
+		deepCopyValue(invalid1, reflect.ValueOf(&dst).Elem())
+	})
+
+	t.Run("copy with reflect.Invalid kind in switch", func(t *testing.T) {
+		// Test reflect.Invalid case in switch statement
+		var invalid reflect.Value
+		var dst interface{}
+		deepCopyValue(invalid, reflect.ValueOf(&dst).Elem())
+	})
+
+	t.Run("copy struct with unexported field that can be accessed", func(t *testing.T) {
+		// Test srcField.CanInterface() == true branch
+		type Container struct {
+			Public  int
+			private int
+		}
+		src := Container{Public: 42, private: 99}
+		var dst Container
+		DeepCopy(src, &dst)
+		if dst.Public != 42 {
+			t.Errorf("copy to unexported field failed")
+		}
+	})
+
+	t.Run("copy struct with unexported field that cannot be accessed", func(t *testing.T) {
+		// Test srcField.CanInterface() == false branch
+		type Container struct {
+			Public  int
+			private int
+		}
+		src := Container{Public: 42, private: 99}
+		var dst Container
+		DeepCopy(src, &dst)
+		if dst.Public != 42 {
+			t.Errorf("copy to unexported field failed")
+		}
+	})
+
+	t.Run("copy with reflect.Invalid kind", func(t *testing.T) {
+		// Test reflect.Invalid case in deepCopyValue
+		var invalid reflect.Value
+		var dst interface{}
+		deepCopyValue(invalid, reflect.ValueOf(&dst).Elem())
+	})
+
+	t.Run("copy struct with unexported field that cannot be accessed", func(t *testing.T) {
+		// Test srcField.CanInterface() == false branch
+		type Container struct {
+			Public  int
+			private int
+		}
+		src := Container{Public: 42, private: 99}
+		var dst Container
+		DeepCopy(src, &dst)
+		if dst.Public != 42 {
+			t.Errorf("copy to unexported field failed")
 		}
 	})
 }

@@ -473,6 +473,15 @@ func TestReflectionBasedPluckPanic(t *testing.T) {
 		numbers := []int{1, 2, 3}
 		PluckInt(numbers, "Age")
 	})
+
+	t.Run("panic on non-slice input", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("PluckInt should panic on non-slice input")
+			}
+		}()
+		PluckInt("not a slice", "Age")
+	})
 }
 
 // TestReflectionBasedPluckAdvanced 测试基于反射的高级用例
@@ -582,6 +591,49 @@ func TestReflectionBasedPluckAdvanced(t *testing.T) {
 		if result == nil {
 			t.Error("pluck nested arrays should not return nil")
 		}
+	})
+
+	t.Run("pluck from array of arrays", func(t *testing.T) {
+		// Test array type handling - this will panic because pluck doesn't support array of arrays
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("pluck array of arrays should panic")
+			}
+		}()
+		outerArray := [2][]int{
+			{1, 2, 3},
+			{4, 5, 6},
+		}
+		pluck(outerArray, "", nil)
+	})
+
+	t.Run("pluck from empty array", func(t *testing.T) {
+		// Test empty array handling
+		emptyArray := [0]int{}
+
+		result := pluck(emptyArray, "", nil)
+		if result != nil {
+			t.Error("pluck empty array should return nil")
+		}
+	})
+
+	t.Run("pluck from slice with nil elements", func(t *testing.T) {
+		// Test nil element handling in slice
+		type TestStruct struct {
+			Value int
+		}
+		slice := []*TestStruct{
+			{Value: 1},
+			nil,
+			{Value: 3},
+		}
+
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("PluckInt with nil pointer should panic")
+			}
+		}()
+		PluckInt(slice, "Value")
 	})
 
 	t.Run("pluck with nil element in pointer slice panics", func(t *testing.T) {

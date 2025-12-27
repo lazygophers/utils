@@ -146,6 +146,107 @@ func TestKeyByIntPanicNotStruct(t *testing.T) {
 	KeyByInt(numbers, "SomeField") // int is not a struct
 }
 
+func TestKeyByIntPanicWithPointer(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic but didn't get one")
+		}
+	}()
+
+	type Person struct {
+		Name string
+	}
+
+	people := []*Person{
+		{Name: "Alice"},
+	}
+	KeyByInt(people, "Name") // Should panic because element is not a struct
+}
+
+func TestKeyByIntPanicWithDoublePointer(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic but didn't get one")
+		}
+	}()
+
+	type Person struct {
+		Name string
+	}
+
+	person := Person{Name: "Alice"}
+	people := []*Person{&person}
+	KeyByInt(people, "Name") // Should panic because element is not a struct
+}
+
+func TestKeyByIntPanicWithNonStructElement(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic but didn't get one")
+		}
+	}()
+
+	// Test element is not a struct
+	people := []int{1, 2, 3}
+	KeyByInt(people, "Invalid")
+}
+
+func TestKeyByIntPanicWithPointerToNonStruct(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic but didn't get one")
+		}
+	}()
+
+	// Test pointer to non-struct
+	num1 := 1
+	num2 := 2
+	people := []*int{&num1, &num2}
+	KeyByInt(people, "Invalid")
+}
+
+func TestKeyByIntPanicWithInvalidField2(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic but didn't get one")
+		}
+	}()
+
+	type Person struct {
+		Name string
+	}
+
+	people := []Person{{Name: "Alice"}}
+	KeyByInt(people, "InvalidField")
+}
+
+func TestKeyByIntPanicWithNonStructElement2(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic but didn't get one")
+		}
+	}()
+
+	// Test element is not a struct
+	people := []int{1, 2, 3}
+	KeyByInt(people, "Invalid")
+}
+
+func TestKeyByIntPanicWithInvalidField3(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic but didn't get one")
+		}
+	}()
+
+	type Person struct {
+		Name string
+	}
+
+	people := []Person{{Name: "Alice"}}
+	KeyByInt(people, "InvalidField")
+}
+
 func TestKeyByInt8(t *testing.T) {
 	tests := []struct {
 		name      string
