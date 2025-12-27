@@ -127,7 +127,6 @@ func (p *MapAny) get(key string) (interface{}, bool) {
 		if val, ok = data.Load(keys[0]); ok {
 			return val, true
 		}
-		return nil, false
 	}
 
 	return nil, false

@@ -3,6 +3,7 @@ package wait_test
 import (
 	"errors"
 	"io"
+	"sync"
 	"testing"
 	"time"
 
@@ -199,10 +200,13 @@ func TestSync(t *testing.T) {
 		defer log.SetOutput(io.Discard)
 
 		results := make(chan int, 5)
+		var wg sync.WaitGroup
 
 		// 启动多个并发同步操作
 		for i := 0; i < 5; i++ {
+			wg.Add(1)
 			go func(id int) {
+				defer wg.Done()
 				wait.Sync(key, func() error {
 					time.Sleep(50 * time.Millisecond) // 模拟工作
 					results <- id
@@ -221,6 +225,9 @@ func TestSync(t *testing.T) {
 				t.Fatal("超时等待结果")
 			}
 		}
+
+		// 等待所有goroutine完成
+		wg.Wait()
 
 		assert.Len(t, collected, 5, "应该收到所有5个结果")
 		assert.Equal(t, 0, wait.Depth(key), "所有操作完成后深度应该为0")
