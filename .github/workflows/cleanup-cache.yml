@@ -1,0 +1,146 @@
+name: Cleanup Expired Actions Cache
+
+on:
+  # 每天凌晨0点触发
+  schedule:
+    - cron: '0 0 * * *'
+  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run mode (no actual deletion)'
+        required: false
+        type: boolean
+        default: false
+      days_old:
+        description: 'Delete caches older than X days'
+        required: false
+        type: number
+        default: 3
+
+permissions:
+  # 必须拥有缓存读取和删除权限
+  actions: write
+  contents: read
+
+jobs:
+  cleanup-cache:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # 重试策略：最多重试3次，每次间隔5分钟
+    strategy:
+      retry:
+        maxAttempts: 3
+        fail-fast: false
+        matrix:
+          retry_index: [1, 2, 3]
+        on:
+          - workflow_run
+          - job_failure
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup GitHub CLI
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install GitHub CLI extension for cache management
+        run: |
+          gh extension install actions/gh-actions-cache
+
+      - name: Authenticate GitHub CLI
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Get current date
+        id: get-date
+        run: |
+          echo "date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+          echo "three_days_ago=$(date -u -d '${{ github.event.inputs.days_old || 3 }} days ago' +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+      - name: List and delete expired caches
+        id: cleanup
+        run: |
+          echo "=== Cache Cleanup Started ==="
+          echo "Cleanup time: ${{ steps.get-date.outputs.date }}"
+          echo "Deleting caches older than: ${{ steps.get-date.outputs.three_days_ago }} (${{ github.event.inputs.days_old || 3 }} days)"
+          echo "Repository: ${{ github.repository }}"
+          echo "Dry run mode: ${{ github.event.inputs.dry_run || false }}"
+          
+          # 获取所有缓存项
+          echo "\n=== Listing all caches ==="
+          gh cache list --repo ${{ github.repository }} --limit 1000 --json id,key,createdAt,lastAccessedAt,sizeInBytes > caches.json
+          
+          # 统计总缓存数量和大小
+          total_caches=$(jq -r '. | length' caches.json)
+          total_size=$(jq -r '[.[] | .sizeInBytes] | add' caches.json)
+          echo "Total caches: $total_caches"
+          echo "Total size: $(numfmt --to=iec $total_size)"
+          
+          # 过滤出过期的缓存项
+          expired_caches=$(jq -r --arg cutoff "${{ steps.get-date.outputs.three_days_ago }}" '[.[] | select(.createdAt < $cutoff)]' caches.json)
+          expired_count=$(echo "$expired_caches" | jq -r '. | length')
+          expired_size=$(echo "$expired_caches" | jq -r '[.[] | .sizeInBytes] | add')
+          echo "\n=== Expired caches ==="
+          echo "Expired caches count: $expired_count"
+          echo "Expired caches size: $(numfmt --to=iec $expired_size)"
+          
+          # 提取过期缓存的ID
+          expired_ids=$(echo "$expired_caches" | jq -r '.[] | .id')
+          
+          # 执行删除操作
+          deleted_count=0
+          failed_count=0
+          if [ "$expired_count" -gt 0 ]; then
+            echo "\n=== Deleting expired caches ==="
+            for cache_id in $expired_ids; do
+              if [ "${{ github.event.inputs.dry_run || false }}" = "true" ]; then
+                echo "DRY RUN: Would delete cache $cache_id"
+                ((deleted_count++))
+              else
+                echo -n "Deleting cache $cache_id... "
+                if gh cache delete $cache_id --repo ${{ github.repository }} --yes; then
+                  echo "✓ SUCCESS"
+                  ((deleted_count++))
+                else
+                  echo "✗ FAILED"
+                  ((failed_count++))
+                fi
+                # 添加小延迟，避免触发API速率限制
+                sleep 0.5
+              fi
+            done
+          fi
+          
+          echo "\n=== Cleanup Summary ==="
+          echo "Total caches: $total_caches ($(numfmt --to=iec $total_size))"
+          echo "Expired caches: $expired_count ($(numfmt --to=iec $expired_size))"
+          echo "Deleted caches: $deleted_count"
+          echo "Failed to delete: $failed_count"
+          echo "Remaining caches: $((total_caches - deleted_count))"
+          
+          # 设置输出变量，用于后续步骤
+          echo "deleted_count=$deleted_count" >> $GITHUB_OUTPUT
+          echo "failed_count=$failed_count" >> $GITHUB_OUTPUT
+          echo "total_caches=$total_caches" >> $GITHUB_OUTPUT
+          echo "expired_caches=$expired_count" >> $GITHUB_OUTPUT
+          
+          echo "\n=== Cache Cleanup Completed ==="
+        shell: bash
+
+      - name: Send cleanup notification (optional)
+        if: always()
+        run: |
+          echo "Cache cleanup completed with the following results:"
+          echo "- Cleanup time: ${{ steps.get-date.outputs.date }}"
+          echo "- Dry run: ${{ github.event.inputs.dry_run || false }}"
+          echo "- Total caches: ${{ steps.cleanup.outputs.total_caches }}"
+          echo "- Expired caches: ${{ steps.cleanup.outputs.expired_caches }}"
+          echo "- Successfully deleted: ${{ steps.cleanup.outputs.deleted_count }}"
+          echo "- Failed to delete: ${{ steps.cleanup.outputs.failed_count }}"
+        shell: bash
