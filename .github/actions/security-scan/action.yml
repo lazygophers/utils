@@ -1,0 +1,50 @@
+name: 'Security Scan'
+description: 'Run security scan using golangci-lint with gosec enabled'
+inputs:
+  timeout:
+    description: 'Timeout for the security scan'
+    required: false
+    default: '10m'
+  fail-on-high-critical:
+    description: 'Fail the scan if high or critical severity issues are found'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run security scan with gosec
+      id: security-scan
+      shell: bash
+      run: |
+        echo "🔒 Running security checks..."
+        TIMEOUT="${{ inputs.timeout }}"
+        FAIL_ON_HIGH_CRITICAL="${{ inputs.fail-on-high-critical }}"
+        
+        # Run gosec and capture exit code
+        set +e
+        golangci-lint run --enable=gosec --timeout=${TIMEOUT} --out-format=json ./... > gosec-report.json
+        EXIT_CODE=$?
+        set -e
+        
+        # Check for high/critical severity issues
+        if [ -f gosec-report.json ]; then
+          HIGH_COUNT=$(cat gosec-report.json | jq '[.Issues[] | select(.Severity == "HIGH")] | length')
+          CRITICAL_COUNT=$(cat gosec-report.json | jq '[.Issues[] | select(.Severity == "CRITICAL")] | length')
+          
+          echo "📊 Security scan results:"
+          echo "  - High severity: $HIGH_COUNT"
+          echo "  - Critical severity: $CRITICAL_COUNT"
+          
+          if [ "$FAIL_ON_HIGH_CRITICAL" = "true" ] && ([ "$HIGH_COUNT" -gt 0 ] || [ "$CRITICAL_COUNT" -gt 0 ]); then
+            echo "❌ Security scan found high/critical severity issues"
+            cat gosec-report.json | jq '.Issues[] | select(.Severity == "HIGH" or .Severity == "CRITICAL")'
+            exit 1
+          else
+            echo "✅ No high/critical severity issues found or fail-on-high-critical is disabled"
+          fi
+        fi
+        
+        echo "✅ Security scan completed"
+        echo "high_count=$HIGH_COUNT" >> $GITHUB_OUTPUT
+        echo "critical_count=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
