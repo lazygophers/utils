@@ -22,7 +22,7 @@ jobs:
     steps:
       # ===== SETUP PHASE =====
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v5.1.2
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -141,7 +141,7 @@ jobs:
 
       - name: Set up Go (GitHub-hosted runners)
         if: steps.go-setup.outputs.is_self_hosted == 'false'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v6.1.0
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
