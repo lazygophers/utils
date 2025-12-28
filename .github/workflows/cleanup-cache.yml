@@ -27,16 +27,13 @@ jobs:
   cleanup-cache:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # 重试策略：最多重试3次，每次间隔5分钟
+    # 重试策略：最多重试3次
+    retry:
+      max-attempts: 3
+      on:
+        - job_failure
     strategy:
-      retry:
-        maxAttempts: 3
-        fail-fast: false
-        matrix:
-          retry_index: [1, 2, 3]
-        on:
-          - workflow_run
-          - job_failure
+      fail-fast: false
 
     steps:
       - name: Checkout
