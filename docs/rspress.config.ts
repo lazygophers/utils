@@ -25,12 +25,30 @@ export default defineConfig({
       description: 'A powerful Go utility library for modern development workflows',
     },
   ],
+  plugins: [],
   themeConfig: {
     nav: [
       { text: '快速开始', link: '/zh-CN/guide/getting-started' },
       { text: '模块概览', link: '/zh-CN/modules/overview' },
       { text: 'API 文档', link: '/zh-CN/api/overview' },
+      {
+        text: 'GitHub',
+        link: 'https://github.com/lazygophers/utils',
+      },
     ],
-    lastUpdated: true,
+    socialLinks: [
+      {
+        icon: 'github',
+        mode: 'link',
+        content: 'https://github.com/lazygophers/utils',
+      },
+    ],
+    lastUpdated: {
+      text: '最后更新时间',
+    },
+    footer: {
+      message: 'MIT Licensed',
+      copyright: 'Copyright © 2024-PRESENT LazyGophers',
+    },
   },
 });
