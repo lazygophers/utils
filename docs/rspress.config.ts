@@ -5,6 +5,7 @@ export default defineConfig({
   lang: 'zh-CN',
   title: 'LazyGophers Utils',
   description: '强大的 Go 工具库，为现代开发工作流设计',
+  base: '/utils/',
   locales: [
     {
       lang: 'zh-CN',
