@@ -27,13 +27,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22.20.0
           cache: pnpm
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: latest
+          version: 10.17.1
           run_install: false
 
       - name: Setup Pages
