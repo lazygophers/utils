@@ -18,6 +18,7 @@ var (
 // DESEncryptECB 使用 DES 在 ECB 模式下加密明文
 // 警告：DES 已被认为是不安全的，仅用于兼容性目的。推荐使用 AES。
 // 警告：ECB 模式在密码学上是不安全的，相同的明文块会产生相同的密文块。
+// #nosec G401 - DES 是弱加密算法，但保留用于向后兼容
 func DESEncryptECB(key, plaintext []byte) ([]byte, error) {
 	if len(key) != 8 {
 		return nil, errors.New("invalid key length: must be 8 bytes for DES")
@@ -39,6 +40,7 @@ func DESEncryptECB(key, plaintext []byte) ([]byte, error) {
 // DESDecryptECB 使用 DES 在 ECB 模式下解密密文
 // 警告：DES 已被认为是不安全的，仅用于兼容性目的。推荐使用 AES。
 // 警告：ECB 模式在密码学上是不安全的，相同的明文块会产生相同的密文块。
+// #nosec G401 - DES 是弱加密算法，但保留用于向后兼容
 func DESDecryptECB(key, ciphertext []byte) ([]byte, error) {
 	if len(key) != 8 {
 		return nil, errors.New("invalid key length: must be 8 bytes for DES")
@@ -62,6 +64,7 @@ func DESDecryptECB(key, ciphertext []byte) ([]byte, error) {
 
 // DESEncryptCBC 使用 DES 在 CBC 模式下加密明文
 // 警告：DES 已被认为是不安全的，仅用于兼容性目的。推荐使用 AES。
+// #nosec G401 - DES 是弱加密算法，但保留用于向后兼容
 func DESEncryptCBC(key, plaintext []byte) ([]byte, error) {
 	if len(key) != 8 {
 		return nil, errors.New("invalid key length: must be 8 bytes for DES")
@@ -87,6 +90,7 @@ func DESEncryptCBC(key, plaintext []byte) ([]byte, error) {
 
 // DESDecryptCBC 使用 DES 在 CBC 模式下解密密文
 // 警告：DES 已被认为是不安全的，仅用于兼容性目的。推荐使用 AES。
+// #nosec G401 - DES 是弱加密算法，但保留用于向后兼容
 func DESDecryptCBC(key, ciphertext []byte) ([]byte, error) {
 	if len(key) != 8 {
 		return nil, errors.New("invalid key length: must be 8 bytes for DES")
@@ -116,6 +120,7 @@ func DESDecryptCBC(key, ciphertext []byte) ([]byte, error) {
 
 // TripleDESEncryptECB 使用 3DES 在 ECB 模式下加密明文
 // 警告：ECB 模式在密码学上是不安全的，相同的明文块会产生相同的密文块。
+// #nosec G401 - 3DES 是相对较弱的加密算法，但保留用于向后兼容
 func TripleDESEncryptECB(key, plaintext []byte) ([]byte, error) {
 	if len(key) != 24 {
 		return nil, errors.New("invalid key length: must be 24 bytes for 3DES")
@@ -136,6 +141,7 @@ func TripleDESEncryptECB(key, plaintext []byte) ([]byte, error) {
 
 // TripleDESDecryptECB 使用 3DES 在 ECB 模式下解密密文
 // 警告：ECB 模式在密码学上是不安全的，相同的明文块会产生相同的密文块。
+// #nosec G401 - 3DES 是相对较弱的加密算法，但保留用于向后兼容
 func TripleDESDecryptECB(key, ciphertext []byte) ([]byte, error) {
 	if len(key) != 24 {
 		return nil, errors.New("invalid key length: must be 24 bytes for 3DES")
@@ -158,6 +164,7 @@ func TripleDESDecryptECB(key, ciphertext []byte) ([]byte, error) {
 }
 
 // TripleDESEncryptCBC 使用 3DES 在 CBC 模式下加密明文
+// #nosec G401 - 3DES 是相对较弱的加密算法，但保留用于向后兼容
 func TripleDESEncryptCBC(key, plaintext []byte) ([]byte, error) {
 	if len(key) != 24 {
 		return nil, errors.New("invalid key length: must be 24 bytes for 3DES")
@@ -182,6 +189,7 @@ func TripleDESEncryptCBC(key, plaintext []byte) ([]byte, error) {
 }
 
 // TripleDESDecryptCBC 使用 3DES 在 CBC 模式下解密密文
+// #nosec G401 - 3DES 是相对较弱的加密算法，但保留用于向后兼容
 func TripleDESDecryptCBC(key, ciphertext []byte) ([]byte, error) {
 	if len(key) != 24 {
 		return nil, errors.New("invalid key length: must be 24 bytes for 3DES")
