@@ -1,140 +1,310 @@
 ---
-title: 快速開始
+title: 模組概覽
 ---
 
-# 快速開始
+# 模組概覽
 
-本指南將幫助您快速開始使用 LazyGophers Utils。
+LazyGophers Utils 提供 20+ 個專業模組，涵蓋 Go 開發的各個方面。
 
-## 安裝
+## 🔧 核心工具
 
-使用 Go 模組安裝 LazyGophers Utils：
+### must.go
 
-```bash
-go get github.com/lazygophers/utils
-```
+錯誤斷言工具，簡化錯誤處理流程。
 
-## 基本用法
+**主要功能:**
+- `Must()` - 斷言操作成功，失敗時 panic
+- `MustSuccess()` - 斷言錯誤為 nil
+- `MustOk()` - 斷言第二個返回值為 true
 
-### 錯誤處理
-
-LazyGophers Utils 提供了簡化的錯誤處理方式：
-
+**示例:**
 ```go
-package main
-
-import (
-    "fmt"
-    "github.com/lazygophers/utils"
-)
-
-func main() {
-    // 使用 Must 簡化錯誤處理
-    data := utils.Must(loadData())
-    fmt.Println(data)
-}
-
-func loadData() (string, error) {
-    return "Hello, World!", nil
-}
+data := utils.Must(loadData())
+utils.MustSuccess(config.Load(&cfg, "config.json"))
+value := utils.MustOk(getValue())
 ```
 
-### 類型轉換
+### orm.go
 
-使用 `candy` 模組進行類型轉換：
+數據庫操作工具，提供便捷的數據轉換方法。
 
-```go
-import "github.com/lazygophers/utils/candy"
+**主要功能:**
+- `Scan()` - 將數據庫結果掃描到結構體
+- `Value()` - 將結構體轉換為數據庫值
 
-// 字串轉整數
-age := candy.ToInt("25")
+### validator
 
-// 字串轉布林值
-active := candy.ToBool("true")
+數據驗證模組，支持結構體驗證。
 
-// 字串轉浮點數
-price := candy.ToFloat("99.99")
-```
+**主要功能:**
+- `Validate()` - 驗證結構體數據
+- 內置驗證規則：`required`、`email`、`min`、`max` 等
 
-### 時間處理
+## 🍭 數據處理
 
-使用 `xtime` 模組處理時間：
+### candy
 
-```go
-import "github.com/lazygophers/utils/xtime"
+類型轉換工具，提供零分配的類型轉換。
 
-// 獲取當前日曆
-cal := xtime.NowCalendar()
+**主要功能:**
+- `ToInt()` - 字符串轉整數
+- `ToFloat()` - 字符串轉浮點數
+- `ToBool()` - 字符串轉布爾值
+- `ToString()` - 任意類型轉字符串
+- `ToSlice()` - 任意類型轉切片
+- `ToMap()` - 任意類型轉映射
 
-// 格式化日期
-fmt.Printf("今天: %s\n", cal.String())
+**性能:** 零分配，比標準庫快 3.2 倍
 
-// 獲取農曆日期
-fmt.Printf("農曆: %s\n", cal.LunarDate())
+### json
 
-// 獲取生肖
-fmt.Printf("生肖: %s\n", cal.Animal())
+增強的 JSON 處理，提供更好的錯誤消息。
 
-// 獲取節氣
-fmt.Printf("節氣: %s\n", cal.CurrentSolarTerm())
-```
+**主要功能:**
+- `Marshal()` - JSON 編碼
+- `Unmarshal()` - JSON 解碼
+- 更友好的錯誤消息
 
-### 配置管理
+### stringx
 
-使用 `config` 模組加載配置：
+字符串工具，支持 Unicode 感知操作。
 
-```go
-import "github.com/lazygophers/utils/config"
+**主要功能:**
+- `Rand()` - 生成隨機字符串
+- `Reverse()` - 反轉字符串
+- `Truncate()` - 截斷字符串
+- Unicode 感知的字符串操作
 
-type Config struct {
-    Database string `json:"database"`
-    Port     int    `json:"port"`
-    Debug    bool   `json:"debug"`
-}
+### anyx
 
-func main() {
-    var cfg Config
-    utils.MustSuccess(config.Load(&cfg, "config.json"))
-    fmt.Printf("Config: %+v\n", cfg)
-}
-```
+interface{} 輔助工具，提供類型安全的 any 操作。
 
-### 資料驗證
+**主要功能:**
+- 類型安全的 any 操作
+- 泛型支持
 
-使用 `validator` 模組驗證資料：
+## ⏰ 時間與調度
 
-```go
-import "github.com/lazygophers/utils/validator"
+### xtime
 
-type User struct {
-    Name  string `validate:"required"`
-    Email string `validate:"required,email"`
-    Age   int    `validate:"min=0,max=150"`
-}
+高級時間處理，支持農曆、生肖和節氣。
 
-func main() {
-    user := User{
-        Name:  "張三",
-        Email: "zhangsan@example.com",
-        Age:   25,
-    }
+**主要功能:**
+- `NowCalendar()` - 獲取當前日曆
+- `LunarDate()` - 獲取農曆日期
+- `Animal()` - 獲取生肖
+- `CurrentSolarTerm()` - 獲取當前節氣
+- `Format()` - 格式化日期
 
-    if err := utils.Validate(&user); err != nil {
-        fmt.Printf("驗證失敗: %v\n", err)
-    } else {
-        fmt.Println("驗證成功")
-    }
-}
-```
+**特殊功能:**
+- 🌙 農曆支持
+- 🐲 生肖計算
+- 🌾 節氣計算
+
+### xtime996
+
+996 工作時間計算。
+
+**主要功能:**
+- `IsWorkTime()` - 檢查是否為工作時間
+- 工作時間計算
+
+### xtime955
+
+955 工作時間計算。
+
+**主要功能:**
+- `IsWorkTime()` - 檢查是否為工作時間
+- 平衡時間表支持
+
+### xtime007
+
+24/7 操作時間工具。
+
+**主要功能:**
+- 始終在線的時間工具
+- 24/7 時間處理
+
+## 🔧 系統與配置
+
+### config
+
+配置管理，支持多種配置格式。
+
+**主要功能:**
+- `Load()` - 加載配置文件
+- 支持的格式：JSON、YAML、TOML、INI、HCL
+
+### runtime
+
+運行時信息，提供系統檢測和診斷。
+
+**主要功能:**
+- 系統信息檢測
+- 運行時診斷
+
+### osx
+
+操作系統操作，提供文件和進程管理。
+
+**主要功能:**
+- 文件操作
+- 進程管理
+
+### app
+
+應用框架，提供生命週期管理。
+
+**主要功能:**
+- 應用生命週期管理
+- 啟動和關閉處理
+
+### atexit
+
+優雅關閉，提供乾淨的退出處理。
+
+**主要功能:**
+- 註冊退出處理器
+- 優雅關閉
+
+## 🌐 網絡與安全
+
+### network
+
+HTTP 工具，提供連接池和重試邏輯。
+
+**主要功能:**
+- 連接池管理
+- 重試邏輯
+- HTTP 客戶端工具
+
+### cryptox
+
+加密函數，提供哈希、加密和安全隨機。
+
+**主要功能:**
+- 哈希函數：MD5、SHA1、SHA256、SHA512
+- 加密：AES、DES、RSA、ECDSA、ECDH
+- 安全隨機數生成
+- UUID 生成
+
+### pgp
+
+PGP 操作，提供郵件加密和文件簽名。
+
+**主要功能:**
+- PGP 加密
+- 文件簽名
+- 郵件加密
+
+### urlx
+
+URL 操作，提供解析、構建和驗證。
+
+**主要功能:**
+- URL 解析
+- URL 構建
+- URL 驗證
+- 查詢參數處理
+
+## 🚀 並發與控制流
+
+### routine
+
+Goroutine 管理，提供工作池和任務調度。
+
+**主要功能:**
+- `NewPool()` - 創建工作池
+- `Submit()` - 提交任務
+- `Close()` - 關閉工作池
+
+### wait
+
+流程控制，提供超時、重試和速率限制。
+
+**主要功能:**
+- `For()` - 等待條件
+- `Retry()` - 重試操作
+- 超時控制
+- 速率限制
+
+### hystrix
+
+熔斷器，提供容錯和優雅降級。
+
+**主要功能:**
+- `Do()` - 使用熔斷器保護執行操作
+- 熔斷器配置
+- 容錯
+
+### singledo
+
+單例執行，防止重複操作。
+
+**主要功能:**
+- 確保操作只執行一次
+- 防止重複計算
+
+### event
+
+事件系統，實現發布/訂閱模式。
+
+**主要功能:**
+- 事件發布
+- 事件訂閱
+- 事件處理
+
+## 🧪 開發與測試
+
+### fake
+
+測試數據生成，支持單元測試和集成測試。
+
+**主要功能:**
+- 生成隨機姓名
+- 生成隨機地址
+- 生成隨機公司
+- 生成隨機文本
+- 支持多種語言
+
+### randx
+
+隨機工具，提供加密安全的隨機數。
+
+**主要功能:**
+- 加密安全的隨機數
+- 隨機布爾值
+- 隨機數字
+- 隨機時間
+
+### defaults
+
+默認值，提供結構體初始化。
+
+**主要功能:**
+- 設置結構體默認值
+- 從標籤讀取默認值
+
+### pyroscope
+
+性能分析，提供生產監控。
+
+**主要功能:**
+- Pyroscope 集成
+- 性能分析
+- 生產監控
+
+## 性能比較
+
+| 操作 | 時間 | 內存 | vs 標準庫 |
+|-----------|------|--------|-------------------|
+| `candy.ToInt()` | 12.3 ns/op | 0 B/op | **快 3.2 倍** |
+| `json.Marshal()` | 156 ns/op | 64 B/op | **快 1.8 倍** |
+| `xtime.Now()` | 45.2 ns/op | 0 B/op | **快 2.1 倍** |
+| `utils.Must()` | 2.1 ns/op | 0 B/op | **零開銷** |
 
 ## 下一步
 
-- 查看 [模組概覽](/zh-TW/modules/overview) 了解所有可用模組
-- 閱讀 [API 文檔](/zh-TW/api/overview) 了解詳細 API
-- 查看 [GitHub 倉庫](https://github.com/lazygophers/utils) 獲取更多示例
-
-## 獲取幫助
-
-- 📖 [完整 API 參考](https://pkg.go.dev/github.com/lazygophers/utils)
-- 🐛 [提交問題](https://github.com/lazygophers/utils/issues)
-- 💬 [GitHub Discussions](https://github.com/lazygophers/utils/discussions)
+- 查看 [API 文檔](/zh-TW/api/overview) 獲取詳細的 API 信息
+- 查看 [入門指南](/zh-TW/guide/getting-started) 開始使用
+- 訪問 [GitHub 倉庫](https://github.com/lazygophers/utils) 查看更多示例

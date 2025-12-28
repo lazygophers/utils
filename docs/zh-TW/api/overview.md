@@ -4,7 +4,7 @@ title: API 文檔
 
 # API 文檔
 
-本文檔提供了 LazyGophers Utils 的詳細 API 參考。
+本文檔提供 LazyGophers Utils 的詳細 API 參考。
 
 ## 核心工具
 
@@ -16,15 +16,15 @@ title: API 文檔
 func Must[T any](value T, err error) T
 ```
 
-**參數：**
+**參數:**
 - `value` - 返回值
 - `err` - 錯誤
 
-**返回：**
-- 如果 err 為 nil，返回 value
-- 如果 err 不為 nil，panic
+**返回:**
+- 如果 `err` 為 nil，返回 `value`
+- 如果 `err` 不為 nil，則 panic
 
-**示例：**
+**示例:**
 ```go
 data := utils.Must(loadData())
 ```
@@ -37,10 +37,10 @@ data := utils.Must(loadData())
 func MustSuccess(err error)
 ```
 
-**參數：**
+**參數:**
 - `err` - 錯誤
 
-**示例：**
+**示例:**
 ```go
 utils.MustSuccess(config.Load(&cfg, "config.json"))
 ```
@@ -53,34 +53,34 @@ utils.MustSuccess(config.Load(&cfg, "config.json"))
 func MustOk[T any](value T, ok bool) T
 ```
 
-**參數：**
+**參數:**
 - `value` - 返回值
-- `ok` - 是否成功
+- `ok` - 成功標志
 
-**返回：**
-- 如果 ok 為 true，返回 value
-- 如果 ok 為 false，panic
+**返回:**
+- 如果 `ok` 為 true，返回 `value`
+- 如果 `ok` 為 false，則 panic
 
-**示例：**
+**示例:**
 ```go
 value := utils.MustOk(getValue())
 ```
 
 ### utils.Validate()
 
-驗證結構體資料。
+驗證結構體數據。
 
 ```go
 func Validate(v any) error
 ```
 
-**參數：**
+**參數:**
 - `v` - 要驗證的結構體
 
-**返回：**
-- 驗證錯誤，如果驗證失敗
+**返回:**
+- 如果驗證失敗，返回驗證錯誤
 
-**示例：**
+**示例:**
 ```go
 type User struct {
     Name  string `validate:"required"`
@@ -89,90 +89,90 @@ type User struct {
 }
 
 user := User{
-    Name:  "張三",
-    Email: "zhangsan@example.com",
+    Name:  "John Doe",
+    Email: "john@example.com",
     Age:   25,
 }
 
 if err := utils.Validate(&user); err != nil {
-    fmt.Printf("驗證失敗: %v\n", err)
+    fmt.Printf("Validation failed: %v\n", err)
 }
 ```
 
-## 資料處理
+## 數據處理
 
 ### candy.ToInt()
 
-字串轉整數。
+將字符串轉換為整數。
 
 ```go
 func ToInt(s string) int
 ```
 
-**參數：**
-- `s` - 字串
+**參數:**
+- `s` - 字符串
 
-**返回：**
+**返回:**
 - 整數值
 
-**示例：**
+**示例:**
 ```go
 age := candy.ToInt("25")
 ```
 
 ### candy.ToFloat()
 
-字串轉浮點數。
+將字符串轉換為浮點數。
 
 ```go
 func ToFloat(s string) float64
 ```
 
-**參數：**
-- `s` - 字串
+**參數:**
+- `s` - 字符串
 
-**返回：**
+**返回:**
 - 浮點數值
 
-**示例：**
+**示例:**
 ```go
 price := candy.ToFloat("99.99")
 ```
 
 ### candy.ToBool()
 
-字串轉布林值。
+將字符串轉換為布爾值。
 
 ```go
 func ToBool(s string) bool
 ```
 
-**參數：**
-- `s` - 字串
+**參數:**
+- `s` - 字符串
 
-**返回：**
-- 布林值
+**返回:**
+- 布爾值
 
-**示例：**
+**示例:**
 ```go
 active := candy.ToBool("true")
 ```
 
 ### candy.ToString()
 
-任意類型轉字串。
+將任意類型轉換為字符串。
 
 ```go
 func ToString(v any) string
 ```
 
-**參數：**
+**參數:**
 - `v` - 任意值
 
-**返回：**
-- 字串
+**返回:**
+- 字符串
 
-**示例：**
+**示例:**
 ```go
 str := candy.ToString(123)
 ```
@@ -187,13 +187,13 @@ str := candy.ToString(123)
 func NowCalendar() *Calendar
 ```
 
-**返回：**
+**返回:**
 - 當前日曆對象
 
-**示例：**
+**示例:**
 ```go
 cal := xtime.NowCalendar()
-fmt.Printf("今天: %s\n", cal.String())
+fmt.Printf("Today: %s\n", cal.String())
 ```
 
 ### Calendar.LunarDate()
@@ -204,28 +204,28 @@ fmt.Printf("今天: %s\n", cal.String())
 func (c *Calendar) LunarDate() string
 ```
 
-**返回：**
-- 農曆日期字串
+**返回:**
+- 農曆日期字符串
 
-**示例：**
+**示例:**
 ```go
-fmt.Printf("農曆: %s\n", cal.LunarDate())
+fmt.Printf("Lunar: %s\n", cal.LunarDate())
 ```
 
 ### Calendar.Animal()
 
-獲取生肖。
+獲取生肖動物。
 
 ```go
 func (c *Calendar) Animal() string
 ```
 
-**返回：**
-- 生肖字串
+**返回:**
+- 生肖動物字符串
 
-**示例：**
+**示例:**
 ```go
-fmt.Printf("生肖: %s\n", cal.Animal())
+fmt.Printf("Animal: %s\n", cal.Animal())
 ```
 
 ### Calendar.CurrentSolarTerm()
@@ -236,39 +236,39 @@ fmt.Printf("生肖: %s\n", cal.Animal())
 func (c *Calendar) CurrentSolarTerm() string
 ```
 
-**返回：**
-- 節氣字串
+**返回:**
+- 節氣字符串
 
-**示例：**
+**示例:**
 ```go
-fmt.Printf("節氣: %s\n", cal.CurrentSolarTerm())
+fmt.Printf("Solar Term: %s\n", cal.CurrentSolarTerm())
 ```
 
 ## 配置管理
 
 ### config.Load()
 
-加載配置檔案。
+加載配置文件。
 
 ```go
 func Load(v any, filename string) error
 ```
 
-**參數：**
+**參數:**
 - `v` - 配置結構體指針
-- `filename` - 配置檔案名
+- `filename` - 配置文件名
 
-**返回：**
-- 錯誤，如果加載失敗
+**返回:**
+- 如果加載失敗，返回錯誤
 
-**支援的格式：**
+**支持的格式:**
 - JSON
 - YAML
 - TOML
 - INI
 - HCL
 
-**示例：**
+**示例:**
 ```go
 type Config struct {
     Database string `json:"database"`
@@ -290,13 +290,13 @@ utils.MustSuccess(config.Load(&cfg, "config.json"))
 func NewPool(size int) *Pool
 ```
 
-**參數：**
-- `size` - 工作池大小
+**參數:**
+- `size` - 池大小
 
-**返回：**
+**返回:**
 - 工作池對象
 
-**示例：**
+**示例:**
 ```go
 pool := routine.NewPool(10)
 defer pool.Close()
@@ -304,16 +304,16 @@ defer pool.Close()
 
 ### Pool.Submit()
 
-提交任務到工作池。
+向工作池提交任務。
 
 ```go
 func (p *Pool) Submit(fn func())
 ```
 
-**參數：**
+**參數:**
 - `fn` - 要執行的函數
 
-**示例：**
+**示例:**
 ```go
 pool.Submit(func() {
     fmt.Println("Task executed")
@@ -322,20 +322,20 @@ pool.Submit(func() {
 
 ### wait.For()
 
-等待條件滿足。
+等待條件。
 
 ```go
 func For(timeout time.Duration, condition func() bool) bool
 ```
 
-**參數：**
+**參數:**
 - `timeout` - 超時時間
 - `condition` - 條件函數
 
-**返回：**
+**返回:**
 - 是否在超時前滿足條件
 
-**示例：**
+**示例:**
 ```go
 success := wait.For(5*time.Second, func() bool {
     return pool.Running() == 0
@@ -344,12 +344,12 @@ success := wait.For(5*time.Second, func() bool {
 
 ## 更多 API
 
-完整的 API 文檔請訪問：
+完整的 API 文檔，請訪問：
 
 - [pkg.go.dev](https://pkg.go.dev/github.com/lazygophers/utils)
 - [GitHub 倉庫](https://github.com/lazygophers/utils)
 
 ## 相關文檔
 
-- [快速開始](/zh-TW/guide/getting-started)
+- [入門指南](/zh-TW/guide/getting-started)
 - [模組概覽](/zh-TW/modules/overview)

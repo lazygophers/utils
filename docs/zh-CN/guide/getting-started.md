@@ -1,8 +1,8 @@
 ---
-title: 快速开始
+title: 入门指南
 ---
 
-# 快速开始
+# 入门指南
 
 本指南将帮助您快速开始使用 LazyGophers Utils。
 
@@ -18,7 +18,7 @@ go get github.com/lazygophers/utils
 
 ### 错误处理
 
-LazyGophers Utils 提供了简化的错误处理方式：
+LazyGophers Utils 提供简化的错误处理：
 
 ```go
 package main
@@ -58,7 +58,7 @@ price := candy.ToFloat("99.99")
 
 ### 时间处理
 
-使用 `xtime` 模块处理时间：
+使用 `xtime` 模块进行时间处理：
 
 ```go
 import "github.com/lazygophers/utils/xtime"
@@ -67,16 +67,16 @@ import "github.com/lazygophers/utils/xtime"
 cal := xtime.NowCalendar()
 
 // 格式化日期
-fmt.Printf("今天: %s\n", cal.String())
+fmt.Printf("Today: %s\n", cal.String())
 
 // 获取农历日期
-fmt.Printf("农历: %s\n", cal.LunarDate())
+fmt.Printf("Lunar: %s\n", cal.LunarDate())
 
 // 获取生肖
-fmt.Printf("生肖: %s\n", cal.Animal())
+fmt.Printf("Animal: %s\n", cal.Animal())
 
 // 获取节气
-fmt.Printf("节气: %s\n", cal.CurrentSolarTerm())
+fmt.Printf("Solar Term: %s\n", cal.CurrentSolarTerm())
 ```
 
 ### 配置管理
@@ -114,27 +114,27 @@ type User struct {
 
 func main() {
     user := User{
-        Name:  "张三",
-        Email: "zhangsan@example.com",
+        Name:  "John Doe",
+        Email: "john@example.com",
         Age:   25,
     }
 
     if err := utils.Validate(&user); err != nil {
-        fmt.Printf("验证失败: %v\n", err)
+        fmt.Printf("Validation failed: %v\n", err)
     } else {
-        fmt.Println("验证成功")
+        fmt.Println("Validation successful")
     }
 }
 ```
 
 ## 下一步
 
-- 查看 [模块概览](/zh-CN/modules/overview) 了解所有可用模块
-- 阅读 [API 文档](/zh-CN/api/overview) 了解详细 API
-- 查看 [GitHub 仓库](https://github.com/lazygophers/utils) 获取更多示例
+-   查看 [模块概览](/zh-CN/modules/overview) 了解所有可用模块
+-   阅读 [API 文档](/zh-CN/api/overview) 获取详细的 API 信息
+-   访问 [GitHub 仓库](https://github.com/lazygophers/utils) 查看更多示例
 
 ## 获取帮助
 
-- 📖 [完整 API 参考](https://pkg.go.dev/github.com/lazygophers/utils)
-- 🐛 [提交问题](https://github.com/lazygophers/utils/issues)
-- 💬 [GitHub Discussions](https://github.com/lazygophers/utils/discussions)
+-   📖 [完整 API 参考](https://pkg.go.dev/github.com/lazygophers/utils)
+-   🐛 [报告问题](https://github.com/lazygophers/utils/issues)
+-   💬 [GitHub 讨论](https://github.com/lazygophers/utils/discussions)
