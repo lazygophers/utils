@@ -216,7 +216,7 @@ jobs:
           echo "COVERAGE_PERCENT=${COVERAGE}" >> $GITHUB_ENV
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v5.1.2
         with:
           file: ./docs/reports/coverage.out
           flags: unittests

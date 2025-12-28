@@ -188,7 +188,7 @@ jobs:
 
       # ===== LINTING PHASE =====
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v8.2.1
         with:
           version: latest
           args: --timeout=10m --issues-exit-code=1
@@ -237,7 +237,7 @@ jobs:
           echo "✅ All tests passed"
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v5.1.2
         with:
           file: ./docs/reports/coverage.out
           flags: pr-tests
