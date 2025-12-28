@@ -188,7 +188,7 @@ jobs:
 
       # ===== LINTING PHASE =====
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v8.2.1
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20
         with:
           version: latest
           args: --timeout=10m --issues-exit-code=1
