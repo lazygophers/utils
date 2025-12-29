@@ -96,6 +96,60 @@ export default defineConfig({
               ],
             },
             {
+              text: '缓存',
+              link: '/zh-CN/modules/cache/',
+              items: [
+                {
+                  text: '缓存概览',
+                  link: '/zh-CN/modules/cache/',
+                },
+                {
+                  text: 'LRU',
+                  link: '/zh-CN/modules/cache/lru',
+                },
+                {
+                  text: 'LFU',
+                  link: '/zh-CN/modules/cache/lfu',
+                },
+                {
+                  text: 'TinyLFU',
+                  link: '/zh-CN/modules/cache/tinylfu',
+                },
+                {
+                  text: 'SLRU',
+                  link: '/zh-CN/modules/cache/slru',
+                },
+                {
+                  text: 'MRU',
+                  link: '/zh-CN/modules/cache/mru',
+                },
+                {
+                  text: 'ALFU',
+                  link: '/zh-CN/modules/cache/alfu',
+                },
+                {
+                  text: 'ARC',
+                  link: '/zh-CN/modules/cache/arc',
+                },
+                {
+                  text: 'LRU-K',
+                  link: '/zh-CN/modules/cache/lruk',
+                },
+                {
+                  text: 'W-TinyLFU',
+                  link: '/zh-CN/modules/cache/wtinylfu',
+                },
+                {
+                  text: 'FBR',
+                  link: '/zh-CN/modules/cache/fbr',
+                },
+                {
+                  text: 'Optimal',
+                  link: '/zh-CN/modules/cache/optimal',
+                },
+              ],
+            },
+            {
               text: '时间与调度',
               link: '/zh-CN/modules/time/',
               items: [
@@ -283,6 +337,60 @@ export default defineConfig({
               ],
             },
             {
+              text: 'Cache',
+              link: '/en/modules/cache/',
+              items: [
+                {
+                  text: 'Cache Overview',
+                  link: '/en/modules/cache/',
+                },
+                {
+                  text: 'LRU',
+                  link: '/en/modules/cache/lru',
+                },
+                {
+                  text: 'LFU',
+                  link: '/en/modules/cache/lfu',
+                },
+                {
+                  text: 'TinyLFU',
+                  link: '/en/modules/cache/tinylfu',
+                },
+                {
+                  text: 'SLRU',
+                  link: '/en/modules/cache/slru',
+                },
+                {
+                  text: 'MRU',
+                  link: '/en/modules/cache/mru',
+                },
+                {
+                  text: 'ALFU',
+                  link: '/en/modules/cache/alfu',
+                },
+                {
+                  text: 'ARC',
+                  link: '/en/modules/cache/arc',
+                },
+                {
+                  text: 'LRU-K',
+                  link: '/en/modules/cache/lruk',
+                },
+                {
+                  text: 'W-TinyLFU',
+                  link: '/en/modules/cache/wtinylfu',
+                },
+                {
+                  text: 'FBR',
+                  link: '/en/modules/cache/fbr',
+                },
+                {
+                  text: 'Optimal',
+                  link: '/en/modules/cache/optimal',
+                },
+              ],
+            },
+            {
               text: 'Time & Scheduling',
               link: '/en/modules/time/',
               items: [
@@ -466,6 +574,60 @@ export default defineConfig({
                 {
                   text: 'anyx',
                   link: '/zh-TW/modules/data/anyx',
+                },
+              ],
+            },
+            {
+              text: '緩存',
+              link: '/zh-TW/modules/cache/',
+              items: [
+                {
+                  text: '緩存概覽',
+                  link: '/zh-TW/modules/cache/',
+                },
+                {
+                  text: 'LRU',
+                  link: '/zh-TW/modules/cache/lru',
+                },
+                {
+                  text: 'LFU',
+                  link: '/zh-TW/modules/cache/lfu',
+                },
+                {
+                  text: 'TinyLFU',
+                  link: '/zh-TW/modules/cache/tinylfu',
+                },
+                {
+                  text: 'SLRU',
+                  link: '/zh-TW/modules/cache/slru',
+                },
+                {
+                  text: 'MRU',
+                  link: '/zh-TW/modules/cache/mru',
+                },
+                {
+                  text: 'ALFU',
+                  link: '/zh-TW/modules/cache/alfu',
+                },
+                {
+                  text: 'ARC',
+                  link: '/zh-TW/modules/cache/arc',
+                },
+                {
+                  text: 'LRU-K',
+                  link: '/zh-TW/modules/cache/lruk',
+                },
+                {
+                  text: 'W-TinyLFU',
+                  link: '/zh-TW/modules/cache/wtinylfu',
+                },
+                {
+                  text: 'FBR',
+                  link: '/zh-TW/modules/cache/fbr',
+                },
+                {
+                  text: 'Optimal',
+                  link: '/zh-TW/modules/cache/optimal',
                 },
               ],
             },
