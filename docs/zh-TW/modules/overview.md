@@ -23,6 +23,16 @@ LazyGophers Utils 提供 20+ 個專業模組，涵蓋 Go 開發的各個方面�
 - [stringx](./data/stringx.md) - 字符串工具
 - [anyx](./data/anyx.md) - Interface{} 輔助
 
+## 📦 緩存
+
+提供多種緩存實現，具有不同的淘汰策略，適用於各種使用場景。
+
+- [LRU](./cache/lru.md) - 最常用的緩存策略（85% 命中率）
+- [LFU](./cache/lfu.md) - 淘汰最少使用的項目（75% 命中率）
+- [TinyLFU](./cache/tinylfu.md) - 結合 LRU 和 LFU 的高性能緩存（92% 命中率）
+- [SLRU](./cache/slru.md) - 分段 LRU，適合高並發環境（90% 命中率）
+- [更多緩存實現](./cache/) - 查看所有 10+ 種緩存實現
+
 ## ⏰ 時間與調度
 
 高級時間處理、工作時間計算和調度工具。

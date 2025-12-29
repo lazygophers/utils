@@ -10,77 +10,87 @@ LazyGophers Utils 提供 20+ 个专业模块，涵盖 Go 开发的各个方面�
 
 基础工具模块，提供错误处理、数据库操作和数据验证功能。
 
-- [must](./core/must.md) - 错误断言工具
-- [orm](./core/orm.md) - 数据库操作工具
-- [validator](./core/validator.md) - 数据验证模块
+-   [must](./core/must.md) - 错误断言工具
+-   [orm](./core/orm.md) - 数据库操作工具
+-   [validator](./core/validator.md) - 数据验证模块
 
 ## 🍭 数据处理
 
 提供类型转换、JSON 处理、字符串操作等数据处理工具。
 
-- [candy](./data/candy.md) - 类型转换糖（零分配，快 3.2 倍）
-- [json](./data/json.md) - 增强的 JSON 处理
-- [stringx](./data/stringx.md) - 字符串工具
-- [anyx](./data/anyx.md) - Interface{} 辅助
+-   [candy](./data/candy.md) - 类型转换糖（零分配，快 3.2 倍）
+-   [json](./data/json.md) - 增强的 JSON 处理
+-   [stringx](./data/stringx.md) - 字符串工具
+-   [anyx](./data/anyx.md) - Interface{} 辅助
+
+## 📦 缓存
+
+提供多种缓存实现，具有不同的淘汰策略，适用于各种使用场景。
+
+-   [LRU](./cache/lru.md) - 最常用的缓存策略（85% 命中率）
+-   [LFU](./cache/lfu.md) - 淘汰最少使用的项目（75% 命中率）
+-   [TinyLFU](./cache/tinylfu.md) - 结合 LRU 和 LFU 的高性能缓存（92% 命中率）
+-   [SLRU](./cache/slru.md) - 分段 LRU，适合高并发环境（90% 命中率）
+-   [更多缓存实现](./cache/) - 查看所有 10+ 种缓存实现
 
 ## ⏰ 时间与调度
 
 高级时间处理、工作时间计算和调度工具。
 
-- [xtime](./time/xtime.md) - 高级时间处理（🌙 农历、🐲 生肖、🌾 节气）
-- [xtime996](./time/xtime996.md) - 996 工作时间
-- [xtime955](./time/xtime955.md) - 955 工作时间
-- [xtime007](./time/xtime007.md) - 24/7 操作
+-   [xtime](./time/xtime.md) - 高级时间处理（🌙 农历、🐲 生肖、🌾 节气）
+-   [xtime996](./time/xtime996.md) - 996 工作时间
+-   [xtime955](./time/xtime955.md) - 955 工作时间
+-   [xtime007](./time/xtime007.md) - 007 工作时间
 
 ## 🔧 系统与配置
 
 配置管理、运行时信息、操作系统操作等系统级工具。
 
-- [config](./system/config.md) - 配置管理（JSON、YAML、TOML、INI、HCL）
-- [runtime](./system/runtime.md) - 运行时信息
-- [osx](./system/osx.md) - 操作系统操作
-- [app](./system/app.md) - 应用框架
-- [atexit](./system/atexit.md) - 优雅关闭
+-   [config](./system/config.md) - 配置管理（JSON、YAML、TOML、INI、HCL）
+-   [runtime](./system/runtime.md) - 运行时信息
+-   [osx](./system/osx.md) - 操作系统操作
+-   [app](./system/app.md) - 应用框架
+-   [atexit](./system/atexit.md) - 优雅关闭
 
 ## 🌐 网络与安全
 
 HTTP 工具、加密函数、PGP 操作等网络和安全工具。
 
-- [network](./network/network.md) - HTTP 工具（连接池、重试逻辑）
-- [cryptox](./network/cryptox.md) - 加密函数（哈希、加密、安全随机）
-- [pgp](./network/pgp.md) - PGP 操作
-- [urlx](./network/urlx.md) - URL 操作
+-   [network](./network/network.md) - HTTP 工具（连接池、重试逻辑）
+-   [cryptox](./network/cryptox.md) - 加密函数（哈希、加密、安全随机）
+-   [pgp](./network/pgp.md) - PGP 操作
+-   [urlx](./network/urlx.md) - URL 操作
 
 ## 🚀 并发与控制流
 
 Goroutine 管理、流程控制、熔断器等并发和流程控制工具。
 
-- [routine](./concurrency/routine.md) - Goroutine 管理（工作池、任务调度）
-- [wait](./concurrency/wait.md) - 流程控制（超时、重试、速率限制）
-- [hystrix](./concurrency/hystrix.md) - 熔断器（容错、优雅降级）
-- [singledo](./concurrency/singledo.md) - 单例执行
-- [event](./concurrency/event.md) - 事件系统（发布/订阅）
+-   [routine](./concurrency/routine.md) - Goroutine 管理（工作池、任务调度）
+-   [wait](./concurrency/wait.md) - 流程控制（超时、重试、速率限制）
+-   [hystrix](./concurrency/hystrix.md) - 熔断器（容错、优雅降级）
+-   [singledo](./concurrency/singledo.md) - 单例执行
+-   [event](./concurrency/event.md) - 事件系统（发布/订阅）
 
 ## 🧪 开发与测试
 
 测试数据生成、随机工具、默认值设置等开发和测试辅助工具。
 
-- [fake](./dev/fake.md) - 测试数据生成
-- [randx](./dev/randx.md) - 随机工具（加密安全）
-- [defaults](./dev/defaults.md) - 默认值
-- [pyroscope](./dev/pyroscope.md) - 性能分析
+-   [fake](./dev/fake.md) - 测试数据生成
+-   [randx](./dev/randx.md) - 随机工具（加密安全）
+-   [defaults](./dev/defaults.md) - 默认值
+-   [pyroscope](./dev/pyroscope.md) - 性能分析
 
 ## 📊 性能亮点
 
-| 操作 | 时间 | 内存 | vs 标准库 |
-|-----------|------|--------|-------------------|
-| `candy.ToInt()` | 12.3 ns/op | 0 B/op | **快 3.2 倍** |
-| `json.Marshal()` | 156 ns/op | 64 B/op | **快 1.8 倍** |
-| `xtime.Now()` | 45.2 ns/op | 0 B/op | **快 2.1 倍** |
-| `utils.Must()` | 2.1 ns/op | 0 B/op | **零开销** |
+| 操作             | 时间       | 内存    | vs 标准库     |
+| ---------------- | ---------- | ------- | ------------- |
+| `candy.ToInt()`  | 12.3 ns/op | 0 B/op  | **快 3.2 倍** |
+| `json.Marshal()` | 156 ns/op  | 64 B/op | **快 1.8 倍** |
+| `xtime.Now()`    | 45.2 ns/op | 0 B/op  | **快 2.1 倍** |
+| `utils.Must()`   | 2.1 ns/op  | 0 B/op  | **零开销**    |
 
 ## 下一步
 
-- 查看 [API 文档](/zh-CN/api/overview) 获取详细的 API 信息
-- 查看 [快速开始](/zh-CN/guide/getting-started) 开始使用
-- 访问 [GitHub 仓库](https://github.com/lazygophers/utils) 查看更多示例
+-   查看 [API 文档](/zh-CN/api/overview) 获取详细的 API 信息
+-   查看 [快速开始](/zh-CN/guide/getting-started) 开始使用
+-   访问 [GitHub 仓库](https://github.com/lazygophers/utils) 查看更多示例

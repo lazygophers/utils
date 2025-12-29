@@ -23,6 +23,16 @@ Provides type conversion, JSON processing, string operations, and other data pro
 - [stringx](./data/stringx.md) - String utilities
 - [anyx](./data/anyx.md) - Interface{} helpers
 
+## 📦 Cache
+
+Provides multiple cache implementations with different eviction strategies for various use cases.
+
+- [LRU](./cache/lru.md) - Most commonly used cache strategy (85% hit rate)
+- [LFU](./cache/lfu.md) - Evicts least frequently used items (75% hit rate)
+- [TinyLFU](./cache/tinylfu.md) - High performance cache combining LRU and LFU (92% hit rate)
+- [SLRU](./cache/slru.md) - Segmented LRU for high concurrency (90% hit rate)
+- [More Cache Implementations](./cache/) - View all 10+ cache implementations
+
 ## ⏰ Time & Scheduling
 
 Advanced time processing, work schedule calculations, and scheduling utilities.
