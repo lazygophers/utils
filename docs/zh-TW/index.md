@@ -1,12 +1,42 @@
 ---
-title: 首頁
+pageType: home
+
+hero:
+    name: LazyGophers Utils
+    text: 現代化 Go 工具庫
+    tagline: 為現代開發工作流程提供強大支持
+    actions:
+        - theme: brand
+          text: 開始使用
+          link: /zh-TW/guide/getting-started
+        - theme: alt
+          text: 瀏覽模組
+          link: /zh-TW/modules/overview
+
+features:
+    - title: "模組化設計"
+      details: 20+ 個專業模組，只導入您需要的內容，保持專案輕量高效
+      icon: 🧩
+    - title: "性能優先"
+      details: 為速度和最小內存使用進行優化，關鍵操作比標準庫快 2-3 倍
+      icon: ⚡
+    - title: "類型安全"
+      details: 利用 Go 泛型實現編譯時安全，避免運行時類型錯誤
+      icon: 🛡️
+    - title: "生產就緒"
+      details: Goroutine 安全且經過實戰檢驗，可直接用於生產環境
+      icon: 🔒
+    - title: "開發者友好"
+      details: 全面的文檔和示例，快速上手，提升開發效率
+      icon: 📖
+    - title: "時間與調度"
+      details: 支持農曆、中國生肖、節氣，以及多種工作時間計算
+      icon: ⏰
 ---
 
-# LazyGophers Utils
+## 🌍 多語言支持
 
-> 🚀 一個用於現代開發工作流程的強大 Go 工具庫
-
-**🌍 語言**: [简体中文](/zh-CN/) • [繁體中文](/zh-TW/) • [English](/en/)
+[简体中文](/zh-CN/) • [繁體中文](/zh-TW/) • [English](/en/)
 
 ## 🎯 什麼是 LazyGophers Utils？
 
@@ -14,11 +44,11 @@ LazyGophers Utils 是一個全面的 Go 工具庫，為常見開發任務提供 
 
 ### ✨ 為什麼選擇 LazyGophers Utils？
 
-- **🧩 模組化設計** - 只導入您需要的內容
-- **⚡ 性能優先** - 為速度和最小內存使用進行優化
-- **🛡️ 類型安全** - 利用 Go 泛型實現編譯時安全
-- **🔒 生產就緒** - Goroutine 安全且經過實戰檢驗
-- **📖 開發者友好** - 全面的文檔和示例
+-   **🧩 模組化設計** - 只導入您需要的內容
+-   **⚡ 性能優先** - 為速度和最小內存使用進行優化
+-   **🛡️ 類型安全** - 利用 Go 泛型實現編譯時安全
+-   **🔒 生產就緒** - Goroutine 安全且經過實戰檢驗
+-   **📖 開發者友好** - 全面的文檔和示例
 
 ## 🚀 快速開始
 

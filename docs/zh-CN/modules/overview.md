@@ -4,297 +4,73 @@ title: 模块概览
 
 # 模块概览
 
-LazyGophers Utils 提供 20+ 个专业模块，涵盖 Go 开发的各个方面。
+LazyGophers Utils 提供 20+ 个专业模块，涵盖 Go 开发的各个方面。所有模块已按功能分类，方便您快速找到需要的工具。
 
 ## 🔧 核心工具
 
-### must.go
+基础工具模块，提供错误处理、数据库操作和数据验证功能。
 
-错误断言工具，简化错误处理流程。
-
-**主要功能:**
-- `Must()` - 断言操作成功，失败时 panic
-- `MustSuccess()` - 断言错误为 nil
-- `MustOk()` - 断言第二个返回值为 true
-
-**示例:**
-```go
-data := utils.Must(loadData())
-utils.MustSuccess(config.Load(&cfg, "config.json"))
-value := utils.MustOk(getValue())
-```
-
-### orm.go
-
-数据库操作工具，提供便捷的数据转换方法。
-
-**主要功能:**
-- `Scan()` - 将数据库结果扫描到结构体
-- `Value()` - 将结构体转换为数据库值
-
-### validator
-
-数据验证模块，支持结构体验证。
-
-**主要功能:**
-- `Validate()` - 验证结构体数据
-- 内置验证规则：`required`、`email`、`min`、`max` 等
+- [must](./core/must.md) - 错误断言工具
+- [orm](./core/orm.md) - 数据库操作工具
+- [validator](./core/validator.md) - 数据验证模块
 
 ## 🍭 数据处理
 
-### candy
+提供类型转换、JSON 处理、字符串操作等数据处理工具。
 
-类型转换工具，提供零分配的类型转换。
-
-**主要功能:**
-- `ToInt()` - 字符串转整数
-- `ToFloat()` - 字符串转浮点数
-- `ToBool()` - 字符串转布尔值
-- `ToString()` - 任意类型转字符串
-- `ToSlice()` - 任意类型转切片
-- `ToMap()` - 任意类型转映射
-
-**性能:** 零分配，比标准库快 3.2 倍
-
-### json
-
-增强的 JSON 处理，提供更好的错误消息。
-
-**主要功能:**
-- `Marshal()` - JSON 编码
-- `Unmarshal()` - JSON 解码
-- 更友好的错误消息
-
-### stringx
-
-字符串工具，支持 Unicode 感知操作。
-
-**主要功能:**
-- `Rand()` - 生成随机字符串
-- `Reverse()` - 反转字符串
-- `Truncate()` - 截断字符串
-- Unicode 感知的字符串操作
-
-### anyx
-
-interface{} 辅助工具，提供类型安全的 any 操作。
-
-**主要功能:**
-- 类型安全的 any 操作
-- 泛型支持
+- [candy](./data/candy.md) - 类型转换糖（零分配，快 3.2 倍）
+- [json](./data/json.md) - 增强的 JSON 处理
+- [stringx](./data/stringx.md) - 字符串工具
+- [anyx](./data/anyx.md) - Interface{} 辅助
 
 ## ⏰ 时间与调度
 
-### xtime
+高级时间处理、工作时间计算和调度工具。
 
-高级时间处理，支持农历、生肖和节气。
-
-**主要功能:**
-- `NowCalendar()` - 获取当前日历
-- `LunarDate()` - 获取农历日期
-- `Animal()` - 获取生肖
-- `CurrentSolarTerm()` - 获取当前节气
-- `Format()` - 格式化日期
-
-**特殊功能:**
-- 🌙 农历支持
-- 🐲 生肖计算
-- 🌾 节气计算
-
-### xtime996
-
-996 工作时间计算。
-
-**主要功能:**
-- `IsWorkTime()` - 检查是否为工作时间
-- 工作时间计算
-
-### xtime955
-
-955 工作时间计算。
-
-**主要功能:**
-- `IsWorkTime()` - 检查是否为工作时间
-- 平衡时间表支持
-
-### xtime007
-
-24/7 操作时间工具。
-
-**主要功能:**
-- 始终在线的时间工具
-- 24/7 时间处理
+- [xtime](./time/xtime.md) - 高级时间处理（🌙 农历、🐲 生肖、🌾 节气）
+- [xtime996](./time/xtime996.md) - 996 工作时间
+- [xtime955](./time/xtime955.md) - 955 工作时间
+- [xtime007](./time/xtime007.md) - 24/7 操作
 
 ## 🔧 系统与配置
 
-### config
+配置管理、运行时信息、操作系统操作等系统级工具。
 
-配置管理，支持多种配置格式。
-
-**主要功能:**
-- `Load()` - 加载配置文件
-- 支持的格式：JSON、YAML、TOML、INI、HCL
-
-### runtime
-
-运行时信息，提供系统检测和诊断。
-
-**主要功能:**
-- 系统信息检测
-- 运行时诊断
-
-### osx
-
-操作系统操作，提供文件和进程管理。
-
-**主要功能:**
-- 文件操作
-- 进程管理
-
-### app
-
-应用框架，提供生命周期管理。
-
-**主要功能:**
-- 应用生命周期管理
-- 启动和关闭处理
-
-### atexit
-
-优雅关闭，提供干净的退出处理。
-
-**主要功能:**
-- 注册退出处理器
-- 优雅关闭
+- [config](./system/config.md) - 配置管理（JSON、YAML、TOML、INI、HCL）
+- [runtime](./system/runtime.md) - 运行时信息
+- [osx](./system/osx.md) - 操作系统操作
+- [app](./system/app.md) - 应用框架
+- [atexit](./system/atexit.md) - 优雅关闭
 
 ## 🌐 网络与安全
 
-### network
+HTTP 工具、加密函数、PGP 操作等网络和安全工具。
 
-HTTP 工具，提供连接池和重试逻辑。
-
-**主要功能:**
-- 连接池管理
-- 重试逻辑
-- HTTP 客户端工具
-
-### cryptox
-
-加密函数，提供哈希、加密和安全随机。
-
-**主要功能:**
-- 哈希函数：MD5、SHA1、SHA256、SHA512
-- 加密：AES、DES、RSA、ECDSA、ECDH
-- 安全随机数生成
-- UUID 生成
-
-### pgp
-
-PGP 操作，提供邮件加密和文件签名。
-
-**主要功能:**
-- PGP 加密
-- 文件签名
-- 邮件加密
-
-### urlx
-
-URL 操作，提供解析、构建和验证。
-
-**主要功能:**
-- URL 解析
-- URL 构建
-- URL 验证
-- 查询参数处理
+- [network](./network/network.md) - HTTP 工具（连接池、重试逻辑）
+- [cryptox](./network/cryptox.md) - 加密函数（哈希、加密、安全随机）
+- [pgp](./network/pgp.md) - PGP 操作
+- [urlx](./network/urlx.md) - URL 操作
 
 ## 🚀 并发与控制流
 
-### routine
+Goroutine 管理、流程控制、熔断器等并发和流程控制工具。
 
-Goroutine 管理，提供工作池和任务调度。
-
-**主要功能:**
-- `NewPool()` - 创建工作池
-- `Submit()` - 提交任务
-- `Close()` - 关闭工作池
-
-### wait
-
-流程控制，提供超时、重试和速率限制。
-
-**主要功能:**
-- `For()` - 等待条件
-- `Retry()` - 重试操作
-- 超时控制
-- 速率限制
-
-### hystrix
-
-熔断器，提供容错和优雅降级。
-
-**主要功能:**
-- `Do()` - 使用熔断器保护执行操作
-- 熔断器配置
-- 容错
-
-### singledo
-
-单例执行，防止重复操作。
-
-**主要功能:**
-- 确保操作只执行一次
-- 防止重复计算
-
-### event
-
-事件系统，实现发布/订阅模式。
-
-**主要功能:**
-- 事件发布
-- 事件订阅
-- 事件处理
+- [routine](./concurrency/routine.md) - Goroutine 管理（工作池、任务调度）
+- [wait](./concurrency/wait.md) - 流程控制（超时、重试、速率限制）
+- [hystrix](./concurrency/hystrix.md) - 熔断器（容错、优雅降级）
+- [singledo](./concurrency/singledo.md) - 单例执行
+- [event](./concurrency/event.md) - 事件系统（发布/订阅）
 
 ## 🧪 开发与测试
 
-### fake
+测试数据生成、随机工具、默认值设置等开发和测试辅助工具。
 
-测试数据生成，支持单元测试和集成测试。
+- [fake](./dev/fake.md) - 测试数据生成
+- [randx](./dev/randx.md) - 随机工具（加密安全）
+- [defaults](./dev/defaults.md) - 默认值
+- [pyroscope](./dev/pyroscope.md) - 性能分析
 
-**主要功能:**
-- 生成随机姓名
-- 生成随机地址
-- 生成随机公司
-- 生成随机文本
-- 支持多种语言
-
-### randx
-
-随机工具，提供加密安全的随机数。
-
-**主要功能:**
-- 加密安全的随机数
-- 随机布尔值
-- 随机数字
-- 随机时间
-
-### defaults
-
-默认值，提供结构体初始化。
-
-**主要功能:**
-- 设置结构体默认值
-- 从标签读取默认值
-
-### pyroscope
-
-性能分析，提供生产监控。
-
-**主要功能:**
-- Pyroscope 集成
-- 性能分析
-- 生产监控
-
-## 性能比较
+## 📊 性能亮点
 
 | 操作 | 时间 | 内存 | vs 标准库 |
 |-----------|------|--------|-------------------|
@@ -306,5 +82,5 @@ Goroutine 管理，提供工作池和任务调度。
 ## 下一步
 
 - 查看 [API 文档](/zh-CN/api/overview) 获取详细的 API 信息
-- 查看 [入门指南](/zh-CN/guide/getting-started) 开始使用
+- 查看 [快速开始](/zh-CN/guide/getting-started) 开始使用
 - 访问 [GitHub 仓库](https://github.com/lazygophers/utils) 查看更多示例

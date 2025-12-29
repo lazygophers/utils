@@ -1,12 +1,42 @@
 ---
-title: Home
+pageType: home
+
+hero:
+    name: LazyGophers Utils
+    text: Modern Go Utility Library
+    tagline: Powerful support for modern development workflows
+    actions:
+        - theme: brand
+          text: Get Started
+          link: /en/guide/getting-started
+        - theme: alt
+          text: Browse Modules
+          link: /en/modules/overview
+
+features:
+    - title: "Modular Design"
+      details: 20+ specialized modules, import only what you need to keep projects lightweight and efficient
+      icon: 🧩
+    - title: "Performance First"
+      details: Optimized for speed and minimal memory usage, key operations are 2-3x faster than standard library
+      icon: ⚡
+    - title: "Type Safety"
+      details: Leverages Go generics for compile-time safety, avoiding runtime type errors
+      icon: 🛡️
+    - title: "Production Ready"
+      details: Goroutine-safe and battle-tested, ready for production use
+      icon: 🔒
+    - title: "Developer Friendly"
+      details: Comprehensive documentation and examples for quick onboarding and improved development efficiency
+      icon: 📖
+    - title: "Time & Scheduling"
+      details: Supports lunar calendar, Chinese zodiac, solar terms, and various work schedule calculations
+      icon: ⏰
 ---
 
-# LazyGophers Utils
+## 🌍 Multi-language Support
 
-> 🚀 A powerful Go utility library for modern development workflows
-
-**🌍 Languages**: [简体中文](/zh-CN/) • [繁體中文](/zh-TW/) • [English](/en/)
+[简体中文](/zh-CN/) • [繁體中文](/zh-TW/) • [English](/en/)
 
 ## 🎯 What is LazyGophers Utils?
 
@@ -14,11 +44,11 @@ LazyGophers Utils is a comprehensive Go utility library that provides **20+ spec
 
 ### ✨ Why Choose LazyGophers Utils?
 
-- **🧩 Modular by Design** - Import only what you need
-- **⚡ Performance First** - Optimized for speed and minimal memory usage
-- **🛡️ Type Safety** - Leverages Go generics for compile-time safety
-- **🔒 Production Ready** - Goroutine-safe and battle-tested
-- **📖 Developer Friendly** - Comprehensive documentation and examples
+-   **🧩 Modular by Design** - Import only what you need
+-   **⚡ Performance First** - Optimized for speed and minimal memory usage
+-   **🛡️ Type Safety** - Leverages Go generics for compile-time safety
+-   **🔒 Production Ready** - Goroutine-safe and battle-tested
+-   **📖 Developer Friendly** - Comprehensive documentation and examples
 
 ## 🚀 Quick Start
 
