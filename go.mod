@@ -9,9 +9,9 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/jinzhu/now v1.1.5
-	github.com/lazygophers/log v0.0.0-20251225131602-6be50f4a348f
+	github.com/lazygophers/log v0.0.0-20251229002445-3573dbfe9e95
 	github.com/pelletier/go-toml/v2 v2.2.4
-	github.com/petermattis/goid v0.0.0-20251121121749-a11dd1a45f9a
+	github.com/petermattis/goid v0.0.0-20260113132338-7c7de50cc741
 	github.com/pkg/errors v0.9.1
 	go.uber.org/atomic v1.11.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -21,7 +21,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/yosuke-furukawa/json5 v0.1.1
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93
-	gopkg.in/ini.v1 v1.67.0
+	gopkg.in/ini.v1 v1.67.1
 )
 
 require (
@@ -34,11 +34,11 @@ require (
 	github.com/zclconf/go-cty v1.17.0 // indirect
 	golang.org/x/arch v0.23.0 // indirect
 	golang.org/x/crypto v0.46.0 // indirect
-	golang.org/x/mod v0.31.0 // indirect
+	golang.org/x/mod v0.32.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
-	golang.org/x/tools v0.40.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/text v0.33.0 // indirect
+	golang.org/x/tools v0.41.0 // indirect
 )
 
 require (

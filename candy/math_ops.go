@@ -41,7 +41,7 @@ import (
 //	empty := []int{}
 //	result := Max(empty)
 //	// result = 0 (int类型的零值)
-func Max[T constraints.Ordered](ss []T) (max T) {
+func Max[T constraints.Ordered](ss ...T) (max T) {
 	if len(ss) == 0 {
 		return
 	}
@@ -89,7 +89,7 @@ func Max[T constraints.Ordered](ss []T) (max T) {
 //	empty := []int{}
 //	result := Min(empty)
 //	// result = 0 (int类型的零值)
-func Min[T constraints.Ordered](ss []T) (min T) {
+func Min[T constraints.Ordered](ss ...T) (min T) {
 	if len(ss) == 0 {
 		return
 	}
