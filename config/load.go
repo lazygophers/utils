@@ -432,6 +432,7 @@ func mapToStruct(props map[string]string, v interface{}) error {
 		if fieldValue.Kind() == reflect.Struct {
 			err := parseNestedStruct(props, fieldValue, tagName)
 			if err != nil {
+				log.Errorf("err:%v", err)
 				return err
 			}
 			continue
@@ -441,7 +442,9 @@ func mapToStruct(props map[string]string, v interface{}) error {
 		if propValue, exists := props[tagName]; exists {
 			err := setFieldValue(fieldValue, propValue)
 			if err != nil {
-				return fmt.Errorf("failed to set field %s: %w", field.Name, err)
+				err = fmt.Errorf("failed to set field %s: %w", field.Name, err)
+				log.Errorf("err:%v", err)
+				return err
 			}
 		}
 	}
@@ -561,12 +564,15 @@ func parseNestedStruct(props map[string]string, structValue reflect.Value, prefi
 		if fieldValue.Kind() == reflect.Struct {
 			err := parseNestedStruct(props, fieldValue, fullKey)
 			if err != nil {
+				log.Errorf("err:%v", err)
 				return err
 			}
 		} else if propValue, exists := props[fullKey]; exists {
 			err := setFieldValue(fieldValue, propValue)
 			if err != nil {
-				return fmt.Errorf("failed to set nested field %s: %w", field.Name, err)
+				err = fmt.Errorf("failed to set nested field %s: %w", field.Name, err)
+				log.Errorf("err:%v", err)
+				return err
 			}
 		}
 	}
