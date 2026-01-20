@@ -2318,3 +2318,312 @@ func TestFinalCoverageBoost(t *testing.T) {
 		assert.Equal(t, "another-value", result["prefix.another"])
 	})
 }
+
+// TestEnvTagOverride 测试 env tag 环境变量覆盖功能
+func TestEnvTagOverride(t *testing.T) {
+	originalConfigPath := configPath
+	defer func() {
+		configPath = originalConfigPath
+	}()
+
+	t.Run("env tag overrides file value", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_override_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		// 创建配置文件
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{
+			"name": "from-file",
+			"port": 8080,
+			"debug": false,
+			"database": {
+				"host": "localhost",
+				"username": "fileuser",
+				"password": "filepass"
+			}
+		}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		// 设置环境变量
+		os.Setenv("name", "from-env")
+		os.Setenv("port", "9000")
+		os.Setenv("debug", "true")
+		os.Setenv("host", "remote-host")
+		os.Setenv("username", "envuser")
+		os.Setenv("password", "envpass")
+		defer func() {
+			os.Unsetenv("name")
+			os.Unsetenv("port")
+			os.Unsetenv("debug")
+			os.Unsetenv("host")
+			os.Unsetenv("username")
+			os.Unsetenv("password")
+		}()
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+
+		// 验证环境变量覆盖了文件值
+		assert.Equal(t, "from-env", config.Name)
+		assert.Equal(t, 9000, config.Port)
+		assert.True(t, config.Debug)
+		assert.Equal(t, "remote-host", config.Database.Host)
+		assert.Equal(t, "envuser", config.Database.Username)
+		assert.Equal(t, "envpass", config.Database.Password)
+	})
+
+	t.Run("env tag partial override", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_partial_override_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		// 创建配置文件
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{
+			"name": "from-file",
+			"port": 8080,
+			"debug": false,
+			"database": {
+				"host": "localhost",
+				"username": "fileuser",
+				"password": "filepass"
+			}
+		}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		// 只设置部分环境变量
+		os.Setenv("name", "env-name")
+		os.Setenv("host", "env-host")
+		defer func() {
+			os.Unsetenv("name")
+			os.Unsetenv("host")
+		}()
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+
+		// 验证环境变量覆盖了对应的值
+		assert.Equal(t, "env-name", config.Name)
+		assert.Equal(t, 8080, config.Port) // 文件值
+		assert.False(t, config.Debug)      // 文件值
+		assert.Equal(t, "env-host", config.Database.Host)
+		assert.Equal(t, "fileuser", config.Database.Username) // 文件值
+		assert.Equal(t, "filepass", config.Database.Password)  // 文件值
+	})
+
+	t.Run("env tag with no environment variable set", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_no_var_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		// 创建配置文件
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{
+			"name": "from-file",
+			"port": 8080,
+			"debug": false
+		}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		// 确保没有设置相关的环境变量
+		os.Unsetenv("name")
+		os.Unsetenv("port")
+		os.Unsetenv("debug")
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+
+		// 验证使用文件中的值
+		assert.Equal(t, "from-file", config.Name)
+		assert.Equal(t, 8080, config.Port)
+		assert.False(t, config.Debug)
+	})
+
+	t.Run("env tag with invalid environment variable value", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_invalid_value_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		// 创建配置文件
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{
+			"name": "from-file",
+			"port": 8080,
+			"debug": false
+		}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		// 设置无效的环境变量值
+		os.Setenv("port", "not-a-number")
+		defer os.Unsetenv("port")
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+
+		// 验证文件值仍然有效（无效的环境变量值被忽略）
+		assert.Equal(t, "from-file", config.Name)
+		assert.Equal(t, 8080, config.Port) // 使用文件值，因为环境变量值无效
+	})
+
+	t.Run("env tag with empty environment variable", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_empty_var_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		// 创建配置文件
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{
+			"name": "from-file",
+			"port": 8080
+		}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		// 设置为空值的环境变量
+		os.Setenv("name", "")
+		defer os.Unsetenv("name")
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+
+		// 验证空环境变量不覆盖文件值
+		assert.Equal(t, "from-file", config.Name)
+	})
+
+	t.Run("env tag with type conversion", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_type_conversion_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		// 创建配置文件
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{
+			"name": "test",
+			"port": 8080,
+			"debug": false
+		}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		// 设置不同类型的环境变量
+		os.Setenv("port", "9999")
+		os.Setenv("debug", "true")
+		defer func() {
+			os.Unsetenv("port")
+			os.Unsetenv("debug")
+		}()
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+
+		// 验证类型转换正确
+		assert.Equal(t, 9999, config.Port)
+		assert.True(t, config.Debug)
+	})
+
+	t.Run("nested struct with env tag", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_nested_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		// 创建配置文件
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{
+			"name": "test",
+			"port": 8080,
+			"debug": false,
+			"database": {
+				"host": "localhost",
+				"username": "user",
+				"password": "pass"
+			}
+		}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		// 为嵌套结构体设置环境变量（使用 env tag 的方式）
+		os.Setenv("host", "prod-host")
+		os.Setenv("username", "prod-user")
+		os.Setenv("password", "prod-pass")
+		defer func() {
+			os.Unsetenv("host")
+			os.Unsetenv("username")
+			os.Unsetenv("password")
+		}()
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+
+		// 验证嵌套结构体字段被环境变量覆盖
+		assert.Equal(t, "prod-host", config.Database.Host)
+		assert.Equal(t, "prod-user", config.Database.Username)
+		assert.Equal(t, "prod-pass", config.Database.Password)
+	})
+
+	t.Run("env tag with yaml format", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_yaml_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		// 创建 YAML 配置文件
+		configFile := filepath.Join(tmpDir, "config.yaml")
+		yamlContent := `
+name: yaml-app
+port: 8080
+debug: false
+database:
+  host: localhost
+  username: yamluser
+  password: yamlpass
+`
+		err = os.WriteFile(configFile, []byte(yamlContent), 0644)
+		require.NoError(t, err)
+
+		// 设置环境变量
+		os.Setenv("name", "env-app")
+		os.Setenv("port", "9000")
+		os.Setenv("host", "prod-db")
+		defer func() {
+			os.Unsetenv("name")
+			os.Unsetenv("port")
+			os.Unsetenv("host")
+		}()
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+
+		// 验证环境变量覆盖了 YAML 配置值
+		assert.Equal(t, "env-app", config.Name)
+		assert.Equal(t, 9000, config.Port)
+		assert.Equal(t, "prod-db", config.Database.Host)
+	})
+}

@@ -242,6 +242,12 @@ func LoadConfigSkipValidate(c any, paths ...string) error {
 		}
 	}
 
+	// NOTE: 使用环境变量覆盖配置值
+	err = overrideConfigWithEnv(c)
+	if err != nil {
+		log.Errorf("err:%v", err)
+	}
+
 	log.Info("load config success")
 
 	return nil
@@ -628,6 +634,7 @@ func structToHCL(v interface{}, indent string) (string, error) {
 		if fieldValue.Kind() == reflect.Struct {
 			nestedContent, err := structToHCL(fieldValue.Interface(), indent+"  ")
 			if err != nil {
+				log.Errorf("err:%v", err)
 				return "", err
 			}
 			result.WriteString(fmt.Sprintf("%s%s {\n%s%s}\n", indent, tagName, nestedContent, indent))
@@ -638,6 +645,106 @@ func structToHCL(v interface{}, indent string) (string, error) {
 	}
 
 	return result.String(), nil
+}
+
+// overrideConfigWithEnv 使用环境变量覆盖配置值
+func overrideConfigWithEnv(v interface{}) error {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("v must be a pointer to struct")
+	}
+
+	rv = rv.Elem()
+	rt := rv.Type()
+
+	for i := 0; i < rt.NumField(); i++ {
+		field := rt.Field(i)
+		fieldValue := rv.Field(i)
+
+		if !fieldValue.CanSet() {
+			continue
+		}
+
+		// 检查是否为嵌套结构体
+		if fieldValue.Kind() == reflect.Struct {
+			err := overrideNestedStructWithEnv(fieldValue)
+			if err != nil {
+				log.Errorf("err:%v", err)
+				return err
+			}
+			continue
+		}
+
+		// 获取 env tag
+		envName := field.Tag.Get("env")
+		if envName == "" || envName == "-" {
+			continue
+		}
+
+		// 处理 env tag 中的选项（例如 "VAR_NAME,omitempty"）
+		if commaIndex := strings.Index(envName, ","); commaIndex != -1 {
+			envName = envName[:commaIndex]
+		}
+
+		// 从环境变量中获取值
+		envValue := os.Getenv(envName)
+		if envValue != "" {
+			err := setFieldValue(fieldValue, envValue)
+			if err != nil {
+				log.Debugf("err:%v", err)
+				// 不返回错误，继续处理其他字段
+			}
+		}
+	}
+
+	return nil
+}
+
+// overrideNestedStructWithEnv 处理嵌套结构体中的环境变量覆盖
+func overrideNestedStructWithEnv(structValue reflect.Value) error {
+	structType := structValue.Type()
+
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+		fieldValue := structValue.Field(i)
+
+		if !fieldValue.CanSet() {
+			continue
+		}
+
+		// 检查是否为嵌套结构体
+		if fieldValue.Kind() == reflect.Struct {
+			err := overrideNestedStructWithEnv(fieldValue)
+			if err != nil {
+				log.Errorf("err:%v", err)
+				return err
+			}
+			continue
+		}
+
+		// 获取 env tag
+		envName := field.Tag.Get("env")
+		if envName == "" || envName == "-" {
+			continue
+		}
+
+		// 处理 env tag 中的选项
+		if commaIndex := strings.Index(envName, ","); commaIndex != -1 {
+			envName = envName[:commaIndex]
+		}
+
+		// 从环境变量中获取值
+		envValue := os.Getenv(envName)
+		if envValue != "" {
+			err := setFieldValue(fieldValue, envValue)
+			if err != nil {
+				log.Debugf("err:%v", err)
+				// 不返回错误，继续处理其他字段
+			}
+		}
+	}
+
+	return nil
 }
 
 // getHCLFieldTagName 获取 HCL 字段的标签名

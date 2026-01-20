@@ -70,16 +70,111 @@ err = config.SaveConfig("output.json", &cfg)
 
 ## Environment Variable Integration
 
+### Env Tag Support
+
+The config package supports the `env` tag for environment variable overrides. Environment variables take precedence over file values.
+
 ```go
-// Environment variable override
+// Basic environment variable override
 type Config struct {
     Port     int    `json:"port" env:"APP_PORT"`
     LogLevel string `json:"log_level" env:"LOG_LEVEL"`
+    Debug    bool   `json:"debug" env:"DEBUG"`
 }
 
 // Load with environment variable support
 cfg := Config{}
-config.LoadConfig("config.json", &cfg) // File values + env overrides
+config.LoadConfigSkipValidate("config.json", &cfg)
+// File values are loaded first, then environment variables override them
+// If APP_PORT=9000 is set, Port will be 9000 regardless of the JSON value
+```
+
+### Override Priority
+
+When loading configuration:
+1. **File Configuration**: Load from config file (JSON, YAML, TOML, INI, etc.)
+2. **Environment Variable Override**: Environment variables with matching `env` tag names override file values
+3. **If Env Variable is Empty**: File value is used (empty env vars don't override)
+4. **If Env Variable is Invalid**: File value is retained (conversion errors are logged and ignored)
+
+### Nested Struct Support
+
+Environment variables work with nested structures using the field's `env` tag directly:
+
+```go
+type Config struct {
+    Name string `json:"name" env:"APP_NAME"`
+    Database struct {
+        Host     string `json:"host" env:"DB_HOST"`
+        Port     int    `json:"port" env:"DB_PORT"`
+        Username string `json:"username" env:"DB_USER"`
+        Password string `json:"password" env:"DB_PASS"`
+    } `json:"database" env:"database"`
+}
+
+// Example with environment variables:
+// APP_NAME=my-app
+// DB_HOST=prod-db.example.com
+// DB_PORT=5432
+// DB_USER=prod_user
+// DB_PASS=secret_pass
+
+// Usage:
+cfg := Config{}
+config.LoadConfigSkipValidate("config.json", &cfg)
+// cfg.Name will be "my-app" (from env APP_NAME)
+// cfg.Database.Host will be "prod-db.example.com" (from env DB_HOST)
+// cfg.Database.Port will be 5432 (from env DB_PORT)
+```
+
+### Practical Example
+
+**config.json:**
+```json
+{
+    "name": "default-app",
+    "port": 8080,
+    "debug": false,
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "username": "user",
+        "password": "pass"
+    }
+}
+```
+
+**Go Code:**
+```go
+type Config struct {
+    Name  string `json:"name" env:"APP_NAME"`
+    Port  int    `json:"port" env:"PORT"`
+    Debug bool   `json:"debug" env:"DEBUG"`
+    Database struct {
+        Host     string `json:"host" env:"DB_HOST"`
+        Port     int    `json:"port" env:"DB_PORT"`
+        Username string `json:"username" env:"DB_USER"`
+        Password string `json:"password" env:"DB_PASS"`
+    } `json:"database"`
+}
+
+cfg := Config{}
+config.LoadConfigSkipValidate("config.json", &cfg)
+
+// With environment variables set:
+// export APP_NAME=production
+// export PORT=9000
+// export DEBUG=true
+// export DB_HOST=prod.example.com
+
+// Result:
+// cfg.Name = "production" (from APP_NAME env)
+// cfg.Port = 9000 (from PORT env)
+// cfg.Debug = true (from DEBUG env)
+// cfg.Database.Host = "prod.example.com" (from DB_HOST env)
+// cfg.Database.Port = 5432 (from file, env DB_PORT not set)
+// cfg.Database.Username = "user" (from file, env DB_USER not set)
+// cfg.Database.Password = "pass" (from file, env DB_PASS not set)
 ```
 
 ## Validation Features
