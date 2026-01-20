@@ -408,7 +408,9 @@ func writeEnvFile(writer io.Writer, v interface{}) error {
 func mapToStruct(props map[string]string, v interface{}) error {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("v must be a pointer to struct")
+		err := fmt.Errorf("v must be a pointer to struct")
+		log.Errorf("err:%v", err)
+		return err
 	}
 
 	rv = rv.Elem()
@@ -532,11 +534,14 @@ func setFieldValue(fieldValue reflect.Value, propValue string) error {
 	case reflect.Bool:
 		val, err := strconv.ParseBool(propValue)
 		if err != nil {
+			log.Errorf("err:%v", err)
 			return err
 		}
 		fieldValue.SetBool(val)
 	default:
-		return fmt.Errorf("unsupported field type: %s", fieldValue.Kind())
+		err := fmt.Errorf("unsupported field type: %s", fieldValue.Kind())
+		log.Errorf("err:%v", err)
+		return err
 	}
 
 	return nil
@@ -657,7 +662,9 @@ func structToHCL(v interface{}, indent string) (string, error) {
 func overrideConfigWithEnv(v interface{}) error {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Struct {
-		return fmt.Errorf("v must be a pointer to struct")
+		err := fmt.Errorf("v must be a pointer to struct")
+		log.Errorf("err:%v", err)
+		return err
 	}
 
 	rv = rv.Elem()
