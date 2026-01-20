@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/ProtonMail/go-crypto v1.3.0
-	github.com/agiledragon/gomonkey/v2 v2.13.0
+	github.com/agiledragon/gomonkey/v2 v2.14.0
 	github.com/bytedance/sonic v1.14.2
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.7
@@ -20,7 +20,7 @@ require (
 require (
 	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/yosuke-furukawa/json5 v0.1.1
-	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93
+	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
 	gopkg.in/ini.v1 v1.67.1
 )
 
@@ -33,7 +33,7 @@ require (
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/zclconf/go-cty v1.17.0 // indirect
 	golang.org/x/arch v0.23.0 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/mod v0.32.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
@@ -46,7 +46,7 @@ require (
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.9 // indirect
-	github.com/klauspost/compress v1.18.2 // indirect
+	github.com/klauspost/compress v1.18.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
