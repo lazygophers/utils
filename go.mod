@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/ProtonMail/go-crypto v1.3.0
 	github.com/agiledragon/gomonkey/v2 v2.14.0
-	github.com/bytedance/sonic v1.14.2
+	github.com/bytedance/sonic v1.15.0
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/jinzhu/now v1.1.5
@@ -19,6 +19,7 @@ require (
 
 require (
 	github.com/hashicorp/hcl/v2 v2.24.0
+	github.com/oklog/ulid/v2 v2.1.1
 	github.com/yosuke-furukawa/json5 v0.1.1
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
 	gopkg.in/ini.v1 v1.67.1
@@ -42,7 +43,7 @@ require (
 )
 
 require (
-	github.com/bytedance/sonic/loader v0.4.0 // indirect
+	github.com/bytedance/sonic/loader v0.5.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.9 // indirect
