@@ -2,15 +2,25 @@ package runtime
 
 import (
 	"fmt"
-	"github.com/lazygophers/utils/app"
 	"os"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
+
+	"github.com/lazygophers/log"
+	"github.com/lazygophers/utils/app"
 )
 
 func CachePanic() {
 	CachePanicWithHandle(nil)
+}
+
+type panicHandler func(err interface{})
+
+var panicHandlerList []panicHandler
+
+func OnPanic(logic panicHandler) {
+	panicHandlerList = append(panicHandlerList, logic)
 }
 
 func CachePanicWithHandle(handle func(err interface{})) {
@@ -41,7 +51,10 @@ func CachePanicWithHandle(handle func(err interface{})) {
 		if handle != nil {
 			handle(err)
 		}
-		// 不再重新panic，真正"缓存"（消化）panic
+
+		for _, handler := range panicHandlerList {
+			handler(err)
+		}
 	}
 }
 
@@ -63,6 +76,16 @@ func PrintStack() {
 	} else {
 		os.Stderr.WriteString("stack is empty\n")
 	}
+}
+
+func GetStack() string {
+	b := log.GetBuffer()
+	defer log.PutBuffer(b)
+
+	b.WriteString("dump stack:\n")
+	b.Write(debug.Stack())
+
+	return b.String()
 }
 
 func ExecDir() string {
