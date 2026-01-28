@@ -803,3 +803,250 @@ func (p *MapAny) Range(f func(key, value interface{}) bool) {
 		return f(key, value)
 	})
 }
+
+func MapGet(m map[string]any, key string) (any, error) {
+	return mapGetWithSeparator(m, key, ".")
+}
+
+// MapGetWithSep gets a value from a nested map using a custom separator.
+// Supports array/slice indexing with [index] syntax.
+func MapGetWithSep(m map[string]any, key string, sep string) (any, error) {
+	return mapGetWithSeparator(m, key, sep)
+}
+
+// New error types for detailed error reporting
+var (
+	ErrInvalidIndex   = errors.New("invalid index")
+	ErrTypeMismatch   = errors.New("type mismatch")
+	ErrOutOfRange     = errors.New("index out of range")
+	ErrInvalidMapType = errors.New("invalid map type")
+	ErrInvalidSlice   = errors.New("invalid slice type")
+	ErrEmptyKey       = errors.New("empty key")
+)
+
+// mapGetWithSeparator is the internal implementation for nested map access
+func mapGetWithSeparator(m map[string]any, key string, sep string) (any, error) {
+	// Handle empty map
+	if len(m) == 0 {
+		return nil, ErrNotFound
+	}
+
+	// Handle empty key
+	if key == "" {
+		return nil, ErrEmptyKey
+	}
+
+	// Split the key into parts
+	parts := splitKey(key, sep)
+	if len(parts) == 0 {
+		return nil, ErrEmptyKey
+	}
+
+	var current any = m
+	for i, part := range parts {
+		val, err := navigateToValue(current, part)
+		if err != nil {
+			// Check if this is the last part and we can provide more context
+			if i == len(parts)-1 {
+				return nil, fmt.Errorf("%w: key '%s' not found at path '%s'", err, part, joinPath(parts[:i+1], sep))
+			}
+			return nil, fmt.Errorf("%w: at path '%s', key '%s' not found", err, joinPath(parts[:i], sep), part)
+		}
+		current = val
+	}
+
+	return current, nil
+}
+
+// splitKey splits a key into parts, handling both separators and array indices
+// splitKey splits a key into parts, handling both separators and array indices
+// splitKey splits a key into parts, handling both separators and array indices
+// splitKey splits a key into parts, handling both separators and array indices
+// splitKey splits a key into parts, handling both separators and array indices
+// splitKey splits a key into parts, handling both separators and array indices
+func splitKey(key string, sep string) []string {
+	var parts []string
+	current := new(strings.Builder)
+	inBrackets := false
+	afterBrackets := false
+	sepLen := len(sep)
+	i := 0
+	endsWithSep := strings.HasSuffix(key, sep)
+
+	for i < len(key) {
+		c := key[i]
+		switch {
+		case c == '[':
+			inBrackets = true
+			if current.Len() > 0 {
+				parts = append(parts, current.String())
+				current.Reset()
+			}
+			current.WriteByte(c)
+			afterBrackets = false
+		case c == ']':
+			inBrackets = false
+			current.WriteByte(c)
+			if current.Len() > 0 {
+				parts = append(parts, current.String())
+				current.Reset()
+			}
+			afterBrackets = true
+		case !inBrackets && i+sepLen <= len(key) && key[i:i+sepLen] == sep:
+			// Only add empty part if we're not just after brackets
+			if current.Len() > 0 || !afterBrackets {
+				parts = append(parts, current.String())
+			}
+			current.Reset()
+			i += sepLen - 1 // Skip the separator
+			afterBrackets = false
+		default:
+			current.WriteByte(c)
+			afterBrackets = false
+		}
+		i++
+	}
+
+	// Add the last part if non-empty, or if key ends with separator
+	if current.Len() > 0 || endsWithSep {
+		parts = append(parts, current.String())
+	}
+
+	return parts
+}
+
+// navigateToValue navigates through a value using a key part (which may be an array index)
+func navigateToValue(current any, part string) (any, error) {
+	// Check if this is an array index
+	if len(part) > 2 && part[0] == '[' && part[len(part)-1] == ']' {
+		indexStr := part[1 : len(part)-1]
+		return accessArrayIndex(current, indexStr)
+	}
+
+	// Regular key access
+	return accessMapKey(current, part)
+}
+
+// accessArrayIndex accesses an array/slice by index
+// accessArrayIndex accesses an array/slice by index
+func accessArrayIndex(current any, indexStr string) (any, error) {
+	// Parse the index
+	index, err := parseIndex(indexStr)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidIndex, indexStr)
+	}
+
+	switch v := current.(type) {
+	case []any:
+		if index < 0 || index >= len(v) {
+			return nil, fmt.Errorf("%w: index %d out of range [0, %d)", ErrOutOfRange, index, len(v))
+		}
+		return v[index], nil
+	case []string:
+		if index < 0 || index >= len(v) {
+			return nil, fmt.Errorf("%w: index %d out of range [0, %d)", ErrOutOfRange, index, len(v))
+		}
+		return v[index], nil
+	case []int:
+		if index < 0 || index >= len(v) {
+			return nil, fmt.Errorf("%w: index %d out of range [0, %d)", ErrOutOfRange, index, len(v))
+		}
+		return v[index], nil
+	case []int64:
+		if index < 0 || index >= len(v) {
+			return nil, fmt.Errorf("%w: index %d out of range [0, %d)", ErrOutOfRange, index, len(v))
+		}
+		return v[index], nil
+	case []float64:
+		if index < 0 || index >= len(v) {
+			return nil, fmt.Errorf("%w: index %d out of range [0, %d)", ErrOutOfRange, index, len(v))
+		}
+		return v[index], nil
+	case []bool:
+		if index < 0 || index >= len(v) {
+			return nil, fmt.Errorf("%w: index %d out of range [0, %d)", ErrOutOfRange, index, len(v))
+		}
+		return v[index], nil
+	case []map[string]any:
+		if index < 0 || index >= len(v) {
+			return nil, fmt.Errorf("%w: index %d out of range [0, %d)", ErrOutOfRange, index, len(v))
+		}
+		return v[index], nil
+	default:
+		// Try to handle other slice types via reflection-like approach
+		return accessGenericSlice(v, index)
+	}
+}
+
+// parseIndex parses an index string to an integer
+func parseIndex(s string) (int, error) {
+	if len(s) == 0 {
+		return 0, fmt.Errorf("%w: empty index", ErrInvalidIndex)
+	}
+
+	// Handle negative indices
+	negative := false
+	if s[0] == '-' {
+		negative = true
+		s = s[1:]
+	}
+
+	var result int
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return 0, fmt.Errorf("%w: '%s'", ErrInvalidIndex, s)
+		}
+		result = result*10 + int(c-'0')
+	}
+
+	if negative {
+		result = -result
+	}
+
+	return result, nil
+}
+
+// accessGenericSlice handles generic slice types
+func accessGenericSlice(slice any, index int) (any, error) {
+	// Use reflection-like approach to handle various slice types
+	// For now, return a type mismatch error
+	return nil, fmt.Errorf("%w: cannot access index %d on type %T", ErrInvalidSlice, index, slice)
+}
+
+// accessMapKey accesses a map using a string key
+func accessMapKey(current any, key string) (any, error) {
+	switch v := current.(type) {
+	case map[string]any:
+		val, ok := v[key]
+		if !ok {
+			return nil, ErrNotFound
+		}
+		return val, nil
+	case map[any]any:
+		val, ok := v[key]
+		if !ok {
+			return nil, ErrNotFound
+		}
+		return val, nil
+	default:
+		return nil, fmt.Errorf("%w: cannot access key '%s' on type %T", ErrInvalidMapType, key, current)
+	}
+}
+
+// joinPath joins parts with a separator for error messages
+// joinPath joins parts with a separator for error messages
+// joinPath joins parts with a separator for error messages
+func joinPath(parts []string, sep string) string {
+	switch len(parts) {
+	case 0:
+		return ""
+	case 1:
+		return parts[0]
+	}
+	
+	result := parts[0]
+	for _, part := range parts[1:] {
+		result += sep + part
+	}
+	return result
+}

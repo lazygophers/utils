@@ -1379,6 +1379,576 @@ func TestMapAny_Concurrent(t *testing.T) {
 	assert.Greater(t, count, 1)
 }
 
+func TestMapGet(t *testing.T) {
+	t.Run("simple key access", func(t *testing.T) {
+		m := map[string]any{
+			"name": "John",
+			"age":  30,
+		}
+		val, err := MapGet(m, "name")
+		assert.NoError(t, err)
+		assert.Equal(t, "John", val)
+	})
+
+	t.Run("nested key access", func(t *testing.T) {
+		m := map[string]any{
+			"user": map[string]any{
+				"name": "John",
+				"age":  30,
+			},
+		}
+		val, err := MapGet(m, "user.name")
+		assert.NoError(t, err)
+		assert.Equal(t, "John", val)
+	})
+
+	t.Run("deep nested access", func(t *testing.T) {
+		m := map[string]any{
+			"level1": map[string]any{
+				"level2": map[string]any{
+					"level3": "value",
+				},
+			},
+		}
+		val, err := MapGet(m, "level1.level2.level3")
+		assert.NoError(t, err)
+		assert.Equal(t, "value", val)
+	})
+
+	t.Run("key not found", func(t *testing.T) {
+		m := map[string]any{
+			"name": "John",
+		}
+		val, err := MapGet(m, "nonexistent")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrNotFound)
+		assert.Nil(t, val)
+	})
+
+	t.Run("nested key not found", func(t *testing.T) {
+		m := map[string]any{
+			"user": map[string]any{
+				"name": "John",
+			},
+		}
+		val, err := MapGet(m, "user.age")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrNotFound)
+		assert.Nil(t, val)
+	})
+
+	t.Run("empty map", func(t *testing.T) {
+		m := map[string]any{}
+		val, err := MapGet(m, "key")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrNotFound)
+		assert.Nil(t, val)
+	})
+
+	t.Run("nil map", func(t *testing.T) {
+		var m map[string]any
+		val, err := MapGet(m, "key")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrNotFound)
+		assert.Nil(t, val)
+	})
+
+	t.Run("empty key", func(t *testing.T) {
+		m := map[string]any{
+			"key": "value",
+		}
+		val, err := MapGet(m, "")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrEmptyKey)
+		assert.Nil(t, val)
+	})
+
+	t.Run("array index access", func(t *testing.T) {
+		m := map[string]any{
+			"items": []any{"a", "b", "c"},
+		}
+		val, err := MapGet(m, "items[1]")
+		assert.NoError(t, err)
+		assert.Equal(t, "b", val)
+	})
+
+	t.Run("array index out of range", func(t *testing.T) {
+		m := map[string]any{
+			"items": []any{"a", "b", "c"},
+		}
+		val, err := MapGet(m, "items[10]")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrOutOfRange)
+		assert.Nil(t, val)
+	})
+
+	t.Run("nested array access", func(t *testing.T) {
+		m := map[string]any{
+			"data": map[string]any{
+				"items": []any{"x", "y", "z"},
+			},
+		}
+		val, err := MapGet(m, "data.items[2]")
+		assert.NoError(t, err)
+		assert.Equal(t, "z", val)
+	})
+
+	t.Run("invalid array index", func(t *testing.T) {
+		m := map[string]any{
+			"items": []any{"a", "b"},
+		}
+		val, err := MapGet(m, "items[abc]")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrInvalidIndex)
+		assert.Nil(t, val)
+	})
+
+	t.Run("type mismatch - accessing array on non-array", func(t *testing.T) {
+		m := map[string]any{
+			"name": "John",
+		}
+		val, err := MapGet(m, "name[0]")
+		assert.Error(t, err)
+		assert.Nil(t, val)
+	})
+
+	t.Run("type mismatch - accessing key on non-map", func(t *testing.T) {
+		m := map[string]any{
+			"user": "string_value",
+		}
+		val, err := MapGet(m, "user.name")
+		assert.Error(t, err)
+		assert.Nil(t, val)
+	})
+}
+
+func TestMapGetWithSep(t *testing.T) {
+	t.Run("custom separator - slash", func(t *testing.T) {
+		m := map[string]any{
+			"level1": map[string]any{
+				"level2": map[string]any{
+					"value": "found",
+				},
+			},
+		}
+		val, err := MapGetWithSep(m, "level1/level2/value", "/")
+		assert.NoError(t, err)
+		assert.Equal(t, "found", val)
+	})
+
+	t.Run("custom separator - dash", func(t *testing.T) {
+		m := map[string]any{
+			"section": map[string]any{
+				"a": map[string]any{
+					"section": map[string]any{
+						"b": "value",
+					},
+				},
+			},
+		}
+		val, err := MapGetWithSep(m, "section-a-section-b", "-")
+		assert.NoError(t, err)
+		assert.Equal(t, "value", val)
+	})
+
+	t.Run("custom separator with array index", func(t *testing.T) {
+		m := map[string]any{
+			"data": map[string]any{
+				"list": []any{"x", "y", "z"},
+			},
+		}
+		val, err := MapGetWithSep(m, "data/list[1]", "/")
+		assert.NoError(t, err)
+		assert.Equal(t, "y", val)
+	})
+}
+
+func TestMapGet_EdgeCases(t *testing.T) {
+	t.Run("map[any]any support", func(t *testing.T) {
+		m := map[string]any{
+			"data": map[any]any{
+				"key": "value",
+				123:   "number_key",
+			},
+		}
+		val, err := MapGet(m, "data.key")
+		assert.NoError(t, err)
+		assert.Equal(t, "value", val)
+	})
+
+	t.Run("map[interface{}]interface{} support", func(t *testing.T) {
+		m := map[string]any{
+			"data": map[interface{}]interface{}{
+				"nested": "value",
+			},
+		}
+		val, err := MapGet(m, "data.nested")
+		assert.NoError(t, err)
+		assert.Equal(t, "value", val)
+	})
+
+	t.Run("string slice access", func(t *testing.T) {
+		m := map[string]any{
+			"items": []string{"a", "b", "c"},
+		}
+		val, err := MapGet(m, "items[0]")
+		assert.NoError(t, err)
+		assert.Equal(t, "a", val)
+	})
+
+	t.Run("int slice access", func(t *testing.T) {
+		m := map[string]any{
+			"numbers": []int{1, 2, 3},
+		}
+		val, err := MapGet(m, "numbers[2]")
+		assert.NoError(t, err)
+		assert.Equal(t, 3, val)
+	})
+
+	t.Run("int64 slice access", func(t *testing.T) {
+		m := map[string]any{
+			"values": []int64{100, 200, 300},
+		}
+		val, err := MapGet(m, "values[1]")
+		assert.NoError(t, err)
+		assert.Equal(t, int64(200), val)
+	})
+
+	t.Run("float64 slice access", func(t *testing.T) {
+		m := map[string]any{
+			"floats": []float64{1.1, 2.2, 3.3},
+		}
+		val, err := MapGet(m, "floats[2]")
+		assert.NoError(t, err)
+		assert.Equal(t, 3.3, val)
+	})
+
+	t.Run("bool slice access", func(t *testing.T) {
+		m := map[string]any{
+			"flags": []bool{true, false, true},
+		}
+		val, err := MapGet(m, "flags[1]")
+		assert.NoError(t, err)
+		assert.Equal(t, false, val)
+	})
+
+	t.Run("negative index - not supported", func(t *testing.T) {
+		m := map[string]any{
+			"items": []any{"a", "b", "c"},
+		}
+		val, err := MapGet(m, "items[-1]")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrOutOfRange)
+		assert.Nil(t, val)
+	})
+
+	t.Run("deeply nested with multiple array accesses", func(t *testing.T) {
+		m := map[string]any{
+			"data": map[string]any{
+				"items": []any{
+					map[string]any{
+						"name": "item1",
+					},
+					map[string]any{
+						"name": "item2",
+					},
+				},
+			},
+		}
+		val, err := MapGet(m, "data.items[1].name")
+		assert.NoError(t, err)
+		assert.Equal(t, "item2", val)
+	})
+}
+
+func TestMapGet_Errors(t *testing.T) {
+	t.Run("detailed error for not found", func(t *testing.T) {
+		m := map[string]any{
+			"user": map[string]any{
+				"name": "John",
+			},
+		}
+		val, err := MapGet(m, "user.age")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrNotFound)
+		assert.Contains(t, err.Error(), "age")
+		assert.Contains(t, err.Error(), "user")
+		assert.Nil(t, val)
+	})
+
+	t.Run("detailed error for type mismatch", func(t *testing.T) {
+		m := map[string]any{
+			"user": "not_a_map",
+		}
+		val, err := MapGet(m, "user.name")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrInvalidMapType)
+		assert.Contains(t, err.Error(), "user")
+		assert.Nil(t, val)
+	})
+
+	t.Run("detailed error for out of range", func(t *testing.T) {
+		m := map[string]any{
+			"items": []any{"a", "b"},
+		}
+		val, err := MapGet(m, "items[5]")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrOutOfRange)
+		assert.Contains(t, err.Error(), "5")
+		assert.Nil(t, val)
+	})
+
+	t.Run("detailed error for invalid index", func(t *testing.T) {
+		m := map[string]any{
+			"items": []any{"a", "b"},
+		}
+		val, err := MapGet(m, "items[xyz]")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrInvalidIndex)
+		assert.Contains(t, err.Error(), "xyz")
+		assert.Nil(t, val)
+	})
+}
+
+func TestMapGet_ComplexScenarios(t *testing.T) {
+	t.Run("nested map with various types", func(t *testing.T) {
+		m := map[string]any{
+			"config": map[string]any{
+				"server": map[string]any{
+					"host": "localhost",
+					"port": 8080,
+				},
+				"database": map[string]any{
+					"connections": []any{
+						map[string]any{"host": "db1", "port": 5432},
+						map[string]any{"host": "db2", "port": 5432},
+					},
+				},
+			},
+		}
+		val, err := MapGet(m, "config.server.host")
+		assert.NoError(t, err)
+		assert.Equal(t, "localhost", val)
+
+		val, err = MapGet(m, "config.database.connections[0].host")
+		assert.NoError(t, err)
+		assert.Equal(t, "db1", val)
+	})
+
+	t.Run("map with nil values", func(t *testing.T) {
+		m := map[string]any{
+			"key1": nil,
+			"key2": "value",
+		}
+		val, err := MapGet(m, "key1")
+		assert.NoError(t, err)
+		assert.Nil(t, val)
+	})
+
+	t.Run("zero-length array/slice", func(t *testing.T) {
+		m := map[string]any{
+			"items": []any{},
+		}
+		val, err := MapGet(m, "items[0]")
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, ErrOutOfRange)
+		assert.Nil(t, val)
+	})
+}
+
+func TestMapGet_AdditionalCoverage(t *testing.T) {
+	t.Run("map with mixed types", func(t *testing.T) {
+		m := map[string]any{
+			"intSlice":    []int{1, 2, 3},
+			"stringSlice": []string{"a", "b"},
+			"anySlice":    []any{1, "two", true},
+		}
+		// Test accessing different slice types
+		val, err := MapGet(m, "intSlice[1]")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, val)
+		
+		val, err = MapGet(m, "stringSlice[0]")
+		assert.NoError(t, err)
+		assert.Equal(t, "a", val)
+		
+		val, err = MapGet(m, "anySlice[2]")
+		assert.NoError(t, err)
+		assert.Equal(t, true, val)
+	})
+
+	t.Run("separator at beginning creates empty key", func(t *testing.T) {
+		m := map[string]any{
+			"": "empty_key_value",
+		}
+		val, err := MapGet(m, ".test")
+		assert.Error(t, err)
+		assert.Nil(t, val)
+	})
+
+	t.Run("array index with whitespace", func(t *testing.T) {
+		m := map[string]any{
+			"items": []any{"a", "b", "c"},
+		}
+		val, err := MapGet(m, "items[ 1]")
+		assert.Error(t, err)
+		assert.Nil(t, val)
+	})
+
+	t.Run("multi-character separator", func(t *testing.T) {
+		m := map[string]any{
+			"a": map[string]any{
+				"b": map[string]any{
+					"c": "value",
+				},
+			},
+		}
+		val, err := MapGetWithSep(m, "a::b::c", "::")
+		assert.NoError(t, err)
+		assert.Equal(t, "value", val)
+	})
+
+	t.Run("separator at end returns empty key", func(t *testing.T) {
+		m := map[string]any{
+			"key": map[string]any{
+				"": "empty_value",
+				"other": "value",
+			},
+		}
+		val, err := MapGet(m, "key.")
+		assert.NoError(t, err)
+		// Returns the value for empty key "" which is "empty_value"
+		assert.Equal(t, "empty_value", val)
+	})
+
+	t.Run("separator at end with nested empty key", func(t *testing.T) {
+		m := map[string]any{
+			"parent": map[string]any{
+				"": "nested_empty",
+			},
+		}
+		val, err := MapGet(m, "parent.")
+		assert.NoError(t, err)
+		assert.Equal(t, "nested_empty", val)
+	})
+
+	t.Run("double separator", func(t *testing.T) {
+		m := map[string]any{
+			"key": "value",
+		}
+		val, err := MapGet(m, "key..value")
+		assert.Error(t, err)
+		assert.Nil(t, val)
+	})
+
+	t.Run("nested array in map", func(t *testing.T) {
+		m := map[string]any{
+			"data": []map[string]any{
+				{"id": 1, "name": "first"},
+				{"id": 2, "name": "second"},
+			},
+		}
+		val, err := MapGet(m, "data[0].name")
+		assert.NoError(t, err)
+		assert.Equal(t, "first", val)
+		
+		val, err = MapGet(m, "data[1].id")
+		assert.NoError(t, err)
+		assert.Equal(t, 2, val)
+	})
+
+	t.Run("access non-slice with index", func(t *testing.T) {
+		m := map[string]any{
+			"notslice": "string_value",
+		}
+		val, err := MapGet(m, "notslice[0]")
+		assert.Error(t, err)
+		assert.Nil(t, val)
+	})
+
+	t.Run("special characters in key", func(t *testing.T) {
+		m := map[string]any{
+			"key-with-dash": map[string]any{
+				"value": "found",
+			},
+		}
+		// Using dot separator, key contains dash
+		val, err := MapGet(m, "key-with-dash.value")
+		assert.NoError(t, err)
+		assert.Equal(t, "found", val)
+	})
+
+	t.Run("nil value in map", func(t *testing.T) {
+		m := map[string]any{
+			"parent": map[string]any{
+				"child": nil,
+			},
+		}
+		val, err := MapGet(m, "parent.child")
+		assert.NoError(t, err)
+		assert.Nil(t, val)
+	})
+
+	t.Run("large index number", func(t *testing.T) {
+		m := map[string]any{
+			"items": make([]any, 100),
+		}
+		m["items"].([]any)[50] = "middle"
+		
+		val, err := MapGet(m, "items[50]")
+		assert.NoError(t, err)
+		assert.Equal(t, "middle", val)
+	})
+
+	t.Run("nested map with interface keys", func(t *testing.T) {
+		m := map[string]any{
+			"outer": map[interface{}]any{
+				"inner": "value",
+				123:     "numeric",
+			},
+		}
+		val, err := MapGet(m, "outer.inner")
+		assert.NoError(t, err)
+		assert.Equal(t, "value", val)
+	})
+
+	t.Run("complex path with array and map", func(t *testing.T) {
+		m := map[string]any{
+			"users": []map[string]any{
+				{
+					"name": "Alice",
+					"contacts": []map[string]any{
+						{"type": "email", "value": "alice@example.com"},
+						{"type": "phone", "value": "123-456-7890"},
+					},
+				},
+			},
+		}
+		val, err := MapGet(m, "users[0].contacts[1].value")
+		assert.NoError(t, err)
+		assert.Equal(t, "123-456-7890", val)
+	})
+
+	t.Run("test joinPath with single part", func(t *testing.T) {
+		// This tests the joinPath function edge case
+		parts := []string{"single"}
+		result := joinPath(parts, ".")
+		assert.Equal(t, "single", result)
+	})
+
+	t.Run("test joinPath with multiple parts", func(t *testing.T) {
+		parts := []string{"a", "b", "c"}
+		result := joinPath(parts, ".")
+		assert.Equal(t, "a.b.c", result)
+	})
+
+	t.Run("test joinPath with empty slice", func(t *testing.T) {
+		parts := []string{}
+		result := joinPath(parts, ".")
+		assert.Equal(t, "", result)
+	})
+}
+
 // Additional coverage tests for edge cases and error paths
 func TestMapAny_GetMethodEdgeCases(t *testing.T) {
 	t.Run("nested path not found", func(t *testing.T) {
