@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/lazygophers/log"
 	"github.com/lazygophers/utils/candy"
 	"github.com/lazygophers/utils/json"
 	"go.uber.org/atomic"
@@ -808,6 +809,19 @@ func MapGet(m map[string]any, key string) (any, error) {
 	return mapGetWithSeparator(m, key, ".")
 }
 
+func MapGetIgnore(m map[string]any, key string) (value any) {
+	value, _ = mapGetWithSeparator(m, key, ".")
+	return value
+}
+
+func MapGetMust(m map[string]any, key string) any {
+	value, err := mapGetWithSeparator(m, key, ".")
+	if err != nil {
+		log.Panicf("err:%v", err)
+	}
+	return value
+}
+
 // MapGetWithSep gets a value from a nested map using a custom separator.
 // Supports array/slice indexing with [index] syntax.
 func MapGetWithSep(m map[string]any, key string, sep string) (any, error) {
@@ -1043,7 +1057,7 @@ func joinPath(parts []string, sep string) string {
 	case 1:
 		return parts[0]
 	}
-	
+
 	result := parts[0]
 	for _, part := range parts[1:] {
 		result += sep + part
