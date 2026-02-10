@@ -28,15 +28,15 @@ var (
 func setPackageTypeFromEnv() {
 	switch strings.ToLower(os.Getenv("APP_ENV")) {
 	case "dev", "development":
-		PackageType = Debug
+		Env = Debug
 	case "test", "canary":
-		PackageType = Test
+		Env = Test
 	case "prod", "release", "production":
-		PackageType = Release
+		Env = Release
 	case "alpha":
-		PackageType = Alpha
+		Env = Alpha
 	case "beta":
-		PackageType = Beta
+		Env = Beta
 	}
 }
 

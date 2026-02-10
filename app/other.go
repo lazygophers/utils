@@ -2,4 +2,4 @@
 
 package app
 
-var PackageType = Debug
+var Env = Debug

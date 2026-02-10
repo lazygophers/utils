@@ -9,8 +9,8 @@ import (
 
 func TestInitFunctionWithDifferentEnvironments(t *testing.T) {
 	tests := []struct {
-		name        string
-		envValue    string
+		name         string
+		envValue     string
 		expectedType ReleaseType
 	}{
 		{"development", "development", Debug},
@@ -22,10 +22,10 @@ func TestInitFunctionWithDifferentEnvironments(t *testing.T) {
 		{"release", "release", Release},
 		{"alpha", "alpha", Alpha},
 		{"beta", "beta", Beta},
-		{"empty", "", Debug}, // 默认值
-		{"unknown", "unknown", Debug}, // 未知值
+		{"empty", "", Debug},               // 默认值
+		{"unknown", "unknown", Debug},      // 未知值
 		{"uppercase", "PRODUCTION", Debug}, // 大写值
-		{"mixedcase", "DeV", Debug}, // 混合大小写
+		{"mixedcase", "DeV", Debug},        // 混合大小写
 	}
 
 	for _, tt := range tests {
@@ -39,7 +39,7 @@ func TestInitFunctionWithDifferentEnvironments(t *testing.T) {
 
 			// 重新初始化包（在Go中，init函数只执行一次，所以我们需要通过其他方式测试）
 			// 我们可以直接测试PackageType变量，或者通过模拟来测试
-			
+
 			// 测试ReleaseType的String方法
 			releaseType := tt.expectedType
 			assert.NotEmpty(t, releaseType.String())
@@ -145,8 +145,8 @@ func TestReleaseTypeConstants(t *testing.T) {
 
 func TestPackageType(t *testing.T) {
 	// PackageType是在编译时根据构建标签设置的，所以我们只检查它的有效性
-	assert.True(t, PackageType >= Debug && PackageType <= Release)
-	assert.NotEmpty(t, PackageType.String())
+	assert.True(t, Env >= Debug && Env <= Release)
+	assert.NotEmpty(t, Env.String())
 }
 
 func TestReleaseTypeOrder(t *testing.T) {
@@ -190,8 +190,8 @@ func TestSetPackageTypeFromEnv(t *testing.T) {
 	defer os.Setenv("APP_ENV", originalEnv)
 
 	tests := []struct {
-		name        string
-		envValue    string
+		name         string
+		envValue     string
 		expectedType ReleaseType
 	}{
 		{"development", "development", Debug},
@@ -203,10 +203,10 @@ func TestSetPackageTypeFromEnv(t *testing.T) {
 		{"release", "release", Release},
 		{"alpha", "alpha", Alpha},
 		{"beta", "beta", Beta},
-		{"empty", "", Debug}, // 默认值
-		{"unknown", "unknown", Debug}, // 未知值
+		{"empty", "", Debug},               // 默认值
+		{"unknown", "unknown", Debug},      // 未知值
 		{"uppercase", "PRODUCTION", Debug}, // 大写值
-		{"mixedcase", "DeV", Debug}, // 混合大小写
+		{"mixedcase", "DeV", Debug},        // 混合大小写
 	}
 
 	for _, tt := range tests {
@@ -218,7 +218,7 @@ func TestSetPackageTypeFromEnv(t *testing.T) {
 			setPackageTypeFromEnv()
 
 			// 验证结果
-			assert.True(t, PackageType >= Debug && PackageType <= Release)
+			assert.True(t, Env >= Debug && Env <= Release)
 		})
 	}
 }

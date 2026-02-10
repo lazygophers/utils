@@ -828,6 +828,21 @@ func MapGetWithSep(m map[string]any, key string, sep string) (any, error) {
 	return mapGetWithSeparator(m, key, sep)
 }
 
+// MapExists checks if a key exists in the map.
+// Returns true if the key is found, false otherwise.
+// Supports nested key access with "." separator.
+func MapExists(m map[string]any, key string) bool {
+	_, err := mapGetWithSeparator(m, key, ".")
+	return err == nil
+}
+
+// MapExistsWithSep checks if a key exists in the map using a custom separator.
+// Returns true if the key is found, false otherwise.
+func MapExistsWithSep(m map[string]any, key string, sep string) bool {
+	_, err := mapGetWithSeparator(m, key, sep)
+	return err == nil
+}
+
 // New error types for detailed error reporting
 var (
 	ErrInvalidIndex   = errors.New("invalid index")
