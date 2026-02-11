@@ -42,7 +42,7 @@ var GoVersion   string  // Go version used for build
 
 // Target platform information
 var GoOS    string  // Target OS
-var Goarch  string  // Target architecture  
+var Goarch  string  // Target architecture
 var Goarm   string  // ARM version (if applicable)
 var Goamd64 string  // AMD64 version (if applicable)
 var Gomips  string  // MIPS version (if applicable)
@@ -54,18 +54,18 @@ var Name    string  // Application name
 var Version string  // Application version
 
 // Current package type (set by build tags)
-var PackageType ReleaseType
+var Env ReleaseType
 ```
 
 ## Build Tag Integration
 The package uses Go build tags to automatically set the release type:
 
 ### Build Tag Files
-- **debug.go**: Sets `PackageType = Debug` with `//go:build debug`
-- **test.go**: Sets `PackageType = Test` with `//go:build test`
-- **alpha.go**: Sets `PackageType = Alpha` with `//go:build alpha`
-- **beta.go**: Sets `PackageType = Beta` with `//go:build beta`
-- **release.go**: Sets `PackageType = Release` with `//go:build release`
+- **debug.go**: Sets `Env = Debug` with `//go:build debug`
+- **test.go**: Sets `Env = Test` with `//go:build test`
+- **alpha.go**: Sets `Env = Alpha` with `//go:build alpha`
+- **beta.go**: Sets `Env = Beta` with `//go:build beta`
+- **release.go**: Sets `Env = Release` with `//go:build release`
 
 ## Methods
 
@@ -84,7 +84,7 @@ import "github.com/lazygophers/utils/app"
 func main() {
     fmt.Printf("Application: %s/%s\n", app.Organization, app.Name)
     fmt.Printf("Version: %s\n", app.Version)
-    fmt.Printf("Release Type: %s\n", app.PackageType.String())
+    fmt.Printf("Release Type: %s\n", app.Env.String())
     fmt.Printf("Build Date: %s\n", app.BuildDate)
 }
 ```
@@ -94,7 +94,7 @@ func main() {
 import "github.com/lazygophers/utils/app"
 
 func main() {
-    switch app.PackageType {
+    switch app.Env {
     case app.Debug:
         fmt.Println("Running in debug mode")
         // Enable debug logging
@@ -136,7 +136,7 @@ func printPlatformInfo() {
     fmt.Printf("Target OS: %s\n", app.GoOS)
     fmt.Printf("Target Arch: %s\n", app.Goarch)
     fmt.Printf("Go Version: %s\n", app.GoVersion)
-    
+
     if app.Goarm != "" {
         fmt.Printf("ARM Version: %s\n", app.Goarm)
     }
@@ -219,7 +219,7 @@ RUN apk add --no-cache git && \
 import "github.com/lazygophers/utils/app"
 
 func isFeatureEnabled(feature string) bool {
-    switch app.PackageType {
+    switch app.Env {
     case app.Debug, app.Test:
         return true  // All features enabled in development
     case app.Alpha:
@@ -238,7 +238,7 @@ func isFeatureEnabled(feature string) bool {
 import "github.com/lazygophers/utils/app"
 
 func setupLogging() {
-    switch app.PackageType {
+    switch app.Env {
     case app.Debug, app.Test:
         log.SetLevel(log.DebugLevel)
     case app.Alpha, app.Beta:

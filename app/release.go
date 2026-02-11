@@ -2,4 +2,4 @@
 
 package app
 
-var PackageType = Release
+var Env = Release

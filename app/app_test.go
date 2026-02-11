@@ -38,7 +38,7 @@ func TestInitFunctionWithDifferentEnvironments(t *testing.T) {
 			os.Setenv("APP_ENV", tt.envValue)
 
 			// 重新初始化包（在Go中，init函数只执行一次，所以我们需要通过其他方式测试）
-			// 我们可以直接测试PackageType变量，或者通过模拟来测试
+			// 我们可以直接测试Env变量，或者通过模拟来测试
 
 			// 测试ReleaseType的String方法
 			releaseType := tt.expectedType
@@ -143,8 +143,8 @@ func TestReleaseTypeConstants(t *testing.T) {
 	}
 }
 
-func TestPackageType(t *testing.T) {
-	// PackageType是在编译时根据构建标签设置的，所以我们只检查它的有效性
+func TestEnv(t *testing.T) {
+	// Env是在编译时根据构建标签设置的，所以我们只检查它的有效性
 	assert.True(t, Env >= Debug && Env <= Release)
 	assert.NotEmpty(t, Env.String())
 }
@@ -184,7 +184,7 @@ func TestPackageVariables(t *testing.T) {
 	_ = Version
 }
 
-func TestSetPackageTypeFromEnv(t *testing.T) {
+func TestSetEnvFromEnv(t *testing.T) {
 	// 保存原始环境变量
 	originalEnv := os.Getenv("APP_ENV")
 	defer os.Setenv("APP_ENV", originalEnv)
@@ -215,7 +215,7 @@ func TestSetPackageTypeFromEnv(t *testing.T) {
 			os.Setenv("APP_ENV", tt.envValue)
 
 			// 调用可测试的函数
-			setPackageTypeFromEnv()
+			setEnvFromEnv()
 
 			// 验证结果
 			assert.True(t, Env >= Debug && Env <= Release)

@@ -25,7 +25,7 @@ var (
 )
 
 // 通过环境变量设置日志级别
-func setPackageTypeFromEnv() {
+func setEnvFromEnv() {
 	switch strings.ToLower(os.Getenv("APP_ENV")) {
 	case "dev", "development":
 		Env = Debug
@@ -41,5 +41,5 @@ func setPackageTypeFromEnv() {
 }
 
 func init() {
-	setPackageTypeFromEnv()
+	setEnvFromEnv()
 }

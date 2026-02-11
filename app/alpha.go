@@ -2,4 +2,4 @@
 
 package app
 
-var PackageType = Alpha
+var Env = Alpha

@@ -2,4 +2,4 @@
 
 package app
 
-var PackageType = Beta
+var Env = Beta

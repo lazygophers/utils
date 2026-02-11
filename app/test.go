@@ -2,4 +2,4 @@
 
 package app
 
-var PackageType = Test
+var Env = Test
