@@ -7,91 +7,91 @@ import (
 // TestMax 测试 Max 函数
 func TestMax(t *testing.T) {
 	t.Run("empty slice returns zero value", func(t *testing.T) {
-		result := Max([]int{})
+		result := Max([]int{}...)
 		if result != 0 {
-			t.Errorf("Max([]int{}) = %d, want 0", result)
+			t.Errorf("Max([]int{}...) = %d, want 0", result)
 		}
 	})
 
 	t.Run("single element", func(t *testing.T) {
-		result := Max([]int{42})
+		result := Max([]int{42}...)
 		if result != 42 {
 			t.Errorf("Max([42]) = %d, want 42", result)
 		}
 	})
 
 	t.Run("max of positive integers", func(t *testing.T) {
-		result := Max([]int{3, 1, 4, 1, 5, 9, 2, 6})
+		result := Max([]int{3, 1, 4, 1, 5, 9, 2, 6}...)
 		if result != 9 {
 			t.Errorf("Max([3,1,4,1,5,9,2,6]) = %d, want 9", result)
 		}
 	})
 
 	t.Run("max of negative integers", func(t *testing.T) {
-		result := Max([]int{-3, -1, -4, -2})
+		result := Max([]int{-3, -1, -4, -2}...)
 		if result != -1 {
 			t.Errorf("Max([-3,-1,-4,-2]) = %d, want -1", result)
 		}
 	})
 
 	t.Run("max of mixed integers", func(t *testing.T) {
-		result := Max([]int{-5, 0, 3, -2, 7})
+		result := Max([]int{-5, 0, 3, -2, 7}...)
 		if result != 7 {
 			t.Errorf("Max([-5,0,3,-2,7]) = %d, want 7", result)
 		}
 	})
 
 	t.Run("max of floats", func(t *testing.T) {
-		result := Max([]float64{3.14, 1.618, 2.718, 1.414})
+		result := Max([]float64{3.14, 1.618, 2.718, 1.414}...)
 		if result != 3.14 {
 			t.Errorf("Max([3.14,1.618,2.718,1.414]) = %f, want 3.14", result)
 		}
 	})
 
 	t.Run("max of strings", func(t *testing.T) {
-		result := Max([]string{"apple", "banana", "cherry", "date"})
+		result := Max([]string{"apple", "banana", "cherry", "date"}...)
 		if result != "date" {
 			t.Errorf("Max([apple,banana,cherry,date]) = %s, want date", result)
 		}
 	})
 
 	t.Run("max at beginning", func(t *testing.T) {
-		result := Max([]int{9, 1, 2, 3})
+		result := Max([]int{9, 1, 2, 3}...)
 		if result != 9 {
 			t.Errorf("Max([9,1,2,3]) = %d, want 9", result)
 		}
 	})
 
 	t.Run("max at end", func(t *testing.T) {
-		result := Max([]int{1, 2, 3, 9})
+		result := Max([]int{1, 2, 3, 9}...)
 		if result != 9 {
 			t.Errorf("Max([1,2,3,9]) = %d, want 9", result)
 		}
 	})
 
 	t.Run("all elements equal", func(t *testing.T) {
-		result := Max([]int{5, 5, 5, 5})
+		result := Max([]int{5, 5, 5, 5}...)
 		if result != 5 {
 			t.Errorf("Max([5,5,5,5]) = %d, want 5", result)
 		}
 	})
 
 	t.Run("max with uint", func(t *testing.T) {
-		result := Max([]uint{1, 5, 3, 2})
+		result := Max([]uint{1, 5, 3, 2}...)
 		if result != 5 {
 			t.Errorf("Max([1,5,3,2]) = %d, want 5", result)
 		}
 	})
 
 	t.Run("max with int64", func(t *testing.T) {
-		result := Max([]int64{100, 200, 150, 250})
+		result := Max([]int64{100, 200, 150, 250}...)
 		if result != 250 {
 			t.Errorf("Max([100,200,150,250]) = %d, want 250", result)
 		}
 	})
 
 	t.Run("max with float32", func(t *testing.T) {
-		result := Max([]float32{1.5, 2.5, 1.2, 3.7})
+		result := Max([]float32{1.5, 2.5, 1.2, 3.7}...)
 		if result != 3.7 {
 			t.Errorf("Max([1.5,2.5,1.2,3.7]) = %f, want 3.7", result)
 		}
@@ -101,91 +101,91 @@ func TestMax(t *testing.T) {
 // TestMin 测试 Min 函数
 func TestMin(t *testing.T) {
 	t.Run("empty slice returns zero value", func(t *testing.T) {
-		result := Min([]int{})
+		result := Min([]int{}...)
 		if result != 0 {
-			t.Errorf("Min([]int{}) = %d, want 0", result)
+			t.Errorf("Min([]int{}...) = %d, want 0", result)
 		}
 	})
 
 	t.Run("single element", func(t *testing.T) {
-		result := Min([]int{42})
+		result := Min([]int{42}...)
 		if result != 42 {
 			t.Errorf("Min([42]) = %d, want 42", result)
 		}
 	})
 
 	t.Run("min of positive integers", func(t *testing.T) {
-		result := Min([]int{3, 1, 4, 1, 5, 9, 2, 6})
+		result := Min([]int{3, 1, 4, 1, 5, 9, 2, 6}...)
 		if result != 1 {
 			t.Errorf("Min([3,1,4,1,5,9,2,6]) = %d, want 1", result)
 		}
 	})
 
 	t.Run("min of negative integers", func(t *testing.T) {
-		result := Min([]int{-3, -1, -4, -2})
+		result := Min([]int{-3, -1, -4, -2}...)
 		if result != -4 {
 			t.Errorf("Min([-3,-1,-4,-2]) = %d, want -4", result)
 		}
 	})
 
 	t.Run("min of mixed integers", func(t *testing.T) {
-		result := Min([]int{-5, 0, 3, -2, 7})
+		result := Min([]int{-5, 0, 3, -2, 7}...)
 		if result != -5 {
 			t.Errorf("Min([-5,0,3,-2,7]) = %d, want -5", result)
 		}
 	})
 
 	t.Run("min of floats", func(t *testing.T) {
-		result := Min([]float64{3.14, 1.618, 2.718, 1.414})
+		result := Min([]float64{3.14, 1.618, 2.718, 1.414}...)
 		if result != 1.414 {
 			t.Errorf("Min([3.14,1.618,2.718,1.414]) = %f, want 1.414", result)
 		}
 	})
 
 	t.Run("min of strings", func(t *testing.T) {
-		result := Min([]string{"apple", "banana", "cherry", "date"})
+		result := Min([]string{"apple", "banana", "cherry", "date"}...)
 		if result != "apple" {
 			t.Errorf("Min([apple,banana,cherry,date]) = %s, want apple", result)
 		}
 	})
 
 	t.Run("min at beginning", func(t *testing.T) {
-		result := Min([]int{1, 9, 8, 7})
+		result := Min([]int{1, 9, 8, 7}...)
 		if result != 1 {
 			t.Errorf("Min([1,9,8,7]) = %d, want 1", result)
 		}
 	})
 
 	t.Run("min at end", func(t *testing.T) {
-		result := Min([]int{9, 8, 7, 1})
+		result := Min([]int{9, 8, 7, 1}...)
 		if result != 1 {
 			t.Errorf("Min([9,8,7,1]) = %d, want 1", result)
 		}
 	})
 
 	t.Run("all elements equal", func(t *testing.T) {
-		result := Min([]int{5, 5, 5, 5})
+		result := Min([]int{5, 5, 5, 5}...)
 		if result != 5 {
 			t.Errorf("Min([5,5,5,5]) = %d, want 5", result)
 		}
 	})
 
 	t.Run("min with uint", func(t *testing.T) {
-		result := Min([]uint{5, 1, 3, 2})
+		result := Min([]uint{5, 1, 3, 2}...)
 		if result != 1 {
 			t.Errorf("Min([5,1,3,2]) = %d, want 1", result)
 		}
 	})
 
 	t.Run("min with int64", func(t *testing.T) {
-		result := Min([]int64{100, 200, 50, 250})
+		result := Min([]int64{100, 200, 50, 250}...)
 		if result != 50 {
 			t.Errorf("Min([100,200,50,250]) = %d, want 50", result)
 		}
 	})
 
 	t.Run("min with float32", func(t *testing.T) {
-		result := Min([]float32{1.5, 2.5, 0.2, 3.7})
+		result := Min([]float32{1.5, 2.5, 0.2, 3.7}...)
 		if result != 0.2 {
 			t.Errorf("Min([1.5,2.5,0.2,3.7]) = %f, want 0.2", result)
 		}
