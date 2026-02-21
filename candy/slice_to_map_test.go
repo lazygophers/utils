@@ -5,591 +5,151 @@ import (
 	"testing"
 )
 
-type TestItem struct {
-	ID       int
-	ID8      int8
-	ID16     int16
-	ID32     int32
-	ID64     int64
-	UID      uint
-	UID8     uint8
-	UID16    uint16
-	UID32    uint32
-	UID64    uint64
-	Name     string
-	Code     string
-	Price    float32
-	Score    float64
-	Active   bool
-	Verified bool
+type sliceToMapItem struct {
+	Name  string
+	I     int
+	I8    int8
+	I16   int16
+	I32   int32
+	I64   int64
+	U     uint
+	U8    uint8
+	U16   uint16
+	U32   uint32
+	U64   uint64
+	F32   float32
+	F64   float64
+	Bool  bool
+	Code  string
+	Alias string
+}
+
+func assertMapBoolKeys[T comparable](t *testing.T, got map[T]bool, want []T) {
+	t.Helper()
+
+	wantSet := make(map[T]struct{}, len(want))
+	for _, v := range want {
+		wantSet[v] = struct{}{}
+	}
+
+	if len(got) != len(wantSet) {
+		t.Fatalf("len(got)=%d want=%d (unique)", len(got), len(wantSet))
+	}
+	for k := range wantSet {
+		if !got[k] {
+			t.Fatalf("missing key: %v", k)
+		}
+	}
+}
+
+func assertPanics(t *testing.T, fn func()) {
+	t.Helper()
+	defer func() {
+		if recover() == nil {
+			t.Fatalf("expected panic")
+		}
+	}()
+	fn()
 }
 
 func TestSlice2Map(t *testing.T) {
-	t.Run("string slice", func(t *testing.T) {
-		input := []string{"a", "b", "c"}
-		result := Slice2Map(input)
-		expected := map[string]bool{"a": true, "b": true, "c": true}
+	tests := []struct {
+		name string
+		got  any
+		want any
+	}{
+		{
+			name: "string",
+			got:  Slice2Map([]string{"a", "b", "c"}),
+			want: map[string]bool{"a": true, "b": true, "c": true},
+		},
+		{
+			name: "int",
+			got:  Slice2Map([]int{1, 2, 3}),
+			want: map[int]bool{1: true, 2: true, 3: true},
+		},
+		{
+			name: "empty",
+			got:  Slice2Map([]string{}),
+			want: map[string]bool{},
+		},
+		{
+			name: "duplicates",
+			got:  Slice2Map([]string{"a", "b", "a", "c"}),
+			want: map[string]bool{"a": true, "b": true, "c": true},
+		},
+		{
+			name: "float64",
+			got:  Slice2Map([]float64{1.1, 2.2, 3.3}),
+			want: map[float64]bool{1.1: true, 2.2: true, 3.3: true},
+		},
+	}
 
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("Slice2Map() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("integer slice", func(t *testing.T) {
-		input := []int{1, 2, 3}
-		result := Slice2Map(input)
-		expected := map[int]bool{1: true, 2: true, 3: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("Slice2Map() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []string{}
-		result := Slice2Map(input)
-		expected := map[string]bool{}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("Slice2Map() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("slice with duplicates", func(t *testing.T) {
-		input := []string{"a", "b", "a", "c"}
-		result := Slice2Map(input)
-		expected := map[string]bool{"a": true, "b": true, "c": true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("Slice2Map() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("float64 slice", func(t *testing.T) {
-		input := []float64{1.1, 2.2, 3.3}
-		result := Slice2Map(input)
-		expected := map[float64]bool{1.1: true, 2.2: true, 3.3: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("Slice2Map() = %v, want %v", result, expected)
-		}
-	})
-}
-
-func TestSliceField2MapString(t *testing.T) {
-	t.Run("extract string field", func(t *testing.T) {
-		input := []TestItem{
-			{Name: "Alice", Code: "A001"},
-			{Name: "Bob", Code: "B001"},
-			{Name: "Charlie", Code: "C001"},
-		}
-		result := SliceField2MapString(input, "Name")
-		expected := map[string]bool{"Alice": true, "Bob": true, "Charlie": true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapString() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("extract with duplicates", func(t *testing.T) {
-		input := []TestItem{
-			{Name: "Alice"},
-			{Name: "Bob"},
-			{Name: "Alice"},
-		}
-		result := SliceField2MapString(input, "Name")
-		expected := map[string]bool{"Alice": true, "Bob": true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapString() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("with pointer slice", func(t *testing.T) {
-		input := []*TestItem{
-			{Name: "Alice"},
-			{Name: "Bob"},
-		}
-		result := SliceField2MapString(input, "Name")
-		expected := map[string]bool{"Alice": true, "Bob": true}
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapString() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("with double pointer slice", func(t *testing.T) {
-		type NestedItem struct {
-			Name string
-		}
-		item1 := NestedItem{Name: "Alice"}
-		item2 := NestedItem{Name: "Bob"}
-		ptr1 := &item1
-		ptr2 := &item2
-		input := []*NestedItem{ptr1, ptr2}
-		result := SliceField2MapString(input, "Name")
-		expected := map[string]bool{"Alice": true, "Bob": true}
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapString() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("panic on non-existent field", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("Expected panic but didn't get one")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if !reflect.DeepEqual(tt.got, tt.want) {
+				t.Fatalf("got=%v want=%v", tt.got, tt.want)
 			}
-		}()
-
-		type TestItem struct {
-			Name string
-		}
-		input := []TestItem{{Name: "Alice"}}
-		SliceField2MapString(input, "InvalidField")
-	})
-
-	t.Run("panic on wrong field type", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("Expected panic but didn't get one")
-			}
-		}()
-
-		type TestItem struct {
-			Name string
-		}
-		input := []TestItem{{Name: "Alice"}}
-		SliceField2MapInt(input, "Name") // Name is string, not int
-	})
-
-	t.Run("panic on non-struct element", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("Expected panic but didn't get one")
-			}
-		}()
-
-		input := []int{1, 2, 3}
-		SliceField2MapInt(input, "Invalid")
-	})
-
-	t.Run("panic on pointer to non-struct", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("Expected panic but didn't get one")
-			}
-		}()
-
-		input := []*int{new(int), new(int)}
-		SliceField2MapInt(input, "Invalid")
-	})
-
-	t.Run("panic on invalid field", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("Expected panic but didn't get one")
-			}
-		}()
-
-		type TestItem struct {
-			Name string
-		}
-
-		input := []TestItem{{Name: "Alice"}}
-		SliceField2MapInt(input, "InvalidField")
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapString(input, "Name")
-		if result != nil {
-			t.Errorf("SliceField2MapString() = %v, want nil", result)
-		}
-	})
-
-	t.Run("with pointer slice", func(t *testing.T) {
-		input := []*TestItem{
-			{Name: "Alice"},
-			{Name: "Bob"},
-		}
-		result := SliceField2MapString(input, "Name")
-		expected := map[string]bool{"Alice": true, "Bob": true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapString() = %v, want %v", result, expected)
-		}
-	})
+		})
+	}
 }
 
-func TestSliceField2MapInt(t *testing.T) {
-	t.Run("extract int field", func(t *testing.T) {
-		input := []TestItem{
-			{ID: 1, Name: "Alice"},
-			{ID: 2, Name: "Bob"},
-			{ID: 3, Name: "Charlie"},
-		}
-		result := SliceField2MapInt(input, "ID")
-		expected := map[int]bool{1: true, 2: true, 3: true}
+func TestSliceField2Map_Basic(t *testing.T) {
+	items := []sliceToMapItem{
+		{Name: "a", I: 1, I8: 2, I16: 3, I32: 4, I64: 5, U: 6, U8: 7, U16: 8, U32: 9, U64: 10, F32: 1.5, F64: 2.5, Bool: true},
+		{Name: "b", I: 2, I8: 3, I16: 4, I32: 5, I64: 6, U: 7, U8: 8, U16: 9, U32: 10, U64: 11, F32: 2.5, F64: 3.5, Bool: false},
+		{Name: "a", I: 1, I8: 2, I16: 3, I32: 4, I64: 5, U: 6, U8: 7, U16: 8, U32: 9, U64: 10, F32: 1.5, F64: 2.5, Bool: true},
+	}
 
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapInt() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("extract with duplicates", func(t *testing.T) {
-		input := []TestItem{
-			{ID: 1},
-			{ID: 2},
-			{ID: 1},
-		}
-		result := SliceField2MapInt(input, "ID")
-		expected := map[int]bool{1: true, 2: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapInt() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapInt(input, "ID")
-
-		if result != nil {
-			t.Errorf("SliceField2MapInt() = %v, want nil", result)
-		}
-	})
+	assertMapBoolKeys(t, SliceField2MapString(items, "Name"), []string{"a", "b"})
+	assertMapBoolKeys(t, SliceField2MapInt(items, "I"), []int{1, 2})
+	assertMapBoolKeys(t, SliceField2MapInt8(items, "I8"), []int8{2, 3})
+	assertMapBoolKeys(t, SliceField2MapInt16(items, "I16"), []int16{3, 4})
+	assertMapBoolKeys(t, SliceField2MapInt32(items, "I32"), []int32{4, 5})
+	assertMapBoolKeys(t, SliceField2MapInt64(items, "I64"), []int64{5, 6})
+	assertMapBoolKeys(t, SliceField2MapUint(items, "U"), []uint{6, 7})
+	assertMapBoolKeys(t, SliceField2MapUint8(items, "U8"), []uint8{7, 8})
+	assertMapBoolKeys(t, SliceField2MapUint16(items, "U16"), []uint16{8, 9})
+	assertMapBoolKeys(t, SliceField2MapUint32(items, "U32"), []uint32{9, 10})
+	assertMapBoolKeys(t, SliceField2MapUint64(items, "U64"), []uint64{10, 11})
+	assertMapBoolKeys(t, SliceField2MapFloat32(items, "F32"), []float32{1.5, 2.5})
+	assertMapBoolKeys(t, SliceField2MapFloat64(items, "F64"), []float64{2.5, 3.5})
+	assertMapBoolKeys(t, SliceField2MapBool(items, "Bool"), []bool{true, false})
 }
 
-func TestSliceField2MapInt8(t *testing.T) {
-	t.Run("extract int8 field", func(t *testing.T) {
-		input := []TestItem{
-			{ID8: 1},
-			{ID8: 2},
-			{ID8: 3},
-		}
-		result := SliceField2MapInt8(input, "ID8")
-		expected := map[int8]bool{1: true, 2: true, 3: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapInt8() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapInt8(input, "ID8")
-
-		if result != nil {
-			t.Errorf("SliceField2MapInt8() = %v, want nil", result)
-		}
-	})
+func TestSliceField2Map_Pointers(t *testing.T) {
+	items := []*sliceToMapItem{{Name: "a"}, {Name: "b"}, {Name: "a"}}
+	assertMapBoolKeys(t, SliceField2MapString(items, "Name"), []string{"a", "b"})
 }
 
-func TestSliceField2MapInt16(t *testing.T) {
-	t.Run("extract int16 field", func(t *testing.T) {
-		input := []TestItem{
-			{ID16: 100},
-			{ID16: 200},
-			{ID16: 300},
-		}
-		result := SliceField2MapInt16(input, "ID16")
-		expected := map[int16]bool{100: true, 200: true, 300: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapInt16() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapInt16(input, "ID16")
-
-		if result != nil {
-			t.Errorf("SliceField2MapInt16() = %v, want nil", result)
-		}
-	})
+func TestSliceField2Map_Empty(t *testing.T) {
+	if got := SliceField2MapString([]sliceToMapItem{}, "Name"); got != nil {
+		t.Fatalf("expected nil, got %v", got)
+	}
 }
 
-func TestSliceField2MapInt32(t *testing.T) {
-	t.Run("extract int32 field", func(t *testing.T) {
-		input := []TestItem{
-			{ID32: 1000},
-			{ID32: 2000},
-			{ID32: 3000},
-		}
-		result := SliceField2MapInt32(input, "ID32")
-		expected := map[int32]bool{1000: true, 2000: true, 3000: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapInt32() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapInt32(input, "ID32")
-
-		if result != nil {
-			t.Errorf("SliceField2MapInt32() = %v, want nil", result)
-		}
-	})
-}
-
-func TestSliceField2MapInt64(t *testing.T) {
-	t.Run("extract int64 field", func(t *testing.T) {
-		input := []TestItem{
-			{ID64: 10000},
-			{ID64: 20000},
-			{ID64: 30000},
-		}
-		result := SliceField2MapInt64(input, "ID64")
-		expected := map[int64]bool{10000: true, 20000: true, 30000: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapInt64() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapInt64(input, "ID64")
-
-		if result != nil {
-			t.Errorf("SliceField2MapInt64() = %v, want nil", result)
-		}
-	})
-}
-
-func TestSliceField2MapUint(t *testing.T) {
-	t.Run("extract uint field", func(t *testing.T) {
-		input := []TestItem{
-			{UID: 1},
-			{UID: 2},
-			{UID: 3},
-		}
-		result := SliceField2MapUint(input, "UID")
-		expected := map[uint]bool{1: true, 2: true, 3: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapUint() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapUint(input, "UID")
-
-		if result != nil {
-			t.Errorf("SliceField2MapUint() = %v, want nil", result)
-		}
-	})
-}
-
-func TestSliceField2MapUint8(t *testing.T) {
-	t.Run("extract uint8 field", func(t *testing.T) {
-		input := []TestItem{
-			{UID8: 1},
-			{UID8: 2},
-			{UID8: 3},
-		}
-		result := SliceField2MapUint8(input, "UID8")
-		expected := map[uint8]bool{1: true, 2: true, 3: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapUint8() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapUint8(input, "UID8")
-
-		if result != nil {
-			t.Errorf("SliceField2MapUint8() = %v, want nil", result)
-		}
-	})
-}
-
-func TestSliceField2MapUint16(t *testing.T) {
-	t.Run("extract uint16 field", func(t *testing.T) {
-		input := []TestItem{
-			{UID16: 100},
-			{UID16: 200},
-			{UID16: 300},
-		}
-		result := SliceField2MapUint16(input, "UID16")
-		expected := map[uint16]bool{100: true, 200: true, 300: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapUint16() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapUint16(input, "UID16")
-
-		if result != nil {
-			t.Errorf("SliceField2MapUint16() = %v, want nil", result)
-		}
-	})
-}
-
-func TestSliceField2MapUint32(t *testing.T) {
-	t.Run("extract uint32 field", func(t *testing.T) {
-		input := []TestItem{
-			{UID32: 1000},
-			{UID32: 2000},
-			{UID32: 3000},
-		}
-		result := SliceField2MapUint32(input, "UID32")
-		expected := map[uint32]bool{1000: true, 2000: true, 3000: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapUint32() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapUint32(input, "UID32")
-
-		if result != nil {
-			t.Errorf("SliceField2MapUint32() = %v, want nil", result)
-		}
-	})
-}
-
-func TestSliceField2MapUint64(t *testing.T) {
-	t.Run("extract uint64 field", func(t *testing.T) {
-		input := []TestItem{
-			{UID64: 10000},
-			{UID64: 20000},
-			{UID64: 30000},
-		}
-		result := SliceField2MapUint64(input, "UID64")
-		expected := map[uint64]bool{10000: true, 20000: true, 30000: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapUint64() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapUint64(input, "UID64")
-
-		if result != nil {
-			t.Errorf("SliceField2MapUint64() = %v, want nil", result)
-		}
-	})
-}
-
-func TestSliceField2MapFloat32(t *testing.T) {
-	t.Run("extract float32 field", func(t *testing.T) {
-		input := []TestItem{
-			{Price: 1.5},
-			{Price: 2.5},
-			{Price: 3.5},
-		}
-		result := SliceField2MapFloat32(input, "Price")
-		expected := map[float32]bool{1.5: true, 2.5: true, 3.5: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapFloat32() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapFloat32(input, "Price")
-
-		if result != nil {
-			t.Errorf("SliceField2MapFloat32() = %v, want nil", result)
-		}
-	})
-}
-
-func TestSliceField2MapFloat64(t *testing.T) {
-	t.Run("extract float64 field", func(t *testing.T) {
-		input := []TestItem{
-			{Score: 90.5},
-			{Score: 85.5},
-			{Score: 95.5},
-		}
-		result := SliceField2MapFloat64(input, "Score")
-		expected := map[float64]bool{90.5: true, 85.5: true, 95.5: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapFloat64() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapFloat64(input, "Score")
-
-		if result != nil {
-			t.Errorf("SliceField2MapFloat64() = %v, want nil", result)
-		}
-	})
-}
-
-func TestSliceField2MapBool(t *testing.T) {
-	t.Run("extract bool field", func(t *testing.T) {
-		input := []TestItem{
-			{Active: true},
-			{Active: false},
-			{Active: true},
-		}
-		result := SliceField2MapBool(input, "Active")
-		expected := map[bool]bool{true: true, false: true}
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("SliceField2MapBool() = %v, want %v", result, expected)
-		}
-	})
-
-	t.Run("empty slice", func(t *testing.T) {
-		input := []TestItem{}
-		result := SliceField2MapBool(input, "Active")
-
-		if result != nil {
-			t.Errorf("SliceField2MapBool() = %v, want nil", result)
-		}
-	})
-}
-
-func TestSliceField2MapPanic(t *testing.T) {
+func TestSliceField2Map_Panics(t *testing.T) {
 	t.Run("field not found", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("Expected panic for non-existent field")
-			}
-		}()
-
-		input := []TestItem{{Name: "Alice"}}
-		SliceField2MapString(input, "NonExistent")
+		assertPanics(t, func() {
+			SliceField2MapString([]sliceToMapItem{{Name: "a"}}, "Nope")
+		})
 	})
 
 	t.Run("wrong field type", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("Expected panic for wrong field type")
-			}
-		}()
-
-		input := []TestItem{{ID: 1}}
-		SliceField2MapString(input, "ID") // ID is int, not string
+		assertPanics(t, func() {
+			SliceField2MapInt([]sliceToMapItem{{Name: "a"}}, "Name")
+		})
 	})
 
-	t.Run("not a struct", func(t *testing.T) {
-		defer func() {
-			if r := recover(); r == nil {
-				t.Errorf("Expected panic for non-struct input")
-			}
-		}()
+	t.Run("non-struct element", func(t *testing.T) {
+		assertPanics(t, func() {
+			SliceField2MapInt([]int{1, 2, 3}, "X")
+		})
+	})
 
-		input := []string{"a", "b"}
-		SliceField2MapString(input, "Name")
+	t.Run("pointer to non-struct", func(t *testing.T) {
+		assertPanics(t, func() {
+			SliceField2MapInt([]*int{new(int)}, "X")
+		})
 	})
 }
