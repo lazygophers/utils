@@ -69,6 +69,10 @@ func Async[M any](process int, push func(chan M), logic func(M)) {
 //
 // 注意: 调用者需要负责关闭通道以停止协程
 func AsyncAlwaysWithChan[M any](process int, c chan M, logic func(M)) {
+	if process <= 0 {
+		return
+	}
+
 	for i := 0; i < process; i++ {
 		routine.GoWithRecover(func() error {
 			var x M
@@ -98,6 +102,10 @@ type UniqueTask interface {
 //
 //	使用 sync.Map 存储任务唯一键，确保相同任务不会并发执行
 func AsyncUnique[M UniqueTask](process int, push func(chan M), logic func(M)) {
+	if process <= 0 {
+		return
+	}
+
 	c := make(chan M, process*2)
 
 	// uniqueMap 用于存储任务唯一键，防止重复执行
@@ -113,13 +121,16 @@ func AsyncUnique[M UniqueTask](process int, push func(chan M), logic func(M)) {
 
 			var x M
 			for x = range c {
-				_, exist := uniqueMap.LoadOrStore(x.UniqueKey(), struct{}{})
+				key := x.UniqueKey()
+				_, exist := uniqueMap.LoadOrStore(key, struct{}{})
 				if exist {
-					log.Warnf("task exist:%s", x.UniqueKey())
+					log.Warnf("task exist:%s", key)
 					continue
 				}
-				logic(x)
-				uniqueMap.Delete(x.UniqueKey())
+				func() {
+					defer uniqueMap.Delete(key)
+					logic(x)
+				}()
 			}
 
 			return nil
@@ -140,6 +151,10 @@ func AsyncUnique[M UniqueTask](process int, push func(chan M), logic func(M)) {
 //
 // 返回值: 任务通道
 func AsyncAlwaysUnique[M UniqueTask](process int, logic func(M)) chan M {
+	if process <= 0 {
+		process = 1
+	}
+
 	c := make(chan M, 20)
 	AsyncAlwaysUniqueWithChan(c, process, logic)
 	return c
@@ -156,19 +171,26 @@ func AsyncAlwaysUnique[M UniqueTask](process int, logic func(M)) chan M {
 //
 //	使用 sync.Map 存储任务唯一键，确保相同任务不会并发执行
 func AsyncAlwaysUniqueWithChan[M UniqueTask](c chan M, process int, logic func(M)) {
+	if process <= 0 {
+		return
+	}
+
 	// uniqueMap 用于存储任务唯一键，防止重复执行
 	var uniqueMap sync.Map
 	for i := 0; i < process; i++ {
 		routine.GoWithRecover(func() error {
 			var x M
 			for x = range c {
-				_, exist := uniqueMap.LoadOrStore(x.UniqueKey(), struct{}{})
+				key := x.UniqueKey()
+				_, exist := uniqueMap.LoadOrStore(key, struct{}{})
 				if exist {
-					log.Warnf("task exist:%s", x.UniqueKey())
+					log.Warnf("task exist:%s", key)
 					continue
 				}
-				logic(x)
-				uniqueMap.Delete(x.UniqueKey())
+				func() {
+					defer uniqueMap.Delete(key)
+					logic(x)
+				}()
 			}
 
 			return nil

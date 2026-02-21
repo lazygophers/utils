@@ -33,9 +33,13 @@ func (p *Worker) Wait() {
 // NewWorker 创建Worker实例
 // max: 最大并发goroutine数量
 func NewWorker(max int) *Worker {
-	// 对于零worker的特殊情况，使用缓冲大小为1的通道来避免死锁
+	if max < 0 {
+		max = 0
+	}
+
+	// 对于零 worker 的特殊情况，使用缓冲大小为 1 的通道来避免 Add() 立即死锁
 	bufferSize := max
-	if max == 0 {
+	if bufferSize == 0 {
 		bufferSize = 1
 	}
 	c := make(chan func(), bufferSize) // 创建带缓冲的任务通道
