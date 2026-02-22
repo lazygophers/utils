@@ -15,7 +15,7 @@ func TestMathOps(t *testing.T) {
 	if Min[int]() != 0 {
 		t.Fatalf("expected zero")
 	}
-	if Min(1, 3, 2) != 1 {
+	if Min(3, 1, 2) != 1 {
 		t.Fatalf("unexpected")
 	}
 

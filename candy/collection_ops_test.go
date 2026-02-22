@@ -10,11 +10,20 @@ func TestCollectionOps(t *testing.T) {
 		if !All([]int{}, func(n int) bool { return n > 0 }) {
 			t.Fatalf("empty slice should be true")
 		}
+		if !All([]int{2, 4, 6}, func(n int) bool { return n%2 == 0 }) {
+			t.Fatalf("expected true")
+		}
 		if All([]int{1, 2, 3}, func(n int) bool { return n%2 == 0 }) {
 			t.Fatalf("expected false")
 		}
 		if !Any([]int{1, 2, 3}, func(n int) bool { return n == 2 }) {
 			t.Fatalf("expected true")
+		}
+		if Any([]int{}, func(n int) bool { return n == 1 }) {
+			t.Fatalf("expected false")
+		}
+		if Any([]int{1, 2, 3}, func(n int) bool { return n == 4 }) {
+			t.Fatalf("expected false")
 		}
 	})
 
@@ -33,8 +42,14 @@ func TestCollectionOps(t *testing.T) {
 	})
 
 	t.Run("Map/Reduce", func(t *testing.T) {
+		if got := Map([]int{}, func(v int) int { return v * 2 }); len(got) != 0 {
+			t.Fatalf("expected empty, got %v", got)
+		}
 		if !reflect.DeepEqual(Map([]int{1, 2, 3}, func(v int) int { return v * 2 }), []int{2, 4, 6}) {
 			t.Fatalf("unexpected")
+		}
+		if got := Reduce([]int{}, func(a, b int) int { return a + b }); got != 0 {
+			t.Fatalf("got=%d want=0", got)
 		}
 		if got := Reduce([]int{1, 2, 3}, func(a, b int) int { return a + b }); got != 6 {
 			t.Fatalf("got=%d want=6", got)
@@ -48,6 +63,14 @@ func TestCollectionOps(t *testing.T) {
 	})
 
 	t.Run("Shuffle", func(t *testing.T) {
+		if got := Shuffle([]int{}); got == nil || len(got) != 0 {
+			t.Fatalf("unexpected: %v", got)
+		}
+		one := []int{1}
+		if got := Shuffle(one); &got[0] != &one[0] {
+			t.Fatalf("expected same slice")
+		}
+
 		orig := []int{1, 2, 3, 4, 5}
 		got := Shuffle(append([]int(nil), orig...))
 		// 不要求顺序，只要求元素集合一致
@@ -69,8 +92,14 @@ func TestCollectionOps(t *testing.T) {
 	})
 
 	t.Run("Sort/SortUsing", func(t *testing.T) {
+		if got := Sort([]int{1}); len(got) != 1 || got[0] != 1 {
+			t.Fatalf("unexpected: %v", got)
+		}
 		if !reflect.DeepEqual(Sort([]int{3, 1, 2}), []int{1, 2, 3}) {
 			t.Fatalf("unexpected")
+		}
+		if got := SortUsing([]string{"x"}, func(a, b string) bool { return a < b }); len(got) != 1 || got[0] != "x" {
+			t.Fatalf("unexpected: %v", got)
 		}
 		if !reflect.DeepEqual(SortUsing([]string{"b", "aa", "c"}, func(a, b string) bool { return len(a) < len(b) }), []string{"b", "c", "aa"}) {
 			t.Fatalf("unexpected")
