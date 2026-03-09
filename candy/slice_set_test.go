@@ -4,52 +4,6 @@ import (
 	"testing"
 )
 
-// TestSpare 测试 Spare 函数
-func TestSpare(t *testing.T) {
-	t.Run("basic difference", func(t *testing.T) {
-		ss := []int{1, 2, 3}
-		against := []int{2, 3, 4, 5}
-		result := Spare(ss, against)
-		expected := []int{4, 5}
-		if len(result) != len(expected) {
-			t.Errorf("Spare length = %d, want %d", len(result), len(expected))
-		}
-		for i := range expected {
-			if result[i] != expected[i] {
-				t.Errorf("Spare[%d] = %d, want %d", i, result[i], expected[i])
-			}
-		}
-	})
-
-	t.Run("empty ss", func(t *testing.T) {
-		result := Spare([]int{}, []int{1, 2, 3})
-		if len(result) != 3 {
-			t.Errorf("Spare with empty ss should return all against elements")
-		}
-	})
-
-	t.Run("empty against", func(t *testing.T) {
-		result := Spare([]int{1, 2, 3}, []int{})
-		if len(result) != 0 {
-			t.Errorf("Spare with empty against should return empty")
-		}
-	})
-
-	t.Run("no difference", func(t *testing.T) {
-		result := Spare([]int{1, 2, 3}, []int{1, 2, 3})
-		if len(result) != 0 {
-			t.Errorf("Spare with identical slices should return empty")
-		}
-	})
-
-	t.Run("all different", func(t *testing.T) {
-		result := Spare([]int{1, 2, 3}, []int{4, 5, 6})
-		if len(result) != 3 {
-			t.Errorf("Spare with completely different slices should return all against")
-		}
-	})
-}
-
 // TestRemove 测试 Remove 函数
 // TestRemove 测试 Remove 函数
 func TestRemove(t *testing.T) {

@@ -209,18 +209,6 @@ func MapKeysString(m interface{}) []string {
 	return keys
 }
 
-func MapKeysBytes(m interface{}) [][]byte {
-	val := reflect.ValueOf(m)
-	if val.Kind() != reflect.Map {
-		return nil
-	}
-
-	keys := make([][]byte, 0, val.Len())
-	for range val.MapKeys() {
-	}
-	return keys
-}
-
 func MapKeysAny(m interface{}) []interface{} {
 	val := reflect.ValueOf(m)
 	if val.Kind() != reflect.Map {

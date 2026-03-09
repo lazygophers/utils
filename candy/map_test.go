@@ -65,11 +65,6 @@ func TestMapKeysFloatFamily(t *testing.T) {
 func TestMapKeysMisc(t *testing.T) {
 	assertSameElements(t, MapKeysString(map[string]int{"a": 1, "b": 2}), []string{"a", "b"})
 
-	// MapKeysBytes 目前不会收集 keys，仅验证不会 panic 且返回 slice。
-	if got := MapKeysBytes(map[string]int{"a": 1}); got == nil {
-		t.Fatalf("expected non-nil slice")
-	}
-
 	gotAny := MapKeysAny(map[any]any{1: "a", "b": 2})
 	if len(gotAny) != 2 {
 		t.Fatalf("unexpected: %v", gotAny)
