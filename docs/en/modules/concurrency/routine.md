@@ -203,7 +203,7 @@ routine.Go(func() error {
 
 ## Related Documentation
 
-- [wait](/en/modules/wait) - Flow control
-- [hystrix](/en/modules/hystrix) - Circuit breaker
+- [wait](/en/modules/concurrency/wait) - Flow control
+- [hystrix](/en/modules/concurrency/hystrix) - Circuit breaker
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

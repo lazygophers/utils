@@ -524,7 +524,7 @@ func formatFieldNameBad(field string) string {
 
 ## 相關文檔
 
-- [candy](/zh-TW/modules/candy) - 類型轉換
-- [json](/zh-TW/modules/json) - JSON 處理
+- [candy](/zh-TW/modules/data/candy) - 類型轉換
+- [json](/zh-TW/modules/data/json) - JSON 處理
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

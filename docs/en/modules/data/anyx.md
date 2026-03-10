@@ -595,8 +595,8 @@ name := profile.GetString("name")
 
 ## Related Documentation
 
-- [candy](/en/modules/candy) - Type conversion
-- [json](/en/modules/json) - JSON processing
-- [validator](/en/modules/validator) - Data validation
+- [candy](/en/modules/data/candy) - Type conversion
+- [json](/en/modules/data/json) - JSON processing
+- [validator](/en/modules/core/validator) - Data validation
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

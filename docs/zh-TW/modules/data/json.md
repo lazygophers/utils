@@ -517,8 +517,8 @@ json 模組根據平台自動選擇最佳實現：
 
 ## 相關文檔
 
-- [candy](/zh-TW/modules/candy) - 類型轉換
-- [stringx](/zh-TW/modules/stringx) - 字串工具
-- [anyx](/zh-TW/modules/anyx) - Interface{} 助手
+- [candy](/zh-TW/modules/data/candy) - 類型轉換
+- [stringx](/zh-TW/modules/data/stringx) - 字串工具
+- [anyx](/zh-TW/modules/data/anyx) - Interface{} 助手
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

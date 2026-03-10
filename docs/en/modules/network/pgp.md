@@ -445,6 +445,6 @@ func safeEncrypt(data []byte, publicKeyPEM string) ([]byte, error) {
 
 ## Related Documentation
 
-- [cryptox](/en/modules/cryptox) - Cryptographic functions
+- [cryptox](/en/modules/network/cryptox) - Cryptographic functions
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

@@ -199,7 +199,7 @@ func main() {
 
 ## 相關文檔
 
-- [runtime](/zh-TW/modules/runtime) - 運行時資訊
-- [app](/zh-TW/modules/app) - 應用程式框架
+- [runtime](/zh-TW/modules/system/runtime) - 運行時資訊
+- [app](/zh-TW/modules/system/app) - 應用程式框架
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

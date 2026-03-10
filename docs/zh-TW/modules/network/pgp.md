@@ -445,6 +445,6 @@ func safeEncrypt(data []byte, publicKeyPEM string) ([]byte, error) {
 
 ## 相關文檔
 
-- [cryptox](/zh-TW/modules/cryptox) - 加密函數
+- [cryptox](/zh-TW/modules/network/cryptox) - 加密函數
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

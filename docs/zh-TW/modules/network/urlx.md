@@ -177,7 +177,7 @@ func buildInconsistentURL(baseURL string, params map[string]string) string {
 
 ## 相關文檔
 
-- [stringx](/zh-TW/modules/stringx) - 字符串工具
-- [network](/zh-TW/modules/network) - 網絡工具
+- [stringx](/zh-TW/modules/data/stringx) - 字符串工具
+- [network](/zh-TW/modules/network/network) - 網絡工具
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

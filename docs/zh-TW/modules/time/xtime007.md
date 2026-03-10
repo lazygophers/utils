@@ -193,8 +193,8 @@ func calculateSLA(startTime time.Time, targetUptime float64) bool {
 
 ## 相關文檔
 
-- [xtime](/zh-TW/modules/xtime) - 高級時間處理
-- [xtime996](/zh-TW/modules/xtime996) - 996 工作時間表
-- [xtime955](/zh-TW/modules/xtime955) - 955 工作時間表
+- [xtime](/zh-TW/modules/time/xtime) - 高級時間處理
+- [xtime996](/zh-TW/modules/time/xtime996) - 996 工作時間表
+- [xtime955](/zh-TW/modules/time/xtime955) - 955 工作時間表
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

@@ -177,7 +177,7 @@ func buildInconsistentURL(baseURL string, params map[string]string) string {
 
 ## Related Documentation
 
-- [stringx](/en/modules/stringx) - String utilities
-- [network](/en/modules/network) - Network utilities
+- [stringx](/en/modules/data/stringx) - String utilities
+- [network](/en/modules/network/network) - Network utilities
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

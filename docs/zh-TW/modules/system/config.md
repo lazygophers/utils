@@ -298,8 +298,8 @@ func watchConfig(path string, cfg *Config) {
 
 ## 相關文檔
 
-- [validator](/zh-TW/modules/validator) - 資料驗證
-- [defaults](/zh-TW/modules/defaults) - 默認值
-- [json](/zh-TW/modules/json) - JSON 處理
+- [validator](/zh-TW/modules/core/validator) - 資料驗證
+- [defaults](/zh-TW/modules/dev/defaults) - 默認值
+- [json](/zh-TW/modules/data/json) - JSON 處理
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

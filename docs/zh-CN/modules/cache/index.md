@@ -1,179 +1,39 @@
 ---
-title: 缓存实现
+title: 缓存策略
 ---
 
-# 缓存实现
+# 缓存策略
 
-cache 模块提供多种缓存实现，具有不同的淘汰策略，适用于各种使用场景。
+`cache` 主题不是一个统一实现，而是一组围绕不同访问模式设计的淘汰策略。选型前请先判断你的负载是更偏近期性、频次、扫描、还是混合模式。
 
-## 如何选择合适的缓存
+## 共同语义
 
-选择缓存实现时，需要考虑以下因素：
+根据包级说明，这组缓存实现共享一套核心语义：
 
-### 1. 访问模式
-- **时间局部性**：最近访问的数据很可能再次被访问 → 选择 MRU
-- **频率局部性**：频繁访问的数据应该保留 → 选择 LFU
-- **混合模式**：既有时间局部性又有频率局部性 → 选择 TinyLFU 或 LRU-K
+- `Get(key)`：读取值
+- `Set(key, value)`：写入值
+- `Has(key)`：判断是否存在
+- `Del(key)`：删除值
+- `Purge()`：清空缓存
+- `Keys()`：列出 key
+- `Len()`：返回当前长度
 
-### 2. 并发需求
-- **低并发**：标准 LRU 即可
-- **高并发**：选择 SLRU（分段 LRU）以减少锁竞争
+默认情况下，**不要先假设它们都是线程安全的**；某些实现会提供同步版本，但需要单独确认。
 
-### 3. 性能要求
-- **一般性能**：LRU（85% 命中率）
-- **高性能**：TinyLFU（92% 命中率）或 Optimal（95% 命中率）
-- **内存敏感**：LFU（内存占用最低）
+## 先怎么选
 
-### 4. 自适应需求
-- **已知访问模式**：根据模式选择对应策略
-- **未知访问模式**：选择 ALFU（自适应 LFU）或 ARC（自适应替换）
+| 场景 | 建议先看 |
+| --- | --- |
+| 完全没有明显模式，想先从稳妥方案开始 | [TinyLFU](/modules/cache/tinylfu) |
+| 通用、直觉型近期性缓存 | [LRU](/modules/cache/lru) |
+| 更看重高频热点 | [LFU](/modules/cache/lfu) |
+| 扫描与热点混合 | [ARC](/modules/cache/arc) |
+| 需要理论基线做对比 | [Optimal](/modules/cache/optimal) |
 
-## 缓存实现对比
+## 什么时候不要直接拍脑袋选缓存
 
-| 缓存类型 | 命中率 | 内存占用 | 并发性能 | 最适合场景 | 推荐度 |
-|-----------|---------|---------|-----------|------------|---------|
-| **[LRU](./lru.md)** | 85% | 低 | 中 | 通用缓存、频繁访问的数据 | ⭐⭐⭐⭐⭐ |
-| **[LFU](./lfu.md)** | 75% | 低 | 中 | 不常访问的数据、内存受限 | ⭐⭐⭐ |
-| **[LRU-K](./lruk.md)** | 88% | 中 | 中 | 平衡近期性和频率、混合模式 | ⭐⭐⭐⭐⭐ |
-| **[MRU](./mru.md)** | 80% | 低 | 中 | 时间局部性、顺序访问 | ⭐⭐⭐ |
-| **[TinyLFU](./tinylfu.md)** | 92% | 中 | 高 | 高性能要求、混合模式 | ⭐⭐⭐⭐⭐⭐ |
-| **[W-TinyLFU](./wtinylfu.md)** | 90% | 中 | 高 | 基于时间的访问模式、周期性数据 | ⭐⭐⭐⭐ |
-| **[ALFU](./alfu.md)** | 82% | 中 | 中 | 未知访问模式、自适应需求 | ⭐⭐⭐ |
-| **[ARC](./arc.md)** | 86% | 中 | 高 | 混合访问模式、自适应 | ⭐⭐⭐⭐⭐ |
-| **[FBR](./fbr.md)** | 78% | 中 | 中 | 基于频率的访问、热数据保留 | ⭐⭐⭐ |
-| **[SLRU](./slru.md)** | 90% | 高 | 高 | 高并发环境、大缓存大小 | ⭐⭐⭐⭐⭐ |
-| **[Optimal](./optimal.md)** | 95% | 高 | 低 | 可预测的访问模式、离线分析 | ⭐⭐⭐ |
+- 你还没确认读写比例。
+- 你还没确认热点是否长期稳定。
+- 你只依赖脱离负载上下文的宣传性指标做决策。
 
-## 快速选择指南
-
-### 根据场景选择
-
-```go
-// 场景 1: 通用 Web 应用缓存
-import "github.com/lazygophers/utils/cache/lru"
-cache := lru.New(1000)  // LRU - 最通用
-
-// 场景 2: 高并发 API 缓存
-import "github.com/lazygophers/utils/cache/slru"
-cache := slru.New(1000)  // SLRU - 减少锁竞争
-
-// 场景 3: 高性能要求
-import "github.com/lazygophers/utils/cache/tinylfu"
-cache := tinylfu.New(1000)  // TinyLFU - 最高命中率
-
-// 场景 4: 未知访问模式
-import "github.com/lazygophers/utils/cache/alfu"
-cache := alfu.New(1000)  // ALFU - 自适应
-
-// 场景 5: 顺序访问数据
-import "github.com/lazygophers/utils/cache/mru"
-cache := mru.New(1000)  // MRU - 时间局部性
-```
-
-### 决策树
-
-```
-是否已知访问模式？
-├─ 是
-│  ├─ 高并发？ → SLRU
-│  ├─ 顺序访问？ → MRU
-│  ├─ 高性能要求？ → TinyLFU
-│  └─ 通用场景？ → LRU
-└─ 否
-   ├─ 需要自适应？ → ALFU 或 ARC
-   └─ 可预测模式？ → Optimal
-```
-
-## 基本使用示例
-
-### 创建缓存
-
-```go
-import "github.com/lazygophers/utils/cache/lru"
-
-// 创建容量为 1000 的缓存
-cache := lru.New(1000)
-```
-
-### 基本操作
-
-```go
-// 设置值
-cache.Set("key1", "value1")
-cache.Set("key2", "value2")
-
-// 获取值
-if value, ok := cache.Get("key1"); ok {
-    fmt.Println("Found:", value)
-}
-
-// 删除值
-cache.Delete("key1")
-
-// 清空缓存
-cache.Clear()
-```
-
-### 缓存统计
-
-```go
-// 获取缓存统计信息
-stats := cache.Stats()
-
-fmt.Printf("Size: %d\n", stats.Size)
-fmt.Printf("Hits: %d\n", stats.Hits)
-fmt.Printf("Misses: %d\n", stats.Misses)
-fmt.Printf("Hit Rate: %.2f%%\n", stats.HitRate())
-```
-
-## 最佳实践
-
-### 1. 缓存大小选择
-
-```go
-// 根据可用内存调整缓存大小
-func calculateCacheSize() int {
-    // 好的做法：基于内存约束
-    availableMem := getAvailableMemory()
-    return availableMem / 1024  // 每个条目约 1KB
-}
-
-cache := lru.New(calculateCacheSize())
-```
-
-### 2. 监控命中率
-
-```go
-// 定期检查命中率
-func monitorCache(cache Cache) {
-    stats := cache.Stats()
-    if stats.HitRate() < 0.5 {
-        // 命中率过低，考虑：
-        // 1. 增加缓存大小
-        // 2. 更换缓存策略
-        // 3. 检查访问模式
-    }
-}
-```
-
-### 3. 选择合适的缓存类型
-
-```go
-// 根据实际场景选择
-func createCache() Cache {
-    if isSequentialAccess() {
-        return mru.New(1000)  // MRU 用于顺序访问
-    } else if isHighConcurrency() {
-        return slru.New(1000)  // SLRU 用于高并发
-    } else if isHighPerformance() {
-        return tinylfu.New(1000)  // TinyLFU 用于高性能
-    } else {
-        return lru.New(1000)  // LRU 用于通用
-    }
-}
-```
-
-## 相关文档
-
-- [API 文档](/zh-CN/api/overview)
-- [模块概览](/zh-CN/modules/overview)
+新版文档因此不再保留固定百分比结论；没有具体负载，数字通常没有解释力。

@@ -1,140 +1,84 @@
 ---
-title: 入门指南
+title: 快速开始
 ---
 
-# 入门指南
+# 快速开始
 
-本指南将帮助您快速开始使用 LazyGophers Utils。
+这一页只做一件事：帮助你在最短时间内确认导入方式、理解常见入口，并知道接下来该读哪里。
 
 ## 安装
-
-使用 Go 模块安装 LazyGophers Utils：
 
 ```bash
 go get github.com/lazygophers/utils
 ```
 
-## 基本用法
+## 导入策略
 
-### 错误处理
+这个仓库更适合按需导入，而不是一次性把所有能力都放进根包：
 
-LazyGophers Utils 提供简化的错误处理：
+- 根包 `github.com/lazygophers/utils`：少量通用辅助，例如 `Must`、`MustSuccess`、`Scan`、`Value`。
+- 子包：面向明确主题，如 `candy`、`config`、`xtime`、`validator`、`cache/...`。
+
+## 一分钟上手示例
 
 ```go
 package main
 
 import (
     "fmt"
-    "github.com/lazygophers/utils"
+
+    utils "github.com/lazygophers/utils"
+    "github.com/lazygophers/utils/candy"
+    "github.com/lazygophers/utils/config"
+    "github.com/lazygophers/utils/validator"
+    "github.com/lazygophers/utils/xtime"
 )
 
-func main() {
-    // 使用 Must 简化错误处理
-    data := utils.Must(loadData())
-    fmt.Println(data)
-}
-
-func loadData() (string, error) {
-    return "Hello, World!", nil
-}
-```
-
-### 类型转换
-
-使用 `candy` 模块进行类型转换：
-
-```go
-import "github.com/lazygophers/utils/candy"
-
-// 字符串转整数
-age := candy.ToInt("25")
-
-// 字符串转布尔值
-active := candy.ToBool("true")
-
-// 字符串转浮点数
-price := candy.ToFloat("99.99")
-```
-
-### 时间处理
-
-使用 `xtime` 模块进行时间处理：
-
-```go
-import "github.com/lazygophers/utils/xtime"
-
-// 获取当前日历
-cal := xtime.NowCalendar()
-
-// 格式化日期
-fmt.Printf("Today: %s\n", cal.String())
-
-// 获取农历日期
-fmt.Printf("Lunar: %s\n", cal.LunarDate())
-
-// 获取生肖
-fmt.Printf("Animal: %s\n", cal.Animal())
-
-// 获取节气
-fmt.Printf("Solar Term: %s\n", cal.CurrentSolarTerm())
-```
-
-### 配置管理
-
-使用 `config` 模块加载配置：
-
-```go
-import "github.com/lazygophers/utils/config"
-
-type Config struct {
-    Database string `json:"database"`
-    Port     int    `json:"port"`
-    Debug    bool   `json:"debug"`
+type AppConfig struct {
+    Name string `json:"name" validate:"required"`
+    Port int    `json:"port" validate:"min=1,max=65535"`
 }
 
 func main() {
-    var cfg Config
-    utils.MustSuccess(config.Load(&cfg, "config.json"))
-    fmt.Printf("Config: %+v\n", cfg)
+    // 1. 初始化阶段可以用 Must 系列快速失败
+    fmt.Println(utils.Must(loadMessage()))
+
+    // 2. candy 负责常见转换与集合辅助
+    fmt.Println(candy.ToInt("8080"))
+
+    // 3. config 负责多格式配置加载
+    var cfg AppConfig
+    utils.MustSuccess(config.LoadConfig(&cfg, "config.yaml"))
+
+    // 4. validator 负责结构体验证
+    utils.MustSuccess(validator.Struct(&cfg))
+
+    // 5. xtime 提供日历、农历和节气信息
+    cal := xtime.NowCalendar()
+    fmt.Println(cal.String())
+    fmt.Println(cal.LunarDate())
+}
+
+func loadMessage() (string, error) {
+    return "LazyGophers Utils", nil
 }
 ```
 
-### 数据验证
+## 从哪里继续
 
-使用 `validator` 模块验证数据：
+### 如果你已经知道问题类型
 
-```go
-import "github.com/lazygophers/utils/validator"
+- 错误快速失败：看 [must](/modules/core/must)
+- 数据库 JSON 字段：看 [orm](/modules/core/orm)
+- 配置：看 [config](/modules/system/config)
+- 时间与农历：看 [xtime](/modules/time/xtime)
+- 缓存选型：看 [缓存策略](/modules/cache/)
 
-type User struct {
-    Name  string `validate:"required"`
-    Email string `validate:"required,email"`
-    Age   int    `validate:"min=0,max=150"`
-}
+### 如果你还不确定该用哪个包
 
-func main() {
-    user := User{
-        Name:  "John Doe",
-        Email: "john@example.com",
-        Age:   25,
-    }
+先看 [模块总览](/modules/overview)。它按场景把整个仓库拆成了八个主题分组，比直接浏览目录更容易定位。
 
-    if err := utils.Validate(&user); err != nil {
-        fmt.Printf("Validation failed: %v\n", err)
-    } else {
-        fmt.Println("Validation successful")
-    }
-}
-```
+## 使用这套库时的两个建议
 
-## 下一步
-
--   查看 [模块概览](/zh-CN/modules/overview) 了解所有可用模块
--   阅读 [API 文档](/zh-CN/api/overview) 获取详细的 API 信息
--   访问 [GitHub 仓库](https://github.com/lazygophers/utils) 查看更多示例
-
-## 获取帮助
-
--   📖 [完整 API 参考](https://pkg.go.dev/github.com/lazygophers/utils)
--   🐛 [报告问题](https://github.com/lazygophers/utils/issues)
--   💬 [GitHub 讨论](https://github.com/lazygophers/utils/discussions)
+1. **初始化路径和业务路径分开看**：`Must` 很适合启动阶段，不适合替代所有业务错误处理。
+2. **优先按包职责理解，而不是只看函数名**：比如 `xtime` 并不是简单的时间格式化，它包含日历、农历与排班规则；`cache` 也不是一个实现，而是一组策略。

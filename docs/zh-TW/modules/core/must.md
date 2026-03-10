@@ -219,7 +219,7 @@ func handleUserRequest() error {
 
 ## 相關文檔
 
-- [orm.go](/zh-TW/modules/orm) - 資料庫操作
-- [validator](/zh-TW/modules/validator) - 資料驗證
+- [orm.go](/zh-TW/modules/core/orm) - 資料庫操作
+- [validator](/zh-TW/modules/core/validator) - 資料驗證
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

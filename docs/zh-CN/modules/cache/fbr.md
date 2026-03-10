@@ -1,127 +1,36 @@
 ---
-title: FBR 缓存
+title: FBR
 ---
 
-# FBR (Frequency-Based Replacement) 缓存
+# FBR
 
-FBR 是基于访问频率淘汰的 FBR 缓存。
+以频次为主，并通过分区或分层方式做替换。
 
-## 概述
+## 适合什么场景
 
-FBR（Frequency-Based Replacement）是一种基于访问频率的缓存淘汰策略。它跟踪每个键的访问频率，当缓存满时，淘汰访问频率最低的键。
+- 希望热点保留比纯近期性更强。
 
-## 特性
+## 不适合什么场景
 
-- **命中率**: 78%
-- **内存占用**: 中等
-- **并发性能**: 中等
-- **实现复杂度**: 中等
+- 你无法接受额外的策略复杂度。
 
-## 使用场景
+## 读取这类页面时要关注什么
 
-- 基于频率的访问
-- 热数据保留
-- 冷数据淘汰
-- 需要明确区分热冷数据的场景
+- 它偏向利用“最近访问”还是“访问频次”。
+- 它是否在扫描型负载下容易被污染。
+- 你的业务是否真的需要它带来的额外复杂度。
 
-## 快速开始
+## 共享接口语义
 
-### 安装
+本主题下的缓存实现都围绕 `Get`、`Set`、`Has`、`Del`、`Purge`、`Keys`、`Len` 这些基本能力组织，但具体构造方式与线程安全语义要以对应包为准。
 
-```bash
-go get github.com/lazygophers/utils/cache/fbr
-```
+## 使用建议
 
-### 基本使用
-
-```go
-package main
-
-import (
-    "fmt"
-    "github.com/lazygophers/utils/cache/fbr"
-)
-
-func main() {
-    // 创建容量为 1000 的缓存
-    cache := fbr.New(1000)
-
-    // 设置值
-    cache.Set("key1", "value1")
-    cache.Set("key2", "value2")
-
-    // 获取值
-    if value, ok := cache.Get("key1"); ok {
-        fmt.Println("Found:", value)
-    }
-
-    // 删除值
-    cache.Delete("key1")
-
-    // 清空缓存
-    cache.Clear()
-}
-```
-
-## 工作原理
-
-FBR 维护每个键的访问频率：
-
-```
-Key1: 访问次数 = 5  (热数据)
-Key2: 访问次数 = 1  (冷数据)
-Key3: 访问次数 = 0  (未访问)
-```
-
-淘汰时优先淘汰访问频率最低的键。
-
-## API 参考
-
-### 构造函数
-
-```go
-// 创建新的 FBR 缓存
-func New(capacity int) *FBR
-
-// 创建带选项的 FBR 缓存
-func NewWithOpts(opts Options) *FBR
-```
-
-### 主要方法
-
-```go
-// 设置键值对
-func (c *FBR) Set(key string, value interface{})
-
-// 获取值
-func (c *FBR) Get(key string) (interface{}, bool)
-
-// 删除键
-func (c *FBR) Delete(key string)
-
-// 清空缓存
-func (c *FBR) Clear()
-
-// 获取统计信息
-func (c *FBR) Stats() Stats
-```
-
-## 性能特点
-
-- **时间复杂度**:
-  - Set: O(log n)
-  - Get: O(log n)
-  - Delete: O(log n)
-- **空间复杂度**: O(n)，其中 n 是缓存容量
-
-## 最佳实践
-
-1. **热数据保留**: FBR 能够有效保留热数据
-2. **冷数据淘汰**: 适合需要快速淘汰冷数据的场景
-3. **频率差异大**: 适合访问频率差异大的场景
+- 先用真实负载做基准，再决定是否需要更复杂的策略。
+- 如果你只是需要一个“先能工作”的通用缓存，优先从简单方案开始。
+- 如果你把它放在并发路径上，请单独确认同步语义。
 
 ## 相关文档
 
-- [缓存概览](./index.md)
-- [LFU 缓存](./lfu.md)
-- [ALFU 缓存](./alfu.md)
+- [缓存策略总览](/modules/cache/)
+- [模块总览](/modules/overview)

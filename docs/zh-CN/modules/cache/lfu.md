@@ -1,132 +1,38 @@
 ---
-title: LFU 缓存
----
+    title: LFU
+    ---
 
-# LFU (Least Frequently Used) 缓存
+    # LFU
 
-LFU 淘汰最少使用的项目，适合不常访问的数据场景。
+    以访问频次为核心信号，尽量保留高频热点。
 
-## 概述
+    ## 适合什么场景
 
-LFU（Least Frequently Used）基于频率局部性原理，假设频繁访问的数据应该保留。当缓存满时，淘汰访问频率最低的数据。
+    - 热点数据会长期重复访问。
+- 希望低频数据尽快让位。
 
-## 特性
+    ## 不适合什么场景
 
-- **命中率**: 75%
-- **内存占用**: 低
-- **并发性能**: 中等
-- **实现复杂度**: 中等
+    - 热点变化非常快。
+- 你更关心最近一次访问而不是长期频次。
 
-## 使用场景
+    ## 读取这类页面时要关注什么
 
-- 不常访问的数据
-- 大数据集
-- 内存受限环境
-- 冷热数据分离场景
+    - 它偏向利用“最近访问”还是“访问频次”。
+    - 它是否在扫描型负载下容易被污染。
+    - 你的业务是否真的需要它带来的额外复杂度。
 
-## 快速开始
+    ## 共享接口语义
 
-### 安装
+    本主题下的缓存实现都围绕 `Get`、`Set`、`Has`、`Del`、`Purge`、`Keys`、`Len` 这些基本能力组织，但具体构造方式与线程安全语义要以对应包为准。
 
-```bash
-go get github.com/lazygophers/utils/cache/lfu
-```
+    ## 使用建议
 
-### 基本使用
+    - 先用真实负载做基准，再决定是否需要更复杂的策略。
+    - 如果你只是需要一个“先能工作”的通用缓存，优先从简单方案开始。
+    - 如果你把它放在并发路径上，请单独确认同步语义。
 
-```go
-package main
+    ## 相关文档
 
-import (
-    "fmt"
-    "github.com/lazygophers/utils/cache/lfu"
-)
-
-func main() {
-    // 创建容量为 1000 的缓存
-    cache := lfu.New(1000)
-
-    // 设置值
-    cache.Set("key1", "value1")
-    cache.Set("key2", "value2")
-
-    // 获取值
-    if value, ok := cache.Get("key1"); ok {
-        fmt.Println("Found:", value)
-    }
-
-    // 删除值
-    cache.Delete("key1")
-
-    // 清空缓存
-    cache.Clear()
-}
-```
-
-### 高级使用
-
-```go
-// 带过期时间的缓存
-cache.SetWithTTL("key", "value", time.Minute*5)
-
-// 获取缓存统计
-stats := cache.Stats()
-fmt.Printf("Size: %d\n", stats.Size)
-fmt.Printf("Hits: %d\n", stats.Hits)
-fmt.Printf("Misses: %d\n", stats.Misses)
-fmt.Printf("Hit Rate: %.2f%%\n", stats.HitRate())
-```
-
-## API 参考
-
-### 构造函数
-
-```go
-// 创建新的 LFU 缓存
-func New(capacity int) *LFU
-
-// 创建带选项的 LFU 缓存
-func NewWithOpts(opts Options) *LFU
-```
-
-### 主要方法
-
-```go
-// 设置键值对
-func (c *LFU) Set(key string, value interface{})
-
-// 设置键值对，带过期时间
-func (c *LFU) SetWithTTL(key string, value interface{}, ttl time.Duration)
-
-// 获取值
-func (c *LFU) Get(key string) (interface{}, bool)
-
-// 删除键
-func (c *LFU) Delete(key string)
-
-// 清空缓存
-func (c *LFU) Clear()
-
-// 获取统计信息
-func (c *LFU) Stats() Stats
-```
-
-## 性能特点
-
-- **时间复杂度**:
-  - Set: O(log n)
-  - Get: O(log n)
-  - Delete: O(log n)
-- **空间复杂度**: O(n)，其中 n 是缓存容量
-
-## 最佳实践
-
-1. **适用于冷数据**: LFU 适合访问频率差异大的场景
-2. **避免缓存污染**: 对于突发访问，考虑使用其他策略
-3. **监控频率分布**: 定期检查访问频率分布，确认 LFU 是否合适
-
-## 相关文档
-
-- [缓存概览](./index.md)
-- [LRU 缓存](./lru.md)
-- [ALFU 缓存](./alfu.md)
+    - [缓存策略总览](/modules/cache/)
+    - [模块总览](/modules/overview)

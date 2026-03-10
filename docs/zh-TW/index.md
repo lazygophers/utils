@@ -36,7 +36,7 @@ features:
 
 ## 🌍 多語言支持
 
-[简体中文](/zh-CN/) • [繁體中文](/zh-TW/) • [English](/en/)
+[简体中文](/) • [繁體中文](/zh-TW/) • [English](/en/)
 
 ## 🎯 什麼是 LazyGophers Utils？
 

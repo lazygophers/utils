@@ -415,7 +415,7 @@ func safeConvert(val interface{}) (int, bool) {
 
 ## 相關文檔
 
-- [stringx](/zh-TW/modules/stringx) - 字串工具
-- [anyx](/zh-TW/modules/anyx) - Interface{} 助手
+- [stringx](/zh-TW/modules/data/stringx) - 字串工具
+- [anyx](/zh-TW/modules/data/anyx) - Interface{} 助手
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

@@ -225,6 +225,6 @@ event.Register("user.created", func(args any) {
 
 ## Related Documentation
 
-- [routine](/en/modules/routine) - Goroutine management
+- [routine](/en/modules/concurrency/routine) - Goroutine management
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

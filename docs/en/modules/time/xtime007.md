@@ -193,8 +193,8 @@ func calculateSLA(startTime time.Time, targetUptime float64) bool {
 
 ## Related Documentation
 
-- [xtime](/en/modules/xtime) - Advanced time processing
-- [xtime996](/en/modules/xtime996) - 996 work schedule
-- [xtime955](/en/modules/xtime955) - 955 work schedule
+- [xtime](/en/modules/time/xtime) - Advanced time processing
+- [xtime996](/en/modules/time/xtime996) - 996 work schedule
+- [xtime955](/en/modules/time/xtime955) - 955 work schedule
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

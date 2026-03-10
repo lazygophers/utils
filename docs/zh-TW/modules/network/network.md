@@ -268,7 +268,7 @@ func selectInterfaceByPriority() (string, error) {
 
 ## 相關文檔
 
-- [urlx](/zh-TW/modules/urlx) - URL 操作
-- [cryptox](/zh-TW/modules/cryptox) - 加密函數
+- [urlx](/zh-TW/modules/network/urlx) - URL 操作
+- [cryptox](/zh-TW/modules/network/cryptox) - 加密函數
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

@@ -524,7 +524,7 @@ func formatFieldNameBad(field string) string {
 
 ## Related Documentation
 
-- [candy](/en/modules/candy) - Type conversion
-- [json](/en/modules/json) - JSON processing
+- [candy](/en/modules/data/candy) - Type conversion
+- [json](/en/modules/data/json) - JSON processing
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

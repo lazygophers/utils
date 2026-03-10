@@ -365,8 +365,8 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 
 ## Related Documentation
 
-- [must.go](/en/modules/must) - Error assertion utilities
-- [validator](/en/modules/validator) - Data validation
-- [defaults](/en/modules/defaults) - Default value handling
+- [must.go](/en/modules/core/must) - Error assertion utilities
+- [validator](/en/modules/core/validator) - Data validation
+- [defaults](/en/modules/dev/defaults) - Default value handling
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

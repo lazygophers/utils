@@ -245,7 +245,7 @@ func init() {
 
 ## 相關文檔
 
-- [routine](/zh-TW/modules/routine) - Goroutine 管理
-- [hystrix](/zh-TW/modules/hystrix) - 熔斷器
+- [routine](/zh-TW/modules/concurrency/routine) - Goroutine 管理
+- [hystrix](/zh-TW/modules/concurrency/hystrix) - 熔斷器
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

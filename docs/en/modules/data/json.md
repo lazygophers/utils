@@ -517,8 +517,8 @@ Uses standard library JSON with enhanced error messages:
 
 ## Related Documentation
 
-- [candy](/en/modules/candy) - Type conversion
-- [stringx](/en/modules/stringx) - String utilities
-- [anyx](/en/modules/anyx) - Interface{} helpers
+- [candy](/en/modules/data/candy) - Type conversion
+- [stringx](/en/modules/data/stringx) - String utilities
+- [anyx](/en/modules/data/anyx) - Interface{} helpers
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

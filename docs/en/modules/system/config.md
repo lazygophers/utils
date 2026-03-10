@@ -298,8 +298,8 @@ func watchConfig(path string, cfg *Config) {
 
 ## Related Documentation
 
-- [validator](/en/modules/validator) - Data validation
-- [defaults](/en/modules/defaults) - Default values
-- [json](/en/modules/json) - JSON processing
+- [validator](/en/modules/core/validator) - Data validation
+- [defaults](/en/modules/dev/defaults) - Default values
+- [json](/en/modules/data/json) - JSON processing
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

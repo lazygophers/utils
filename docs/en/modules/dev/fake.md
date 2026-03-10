@@ -238,6 +238,6 @@ name := faker.Name()  // English name
 
 ## Related Documentation
 
-- [randx](/en/modules/randx) - Random utilities
+- [randx](/en/modules/dev/randx) - Random utilities
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

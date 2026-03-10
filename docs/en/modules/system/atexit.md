@@ -200,7 +200,7 @@ func main() {
 
 ## Related Documentation
 
-- [runtime](/en/modules/runtime) - Runtime information
-- [app](/en/modules/app) - Application framework
+- [runtime](/en/modules/system/runtime) - Runtime information
+- [app](/en/modules/system/app) - Application framework
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

@@ -198,8 +198,8 @@ func planWorkTask(duration time.Duration) (time.Time, error) {
 
 ## Related Documentation
 
-- [xtime](/en/modules/xtime) - Advanced time processing
-- [xtime996](/en/modules/xtime996) - 996 work schedule
-- [xtime007](/en/modules/xtime007) - 24/7 operations
+- [xtime](/en/modules/time/xtime) - Advanced time processing
+- [xtime996](/en/modules/time/xtime996) - 996 work schedule
+- [xtime007](/en/modules/time/xtime007) - 24/7 operations
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

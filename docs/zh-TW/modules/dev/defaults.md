@@ -159,6 +159,6 @@ type Config struct {
 
 ## 相關文檔
 
-- [validator](/zh-TW/modules/validator) - 數據驗證
+- [validator](/zh-TW/modules/core/validator) - 數據驗證
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

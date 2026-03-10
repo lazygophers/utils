@@ -1,355 +1,59 @@
 ---
-title: API 文档
+title: API 概览
 ---
 
-# API 文档
+# API 概览
 
-本文档提供 LazyGophers Utils 的详细 API 参考。
+这份页面不是完整的 API 列表，而是帮助你更快找到正确入口。真正的函数签名与完整导出项，请结合 `go doc` 或 pkg.go.dev 使用。
 
-## 核心工具
+## 根包：少量通用辅助
 
-### utils.Must()
+根包 `github.com/lazygophers/utils` 适合承载少量跨主题通用能力：
 
-断言操作成功，失败时 panic。
+- `Must(value, err)`：在初始化或必须成功的路径上快速失败。
+- `MustSuccess(err)`：只关心错误是否为空。
+- `MustOk(value, ok)`：处理 `(T, bool)` 风格返回值。
+- `Ignore(value, _)`：显式忽略不需要的第二返回值。
+- `Scan(src, dst)`：把数据库字段中的 JSON/文本扫描到结构体。
+- `Value(v)`：把结构体转换为数据库可写入值。
 
-```go
-func Must[T any](value T, err error) T
-```
+## 常用子包入口
 
-**参数:**
-- `value` - 返回值
-- `err` - 错误
+| 主题 | 建议入口 | 说明 |
+| --- | --- | --- |
+| 配置加载 | `config.LoadConfig` | 自动探测文件、支持多格式、可结合校验使用 |
+| 数据验证 | `validator.Struct` | 针对结构体执行规则校验 |
+| 类型与集合辅助 | `candy` | 转换、集合操作、映射与切片辅助 |
+| JSON 编解码 | `json.Marshal` / `json.Unmarshal` | 对标准库做工程化封装 |
+| 时间与日历 | `xtime.NowCalendar` | 日历、农历、节气与排班相关能力 |
+| 默认值填充 | `defaults.SetDefaults` | 按标签或选项补齐默认值 |
+| 退出回调 | `atexit.Register` | 进程退出时执行清理逻辑 |
+| URL 规范化 | `urlx.SortQuery` | 统一查询参数顺序 |
+| 性能采样 | `pyroscope.Load` | 接入 Pyroscope |
 
-**返回:**
-- 如果 `err` 为 nil，返回 `value`
-- 如果 `err` 不为 nil，则 panic
+## 如何查找完整 API
 
-**示例:**
-```go
-data := utils.Must(loadData())
-```
+### 方式一：按本地文档主题查找
 
-### utils.MustSuccess()
+- 想先判断是否适合你的场景：从 [模块总览](/modules/overview) 或分类页进入。
+- 想看某个包的定位与边界：进入对应模块页。
+- 想直接跳到源码：从模块页再跳到仓库目录或 pkg.go.dev。
 
-断言错误为 nil。
+### 方式二：按包名查找
 
-```go
-func MustSuccess(err error)
-```
+- 根包：`github.com/lazygophers/utils`
+- 子包示例：`github.com/lazygophers/utils/config`
+- 子包示例：`github.com/lazygophers/utils/xtime`
+- 缓存策略：`github.com/lazygophers/utils/cache/...`
 
-**参数:**
-- `err` - 错误
+## 阅读 API 时的注意点
 
-**示例:**
-```go
-utils.MustSuccess(config.Load(&cfg, "config.json"))
-```
+1. 根包不是“所有能力的统一入口”，大多数主题能力都在子包里。
+2. 某些页面会给出示例，但示例只覆盖最常见用法，不代表完整导出面。
+3. 缓存、排班、退出处理这类主题存在明显约束，先看模块页再查签名会更稳。
 
-### utils.MustOk()
+## 下一步
 
-断言第二个返回值为 true。
-
-```go
-func MustOk[T any](value T, ok bool) T
-```
-
-**参数:**
-- `value` - 返回值
-- `ok` - 成功标志
-
-**返回:**
-- 如果 `ok` 为 true，返回 `value`
-- 如果 `ok` 为 false，则 panic
-
-**示例:**
-```go
-value := utils.MustOk(getValue())
-```
-
-### utils.Validate()
-
-验证结构体数据。
-
-```go
-func Validate(v any) error
-```
-
-**参数:**
-- `v` - 要验证的结构体
-
-**返回:**
-- 如果验证失败，返回验证错误
-
-**示例:**
-```go
-type User struct {
-    Name  string `validate:"required"`
-    Email string `validate:"required,email"`
-    Age   int    `validate:"min=0,max=150"`
-}
-
-user := User{
-    Name:  "John Doe",
-    Email: "john@example.com",
-    Age:   25,
-}
-
-if err := utils.Validate(&user); err != nil {
-    fmt.Printf("Validation failed: %v\n", err)
-}
-```
-
-## 数据处理
-
-### candy.ToInt()
-
-将字符串转换为整数。
-
-```go
-func ToInt(s string) int
-```
-
-**参数:**
-- `s` - 字符串
-
-**返回:**
-- 整数值
-
-**示例:**
-```go
-age := candy.ToInt("25")
-```
-
-### candy.ToFloat()
-
-将字符串转换为浮点数。
-
-```go
-func ToFloat(s string) float64
-```
-
-**参数:**
-- `s` - 字符串
-
-**返回:**
-- 浮点数值
-
-**示例:**
-```go
-price := candy.ToFloat("99.99")
-```
-
-### candy.ToBool()
-
-将字符串转换为布尔值。
-
-```go
-func ToBool(s string) bool
-```
-
-**参数:**
-- `s` - 字符串
-
-**返回:**
-- 布尔值
-
-**示例:**
-```go
-active := candy.ToBool("true")
-```
-
-### candy.ToString()
-
-将任意类型转换为字符串。
-
-```go
-func ToString(v any) string
-```
-
-**参数:**
-- `v` - 任意值
-
-**返回:**
-- 字符串
-
-**示例:**
-```go
-str := candy.ToString(123)
-```
-
-## 时间处理
-
-### xtime.NowCalendar()
-
-获取当前日历。
-
-```go
-func NowCalendar() *Calendar
-```
-
-**返回:**
-- 当前日历对象
-
-**示例:**
-```go
-cal := xtime.NowCalendar()
-fmt.Printf("Today: %s\n", cal.String())
-```
-
-### Calendar.LunarDate()
-
-获取农历日期。
-
-```go
-func (c *Calendar) LunarDate() string
-```
-
-**返回:**
-- 农历日期字符串
-
-**示例:**
-```go
-fmt.Printf("Lunar: %s\n", cal.LunarDate())
-```
-
-### Calendar.Animal()
-
-获取生肖动物。
-
-```go
-func (c *Calendar) Animal() string
-```
-
-**返回:**
-- 生肖动物字符串
-
-**示例:**
-```go
-fmt.Printf("Animal: %s\n", cal.Animal())
-```
-
-### Calendar.CurrentSolarTerm()
-
-获取当前节气。
-
-```go
-func (c *Calendar) CurrentSolarTerm() string
-```
-
-**返回:**
-- 节气字符串
-
-**示例:**
-```go
-fmt.Printf("Solar Term: %s\n", cal.CurrentSolarTerm())
-```
-
-## 配置管理
-
-### config.Load()
-
-加载配置文件。
-
-```go
-func Load(v any, filename string) error
-```
-
-**参数:**
-- `v` - 配置结构体指针
-- `filename` - 配置文件名
-
-**返回:**
-- 如果加载失败，返回错误
-
-**支持的格式:**
-- JSON
-- YAML
-- TOML
-- INI
-- HCL
-
-**示例:**
-```go
-type Config struct {
-    Database string `json:"database"`
-    Port     int    `json:"port"`
-    Debug    bool   `json:"debug"`
-}
-
-var cfg Config
-utils.MustSuccess(config.Load(&cfg, "config.json"))
-```
-
-## 并发控制
-
-### routine.NewPool()
-
-创建工作池。
-
-```go
-func NewPool(size int) *Pool
-```
-
-**参数:**
-- `size` - 池大小
-
-**返回:**
-- 工作池对象
-
-**示例:**
-```go
-pool := routine.NewPool(10)
-defer pool.Close()
-```
-
-### Pool.Submit()
-
-向工作池提交任务。
-
-```go
-func (p *Pool) Submit(fn func())
-```
-
-**参数:**
-- `fn` - 要执行的函数
-
-**示例:**
-```go
-pool.Submit(func() {
-    fmt.Println("Task executed")
-})
-```
-
-### wait.For()
-
-等待条件。
-
-```go
-func For(timeout time.Duration, condition func() bool) bool
-```
-
-**参数:**
-- `timeout` - 超时时间
-- `condition` - 条件函数
-
-**返回:**
-- 是否在超时前满足条件
-
-**示例:**
-```go
-success := wait.For(5*time.Second, func() bool {
-    return pool.Running() == 0
-})
-```
-
-## 更多 API
-
-完整的 API 文档，请访问：
-
-- [pkg.go.dev](https://pkg.go.dev/github.com/lazygophers/utils)
-- [GitHub 仓库](https://github.com/lazygophers/utils)
-
-## 相关文档
-
-- [入门指南](/zh-CN/guide/getting-started)
-- [模块概览](/zh-CN/modules/overview)
+- 想先理解能力范围：看 [模块总览](/modules/overview)
+- 想直接开始调用：看 [快速开始](/guide/getting-started)
+- 想进入包级文档：访问 https://pkg.go.dev/github.com/lazygophers/utils

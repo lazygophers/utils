@@ -219,7 +219,7 @@ func handleUserRequest() error {
 
 ## Related Documentation
 
-- [orm.go](/en/modules/orm) - Database operations
-- [validator](/en/modules/validator) - Data validation
+- [orm.go](/en/modules/core/orm) - Database operations
+- [validator](/en/modules/core/validator) - Data validation
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

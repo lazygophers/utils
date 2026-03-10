@@ -365,8 +365,8 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 
 ## 相關文檔
 
-- [must.go](/zh-TW/modules/must) - 錯誤斷言工具
-- [validator](/zh-TW/modules/validator) - 資料驗證
-- [defaults](/zh-TW/modules/defaults) - 預設值處理
+- [must.go](/zh-TW/modules/core/must) - 錯誤斷言工具
+- [validator](/zh-TW/modules/core/validator) - 資料驗證
+- [defaults](/zh-TW/modules/dev/defaults) - 預設值處理
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

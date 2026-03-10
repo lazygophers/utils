@@ -245,7 +245,7 @@ func init() {
 
 ## Related Documentation
 
-- [routine](/en/modules/routine) - Goroutine management
-- [hystrix](/en/modules/hystrix) - Circuit breaker
+- [routine](/en/modules/concurrency/routine) - Goroutine management
+- [hystrix](/en/modules/concurrency/hystrix) - Circuit breaker
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

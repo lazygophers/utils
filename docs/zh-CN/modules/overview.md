@@ -1,96 +1,42 @@
 ---
-title: 模块概览
+title: 模块总览
 ---
 
-# 模块概览
+# 模块总览
 
-LazyGophers Utils 提供 20+ 个专业模块，涵盖 Go 开发的各个方面。所有模块已按功能分类，方便您快速找到需要的工具。
+LazyGophers Utils 的包很多，但它们并不是一团散乱的工具集合。更容易理解的方式，是按工程问题来读，而不是按目录名去猜。
 
-## 🔧 核心工具
+## 八个主题分组
 
-基础工具模块，提供错误处理、数据库操作和数据验证功能。
+| 分组 | 什么时候先看它 | 代表模块 |
+| --- | --- | --- |
+| [核心工具](/modules/core/) | 想减少初始化样板代码，或处理数据库字段映射 | `must`、`orm`、`validator` |
+| [数据处理](/modules/data/) | 想做类型转换、集合操作、字符串规范化、JSON 编解码 | `candy`、`json`、`stringx`、`anyx` |
+| [缓存策略](/modules/cache/) | 想在多种淘汰策略里选一个更适合实际负载的缓存 | `lru`、`tinylfu`、`arc`、`slru` |
+| [时间与调度](/modules/time/) | 想处理农历、节气、日历或固定排班规则 | `xtime`、`xtime996`、`xtime955`、`xtime007` |
+| [系统与配置](/modules/system/) | 想做配置加载、路径定位、应用初始化与退出清理 | `config`、`runtime`、`osx`、`app`、`atexit` |
+| [网络与安全](/modules/network/) | 想处理网络辅助、加密、签名或 URL 规范化 | `network`、`cryptox`、`pgp`、`urlx` |
+| [并发与控制流](/modules/concurrency/) | 想组织任务执行、等待条件、熔断或去重 | `routine`、`wait`、`hystrix`、`singledo`、`event` |
+| [开发与测试](/modules/dev/) | 想补默认值、制造随机/假数据或接入采样工具 | `fake`、`randx`、`defaults`、`pyroscope` |
 
--   [must](./core/must.md) - 错误断言工具
--   [orm](./core/orm.md) - 数据库操作工具
--   [validator](./core/validator.md) - 数据验证模块
+## 选择顺序建议
 
-## 🍭 数据处理
+### 先判断是“基础设施问题”还是“业务辅助问题”
 
-提供类型转换、JSON 处理、字符串操作等数据处理工具。
+- 如果你在做启动、配置、校验、数据库字段映射：先看 **核心工具** 与 **系统与配置**。
+- 如果你在做集合处理、字符串规整、JSON、随机数据：先看 **数据处理** 与 **开发与测试**。
+- 如果你在做缓存、并发、重试、定时规则：先看 **缓存策略**、**并发与控制流**、**时间与调度**。
 
--   [candy](./data/candy.md) - 类型转换糖（零分配，快 3.2 倍）
--   [json](./data/json.md) - 增强的 JSON 处理
--   [stringx](./data/stringx.md) - 字符串工具
--   [anyx](./data/anyx.md) - Interface{} 辅助
+### 再判断是否存在局部规则
 
-## 📦 缓存
+以下主题在选型前最好先读页面说明，而不是直接猜 API：
 
-提供多种缓存实现，具有不同的淘汰策略，适用于各种使用场景。
+- **缓存**：每种策略的淘汰逻辑不同，默认线程安全语义也要单独看。
+- **xtime**：不仅有时间帮助函数，还包含农历、节气与排班规则。
+- **atexit**：不同平台退出行为并不完全一样。
 
--   [LRU](./cache/lru.md) - 最常用的缓存策略（85% 命中率）
--   [LFU](./cache/lfu.md) - 淘汰最少使用的项目（75% 命中率）
--   [TinyLFU](./cache/tinylfu.md) - 结合 LRU 和 LFU 的高性能缓存（92% 命中率）
--   [SLRU](./cache/slru.md) - 分段 LRU，适合高并发环境（90% 命中率）
--   [更多缓存实现](./cache/) - 查看所有 10+ 种缓存实现
+## 推荐阅读路径
 
-## ⏰ 时间与调度
-
-高级时间处理、工作时间计算和调度工具。
-
--   [xtime](./time/xtime.md) - 高级时间处理（🌙 农历、🐲 生肖、🌾 节气）
--   [xtime996](./time/xtime996.md) - 996 工作时间
--   [xtime955](./time/xtime955.md) - 955 工作时间
--   [xtime007](./time/xtime007.md) - 007 工作时间
-
-## 🔧 系统与配置
-
-配置管理、运行时信息、操作系统操作等系统级工具。
-
--   [config](./system/config.md) - 配置管理（JSON、YAML、TOML、INI、HCL）
--   [runtime](./system/runtime.md) - 运行时信息
--   [osx](./system/osx.md) - 操作系统操作
--   [app](./system/app.md) - 应用框架
--   [atexit](./system/atexit.md) - 优雅关闭
-
-## 🌐 网络与安全
-
-HTTP 工具、加密函数、PGP 操作等网络和安全工具。
-
--   [network](./network/network.md) - HTTP 工具（连接池、重试逻辑）
--   [cryptox](./network/cryptox.md) - 加密函数（哈希、加密、安全随机）
--   [pgp](./network/pgp.md) - PGP 操作
--   [urlx](./network/urlx.md) - URL 操作
-
-## 🚀 并发与控制流
-
-Goroutine 管理、流程控制、熔断器等并发和流程控制工具。
-
--   [routine](./concurrency/routine.md) - Goroutine 管理（工作池、任务调度）
--   [wait](./concurrency/wait.md) - 流程控制（超时、重试、速率限制）
--   [hystrix](./concurrency/hystrix.md) - 熔断器（容错、优雅降级）
--   [singledo](./concurrency/singledo.md) - 单例执行
--   [event](./concurrency/event.md) - 事件系统（发布/订阅）
-
-## 🧪 开发与测试
-
-测试数据生成、随机工具、默认值设置等开发和测试辅助工具。
-
--   [fake](./dev/fake.md) - 测试数据生成
--   [randx](./dev/randx.md) - 随机工具（加密安全）
--   [defaults](./dev/defaults.md) - 默认值
--   [pyroscope](./dev/pyroscope.md) - 性能分析
-
-## 📊 性能亮点
-
-| 操作             | 时间       | 内存    | vs 标准库     |
-| ---------------- | ---------- | ------- | ------------- |
-| `candy.ToInt()`  | 12.3 ns/op | 0 B/op  | **快 3.2 倍** |
-| `json.Marshal()` | 156 ns/op  | 64 B/op | **快 1.8 倍** |
-| `xtime.Now()`    | 45.2 ns/op | 0 B/op  | **快 2.1 倍** |
-| `utils.Must()`   | 2.1 ns/op  | 0 B/op  | **零开销**    |
-
-## 下一步
-
--   查看 [API 文档](/zh-CN/api/overview) 获取详细的 API 信息
--   查看 [快速开始](/zh-CN/guide/getting-started) 开始使用
--   访问 [GitHub 仓库](https://github.com/lazygophers/utils) 查看更多示例
+1. 新项目接入：`must` → `config` → `validator` → 对应业务主题模块。
+2. 已有项目补能力：从对应分类页进入，再看单模块页的适用场景。
+3. 需要精确签名：模块页读完后转到 [API 概览](/api/overview) 或 pkg.go.dev。

@@ -83,7 +83,7 @@ pyroscope.load(address)
 
 ## 相關文檔
 
-- [runtime](/zh-TW/modules/runtime) - 運行時信息
-- [app](/zh-TW/modules/app) - 應用框架
+- [runtime](/zh-TW/modules/system/runtime) - 運行時信息
+- [app](/zh-TW/modules/system/app) - 應用框架
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

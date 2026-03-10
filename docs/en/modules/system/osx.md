@@ -335,7 +335,7 @@ func atomicWrite(path string, data []byte) error {
 
 ## Related Documentation
 
-- [runtime](/en/modules/runtime) - Runtime information
-- [config](/en/modules/config) - Configuration management
+- [runtime](/en/modules/system/runtime) - Runtime information
+- [config](/en/modules/system/config) - Configuration management
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

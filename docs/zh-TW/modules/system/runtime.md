@@ -394,7 +394,7 @@ func printDebugInfo() {
 
 ## 相關文檔
 
-- [osx](/zh-TW/modules/osx) - 操作系統操作
-- [app](/zh-TW/modules/app) - 應用程式框架
+- [osx](/zh-TW/modules/system/osx) - 操作系統操作
+- [app](/zh-TW/modules/system/app) - 應用程式框架
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

@@ -308,6 +308,6 @@ func verySecureHash(data string) string {
 
 ## Related Documentation
 
-- [pgp](/en/modules/pgp) - PGP operations
+- [pgp](/en/modules/network/pgp) - PGP operations
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

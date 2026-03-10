@@ -255,7 +255,7 @@ func initApplication() {
 
 ## 相關文檔
 
-- [runtime](/zh-TW/modules/runtime) - 運行時資訊
-- [config](/zh-TW/modules/config) - 配置管理
+- [runtime](/zh-TW/modules/system/runtime) - 運行時資訊
+- [config](/zh-TW/modules/system/config) - 配置管理
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

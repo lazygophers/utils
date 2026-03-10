@@ -225,6 +225,6 @@ event.Register("user.created", func(args any) {
 
 ## 相關文檔
 
-- [routine](/zh-TW/modules/routine) - Goroutine 管理
+- [routine](/zh-TW/modules/concurrency/routine) - Goroutine 管理
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

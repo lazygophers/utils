@@ -1,126 +1,37 @@
 ---
-title: ARC 缓存
----
+    title: ARC
+    ---
 
-# ARC (Adaptive Replacement Cache) 缓存
+    # ARC
 
-ARC 是在 LRU 和 LFU 之间自适应调整的缓存。
+    在近期性与频次之间自适应切换，适合扫描与热点共存的负载。
 
-## 概述
+    ## 适合什么场景
 
-ARC（Adaptive Replacement Cache）是一种自适应缓存策略，动态地在 LRU（最近使用）和 LFU（最少使用）之间调整。它维护两个列表：T1（最近使用）和 T2（频繁使用），并根据访问模式动态调整两个列表的大小。
+    - 负载模式波动明显。
+- 希望算法自己在两类信号之间调节。
 
-## 特性
+    ## 不适合什么场景
 
-- **命中率**: 86%
-- **内存占用**: 中等
-- **并发性能**: 高
-- **实现复杂度**: 中等
+    - 你只需要一个非常简单、可预测的策略。
 
-## 使用场景
+    ## 读取这类页面时要关注什么
 
-- 混合访问模式
-- 自适应需求
-- 平衡性能
-- 需要在 LRU 和 LFU 之间平衡的场景
+    - 它偏向利用“最近访问”还是“访问频次”。
+    - 它是否在扫描型负载下容易被污染。
+    - 你的业务是否真的需要它带来的额外复杂度。
 
-## 快速开始
+    ## 共享接口语义
 
-### 安装
+    本主题下的缓存实现都围绕 `Get`、`Set`、`Has`、`Del`、`Purge`、`Keys`、`Len` 这些基本能力组织，但具体构造方式与线程安全语义要以对应包为准。
 
-```bash
-go get github.com/lazygophers/utils/cache/arc
-```
+    ## 使用建议
 
-### 基本使用
+    - 先用真实负载做基准，再决定是否需要更复杂的策略。
+    - 如果你只是需要一个“先能工作”的通用缓存，优先从简单方案开始。
+    - 如果你把它放在并发路径上，请单独确认同步语义。
 
-```go
-package main
+    ## 相关文档
 
-import (
-    "fmt"
-    "github.com/lazygophers/utils/cache/arc"
-)
-
-func main() {
-    // 创建容量为 1000 的缓存
-    cache := arc.New(1000)
-
-    // 设置值
-    cache.Set("key1", "value1")
-    cache.Set("key2", "value2")
-
-    // 获取值
-    if value, ok := cache.Get("key1"); ok {
-        fmt.Println("Found:", value)
-    }
-
-    // 删除值
-    cache.Delete("key1")
-
-    // 清空缓存
-    cache.Clear()
-}
-```
-
-## 工作原理
-
-ARC 维护四个列表：
-
-1. **T1**: 最近使用一次的项目
-2. **T2**: 最近使用两次或以上的项目
-3. **B1**: 最近从 T1 淘汰的项目
-4. **B2**: 最近从 T2 淘汰的项目
-
-根据访问模式动态调整 T1 和 T2 的大小。
-
-## API 参考
-
-### 构造函数
-
-```go
-// 创建新的 ARC 缓存
-func New(capacity int) *ARC
-
-// 创建带选项的 ARC 缓存
-func NewWithOpts(opts Options) *ARC
-```
-
-### 主要方法
-
-```go
-// 设置键值对
-func (c *ARC) Set(key string, value interface{})
-
-// 获取值
-func (c *ARC) Get(key string) (interface{}, bool)
-
-// 删除键
-func (c *ARC) Delete(key string)
-
-// 清空缓存
-func (c *ARC) Clear()
-
-// 获取统计信息
-func (c *ARC) Stats() Stats
-```
-
-## 性能特点
-
-- **时间复杂度**:
-  - Set: O(1)
-  - Get: O(1)
-  - Delete: O(1)
-- **空间复杂度**: O(n)，其中 n 是缓存容量
-
-## 最佳实践
-
-1. **混合访问模式**: ARC 适合既有时间局部性又有频率局部性的场景
-2. **自适应需求**: 当需要缓存自动在 LRU 和 LFU 之间调整时使用
-3. **平衡性能**: ARC 在各种访问模式下都能提供稳定的性能
-
-## 相关文档
-
-- [缓存概览](./index.md)
-- [LRU 缓存](./lru.md)
-- [LFU 缓存](./lfu.md)
+    - [缓存策略总览](/modules/cache/)
+    - [模块总览](/modules/overview)

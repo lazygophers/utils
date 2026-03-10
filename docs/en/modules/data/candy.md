@@ -415,7 +415,7 @@ func safeConvert(val interface{}) (int, bool) {
 
 ## Related Documentation
 
-- [stringx](/en/modules/stringx) - String utilities
-- [anyx](/en/modules/anyx) - Interface{} helpers
+- [stringx](/en/modules/data/stringx) - String utilities
+- [anyx](/en/modules/data/anyx) - Interface{} helpers
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

@@ -203,7 +203,7 @@ routine.Go(func() error {
 
 ## 相關文檔
 
-- [wait](/zh-TW/modules/wait) - 流程控制
-- [hystrix](/zh-TW/modules/hystrix) - 熔斷器
+- [wait](/zh-TW/modules/concurrency/wait) - 流程控制
+- [hystrix](/zh-TW/modules/concurrency/hystrix) - 熔斷器
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

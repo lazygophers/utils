@@ -306,7 +306,7 @@ func safeServiceCall() (string, error) {
 
 ## Related Documentation
 
-- [routine](/en/modules/routine) - Goroutine management
-- [wait](/en/modules/wait) - Flow control
+- [routine](/en/modules/concurrency/routine) - Goroutine management
+- [wait](/en/modules/concurrency/wait) - Flow control
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

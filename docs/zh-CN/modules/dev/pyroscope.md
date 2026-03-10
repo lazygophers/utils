@@ -1,89 +1,29 @@
 ---
-title: pyroscope - 性能分析
+title: pyroscope
 ---
 
-# pyroscope - 性能分析
+# pyroscope
 
-## 概述
+`pyroscope` 用于把应用接入 **Pyroscope 性能采样**。如果你要把运行中的程序接入持续剖析，而不是只做本地一次性 benchmark，这个包更有意义。
 
-pyroscope 模块提供与 Pyroscope 的集成,用于生产监控和性能分析。
+## 适合什么场景
 
-## 函数
+- 想在服务运行期持续采集性能画像。
+- 需要把应用的 profiling 接入流程收口到统一入口。
+- 想结合版本、实例、环境标签进行观测。
 
-### load()
+## 常用入口
 
-加载 Pyroscope 服务器地址并开始分析。
+- `pyroscope.Load`
 
-```go
-func load(address string)
-```
+## 使用建议
 
-**参数:**
-- `address` - Pyroscope 服务器地址
-
-**行为:**
-- 启动 Pyroscope 客户端
-- 为应用程序配置分析
-
-**示例:**
-```go
-pyroscope.load("http://localhost:4040")
-```
-
----
-
-## 使用模式
-
-### 应用集成
-
-```go
-func main() {
-    // 开始分析
-    pyroscope.load("http://localhost:4040")
-    
-    // 应用程序代码
-    runApplication()
-}
-```
-
-### 生产监控
-
-```go
-func setupMonitoring() {
-    address := os.Getenv("PYROSCOPE_ADDRESS")
-    if address == "" {
-        address = "http://localhost:4040"
-    }
-    
-    pyroscope.load(address)
-    
-    log.Info("Pyroscope profiling enabled")
-}
-```
-
----
-
-## 最佳实践
-
-### 配置
-
-```go
-// 好的做法: 配置 Pyroscope 地址
-address := os.Getenv("PYROSCOPE_ADDRESS")
-if address == "" {
-    address = "http://localhost:4040"
-}
-
-// 好的做法: 处理连接错误
-pyroscope.load(address)
-// 连接错误会被记录
-```
-
----
+- 先确认采样平台、标签策略和上报地址，再做接入代码。
+- profiling 是观测能力，不应和业务逻辑耦合得过深。
+- 应用元信息通常要配合 [app](/modules/system/app) 一起整理。
 
 ## 相关文档
 
-- [runtime](/zh-CN/modules/runtime) - 运行时信息
-- [app](/zh-CN/modules/app) - 应用框架
-- [API 文档](/zh-CN/api/overview)
-- [模块概览](/zh-CN/modules/overview)
+- [runtime](/modules/system/runtime)
+- [app](/modules/system/app)
+- [开发与测试](/modules/dev/)

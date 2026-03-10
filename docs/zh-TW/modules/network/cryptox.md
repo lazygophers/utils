@@ -308,6 +308,6 @@ func verySecureHash(data string) string {
 
 ## 相關文檔
 
-- [pgp](/zh-TW/modules/pgp) - PGP 操作
+- [pgp](/zh-TW/modules/network/pgp) - PGP 操作
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

@@ -159,6 +159,6 @@ type Config struct {
 
 ## Related Documentation
 
-- [validator](/en/modules/validator) - Data validation
+- [validator](/en/modules/core/validator) - Data validation
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

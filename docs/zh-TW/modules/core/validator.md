@@ -426,7 +426,7 @@ func ValidateUser(user *User) error {
 
 ## 相關文檔
 
-- [must.go](/zh-TW/modules/must) - 錯誤斷言
-- [orm.go](/zh-TW/modules/orm) - 資料庫操作
+- [must.go](/zh-TW/modules/core/must) - 錯誤斷言
+- [orm.go](/zh-TW/modules/core/orm) - 資料庫操作
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

@@ -397,7 +397,7 @@ func printDebugInfo() {
 
 ## Related Documentation
 
-- [osx](/en/modules/osx) - OS operations
-- [app](/en/modules/app) - Application framework
+- [osx](/en/modules/system/osx) - OS operations
+- [app](/en/modules/system/app) - Application framework
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

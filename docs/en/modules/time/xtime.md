@@ -504,8 +504,8 @@ cal := xtime.NewCalendar(t)
 
 ## Related Documentation
 
-- [xtime996](/en/modules/xtime996) - 996 work schedule
-- [xtime955](/en/modules/xtime955) - 955 work schedule
-- [xtime007](/en/modules/xtime007) - 24/7 operations
+- [xtime996](/en/modules/time/xtime996) - 996 work schedule
+- [xtime955](/en/modules/time/xtime955) - 955 work schedule
+- [xtime007](/en/modules/time/xtime007) - 24/7 operations
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

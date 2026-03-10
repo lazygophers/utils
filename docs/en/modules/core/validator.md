@@ -426,7 +426,7 @@ func ValidateUser(user *User) error {
 
 ## Related Documentation
 
-- [must.go](/en/modules/must) - Error assertion
-- [orm.go](/en/modules/orm) - Database operations
+- [must.go](/en/modules/core/must) - Error assertion
+- [orm.go](/en/modules/core/orm) - Database operations
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

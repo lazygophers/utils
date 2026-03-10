@@ -250,6 +250,6 @@ func startServer() {
 
 ## Related Documentation
 
-- [runtime](/en/modules/runtime) - Runtime information
+- [runtime](/en/modules/system/runtime) - Runtime information
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

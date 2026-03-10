@@ -235,6 +235,6 @@ name := faker.Name()  // 英文名
 
 ## 相關文檔
 
-- [randx](/zh-TW/modules/randx) - 隨機工具
+- [randx](/zh-TW/modules/dev/randx) - 隨機工具
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

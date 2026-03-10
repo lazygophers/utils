@@ -205,7 +205,7 @@ if err != nil {
 
 ## 相關文檔
 
-- [routine](/zh-TW/modules/routine) - Goroutine 管理
-- [wait](/zh-TW/modules/wait) - 流程控制
+- [routine](/zh-TW/modules/concurrency/routine) - Goroutine 管理
+- [wait](/zh-TW/modules/concurrency/wait) - 流程控制
 - [API 文檔](/zh-TW/api/overview)
 - [模組概覽](/zh-TW/modules/overview)

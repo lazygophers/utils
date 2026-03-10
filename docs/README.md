@@ -1,111 +1,57 @@
 # Rspress 文档系统
 
-本项目使用 [Rspress](https://rspress.rs/) 构建多语言文档系统。
+本目录使用 **Rspress v2** 维护 LazyGophers Utils 的多语言文档站点。
 
-## 🌍 支持的语言
+## 支持语言
 
-- **简体中文** (zh-CN) - 默认语言
-- **繁體中文** (zh-TW)
-- **English** (en)
+- 简体中文（`zh-CN`，默认）
+- 繁體中文（`zh-TW`）
+- English（`en`）
 
-## 📁 文档结构
+## 目录结构
 
-```
+```text
 docs/
-├── package.json         # NPM 配置文件
-├── rspress.config.ts    # Rspress 配置文件
-├── tsconfig.json        # TypeScript 配置文件
-├── README.md           # 文档说明
-├── zh-CN/              # 简体中文文档
-│   ├── index.md        # 首页
-│   ├── guide/          # 指南
-│   ├── modules/        # 模块文档
-│   └── api/           # API 文档
-├── zh-TW/              # 繁体中文文档
-│   └── ...
-└── en/                # 英文文档
-    └── ...
+├── package.json
+├── rspress.config.ts
+├── tsconfig.json
+├── README.md
+├── zh-CN/
+├── zh-TW/
+└── en/
 ```
 
-## 🚀 本地开发
+其中 `zh-CN/` 是本次重构的中文文档主目录，首页、指南、模块总览、分类索引和模块页都从这里生成。
 
-### 安装依赖
+## 本地开发
 
 ```bash
 cd docs
 npm install
-```
-
-### 启动开发服务器
-
-```bash
-cd docs
 npm run dev
 ```
 
-文档将在 `http://localhost:3000` 启动。
+默认开发地址通常为 `http://localhost:3000`。
 
-### 构建文档
+## 构建与预览
 
 ```bash
 cd docs
 npm run build
-```
-
-构建产物将输出到 `docs/doc_build` 目录。
-
-### 预览构建结果
-
-```bash
-cd docs
 npm run preview
 ```
 
-## 📝 添加新文档
+构建产物默认输出到 Rspress 的静态目录中，可直接用于 GitHub Pages 或其他静态托管方案。
 
-1. 在对应的语言目录下创建 `.md` 文件
-2. 文件顶部添加 frontmatter：
+## 维护约定
 
-```markdown
----
-title: 文档标题
----
-```
+1. 优先以源码与包级说明为准，不保留无法证明的性能数字或命中率。
+2. 新增页面时，先补侧边栏入口，再补正文内容。
+3. 中文文档优先说明“适合做什么、从哪里开始、有哪些约束”，而不是堆砌 API 列表。
+4. 复杂模块应使用统一模板：模块定位、适用场景、核心入口、使用建议、相关文档。
 
-3. 在导航配置中添加链接（在 `rspress.config.ts` 中）
+## 相关链接
 
-## 🌐 语言切换
-
-文档支持语言切换功能，用户可以在页面右上角选择语言。
-
-## 🚀 部署到 GitHub Pages
-
-文档已配置自动部署到 GitHub Pages：
-
-1. 推送代码到 `main` 或 `master` 分支
-2. GitHub Actions 将自动构建并部署文档
-3. 部署完成后，文档将可通过 GitHub Pages 访问
-
-### 手动触发部署
-
-在 GitHub Actions 页面，选择 "Deploy Rspress site to Pages" workflow，点击 "Run workflow" 按钮手动触发部署。
-
-## 🔧 配置文件
-
-### rspress.config.ts
-
-Rspress 配置文件，包含：
-- 文档根目录
-- 多语言配置
-- 主题配置
-- 导航栏配置
-
-### package.json
-
-包含文档系统的脚本和依赖。
-
-## 📖 相关资源
-
-- [Rspress 官方文档](https://rspress.rs/)
-- [Rspress GitHub](https://github.com/web-infra-dev/rspress)
-- [LazyGophers Utils GitHub](https://github.com/lazygophers/utils)
+- Rspress 官方文档：https://rspress.rs/
+- 项目仓库：https://github.com/lazygophers/utils
+- 在线 API 文档：https://pkg.go.dev/github.com/lazygophers/utils
