@@ -22,15 +22,41 @@ func hasMatch(s string, pred func(rune) bool) bool {
 	return false
 }
 
+// isASCIIString 检查字符串是否只包含ASCII字符
+func isASCIIString(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] > 127 {
+			return false
+		}
+	}
+	return true
+}
+
 func AllDigit(s string) bool {
 	if s == "" {
 		return true
 	}
-	return allMatch(s, unicode.IsDigit)
+	if !isASCIIString(s) {
+		return allMatch(s, unicode.IsDigit)
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 func HasDigit(s string) bool {
-	return hasMatch(s, unicode.IsDigit)
+	if !isASCIIString(s) {
+		return hasMatch(s, unicode.IsDigit)
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] >= '0' && s[i] <= '9' {
+			return true
+		}
+	}
+	return false
 }
 
 func AllLetter(s string) bool {
@@ -42,11 +68,29 @@ func HasLetter(s string) bool {
 }
 
 func AllSpace(s string) bool {
-	return allMatch(s, unicode.IsSpace)
+	if !isASCIIString(s) {
+		return allMatch(s, unicode.IsSpace)
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c != ' ' && c != '\t' && c != '\n' && c != '\r' {
+			return false
+		}
+	}
+	return true
 }
 
 func HasSpace(s string) bool {
-	return hasMatch(s, unicode.IsSpace)
+	if !isASCIIString(s) {
+		return hasMatch(s, unicode.IsSpace)
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c == ' ' || c == '\t' || c == '\n' || c == '\r' {
+			return true
+		}
+	}
+	return false
 }
 
 func AllSymbol(s string) bool {
@@ -98,19 +142,51 @@ func HasControl(s string) bool {
 }
 
 func AllUpper(s string) bool {
-	return allMatch(s, unicode.IsUpper)
+	if !isASCIIString(s) {
+		return allMatch(s, unicode.IsUpper)
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] < 'A' || s[i] > 'Z' {
+			return false
+		}
+	}
+	return true
 }
 
 func HasUpper(s string) bool {
-	return hasMatch(s, unicode.IsUpper)
+	if !isASCIIString(s) {
+		return hasMatch(s, unicode.IsUpper)
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] >= 'A' && s[i] <= 'Z' {
+			return true
+		}
+	}
+	return false
 }
 
 func AllLower(s string) bool {
-	return allMatch(s, unicode.IsLower)
+	if !isASCIIString(s) {
+		return allMatch(s, unicode.IsLower)
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] < 'a' || s[i] > 'z' {
+			return false
+		}
+	}
+	return true
 }
 
 func HasLower(s string) bool {
-	return hasMatch(s, unicode.IsLower)
+	if !isASCIIString(s) {
+		return hasMatch(s, unicode.IsLower)
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] >= 'a' && s[i] <= 'z' {
+			return true
+		}
+	}
+	return false
 }
 
 func AllTitle(s string) bool {
@@ -125,13 +201,37 @@ func AllLetterOrDigit(s string) bool {
 	if s == "" {
 		return true
 	}
-	return allMatch(s, func(c rune) bool {
-		return unicode.IsLetter(c) || unicode.IsDigit(c)
-	})
+	if !isASCIIString(s) {
+		return allMatch(s, func(c rune) bool {
+			return unicode.IsLetter(c) || unicode.IsDigit(c)
+		})
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		isDigit := c >= '0' && c <= '9'
+		isUpper := c >= 'A' && c <= 'Z'
+		isLower := c >= 'a' && c <= 'z'
+		if !isDigit && !isUpper && !isLower {
+			return false
+		}
+	}
+	return true
 }
 
 func HasLetterOrDigit(s string) bool {
-	return hasMatch(s, func(c rune) bool {
-		return unicode.IsLetter(c) || unicode.IsDigit(c)
-	})
+	if !isASCIIString(s) {
+		return hasMatch(s, func(c rune) bool {
+			return unicode.IsLetter(c) || unicode.IsDigit(c)
+		})
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		isDigit := c >= '0' && c <= '9'
+		isUpper := c >= 'A' && c <= 'Z'
+		isLower := c >= 'a' && c <= 'z'
+		if isDigit || isUpper || isLower {
+			return true
+		}
+	}
+	return false
 }

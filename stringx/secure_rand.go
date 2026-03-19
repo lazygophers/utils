@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
-	"math/big"
+	"math/bits"
 )
 
 // SecureRandBytes 生成指定长度的安全随机字节序列
@@ -96,6 +96,7 @@ func SecureRandUpperLetterNumbers(n int) (string, error) {
 }
 
 // secureRandStringWithCharset 从指定字符集生成安全随机字符串
+// 优化版本：批量读取随机字节，减少 crypto/rand 调用次数
 func secureRandStringWithCharset(n int, charset string) (string, error) {
 	if n <= 0 {
 		return "", nil
@@ -104,17 +105,100 @@ func secureRandStringWithCharset(n int, charset string) (string, error) {
 		return "", nil
 	}
 
-	charsetRunes := []rune(charset)
-	charsetLen := big.NewInt(int64(len(charsetRunes)))
-	result := make([]rune, n)
+	charsetLen := len(charset)
+	result := make([]byte, n)
 
-	for i := 0; i < n; i++ {
-		randomIndex, err := rand.Int(rand.Reader, charsetLen)
-		if err != nil {
+	// 计算需要多少随机字节来覆盖 n 个字符
+	// 每个随机字节可以提供 8 位熵，但我们需要保证均匀分布
+	// 使用拒绝采样来避免偏差
+
+	// 对于小字符集（<=256），可以直接使用字节索引
+	if charsetLen <= 256 {
+		// 计算需要多少随机字节
+		// 使用乘法避免浮点运算
+		bytesNeeded := n
+		if bytesNeeded < 32 {
+			bytesNeeded = 32 // 最小读取量以减少系统调用
+		}
+
+		// 批量读取随机字节
+		randomBytes := make([]byte, bytesNeeded)
+		if _, err := rand.Read(randomBytes); err != nil {
 			return "", err
 		}
-		result[i] = charsetRunes[randomIndex.Int64()]
+
+		// 使用拒绝采样确保均匀分布
+		// 计算大于charsetLen的最小2的幂
+		threshold := (256 / charsetLen) * charsetLen
+
+		pos := 0
+		bytePos := 0
+		for pos < n {
+			if bytePos >= len(randomBytes) {
+				// 需要更多随机字节
+				if _, err := rand.Read(randomBytes); err != nil {
+					return "", err
+				}
+				bytePos = 0
+			}
+
+			b := randomBytes[bytePos]
+			bytePos++
+
+			// 拒绝采样：只接受小于threshold的值
+			if int(b) < threshold {
+				result[pos] = charset[int(b)%charsetLen]
+				pos++
+			}
+			// 如果b >= threshold，丢弃这个字节继续循环
+		}
+
+		return string(result), nil
 	}
 
-	return string(result), nil
+	// 对于大字符集（>256），回退到原始方法
+	// 但使用批量读取来优化
+	buf := make([]byte, n*4) // 每个字符需要多个字节
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+
+	charsetRunes := []rune(charset)
+	resultRunes := make([]rune, n)
+
+	bitPos := 0
+	bufPos := 0
+	for i := 0; i < n; i++ {
+		// 从buf中提取足够的位数
+		var index uint64
+		bitsNeeded := bits.Len64(uint64(charsetLen - 1))
+
+		for bitsNeeded > 0 {
+			if bufPos >= len(buf) {
+				if _, err := rand.Read(buf); err != nil {
+					return "", err
+				}
+				bufPos = 0
+			}
+
+			bitsAvailable := 8 - bitPos
+			bitsToTake := bitsNeeded
+			if bitsToTake > bitsAvailable {
+				bitsToTake = bitsAvailable
+			}
+
+			index = (index << uint(bitsToTake)) | uint64((buf[bufPos]>>bitPos)&((1<<bitsToTake)-1))
+			bitPos += bitsToTake
+			bitsNeeded -= bitsToTake
+
+			if bitPos >= 8 {
+				bitPos = 0
+				bufPos++
+			}
+		}
+
+		resultRunes[i] = charsetRunes[index%uint64(charsetLen)]
+	}
+
+	return string(resultRunes), nil
 }
