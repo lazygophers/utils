@@ -14,7 +14,10 @@ func main() {
 
 	// 示例2: MustOk - 处理 (value, bool) 返回值
 	m := map[string]int{"key": 42}
-	value := utils.MustOk(m["key"])
+	value, ok := m["key"]
+	if !ok {
+		panic("key not found")
+	}
 	fmt.Printf("Map值: %d\n", value)
 
 	// 示例3: MustSuccess - 仅检查错误
