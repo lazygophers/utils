@@ -289,7 +289,7 @@ Every module is benchmarked and optimized:
 | `candy.ToInt()` | 12.3 ns/op | 0 B/op | **3.2x faster** |
 | `json.Marshal()` | 156 ns/op | 64 B/op | **1.8x faster** |
 | `xtime.Now()` | 45.2 ns/op | 0 B/op | **2.1x faster** |
-| `utils.Must()` | 2.1 ns/op | 0 B/op | **Zero overhead** |
+| `utils.Must()` | 0.28 ns/op | 0 B/op | **Near-zero overhead** |
 
 ---
 
