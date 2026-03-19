@@ -5,6 +5,20 @@ import (
 	"strings"
 )
 
+// parseBoolString 解析字符串为布尔值
+// 将字符串转换为小写并去除首尾空白后进行判断
+func parseBoolString(s string) bool {
+	s = strings.ToLower(strings.TrimSpace(s))
+	switch s {
+	case "true", "1", "t", "y", "yes", "on":
+		return true
+	case "false", "0", "f", "n", "no", "off", "":
+		return false
+	default:
+		return true
+	}
+}
+
 // ToBool 尝试将任意类型 (interface{}) 的输入值转换为布尔值 (bool)。
 // 此函数现在使用泛型实现，提供更好的性能和类型安全。
 //
@@ -73,25 +87,9 @@ func ToBool(val interface{}) bool {
 	case float64:
 		return x != 0 && !math.IsNaN(x)
 	case string:
-		s := strings.ToLower(strings.TrimSpace(x))
-		switch s {
-		case "true", "1", "t", "y", "yes", "on":
-			return true
-		case "false", "0", "f", "n", "no", "off", "":
-			return false
-		default:
-			return true
-		}
+		return parseBoolString(x)
 	case []byte:
-		s := strings.ToLower(strings.TrimSpace(string(x)))
-		switch s {
-		case "true", "1", "t", "y", "yes", "on":
-			return true
-		case "false", "0", "f", "n", "no", "off", "":
-			return false
-		default:
-			return true
-		}
+		return parseBoolString(string(x))
 	case nil:
 		return false
 	default:
