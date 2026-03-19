@@ -268,3 +268,32 @@ func TestMustFunctions_TypeSafety(t *testing.T) {
 		require.Equal(t, m, ignoreResult)
 	})
 }
+
+// Benchmark tests
+func BenchmarkMust(b *testing.B) {
+	value := "test"
+	for i := 0; i < b.N; i++ {
+		_ = Must(value, nil)
+	}
+}
+
+func BenchmarkMustOk(b *testing.B) {
+	value := "test"
+	for i := 0; i < b.N; i++ {
+		_ = MustOk(value, true)
+	}
+}
+
+func BenchmarkMustSuccess(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		MustSuccess(nil)
+	}
+}
+
+func BenchmarkIgnore(b *testing.B) {
+	value := "test"
+	ignored := errors.New("ignored")
+	for i := 0; i < b.N; i++ {
+		_ = Ignore(value, ignored)
+	}
+}
