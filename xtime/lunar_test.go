@@ -488,6 +488,447 @@ func abs(x int64) int64 {
 	return x
 }
 
+// TestLunarBoundaryYears 测试 1900 和 2100 年边界年份转换准确性
+func TestLunarBoundaryYears(t *testing.T) {
+	t.Run("1900_first_day", func(t *testing.T) {
+		// 1900-01-31 是农历 1900 年正月初一
+		solarTime := time.Date(1900, 1, 31, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(solarTime)
+
+		assert.Equal(t, int64(1900), lunar.Year())
+		assert.Equal(t, int64(1), lunar.Month())
+		assert.Equal(t, int64(1), lunar.Day())
+		assert.False(t, lunar.IsLeapMonth())
+		assert.Equal(t, int64(8), lunar.LeapMonth()) // 1900 年闰八月
+		assert.True(t, lunar.IsLeap())
+		assert.Equal(t, "鼠", lunar.Animal())
+	})
+
+	t.Run("1900_next_day", func(t *testing.T) {
+		solarTime := time.Date(1900, 2, 1, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(solarTime)
+
+		assert.Equal(t, int64(1900), lunar.Year())
+		assert.Equal(t, int64(1), lunar.Month())
+		assert.Equal(t, int64(2), lunar.Day())
+		assert.False(t, lunar.IsLeapMonth())
+	})
+
+	t.Run("1900_end_of_year", func(t *testing.T) {
+		solarTime := time.Date(1900, 12, 31, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(solarTime)
+
+		assert.Equal(t, int64(1900), lunar.Year())
+		assert.Equal(t, int64(11), lunar.Month())
+		assert.Equal(t, int64(10), lunar.Day())
+		assert.False(t, lunar.IsLeapMonth())
+	})
+
+	t.Run("1900_before_epoch_panics", func(t *testing.T) {
+		// 1900-01-30 在农历纪元之前，应该 panic
+		solarTime := time.Date(1900, 1, 30, 0, 0, 0, 0, time.Local)
+		assert.Panics(t, func() {
+			xtime.WithLunar(solarTime)
+		}, "1900-01-30 在支持范围之前，应该 panic")
+	})
+
+	t.Run("2100_year_start", func(t *testing.T) {
+		// 2100-01-01 对应农历 2099 年十一月廿一
+		solarTime := time.Date(2100, 1, 1, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(solarTime)
+
+		assert.Equal(t, int64(2099), lunar.Year())
+		assert.Equal(t, int64(11), lunar.Month())
+		assert.Equal(t, int64(21), lunar.Day())
+		assert.False(t, lunar.IsLeapMonth())
+	})
+
+	t.Run("2100_lunar_new_year", func(t *testing.T) {
+		// 2100-02-18 对应农历 2100 年正月初十
+		solarTime := time.Date(2100, 2, 18, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(solarTime)
+
+		assert.Equal(t, int64(2100), lunar.Year())
+		assert.Equal(t, int64(1), lunar.Month())
+		assert.Equal(t, int64(10), lunar.Day())
+		assert.False(t, lunar.IsLeapMonth())
+		assert.Equal(t, int64(0), lunar.LeapMonth()) // 2100 无闰月
+		assert.False(t, lunar.IsLeap())
+		assert.Equal(t, "猴", lunar.Animal())
+	})
+
+	t.Run("2099_end_of_year", func(t *testing.T) {
+		solarTime := time.Date(2099, 12, 31, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(solarTime)
+
+		assert.Equal(t, int64(2099), lunar.Year())
+		assert.Equal(t, int64(11), lunar.Month())
+		assert.Equal(t, int64(20), lunar.Day())
+		assert.False(t, lunar.IsLeapMonth())
+		assert.Equal(t, "羊", lunar.Animal())
+	})
+}
+
+// TestLunarLeapMonthBoundary 测试闰月边界转换
+func TestLunarLeapMonthBoundary(t *testing.T) {
+	t.Run("1900_leap_august", func(t *testing.T) {
+		// 1900 年闰八月，闰八月初一 = 1900-09-24
+		solarTime := time.Date(1900, 9, 24, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(solarTime)
+
+		assert.Equal(t, int64(1900), lunar.Year())
+		assert.Equal(t, int64(8), lunar.Month())
+		assert.Equal(t, int64(1), lunar.Day())
+		assert.True(t, lunar.IsLeapMonth())
+		assert.Equal(t, int64(8), lunar.LeapMonth())
+	})
+
+	t.Run("1900_leap_august_last_day", func(t *testing.T) {
+		// 闰八月结束后，九月初一 = 1900-10-23
+		solarTime := time.Date(1900, 10, 23, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(solarTime)
+
+		assert.Equal(t, int64(1900), lunar.Year())
+		assert.Equal(t, int64(9), lunar.Month())
+		assert.Equal(t, int64(1), lunar.Day())
+		assert.False(t, lunar.IsLeapMonth())
+	})
+
+	t.Run("2023_leap_february", func(t *testing.T) {
+		// 2023 年闰二月
+		assert.Equal(t, int64(2), xtime.WithLunar(time.Date(2023, 6, 1, 0, 0, 0, 0, time.Local)).LeapMonth())
+
+		// 闰二月初一 = 2023-03-22
+		leapStart := time.Date(2023, 3, 22, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(leapStart)
+		assert.Equal(t, int64(2023), lunar.Year())
+		assert.Equal(t, int64(2), lunar.Month())
+		assert.Equal(t, int64(1), lunar.Day())
+		assert.True(t, lunar.IsLeapMonth())
+		assert.Contains(t, lunar.MonthAlias(), "闰")
+		assert.Equal(t, "闰二月", lunar.MonthAlias())
+	})
+
+	t.Run("2023_leap_february_last_day", func(t *testing.T) {
+		// 闰二月最后一天 = 2023-04-19 (闰二月廿九)
+		leapEnd := time.Date(2023, 4, 19, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(leapEnd)
+
+		assert.Equal(t, int64(2023), lunar.Year())
+		assert.Equal(t, int64(2), lunar.Month())
+		assert.Equal(t, int64(29), lunar.Day())
+		assert.True(t, lunar.IsLeapMonth())
+	})
+
+	t.Run("2023_after_leap_month", func(t *testing.T) {
+		// 闰二月后一天 = 2023-04-20 (三月初一)
+		afterLeap := time.Date(2023, 4, 20, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(afterLeap)
+
+		assert.Equal(t, int64(2023), lunar.Year())
+		assert.Equal(t, int64(3), lunar.Month())
+		assert.Equal(t, int64(1), lunar.Day())
+		assert.False(t, lunar.IsLeapMonth())
+	})
+
+	t.Run("2023_regular_february_end", func(t *testing.T) {
+		// 正常二月三十 = 2023-03-21
+		regEnd := time.Date(2023, 3, 21, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(regEnd)
+
+		assert.Equal(t, int64(2023), lunar.Year())
+		assert.Equal(t, int64(2), lunar.Month())
+		assert.Equal(t, int64(30), lunar.Day())
+		assert.False(t, lunar.IsLeapMonth())
+	})
+
+	t.Run("2020_leap_april", func(t *testing.T) {
+		// 2020 年闰四月
+		// 闰四月初一 = 2020-05-23
+		leapStart := time.Date(2020, 5, 23, 0, 0, 0, 0, time.Local)
+		lunar := xtime.WithLunar(leapStart)
+
+		assert.Equal(t, int64(2020), lunar.Year())
+		assert.Equal(t, int64(4), lunar.Month())
+		assert.Equal(t, int64(1), lunar.Day())
+		assert.True(t, lunar.IsLeapMonth())
+		assert.Equal(t, int64(4), lunar.LeapMonth())
+
+		// 闰四月廿九 = 2020-06-20
+		leapEnd := time.Date(2020, 6, 20, 0, 0, 0, 0, time.Local)
+		lunarEnd := xtime.WithLunar(leapEnd)
+		assert.Equal(t, int64(4), lunarEnd.Month())
+		assert.Equal(t, int64(29), lunarEnd.Day())
+		assert.True(t, lunarEnd.IsLeapMonth())
+
+		// 闰四月后五月初一 = 2020-06-21
+		afterLeap := time.Date(2020, 6, 21, 0, 0, 0, 0, time.Local)
+		lunarAfter := xtime.WithLunar(afterLeap)
+		assert.Equal(t, int64(5), lunarAfter.Month())
+		assert.Equal(t, int64(1), lunarAfter.Day())
+		assert.False(t, lunarAfter.IsLeapMonth())
+	})
+
+	t.Run("leap_month_day_alias_format", func(t *testing.T) {
+		// 闰月的 MonthDayAlias 应包含 "闰" 前缀
+		leapDate := time.Date(2023, 3, 22, 0, 0, 0, 0, time.Local) // 闰二月初一
+		lunar := xtime.WithLunar(leapDate)
+
+		alias := lunar.MonthDayAlias()
+		assert.Contains(t, alias, "闰")
+		assert.Equal(t, "闰2-1", alias)
+	})
+}
+
+// TestLunarKnownDates 使用已知的公历-农历对照数据验证转换准确性
+func TestLunarKnownDates(t *testing.T) {
+	testCases := []struct {
+		name        string
+		solar       time.Time
+		lunarYear   int64
+		lunarMonth  int64
+		lunarDay    int64
+		isLeapMonth bool
+		animal      string
+	}{
+		{
+			name:       "春节_2000",
+			solar:      time.Date(2000, 2, 5, 0, 0, 0, 0, time.Local),
+			lunarYear:  2000, lunarMonth: 1, lunarDay: 1,
+			animal:     "龙",
+		},
+		{
+			name:       "春节_2023",
+			solar:      time.Date(2023, 1, 22, 0, 0, 0, 0, time.Local),
+			lunarYear:  2023, lunarMonth: 1, lunarDay: 1,
+			animal:     "兔",
+		},
+		{
+			name:       "春节_2024",
+			solar:      time.Date(2024, 2, 10, 0, 0, 0, 0, time.Local),
+			lunarYear:  2024, lunarMonth: 1, lunarDay: 1,
+			animal:     "龙",
+		},
+		{
+			name:       "1976龙年",
+			solar:      time.Date(1976, 2, 1, 0, 0, 0, 0, time.Local),
+			lunarYear:  1976, lunarMonth: 1, lunarDay: 2,
+			animal:     "龙",
+		},
+		{
+			name:       "2020五月三十",
+			solar:      time.Date(2020, 7, 20, 0, 0, 0, 0, time.Local),
+			lunarYear:  2020, lunarMonth: 5, lunarDay: 30,
+			animal:     "鼠",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			lunar := xtime.WithLunar(tc.solar)
+
+			assert.Equal(t, tc.lunarYear, lunar.Year(), "年份不匹配")
+			assert.Equal(t, tc.lunarMonth, lunar.Month(), "月份不匹配")
+			assert.Equal(t, tc.lunarDay, lunar.Day(), "日期不匹配")
+			assert.Equal(t, tc.isLeapMonth, lunar.IsLeapMonth(), "闰月标识不匹配")
+			assert.Equal(t, tc.animal, lunar.Animal(), "生肖不匹配")
+		})
+	}
+}
+
+// TestLunarRoundTrip 验证公历→农历转换的一致性（同一天不同时刻应得到相同农历日期）
+func TestLunarRoundTrip(t *testing.T) {
+	t.Run("same_day_different_times", func(t *testing.T) {
+		times := []time.Time{
+			time.Date(2023, 6, 15, 0, 0, 0, 0, time.Local),
+			time.Date(2023, 6, 15, 12, 0, 0, 0, time.Local),
+			time.Date(2023, 6, 15, 23, 59, 59, 0, time.Local),
+		}
+
+		base := xtime.WithLunar(times[0])
+		for _, t2 := range times[1:] {
+			lunar := xtime.WithLunar(t2)
+			assert.Equal(t, base.Year(), lunar.Year())
+			assert.Equal(t, base.Month(), lunar.Month())
+			assert.Equal(t, base.Day(), lunar.Day())
+			assert.Equal(t, base.IsLeapMonth(), lunar.IsLeapMonth())
+		}
+	})
+
+	t.Run("consecutive_days_boundary_years", func(t *testing.T) {
+		// 在边界年份验证连续天数递增
+		starts := []time.Time{
+			time.Date(1900, 1, 31, 0, 0, 0, 0, time.Local),
+			time.Date(2023, 1, 22, 0, 0, 0, 0, time.Local),
+			time.Date(2024, 2, 10, 0, 0, 0, 0, time.Local),
+		}
+
+		for _, start := range starts {
+			prev := xtime.WithLunar(start)
+			for i := 1; i <= 30; i++ {
+				next := xtime.WithLunar(start.AddDate(0, 0, i))
+				// 日期应该连续递增（跨月时月份+1，日期回到1）
+				if next.Day() == 1 {
+					// 跨月：下一天是初一
+					assert.True(t, next.Month() > prev.Month() || next.Year() > prev.Year() || next.IsLeapMonth() != prev.IsLeapMonth(),
+						"跨月转换不正确: day %d", i)
+				}
+				prev = next
+			}
+		}
+	})
+
+	t.Run("full_year_coverage", func(t *testing.T) {
+		// 对2023全年每天做基本验证，确保不 panic 且结果合理
+		start := time.Date(2023, 1, 1, 0, 0, 0, 0, time.Local)
+		for i := 0; i < 365; i++ {
+			day := start.AddDate(0, 0, i)
+			assert.NotPanics(t, func() {
+				lunar := xtime.WithLunar(day)
+				assert.True(t, lunar.Year() >= 2022 && lunar.Year() <= 2024)
+				assert.True(t, lunar.Month() >= 1 && lunar.Month() <= 12)
+				assert.True(t, lunar.Day() >= 1 && lunar.Day() <= 30)
+			}, "日期 %s 转换不应该 panic", day.Format("2006-01-02"))
+		}
+	})
+}
+
+// TestLunarZodiacComplete 验证十二生肖完整循环
+func TestLunarZodiacComplete(t *testing.T) {
+	// 12 年一个周期，验证完整循环
+	expectedAnimals := []string{"鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"}
+
+	// 从 2020 (鼠年) 开始连续 12 年
+	for i, expected := range expectedAnimals {
+		year := 2020 + i
+		solarTime := time.Date(year, 8, 1, 0, 0, 0, 0, time.Local) // 用8月确保在农历年内
+		lunar := xtime.WithLunar(solarTime)
+		assert.Equal(t, expected, lunar.Animal(), "年份 %d 的生肖应该是 %s", year, expected)
+	}
+
+	// 验证边界年份生肖
+	t.Run("boundary_year_zodiac", func(t *testing.T) {
+		cases := []struct {
+			year   int
+			animal string
+		}{
+			{1900, "鼠"},
+			{1912, "鼠"},
+			{2000, "龙"},
+			{2100, "猴"},
+		}
+		for _, c := range cases {
+			solarTime := time.Date(c.year, 8, 1, 0, 0, 0, 0, time.Local)
+			lunar := xtime.WithLunar(solarTime)
+			assert.Equal(t, c.animal, lunar.Animal(), "年份 %d 的生肖应该是 %s", c.year, c.animal)
+		}
+	})
+}
+
+// TestLunarDayAliasComplete 测试 DayAlias 所有分支
+func TestLunarDayAliasComplete(t *testing.T) {
+	// 收集不同农历日期的 DayAlias，确保特殊值正确
+	// 遍历一个月的连续天数来覆盖所有日期值
+	start := time.Date(2023, 1, 22, 0, 0, 0, 0, time.Local) // 正月初一
+
+	dayAliasMap := make(map[int64]string)
+	for i := 0; i < 30; i++ {
+		lunar := xtime.WithLunar(start.AddDate(0, 0, i))
+		dayAliasMap[lunar.Day()] = lunar.DayAlias()
+	}
+
+	// 验证特殊日期
+	if alias, ok := dayAliasMap[1]; ok {
+		assert.Equal(t, "初一", alias)
+	}
+	if alias, ok := dayAliasMap[10]; ok {
+		assert.Equal(t, "初十", alias)
+	}
+	if alias, ok := dayAliasMap[15]; ok {
+		assert.Equal(t, "十五", alias)
+	}
+	if alias, ok := dayAliasMap[20]; ok {
+		assert.Equal(t, "二十", alias)
+	}
+
+	// 验证所有收集到的别名都非空
+	for day, alias := range dayAliasMap {
+		assert.NotEmpty(t, alias, "日期 %d 的别名不应为空", day)
+	}
+}
+
+// TestLunarYearAliasFormat 测试年份汉字转换
+func TestLunarYearAliasFormat(t *testing.T) {
+	testCases := []struct {
+		solar    time.Time
+		expected string
+	}{
+		{time.Date(1900, 1, 31, 0, 0, 0, 0, time.Local), "一九零零"},
+		{time.Date(2023, 1, 22, 0, 0, 0, 0, time.Local), "二零二三"},
+		{time.Date(2024, 2, 10, 0, 0, 0, 0, time.Local), "二零二四"},
+	}
+
+	for _, tc := range testCases {
+		lunar := xtime.WithLunar(tc.solar)
+		assert.Equal(t, tc.expected, lunar.YearAlias())
+	}
+}
+
+// TestLunarMonthAliasAll 测试所有月份别名
+func TestLunarMonthAliasAll(t *testing.T) {
+	expectedMonths := map[int64]string{
+		1: "正月", 2: "二月", 3: "三月", 4: "四月",
+		5: "五月", 6: "六月", 7: "七月", 8: "八月",
+		9: "九月", 10: "十月", 11: "冬月", 12: "腊月",
+	}
+
+	// 遍历 2023 年全年收集不同月份
+	start := time.Date(2023, 1, 22, 0, 0, 0, 0, time.Local)
+	found := make(map[int64]bool)
+
+	for i := 0; i < 384; i++ { // 农历一年最多 384 天
+		day := start.AddDate(0, 0, i)
+		lunar := xtime.WithLunar(day)
+		month := lunar.Month()
+		if !lunar.IsLeapMonth() && !found[month] {
+			found[month] = true
+			assert.Equal(t, expectedMonths[month], lunar.MonthAlias(),
+				"月份 %d 的别名应该是 %s", month, expectedMonths[month])
+		}
+	}
+
+	// 验证覆盖了所有 12 个月
+	assert.Equal(t, 12, len(found), "应该覆盖全部 12 个月份")
+}
+
+// TestLunarNoLeapYear 测试无闰月年份
+func TestLunarNoLeapYear(t *testing.T) {
+	// 2024 年无闰月
+	solarTime := time.Date(2024, 6, 15, 0, 0, 0, 0, time.Local)
+	lunar := xtime.WithLunar(solarTime)
+
+	assert.Equal(t, int64(0), lunar.LeapMonth())
+	assert.False(t, lunar.IsLeap())
+	assert.False(t, lunar.IsLeapMonth())
+}
+
+// TestLunarDateFormat 测试 Date() 格式化输出
+func TestLunarDateFormat(t *testing.T) {
+	testCases := []struct {
+		solar    time.Time
+		expected string
+	}{
+		{time.Date(2023, 1, 22, 0, 0, 0, 0, time.Local), "2023-01-01"},
+		{time.Date(2024, 2, 10, 0, 0, 0, 0, time.Local), "2024-01-01"},
+		{time.Date(1900, 1, 31, 0, 0, 0, 0, time.Local), "1900-01-01"},
+	}
+
+	for _, tc := range testCases {
+		lunar := xtime.WithLunar(tc.solar)
+		assert.Equal(t, tc.expected, lunar.Date())
+	}
+}
+
 // Benchmark lunar conversions
 func BenchmarkLunarConversions(b *testing.B) {
 	testTime := time.Date(2023, 6, 15, 12, 0, 0, 0, time.UTC)
