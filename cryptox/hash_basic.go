@@ -9,12 +9,17 @@ import (
 )
 
 // Md5 计算输入字符串或字节切片的 MD5 哈希值，并返回十六进制表示的字符串。
+//
+// Deprecated: MD5 is cryptographically broken and should not be used for security purposes.
+// Use Sha256 or Sha512 instead.
 func Md5[M string | []byte](s M) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(s)))
 }
 
 // SHA1 计算输入字符串或字节切片的 SHA1 哈希值，并返回十六进制表示的字符串。
-// 注意：SHA1 已被认为不安全，仅用于兼容性目的。
+//
+// Deprecated: SHA1 is cryptographically broken and should not be used for security purposes.
+// Use Sha256 or Sha512 instead.
 func SHA1[M string | []byte](s M) string {
 	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
 }

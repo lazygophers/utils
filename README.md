@@ -112,7 +112,7 @@ func loadData() (string, error) {
 | Module | Purpose | Features |
 |--------|---------|----------|
 | **[network/](network/)** | HTTP utilities | Connection pooling, retry logic |
-| **[cryptox/](cryptox/)** | Cryptographic functions | Hashing, encryption, secure random |
+| **[cryptox/](cryptox/)** | Cryptographic functions | Hashing, encryption, secure random ([Security Guide](cryptox/SECURITY.md)) |
 | **[pgp/](pgp/)** | PGP operations | Email encryption, file signing |
 | **[urlx/](urlx/)** | URL manipulation | Parsing, building, validation |
 
