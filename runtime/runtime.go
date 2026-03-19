@@ -25,28 +25,28 @@ func OnPanic(logic panicHandler) {
 
 func CachePanicWithHandle(handle func(err interface{})) {
 	if err := recover(); err != nil {
-		// 使用最基础的系统调用避免栈溢出
-		os.Stderr.WriteString("PROCESS PANIC: err ")
-		os.Stderr.WriteString(fmt.Sprintf("%v", err))
-		os.Stderr.WriteString("\n")
+		// 使用最基础的系统调用避免栈溢出，panic 处理中忽略写入错误
+		_, _ = os.Stderr.WriteString("PROCESS PANIC: err ")
+		_, _ = os.Stderr.WriteString(fmt.Sprintf("%v", err))
+		_, _ = os.Stderr.WriteString("\n")
 
 		st := debug.Stack()
 		if len(st) > 0 {
-			os.Stderr.WriteString("dump stack (")
-			os.Stderr.WriteString(fmt.Sprintf("%v", err))
-			os.Stderr.WriteString("):\n")
+			_, _ = os.Stderr.WriteString("dump stack (")
+			_, _ = os.Stderr.WriteString(fmt.Sprintf("%v", err))
+			_, _ = os.Stderr.WriteString("):\n")
 
 			// 分块处理栈跟踪信息，添加缩进
 			lines := strings.Split(string(st), "\n")
 			for _, line := range lines {
-				os.Stderr.WriteString("  ")
-				os.Stderr.WriteString(line)
-				os.Stderr.WriteString("\n")
+				_, _ = os.Stderr.WriteString("  ")
+				_, _ = os.Stderr.WriteString(line)
+				_, _ = os.Stderr.WriteString("\n")
 			}
 		} else {
-			os.Stderr.WriteString("stack is empty (")
-			os.Stderr.WriteString(fmt.Sprintf("%v", err))
-			os.Stderr.WriteString(")\n")
+			_, _ = os.Stderr.WriteString("stack is empty (")
+			_, _ = os.Stderr.WriteString(fmt.Sprintf("%v", err))
+			_, _ = os.Stderr.WriteString(")\n")
 		}
 		if handle != nil {
 			handle(err)
@@ -62,7 +62,7 @@ func PrintStack() {
 	st := debug.Stack()
 	if len(st) > 0 {
 		// 使用最基础的系统调用避免栈溢出
-		os.Stderr.WriteString("dump stack:\n")
+		_, _ = os.Stderr.WriteString("dump stack:\n")
 		// 分块写入大的栈跟踪信息
 		const chunkSize = 1024
 		for i := 0; i < len(st); i += chunkSize {
@@ -70,11 +70,11 @@ func PrintStack() {
 			if end > len(st) {
 				end = len(st)
 			}
-			os.Stderr.Write(st[i:end])
+			_, _ = os.Stderr.Write(st[i:end])
 		}
-		os.Stderr.WriteString("\n")
+		_, _ = os.Stderr.WriteString("\n")
 	} else {
-		os.Stderr.WriteString("stack is empty\n")
+		_, _ = os.Stderr.WriteString("stack is empty\n")
 	}
 }
 

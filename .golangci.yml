@@ -47,6 +47,54 @@ linters:
     - importas
     - usestdlibvars
     - gosec
+  exclusions:
+    presets:
+      - std-error-handling
+      - common-false-positives
+    rules:
+      # Test files: allow unhandled errors, file permissions, file inclusion, subprocess
+      - path: _test\.go
+        linters:
+          - gosec
+        text: "G104|G302|G304|G306|G204"
+      # Intentional use of unsafe for performance optimization
+      - linters:
+          - gosec
+        text: "G103"
+      # Intentional support for MD5/SHA1 (deprecated but still needed)
+      - path: cryptox/
+        linters:
+          - gosec
+        text: "G401|G501|G505|G502"
+      # Non-cryptographic random is acceptable for fake data and string generation
+      - path: (fake|randx|stringx)/
+        linters:
+          - gosec
+        text: "G404"
+      # File operations with variable paths are intentional in utility functions
+      - path: (json|osx|config)/
+        linters:
+          - gosec
+        text: "G304"
+      # False positive: validator tag name contains "password" keyword
+      - path: validator/locale\.go
+        linters:
+          - gosec
+        text: "G101"
+      # Integer overflow conversions are intentional for byte/rune serialization
+      - linters:
+          - gosec
+        text: "G115"
+      # Config file permissions 0644 are intentional (config files are readable)
+      - path: config/
+        linters:
+          - gosec
+        text: "G302"
+      # Test files: allow directory permissions, command injection, hardcoded credentials
+      - path: _test\.go
+        linters:
+          - gosec
+        text: "G301|G702|G101"
 
 issues:
   max-issues-per-linter: 0

@@ -27,7 +27,7 @@ func NewWorkerCtx(ctx context.Context, max int) *WorkerCtx {
 		max = 1
 	}
 
-	workerCtx, cancel := context.WithCancel(ctx)
+	workerCtx, cancel := context.WithCancel(ctx) //nolint:gosec // G118: cancel is stored in WorkerCtx.cancel and called in Stop()
 	c := make(chan func(), max)
 	done := make(chan struct{})
 
