@@ -8,9 +8,13 @@ import (
 // LunarHelper 农历查询助手
 type LunarHelper struct{}
 
+// DefaultLunarHelper 默认的农历助手单例，避免重复分配
+var DefaultLunarHelper = &LunarHelper{}
+
 // NewLunarHelper 创建农历助手
+// 建议：直接使用 DefaultLunarHelper 单例以获得更好的性能
 func NewLunarHelper() *LunarHelper {
-	return &LunarHelper{}
+	return DefaultLunarHelper
 }
 
 // LunarFestival 农历节日信息

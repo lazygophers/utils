@@ -9,9 +9,13 @@ import (
 // SolarTermHelper 节气查询助手
 type SolarTermHelper struct{}
 
+// DefaultSolarTermHelper 默认的节气助手单例，避免重复分配
+var DefaultSolarTermHelper = &SolarTermHelper{}
+
 // NewSolarTermHelper 创建节气助手
+// 建议：直接使用 DefaultSolarTermHelper 单例以获得更好的性能
 func NewSolarTermHelper() *SolarTermHelper {
-	return &SolarTermHelper{}
+	return DefaultSolarTermHelper
 }
 
 // SolarTermInfo 节气详细信息
