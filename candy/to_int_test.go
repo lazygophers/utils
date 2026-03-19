@@ -1,6 +1,7 @@
 package candy
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -51,6 +52,41 @@ func TestToInt(t *testing.T) {
 		assert.Equal(t, 0, ToInt(struct{}{}))
 		assert.Equal(t, 0, ToInt(map[string]int{}))
 	})
+
+	t.Run("overflow from large uint64", func(t *testing.T) {
+		// uint64 max → int truncation (wraps around to -1)
+		result := ToInt(uint64(math.MaxUint64))
+		assert.Equal(t, -1, result)
+	})
+
+	t.Run("negative int values", func(t *testing.T) {
+		assert.Equal(t, -1, ToInt(-1))
+		assert.Equal(t, math.MinInt64, ToInt(int64(math.MinInt64)))
+		assert.Equal(t, -128, ToInt(int8(math.MinInt8)))
+		assert.Equal(t, -32768, ToInt(int16(math.MinInt16)))
+		assert.Equal(t, -2147483648, ToInt(int32(math.MinInt32)))
+	})
+
+	t.Run("float special values", func(t *testing.T) {
+		// NaN and Inf → int conversion (Go defined behavior)
+		_ = ToInt(math.NaN())
+		_ = ToInt(math.Inf(1))
+		_ = ToInt(math.Inf(-1))
+		_ = ToInt(float32(math.Float32frombits(0x7FC00000))) // float32 NaN
+	})
+
+	t.Run("string overflow values", func(t *testing.T) {
+		assert.Equal(t, 0, ToInt("99999999999999999999999"))
+		assert.Equal(t, 0, ToInt("-99999999999999999999999"))
+		assert.Equal(t, 0, ToInt("1.5"))
+		assert.Equal(t, 0, ToInt("0x1A"))
+	})
+
+	t.Run("float truncation", func(t *testing.T) {
+		assert.Equal(t, 0, ToInt(float64(0.9)))
+		assert.Equal(t, -1, ToInt(float64(-1.9)))
+		assert.Equal(t, 0, ToInt(float64(-0.0)))
+	})
 }
 
 func TestToInt8(t *testing.T) {
@@ -95,6 +131,33 @@ func TestToInt8(t *testing.T) {
 	t.Run("nil and invalid types", func(t *testing.T) {
 		assert.Equal(t, int8(0), ToInt8(nil))
 		assert.Equal(t, int8(0), ToInt8(struct{}{}))
+	})
+
+	t.Run("overflow truncation from large values", func(t *testing.T) {
+		// int → int8 truncation: 256 wraps to 0, 257 wraps to 1
+		assert.Equal(t, int8(0), ToInt8(256))
+		assert.Equal(t, int8(1), ToInt8(257))
+		assert.Equal(t, int8(-128), ToInt8(128))
+		// int64 max → int8 truncation
+		assert.Equal(t, int8(-1), ToInt8(int64(math.MaxInt64)))
+		// int64 min → int8 truncation
+		assert.Equal(t, int8(0), ToInt8(int64(math.MinInt64)))
+		// uint64 max → int8 truncation
+		assert.Equal(t, int8(-1), ToInt8(uint64(math.MaxUint64)))
+	})
+
+	t.Run("string boundary values", func(t *testing.T) {
+		assert.Equal(t, int8(127), ToInt8("127"))
+		assert.Equal(t, int8(-128), ToInt8("-128"))
+		// string overflow for int8 range
+		assert.Equal(t, int8(0), ToInt8("128"))
+		assert.Equal(t, int8(0), ToInt8("-129"))
+	})
+
+	t.Run("float special values", func(t *testing.T) {
+		_ = ToInt8(math.NaN())
+		_ = ToInt8(math.Inf(1))
+		_ = ToInt8(math.Inf(-1))
 	})
 }
 
@@ -141,6 +204,23 @@ func TestToInt16(t *testing.T) {
 		assert.Equal(t, int16(0), ToInt16(nil))
 		assert.Equal(t, int16(0), ToInt16(struct{}{}))
 	})
+
+	t.Run("overflow truncation from large values", func(t *testing.T) {
+		// 32768 wraps to -32768 for int16
+		assert.Equal(t, int16(-32768), ToInt16(int32(32768)))
+		assert.Equal(t, int16(0), ToInt16(int32(65536)))
+		// int64 max → int16 truncation
+		assert.Equal(t, int16(-1), ToInt16(int64(math.MaxInt64)))
+		// uint64 max → int16 truncation
+		assert.Equal(t, int16(-1), ToInt16(uint64(math.MaxUint64)))
+	})
+
+	t.Run("string boundary values", func(t *testing.T) {
+		assert.Equal(t, int16(32767), ToInt16("32767"))
+		assert.Equal(t, int16(-32768), ToInt16("-32768"))
+		assert.Equal(t, int16(0), ToInt16("32768"))
+		assert.Equal(t, int16(0), ToInt16("-32769"))
+	})
 }
 
 func TestToInt32(t *testing.T) {
@@ -185,6 +265,24 @@ func TestToInt32(t *testing.T) {
 	t.Run("nil and invalid types", func(t *testing.T) {
 		assert.Equal(t, int32(0), ToInt32(nil))
 		assert.Equal(t, int32(0), ToInt32(struct{}{}))
+	})
+
+	t.Run("overflow truncation from large values", func(t *testing.T) {
+		// int64 max → int32 truncation
+		assert.Equal(t, int32(-1), ToInt32(int64(math.MaxInt64)))
+		// int64 min → int32 truncation
+		assert.Equal(t, int32(0), ToInt32(int64(math.MinInt64)))
+		// uint64 max → int32 truncation
+		assert.Equal(t, int32(-1), ToInt32(uint64(math.MaxUint64)))
+		// just over int32 max
+		assert.Equal(t, int32(-2147483648), ToInt32(int64(2147483648)))
+	})
+
+	t.Run("string boundary values", func(t *testing.T) {
+		assert.Equal(t, int32(2147483647), ToInt32("2147483647"))
+		assert.Equal(t, int32(-2147483648), ToInt32("-2147483648"))
+		assert.Equal(t, int32(0), ToInt32("2147483648"))
+		assert.Equal(t, int32(0), ToInt32("-2147483649"))
 	})
 }
 
@@ -236,5 +334,32 @@ func TestToInt64(t *testing.T) {
 		assert.Equal(t, int64(0), ToInt64(nil))
 		assert.Equal(t, int64(0), ToInt64(struct{}{}))
 		assert.Equal(t, int64(0), ToInt64(map[string]int{}))
+	})
+
+	t.Run("uint64 max overflow to int64", func(t *testing.T) {
+		// uint64 max (18446744073709551615) → int64 wraps to -1
+		assert.Equal(t, int64(-1), ToInt64(uint64(math.MaxUint64)))
+		// uint64 just over int64 max
+		assert.Equal(t, int64(math.MinInt64), ToInt64(uint64(uint64(math.MaxInt64)+1)))
+	})
+
+	t.Run("string boundary values", func(t *testing.T) {
+		assert.Equal(t, int64(math.MaxInt64), ToInt64("9223372036854775807"))
+		assert.Equal(t, int64(math.MinInt64), ToInt64("-9223372036854775808"))
+		// overflow
+		assert.Equal(t, int64(0), ToInt64("9223372036854775808"))
+		assert.Equal(t, int64(0), ToInt64("-9223372036854775809"))
+	})
+
+	t.Run("float special values to int64", func(t *testing.T) {
+		_ = ToInt64(math.NaN())
+		_ = ToInt64(math.Inf(1))
+		_ = ToInt64(math.Inf(-1))
+	})
+
+	t.Run("float precision edge cases", func(t *testing.T) {
+		assert.Equal(t, int64(0), ToInt64(float64(0.9999999)))
+		assert.Equal(t, int64(-1), ToInt64(float64(-1.0000001)))
+		assert.Equal(t, int64(0), ToInt64(float64(-0.0)))
 	})
 }

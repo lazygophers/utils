@@ -61,6 +61,43 @@ func TestToFloat32(t *testing.T) {
 		assert.True(t, math.IsInf(float64(ToFloat32("Inf")), 1))
 		assert.True(t, math.IsInf(float64(ToFloat32("-Inf")), -1))
 	})
+
+	t.Run("float64 to float32 overflow", func(t *testing.T) {
+		// float64 value larger than float32 max → Inf
+		assert.True(t, math.IsInf(float64(ToFloat32(float64(math.MaxFloat64))), 1))
+		assert.True(t, math.IsInf(float64(ToFloat32(float64(-math.MaxFloat64))), -1))
+	})
+
+	t.Run("NaN and Inf passthrough from float values", func(t *testing.T) {
+		assert.True(t, math.IsNaN(float64(ToFloat32(math.NaN()))))
+		assert.True(t, math.IsInf(float64(ToFloat32(math.Inf(1))), 1))
+		assert.True(t, math.IsInf(float64(ToFloat32(math.Inf(-1))), -1))
+		// float32 NaN passthrough
+		assert.True(t, math.IsNaN(float64(ToFloat32(float32(math.NaN())))))
+	})
+
+	t.Run("negative zero", func(t *testing.T) {
+		result := ToFloat32(float64(-0.0))
+		assert.Equal(t, float32(0), result)
+	})
+
+	t.Run("byte slice special values", func(t *testing.T) {
+		assert.True(t, math.IsNaN(float64(ToFloat32([]byte("NaN")))))
+		assert.True(t, math.IsInf(float64(ToFloat32([]byte("Inf"))), 1))
+		assert.True(t, math.IsInf(float64(ToFloat32([]byte("-Inf"))), -1))
+	})
+
+	t.Run("int64 to float32 precision loss", func(t *testing.T) {
+		// Large int64 values lose precision in float32
+		large := int64(1<<53 + 1)
+		result := ToFloat32(large)
+		// The conversion should not panic, value may differ due to precision loss
+		assert.NotEqual(t, float32(0), result)
+	})
+
+	t.Run("string overflow", func(t *testing.T) {
+		assert.Equal(t, float32(0), ToFloat32("1e999"))
+	})
 }
 
 func TestToFloat64(t *testing.T) {
@@ -131,5 +168,51 @@ func TestToFloat64(t *testing.T) {
 		assert.Equal(t, float64(1.23e10), ToFloat64("1.23e10"))
 		assert.Equal(t, float64(4.56e-5), ToFloat64("4.56e-5"))
 		assert.Equal(t, float64(-7.89e12), ToFloat64("-7.89e12"))
+	})
+
+	t.Run("NaN and Inf passthrough from float values", func(t *testing.T) {
+		assert.True(t, math.IsNaN(ToFloat64(math.NaN())))
+		assert.True(t, math.IsInf(ToFloat64(math.Inf(1)), 1))
+		assert.True(t, math.IsInf(ToFloat64(math.Inf(-1)), -1))
+		// float32 NaN/Inf → float64
+		assert.True(t, math.IsNaN(ToFloat64(float32(math.NaN()))))
+		assert.True(t, math.IsInf(ToFloat64(float32(math.Inf(1))), 1))
+	})
+
+	t.Run("negative zero", func(t *testing.T) {
+		negZero := math.Copysign(0, -1)
+		result := ToFloat64(negZero)
+		assert.Equal(t, float64(0), result)
+		assert.True(t, math.Signbit(result))
+	})
+
+	t.Run("byte slice special values", func(t *testing.T) {
+		assert.True(t, math.IsNaN(ToFloat64([]byte("NaN"))))
+		assert.True(t, math.IsInf(ToFloat64([]byte("Inf")), 1))
+		assert.True(t, math.IsInf(ToFloat64([]byte("-Inf")), -1))
+		assert.True(t, math.IsInf(ToFloat64([]byte("+Inf")), 1))
+	})
+
+	t.Run("int64 max precision", func(t *testing.T) {
+		// int64 max → float64: may lose precision
+		result := ToFloat64(int64(math.MaxInt64))
+		assert.NotEqual(t, float64(0), result)
+	})
+
+	t.Run("uint64 max precision", func(t *testing.T) {
+		result := ToFloat64(uint64(math.MaxUint64))
+		assert.NotEqual(t, float64(0), result)
+	})
+
+	t.Run("string overflow", func(t *testing.T) {
+		// 1e999 overflows float64, ParseFloat returns +Inf with ErrRange
+		// Since err != nil, the function falls through and returns 0
+		assert.Equal(t, float64(0), ToFloat64("1e999"))
+		assert.Equal(t, float64(0), ToFloat64("-1e999"))
+	})
+
+	t.Run("subnormal float values", func(t *testing.T) {
+		assert.Equal(t, math.SmallestNonzeroFloat64, ToFloat64(math.SmallestNonzeroFloat64))
+		assert.Equal(t, math.MaxFloat64, ToFloat64(math.MaxFloat64))
 	})
 }
