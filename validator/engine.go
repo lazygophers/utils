@@ -8,6 +8,14 @@ import (
 	"strings"
 )
 
+// 预编译正则表达式
+var (
+	emailRegex    = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	urlRegex      = regexp.MustCompile(`^(https?|ftp)://[^\s/$.?#].[^\s]*$`)
+	alphaRegex    = regexp.MustCompile(`^[a-zA-Z]+$`)
+	alphanumRegex = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+)
+
 // Engine 自定义验证引擎
 type Engine struct {
 	validators    map[string]ValidatorFunc
@@ -304,7 +312,7 @@ func structFieldNameFunc(field reflect.StructField) string {
 // registerBuiltinValidators 注册内置验证器
 func (e *Engine) registerBuiltinValidators() {
 	// 必填验证
-	e.RegisterValidation("required", func(fl FieldLevel) bool {
+	e.validators["required"] = func(fl FieldLevel) bool {
 		field := fl.Field()
 		switch field.Kind() {
 		case reflect.String:
@@ -316,30 +324,28 @@ func (e *Engine) registerBuiltinValidators() {
 		default:
 			return field.IsValid() && !field.IsZero()
 		}
-	})
+	}
 
 	// 邮箱验证
-	e.RegisterValidation("email", func(fl FieldLevel) bool {
+	e.validators["email"] = func(fl FieldLevel) bool {
 		email := fl.Field().String()
 		if email == "" {
 			return true // 空值不验证，用required控制
 		}
-		matched, _ := regexp.MatchString(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, email)
-		return matched
-	})
+		return emailRegex.MatchString(email)
+	}
 
 	// URL验证
-	e.RegisterValidation("url", func(fl FieldLevel) bool {
+	e.validators["url"] = func(fl FieldLevel) bool {
 		url := fl.Field().String()
 		if url == "" {
 			return true
 		}
-		matched, _ := regexp.MatchString(`^(https?|ftp)://[^\s/$.?#].[^\s]*$`, url)
-		return matched
-	})
+		return urlRegex.MatchString(url)
+	}
 
 	// 最小值验证
-	e.RegisterValidation("min", func(fl FieldLevel) bool {
+	e.validators["min"] = func(fl FieldLevel) bool {
 		field := fl.Field()
 		param := fl.Param()
 
@@ -361,10 +367,10 @@ func (e *Engine) registerBuiltinValidators() {
 			return field.Float() >= min
 		}
 		return false
-	})
+	}
 
 	// 最大值验证
-	e.RegisterValidation("max", func(fl FieldLevel) bool {
+	e.validators["max"] = func(fl FieldLevel) bool {
 		field := fl.Field()
 		param := fl.Param()
 
@@ -386,10 +392,10 @@ func (e *Engine) registerBuiltinValidators() {
 			return field.Float() <= max
 		}
 		return false
-	})
+	}
 
 	// 长度验证
-	e.RegisterValidation("len", func(fl FieldLevel) bool {
+	e.validators["len"] = func(fl FieldLevel) bool {
 		field := fl.Field()
 		param := fl.Param()
 
@@ -405,40 +411,38 @@ func (e *Engine) registerBuiltinValidators() {
 			return field.Len() == length
 		}
 		return false
-	})
+	}
 
 	// 数字验证
-	e.RegisterValidation("numeric", func(fl FieldLevel) bool {
+	e.validators["numeric"] = func(fl FieldLevel) bool {
 		value := fl.Field().String()
 		if value == "" {
 			return true
 		}
 		_, err := strconv.ParseFloat(value, 64)
 		return err == nil
-	})
+	}
 
 	// 字母验证
-	e.RegisterValidation("alpha", func(fl FieldLevel) bool {
+	e.validators["alpha"] = func(fl FieldLevel) bool {
 		value := fl.Field().String()
 		if value == "" {
 			return true
 		}
-		matched, _ := regexp.MatchString(`^[a-zA-Z]+$`, value)
-		return matched
-	})
+		return alphaRegex.MatchString(value)
+	}
 
 	// 字母数字验证
-	e.RegisterValidation("alphanum", func(fl FieldLevel) bool {
+	e.validators["alphanum"] = func(fl FieldLevel) bool {
 		value := fl.Field().String()
 		if value == "" {
 			return true
 		}
-		matched, _ := regexp.MatchString(`^[a-zA-Z0-9]+$`, value)
-		return matched
-	})
+		return alphanumRegex.MatchString(value)
+	}
 
 	// 等于验证
-	e.RegisterValidation("eq", func(fl FieldLevel) bool {
+	e.validators["eq"] = func(fl FieldLevel) bool {
 		field := fl.Field()
 		param := fl.Param()
 
@@ -459,12 +463,12 @@ func (e *Engine) registerBuiltinValidators() {
 			}
 		}
 		return false
-	})
+	}
 
 	// 不等于验证
-	e.RegisterValidation("ne", func(fl FieldLevel) bool {
+	e.validators["ne"] = func(fl FieldLevel) bool {
 		// 复用eq验证，然后取反
 		eqValidator := e.validators["eq"]
 		return !eqValidator(fl)
-	})
+	}
 }

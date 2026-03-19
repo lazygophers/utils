@@ -161,7 +161,7 @@ func EncryptCBC(key, plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	mode := cipher.NewCBCEncrypter(block, iv)
+	mode := cipher.NewCBCEncrypter(block, iv) // #nosec G407 - IV is randomly generated via crypto/rand
 	mode.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
 	return ciphertext, nil
 }
@@ -184,7 +184,7 @@ func DecryptCBC(key, ciphertext []byte) ([]byte, error) {
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
-	mode := cipher.NewCBCDecrypter(block, iv)
+	mode := cipher.NewCBCDecrypter(block, iv) // #nosec G407 - IV extracted from input ciphertext
 	mode.CryptBlocks(ciphertext, ciphertext)
 
 	plaintext, err := unpadPKCS7(ciphertext)
@@ -212,7 +212,7 @@ func EncryptCFB(key, plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	stream := cipher.NewCFBEncrypter(block, iv)
+	stream := cipher.NewCFBEncrypter(block, iv) // #nosec G407 - IV is randomly generated via crypto/rand
 	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
 	return ciphertext, nil
 }
@@ -235,7 +235,7 @@ func DecryptCFB(key, ciphertext []byte) ([]byte, error) {
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
-	stream := cipher.NewCFBDecrypter(block, iv)
+	stream := cipher.NewCFBDecrypter(block, iv) // #nosec G407 - IV extracted from input ciphertext
 	stream.XORKeyStream(ciphertext, ciphertext)
 	return ciphertext, nil
 }
@@ -258,7 +258,7 @@ func EncryptCTR(key, plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	stream := cipher.NewCTR(block, iv)
+	stream := cipher.NewCTR(block, iv) // #nosec G407 - IV is randomly generated via crypto/rand
 	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
 	return ciphertext, nil
 }
@@ -281,7 +281,7 @@ func DecryptCTR(key, ciphertext []byte) ([]byte, error) {
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
-	stream := cipher.NewCTR(block, iv)
+	stream := cipher.NewCTR(block, iv) // #nosec G407 - IV extracted from input ciphertext
 	stream.XORKeyStream(ciphertext, ciphertext)
 	return ciphertext, nil
 }
@@ -304,7 +304,7 @@ func EncryptOFB(key, plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	stream := cipher.NewOFB(block, iv)
+	stream := cipher.NewOFB(block, iv) // #nosec G407 - IV is randomly generated via crypto/rand
 	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
 	return ciphertext, nil
 }
@@ -327,7 +327,7 @@ func DecryptOFB(key, ciphertext []byte) ([]byte, error) {
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
-	stream := cipher.NewOFB(block, iv)
+	stream := cipher.NewOFB(block, iv) // #nosec G407 - IV extracted from input ciphertext
 	stream.XORKeyStream(ciphertext, ciphertext)
 	return ciphertext, nil
 }

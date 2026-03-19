@@ -168,7 +168,7 @@ func ToInt64Slice(val interface{}) []int64 {
 	case []uint:
 		var v []int64
 		for _, val := range x {
-			v = append(v, int64(val))
+			v = append(v, int64(val)) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
 		return v
 	case []uint8:
@@ -192,7 +192,7 @@ func ToInt64Slice(val interface{}) []int64 {
 	case []uint64:
 		var v []int64
 		for _, val := range x {
-			v = append(v, int64(val))
+			v = append(v, int64(val)) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
 		return v
 	case []float32:

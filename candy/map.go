@@ -38,7 +38,7 @@ func MapKeysInt8(m interface{}) []int8 {
 	keys := make([]int8, 0, val.Len())
 	for _, key := range val.MapKeys() {
 		if key.Kind() == reflect.Int8 {
-			keys = append(keys, int8(key.Int()))
+			keys = append(keys, int8(key.Int())) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
 	}
 	return keys
@@ -53,7 +53,7 @@ func MapKeysInt16(m interface{}) []int16 {
 	keys := make([]int16, 0, val.Len())
 	for _, key := range val.MapKeys() {
 		if key.Kind() == reflect.Int16 {
-			keys = append(keys, int16(key.Int()))
+			keys = append(keys, int16(key.Int())) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
 	}
 	return keys
@@ -68,7 +68,7 @@ func MapKeysInt32(m interface{}) []int32 {
 	keys := make([]int32, 0, val.Len())
 	for _, key := range val.MapKeys() {
 		if key.Kind() == reflect.Int32 {
-			keys = append(keys, int32(key.Int()))
+			keys = append(keys, int32(key.Int())) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
 	}
 	return keys
@@ -113,7 +113,7 @@ func MapKeysUint8(m interface{}) []uint8 {
 	keys := make([]uint8, 0, val.Len())
 	for _, key := range val.MapKeys() {
 		if key.Kind() == reflect.Uint8 {
-			keys = append(keys, uint8(key.Uint()))
+			keys = append(keys, uint8(key.Uint())) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
 	}
 	return keys
@@ -128,7 +128,7 @@ func MapKeysUint16(m interface{}) []uint16 {
 	keys := make([]uint16, 0, val.Len())
 	for _, key := range val.MapKeys() {
 		if key.Kind() == reflect.Uint16 {
-			keys = append(keys, uint16(key.Uint()))
+			keys = append(keys, uint16(key.Uint())) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
 	}
 	return keys
@@ -143,7 +143,7 @@ func MapKeysUint32(m interface{}) []uint32 {
 	keys := make([]uint32, 0, val.Len())
 	for _, key := range val.MapKeys() {
 		if key.Kind() == reflect.Uint32 {
-			keys = append(keys, uint32(key.Uint()))
+			keys = append(keys, uint32(key.Uint())) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
 	}
 	return keys

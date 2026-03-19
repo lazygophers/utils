@@ -61,9 +61,9 @@ func NewCountMinSketch(capacity int) *CountMinSketch {
 // hash generates multiple hash values for a key
 func (cms *CountMinSketch) hash(key []byte, i int) uint32 {
 	h := fnv.New32a()
-	h.Write(key)
-	h.Write([]byte{byte(i)})
-	return h.Sum32() % uint32(cms.width)
+	_, _ = h.Write(key)
+	_, _ = h.Write([]byte{byte(i)})
+	return h.Sum32() % uint32(cms.width) // #nosec G115 -- width is constrained to positive int, max 10*capacity, always safe for uint32
 }
 
 // keyToBytes converts a comparable key to bytes for hashing
@@ -90,7 +90,7 @@ func keyToBytes[K comparable](key K) []byte {
 		return bytes
 	default:
 		// Fallback: use hash of the key
-		h.Write([]byte(string(rune(int(h.Sum64())))))
+		_, _ = h.Write([]byte(string(rune(int(h.Sum64()))))) // #nosec G115 -- hash value truncation is intentional for key serialization fallback
 		sum := h.Sum64()
 		bytes := make([]byte, 8)
 		for i := 0; i < 8; i++ {

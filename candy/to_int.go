@@ -33,7 +33,7 @@ func ToInt(val interface{}) int {
 	case int64:
 		return int(x)
 	case uint:
-		return int(x)
+		return int(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint8:
 		return int(x)
 	case uint16:
@@ -41,7 +41,7 @@ func ToInt(val interface{}) int {
 	case uint32:
 		return int(x)
 	case uint64:
-		return int(x)
+		return int(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case float32:
 		return int(x)
 	case float64:
@@ -80,25 +80,25 @@ func ToInt8(val interface{}) int8 {
 		}
 		return 0
 	case int:
-		return int8(x)
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int8:
 		return x
 	case int16:
-		return int8(x)
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int32:
-		return int8(x)
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int64:
-		return int8(x)
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint:
-		return int8(x)
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint8:
-		return int8(x)
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint16:
-		return int8(x)
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint32:
-		return int8(x)
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint64:
-		return int8(x)
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case float32:
 		return int8(x)
 	case float64:
@@ -137,25 +137,25 @@ func ToInt16(val interface{}) int16 {
 		}
 		return 0
 	case int:
-		return int16(x)
+		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int8:
 		return int16(x)
 	case int16:
 		return x
 	case int32:
-		return int16(x)
+		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int64:
-		return int16(x)
+		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint:
-		return int16(x)
+		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint8:
 		return int16(x)
 	case uint16:
-		return int16(x)
+		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint32:
-		return int16(x)
+		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint64:
-		return int16(x)
+		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case float32:
 		return int16(x)
 	case float64:
@@ -194,7 +194,7 @@ func ToInt32(val interface{}) int32 {
 		}
 		return 0
 	case int:
-		return int32(x)
+		return int32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int8:
 		return int32(x)
 	case int16:
@@ -202,17 +202,17 @@ func ToInt32(val interface{}) int32 {
 	case int32:
 		return x
 	case int64:
-		return int32(x)
+		return int32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint:
-		return int32(x)
+		return int32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint8:
 		return int32(x)
 	case uint16:
 		return int32(x)
 	case uint32:
-		return int32(x)
+		return int32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint64:
-		return int32(x)
+		return int32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case float32:
 		return int32(x)
 	case float64:
@@ -262,7 +262,7 @@ func ToInt64(val interface{}) int64 {
 	case int64:
 		return x
 	case uint:
-		return int64(x)
+		return int64(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint8:
 		return int64(x)
 	case uint16:
@@ -270,7 +270,7 @@ func ToInt64(val interface{}) int64 {
 	case uint32:
 		return int64(x)
 	case uint64:
-		return int64(x)
+		return int64(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case time.Duration:
 		return int64(x)
 	case float32:

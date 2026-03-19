@@ -67,7 +67,7 @@ func KeyByInt[T any](ss []T, fieldName string) map[int]T {
 // 如果字段不存在或不是int8类型，会panic
 func KeyByInt8[T any](ss []T, fieldName string) map[int8]T {
 	return keyByField(ss, fieldName, reflect.Int8, func(fieldValue reflect.Value) int8 {
-		return int8(fieldValue.Int())
+		return int8(fieldValue.Int()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 
@@ -75,7 +75,7 @@ func KeyByInt8[T any](ss []T, fieldName string) map[int8]T {
 // 如果字段不存在或不是int16类型，会panic
 func KeyByInt16[T any](ss []T, fieldName string) map[int16]T {
 	return keyByField(ss, fieldName, reflect.Int16, func(fieldValue reflect.Value) int16 {
-		return int16(fieldValue.Int())
+		return int16(fieldValue.Int()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 
@@ -83,7 +83,7 @@ func KeyByInt16[T any](ss []T, fieldName string) map[int16]T {
 // 如果字段不存在或不是int32类型，会panic
 func KeyByInt32[T any](ss []T, fieldName string) map[int32]T {
 	return keyByField(ss, fieldName, reflect.Int32, func(fieldValue reflect.Value) int32 {
-		return int32(fieldValue.Int())
+		return int32(fieldValue.Int()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 
@@ -99,7 +99,7 @@ func KeyByInt64[T any](ss []T, fieldName string) map[int64]T {
 // 如果字段不存在或不是uint8类型，会panic
 func KeyByUint8[T any](ss []T, fieldName string) map[uint8]T {
 	return keyByField(ss, fieldName, reflect.Uint8, func(fieldValue reflect.Value) uint8 {
-		return uint8(fieldValue.Uint())
+		return uint8(fieldValue.Uint()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 
@@ -107,7 +107,7 @@ func KeyByUint8[T any](ss []T, fieldName string) map[uint8]T {
 // 如果字段不存在或不是uint16类型，会panic
 func KeyByUint16[T any](ss []T, fieldName string) map[uint16]T {
 	return keyByField(ss, fieldName, reflect.Uint16, func(fieldValue reflect.Value) uint16 {
-		return uint16(fieldValue.Uint())
+		return uint16(fieldValue.Uint()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 
@@ -115,7 +115,7 @@ func KeyByUint16[T any](ss []T, fieldName string) map[uint16]T {
 // 如果字段不存在或不是uint32类型，会panic
 func KeyByUint32[T any](ss []T, fieldName string) map[uint32]T {
 	return keyByField(ss, fieldName, reflect.Uint32, func(fieldValue reflect.Value) uint32 {
-		return uint32(fieldValue.Uint())
+		return uint32(fieldValue.Uint()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 

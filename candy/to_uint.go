@@ -90,7 +90,7 @@ func ToUint8(val interface{}) uint8 {
 		if x < 0 {
 			return 0
 		}
-		return uint8(x)
+		return uint8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int8:
 		if x < 0 {
 			return 0
@@ -100,27 +100,27 @@ func ToUint8(val interface{}) uint8 {
 		if x < 0 {
 			return 0
 		}
-		return uint8(x)
+		return uint8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int32:
 		if x < 0 {
 			return 0
 		}
-		return uint8(x)
+		return uint8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int64:
 		if x < 0 {
 			return 0
 		}
-		return uint8(x)
+		return uint8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint:
-		return uint8(x)
+		return uint8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint8:
 		return x
 	case uint16:
-		return uint8(x)
+		return uint8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint32:
-		return uint8(x)
+		return uint8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint64:
-		return uint8(x)
+		return uint8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case float32:
 		return uint8(x)
 	case float64:
@@ -163,7 +163,7 @@ func ToUint16(val interface{}) uint16 {
 		if x < 0 {
 			return 0
 		}
-		return uint16(x)
+		return uint16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int8:
 		if x < 0 {
 			return 0
@@ -178,22 +178,22 @@ func ToUint16(val interface{}) uint16 {
 		if x < 0 {
 			return 0
 		}
-		return uint16(x)
+		return uint16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int64:
 		if x < 0 {
 			return 0
 		}
-		return uint16(x)
+		return uint16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint:
-		return uint16(x)
+		return uint16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint8:
 		return uint16(x)
 	case uint16:
 		return x
 	case uint32:
-		return uint16(x)
+		return uint16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint64:
-		return uint16(x)
+		return uint16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case float32:
 		return uint16(x)
 	case float64:
@@ -230,7 +230,7 @@ func ToUint32(val interface{}) uint32 {
 		if x < 0 {
 			return 0
 		}
-		return uint32(x)
+		return uint32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int8:
 		if x < 0 {
 			return 0
@@ -250,9 +250,9 @@ func ToUint32(val interface{}) uint32 {
 		if x < 0 {
 			return 0
 		}
-		return uint32(x)
+		return uint32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint:
-		return uint32(x)
+		return uint32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint8:
 		return uint32(x)
 	case uint16:
@@ -260,7 +260,7 @@ func ToUint32(val interface{}) uint32 {
 	case uint32:
 		return x
 	case uint64:
-		return uint32(x)
+		return uint32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case float32:
 		return uint32(x)
 	case float64:

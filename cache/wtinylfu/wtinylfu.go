@@ -508,7 +508,7 @@ func (c *Cache[K, V]) hash(key K) uint32 {
 
 	// Use FNV-1a hash
 	h := fnv.New32a()
-	h.Write([]byte(keyStr))
+	_, _ = h.Write([]byte(keyStr))
 	return h.Sum32()
 }
 
@@ -531,7 +531,7 @@ func newCountMinSketch(capacity int) *countMinSketch {
 		width:  width,
 		depth:  depth,
 		table:  table,
-		mask:   uint32(width - 1),
+		mask:   uint32(width - 1), // #nosec G115 -- width is always positive, min 16, set by newCountMinSketch
 		sample: sampleRate,
 	}
 }
@@ -544,8 +544,8 @@ func (s *countMinSketch) increment(hash uint32) {
 	}
 
 	for i := 0; i < s.depth; i++ {
-		idx := (hash + uint32(i)) & s.mask
-		if s.table[i][idx] < 255 { // Prevent overflow
+		idx := (hash + uint32(i)) & s.mask // #nosec G115 -- i is loop counter 0..3 (depth=4), always safe
+		if s.table[i][idx] < 255 {         // Prevent overflow
 			s.table[i][idx]++
 		}
 	}
@@ -555,7 +555,7 @@ func (s *countMinSketch) increment(hash uint32) {
 func (s *countMinSketch) estimate(hash uint32) uint8 {
 	min := uint8(255)
 	for i := 0; i < s.depth; i++ {
-		idx := (hash + uint32(i)) & s.mask
+		idx := (hash + uint32(i)) & s.mask // #nosec G115 -- i is loop counter 0..3 (depth=4), always safe
 		if s.table[i][idx] < min {
 			min = s.table[i][idx]
 		}

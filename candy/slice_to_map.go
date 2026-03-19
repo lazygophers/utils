@@ -53,7 +53,7 @@ func SliceField2MapInt[T any](ss []T, fieldName string) map[int]bool {
 // Panics if the field doesn't exist or is not an int8 type
 func SliceField2MapInt8[T any](ss []T, fieldName string) map[int8]bool {
 	return sliceField2Map(ss, fieldName, reflect.Int8, func(fieldValue reflect.Value) int8 {
-		return int8(fieldValue.Int())
+		return int8(fieldValue.Int()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 
@@ -61,7 +61,7 @@ func SliceField2MapInt8[T any](ss []T, fieldName string) map[int8]bool {
 // Panics if the field doesn't exist or is not an int16 type
 func SliceField2MapInt16[T any](ss []T, fieldName string) map[int16]bool {
 	return sliceField2Map(ss, fieldName, reflect.Int16, func(fieldValue reflect.Value) int16 {
-		return int16(fieldValue.Int())
+		return int16(fieldValue.Int()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 
@@ -69,7 +69,7 @@ func SliceField2MapInt16[T any](ss []T, fieldName string) map[int16]bool {
 // Panics if the field doesn't exist or is not an int32 type
 func SliceField2MapInt32[T any](ss []T, fieldName string) map[int32]bool {
 	return sliceField2Map(ss, fieldName, reflect.Int32, func(fieldValue reflect.Value) int32 {
-		return int32(fieldValue.Int())
+		return int32(fieldValue.Int()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 
@@ -93,7 +93,7 @@ func SliceField2MapUint[T any](ss []T, fieldName string) map[uint]bool {
 // Panics if the field doesn't exist or is not a uint8 type
 func SliceField2MapUint8[T any](ss []T, fieldName string) map[uint8]bool {
 	return sliceField2Map(ss, fieldName, reflect.Uint8, func(fieldValue reflect.Value) uint8 {
-		return uint8(fieldValue.Uint())
+		return uint8(fieldValue.Uint()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 
@@ -101,7 +101,7 @@ func SliceField2MapUint8[T any](ss []T, fieldName string) map[uint8]bool {
 // Panics if the field doesn't exist or is not a uint16 type
 func SliceField2MapUint16[T any](ss []T, fieldName string) map[uint16]bool {
 	return sliceField2Map(ss, fieldName, reflect.Uint16, func(fieldValue reflect.Value) uint16 {
-		return uint16(fieldValue.Uint())
+		return uint16(fieldValue.Uint()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 
@@ -109,7 +109,7 @@ func SliceField2MapUint16[T any](ss []T, fieldName string) map[uint16]bool {
 // Panics if the field doesn't exist or is not a uint32 type
 func SliceField2MapUint32[T any](ss []T, fieldName string) map[uint32]bool {
 	return sliceField2Map(ss, fieldName, reflect.Uint32, func(fieldValue reflect.Value) uint32 {
-		return uint32(fieldValue.Uint())
+		return uint32(fieldValue.Uint()) // #nosec G115 -- intentional truncation for best-effort conversion
 	})
 }
 

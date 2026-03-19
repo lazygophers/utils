@@ -21,6 +21,8 @@ var (
 // 这些函数可能会在未来的版本中被移除。
 
 // DESEncryptECB 使用 DES 在 ECB 模式下加密明文
+// 
+// Deprecated: DES is considered insecure due to its short key length (56 bits). Use AES-based functions instead.
 // 警告:DES 已被认为是不安全的,仅用于兼容性目的。推荐使用 AES。
 // 警告:ECB 模式在密码学上是不安全的,相同的明文块会产生相同的密文块。
 // #nosec G401 - DES 是弱加密算法,但保留用于向后兼容
@@ -43,6 +45,8 @@ func DESEncryptECB(key, plaintext []byte) ([]byte, error) {
 }
 
 // DESDecryptECB 使用 DES 在 ECB 模式下解密密文
+// 
+// Deprecated: DES is considered insecure due to its short key length (56 bits). Use AES-based functions instead.
 // 警告:DES 已被认为是不安全的,仅用于兼容性目的。推荐使用 AES。
 // 警告:ECB 模式在密码学上是不安全的,相同的明文块会产生相同的密文块。
 // #nosec G401 - DES 是弱加密算法,但保留用于向后兼容
@@ -68,6 +72,8 @@ func DESDecryptECB(key, ciphertext []byte) ([]byte, error) {
 }
 
 // DESEncryptCBC 使用 DES 在 CBC 模式下加密明文
+// 
+// Deprecated: DES is considered insecure due to its short key length (56 bits). Use AES-based functions instead.
 // 警告：DES 已被认为是不安全的，仅用于兼容性目的。推荐使用 AES。
 // #nosec G401 - DES 是弱加密算法，但保留用于向后兼容
 func DESEncryptCBC(key, plaintext []byte) ([]byte, error) {
@@ -88,12 +94,14 @@ func DESEncryptCBC(key, plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	mode := cipher.NewCBCEncrypter(block, iv)
+	mode := cipher.NewCBCEncrypter(block, iv) // #nosec G407 - IV is randomly generated via crypto/rand
 	mode.CryptBlocks(ciphertext[des.BlockSize:], plaintext)
 	return ciphertext, nil
 }
 
 // DESDecryptCBC 使用 DES 在 CBC 模式下解密密文
+// 
+// Deprecated: DES is considered insecure due to its short key length (56 bits). Use AES-based functions instead.
 // 警告:DES 已被认为是不安全的,仅用于兼容性目的。推荐使用 AES。
 // #nosec G401 - DES 是弱加密算法,但保留用于向后兼容
 func DESDecryptCBC(key, ciphertext []byte) ([]byte, error) {
@@ -117,13 +125,15 @@ func DESDecryptCBC(key, ciphertext []byte) ([]byte, error) {
 		return nil, errors.New("ciphertext is not a multiple of the block size")
 	}
 
-	mode := cipher.NewCBCDecrypter(block, iv)
+	mode := cipher.NewCBCDecrypter(block, iv) // #nosec G407 - IV extracted from input ciphertext
 	mode.CryptBlocks(ciphertext, ciphertext)
 
 	return unpadPKCS7(ciphertext)
 }
 
 // TripleDESEncryptECB 使用 3DES 在 ECB 模式下加密明文
+// 
+// Deprecated: 3DES is considered insecure. Use AES-based functions instead.
 // 警告：ECB 模式在密码学上是不安全的，相同的明文块会产生相同的密文块。
 // #nosec G401 - 3DES 是相对较弱的加密算法，但保留用于向后兼容
 func TripleDESEncryptECB(key, plaintext []byte) ([]byte, error) {
@@ -145,6 +155,8 @@ func TripleDESEncryptECB(key, plaintext []byte) ([]byte, error) {
 }
 
 // TripleDESDecryptECB 使用 3DES 在 ECB 模式下解密密文
+// 
+// Deprecated: 3DES is considered insecure. Use AES-based functions instead.
 // 警告：ECB 模式在密码学上是不安全的，相同的明文块会产生相同的密文块。
 // #nosec G401 - 3DES 是相对较弱的加密算法，但保留用于向后兼容
 func TripleDESDecryptECB(key, ciphertext []byte) ([]byte, error) {
@@ -169,6 +181,8 @@ func TripleDESDecryptECB(key, ciphertext []byte) ([]byte, error) {
 }
 
 // TripleDESEncryptCBC 使用 3DES 在 CBC 模式下加密明文
+// 
+// Deprecated: 3DES is considered insecure. Use AES-based functions instead.
 // 警告:3DES 已被认为是不安全的,仅用于兼容性目的。推荐使用 AES。
 // #nosec G401 - 3DES 是弱加密算法,但保留用于向后兼容
 func TripleDESEncryptCBC(key, plaintext []byte) ([]byte, error) {
@@ -189,12 +203,14 @@ func TripleDESEncryptCBC(key, plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	mode := cipher.NewCBCEncrypter(block, iv)
+	mode := cipher.NewCBCEncrypter(block, iv) // #nosec G407 - IV is randomly generated via crypto/rand
 	mode.CryptBlocks(ciphertext[des.BlockSize:], plaintext)
 	return ciphertext, nil
 }
 
 // TripleDESDecryptCBC 使用 3DES 在 CBC 模式下解密密文
+// 
+// Deprecated: 3DES is considered insecure. Use AES-based functions instead.
 // 警告:3DES 已被认为是不安全的,仅用于兼容性目的。推荐使用 AES。
 // #nosec G401 - 3DES 是弱加密算法,但保留用于向后兼容
 func TripleDESDecryptCBC(key, ciphertext []byte) ([]byte, error) {
@@ -218,7 +234,7 @@ func TripleDESDecryptCBC(key, ciphertext []byte) ([]byte, error) {
 		return nil, errors.New("ciphertext is not a multiple of the block size")
 	}
 
-	mode := cipher.NewCBCDecrypter(block, iv)
+	mode := cipher.NewCBCDecrypter(block, iv) // #nosec G407 - IV extracted from input ciphertext
 	mode.CryptBlocks(ciphertext, ciphertext)
 
 	return unpadPKCS7(ciphertext)

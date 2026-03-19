@@ -7,6 +7,20 @@ import (
 	"unicode"
 )
 
+// 预编译正则表达式
+var (
+	mobileRegex      = regexp.MustCompile(`^1[3-9]\d{9}$`)
+	idcard15Regex    = regexp.MustCompile(`^\d{15}$`)
+	idcard18Regex    = regexp.MustCompile(`^\d{17}[\dXx]$`)
+	chineseNameRegex = regexp.MustCompile(`^[\p{Han}·]{2,4}$`)
+	uuidRegex        = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+	macRegexPatterns = []*regexp.Regexp{
+		regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`),
+		regexp.MustCompile(`^([0-9A-Fa-f]{4}\.){2}([0-9A-Fa-f]{4})$`),
+		regexp.MustCompile(`^([0-9A-Fa-f]{12})$`),
+	}
+)
+
 // validateMobile 验证手机号码
 func validateMobile(fl FieldLevel) bool {
 	mobile := fl.Field().String()
@@ -15,8 +29,7 @@ func validateMobile(fl FieldLevel) bool {
 	}
 
 	// 中国大陆手机号格式：1[3-9]\d{9}
-	matched, _ := regexp.MatchString(`^1[3-9]\d{9}$`, mobile)
-	return matched
+	return mobileRegex.MatchString(mobile)
 }
 
 // validateIDCard 验证身份证号码
@@ -38,16 +51,12 @@ func validateIDCard(fl FieldLevel) bool {
 
 // validateIDCard15 验证15位身份证
 func validateIDCard15(idcard string) bool {
-	// 15位身份证格式验证
-	matched, _ := regexp.MatchString(`^\d{15}$`, idcard)
-	return matched
+	return idcard15Regex.MatchString(idcard)
 }
 
 // validateIDCard18 验证18位身份证
 func validateIDCard18(idcard string) bool {
-	// 18位身份证格式验证
-	matched, _ := regexp.MatchString(`^\d{17}[\dXx]$`, idcard)
-	if !matched {
+	if !idcard18Regex.MatchString(idcard) {
 		return false
 	}
 
@@ -139,8 +148,7 @@ func validateChineseName(fl FieldLevel) bool {
 	}
 
 	// 中文姓名：2-4个中文字符，可能包含·（少数民族姓名）
-	matched, _ := regexp.MatchString(`^[\p{Han}·]{2,4}$`, name)
-	return matched
+	return chineseNameRegex.MatchString(name)
 }
 
 // validateStrongPassword 验证强密码
@@ -195,9 +203,7 @@ func validateURL(fl FieldLevel) bool {
 		return false
 	}
 
-	// 支持 http, https, ftp 协议
-	matched, _ := regexp.MatchString(`^(https?|ftp)://[^\s/$.?#].[^\s]*$`, url)
-	return matched
+	return urlRegex.MatchString(url)
 }
 
 // validateEmail 增强的邮箱验证
@@ -207,9 +213,7 @@ func validateEmail(fl FieldLevel) bool {
 		return false
 	}
 
-	// 更严格的邮箱验证
-	matched, _ := regexp.MatchString(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`, email)
-	return matched
+	return emailRegex.MatchString(email)
 }
 
 // validateIPv4 IPv4地址验证
@@ -246,15 +250,8 @@ func validateMAC(fl FieldLevel) bool {
 		return false
 	}
 
-	// 支持多种MAC地址格式
-	patterns := []string{
-		`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`, // XX:XX:XX:XX:XX:XX 或 XX-XX-XX-XX-XX-XX
-		`^([0-9A-Fa-f]{4}\.){2}([0-9A-Fa-f]{4})$`,   // XXXX.XXXX.XXXX
-		`^([0-9A-Fa-f]{12})$`,                       // XXXXXXXXXXXX
-	}
-
-	for _, pattern := range patterns {
-		if matched, _ := regexp.MatchString(pattern, mac); matched {
+	for _, re := range macRegexPatterns {
+		if re.MatchString(mac) {
 			return true
 		}
 	}
@@ -282,7 +279,5 @@ func validateUUID(fl FieldLevel) bool {
 		return false
 	}
 
-	// UUID格式：xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-	matched, _ := regexp.MatchString(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`, strings.ToLower(uuid))
-	return matched
+	return uuidRegex.MatchString(strings.ToLower(uuid))
 }
