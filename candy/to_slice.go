@@ -272,3 +272,333 @@ func ToStringSlice(v interface{}) []string {
 func ToArrayString(v interface{}) []string {
 	return ToStringSlice(v)
 }
+
+// ToUint64Slice 将一个切片接口尽力转换为 []uint64。
+//
+// 支持的输入切片类型包括：
+//   - []bool, []int, []int8, ..., []uint64, []float32, []float64, []string, [][]byte, []interface{}
+//
+// 切片中的每一个元素都会通过 ToUint64 函数进行转换。
+// 如果输入为 nil，将直接返回 nil。
+// 如果输入为不支持的类型，将返回一个空的 []uint64{}。
+func ToUint64Slice(val interface{}) []uint64 {
+	if val == nil {
+		return nil
+	}
+	switch x := val.(type) {
+	case []bool:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []int:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []int8:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []int16:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []int32:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []int64:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []uint:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []uint8:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []uint16:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []uint32:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []uint64:
+		return x
+	case []float32:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []float64:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []string:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case [][]byte:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	case []interface{}:
+		var v []uint64
+		for _, val := range x {
+			v = append(v, ToUint64(val))
+		}
+		return v
+	default:
+		return []uint64{}
+	}
+}
+
+// ToUint32Slice 将一个切片接口尽力转换为 []uint32。
+//
+// 支持的输入切片类型包括：
+//   - []bool, []int, []int8, ..., []uint64, []float32, []float64, []string, [][]byte, []interface{}
+//
+// 切片中的每一个元素都会通过 ToUint32 函数进行转换。
+// 如果输入为 nil，将直接返回 nil。
+// 如果输入为不支持的类型，将返回一个空的 []uint32{}。
+func ToUint32Slice(val interface{}) []uint32 {
+	if val == nil {
+		return nil
+	}
+	switch x := val.(type) {
+	case []bool:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []int:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []int8:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []int16:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []int32:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []int64:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []uint:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []uint8:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []uint16:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []uint32:
+		return x
+	case []uint64:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []float32:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []float64:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []string:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case [][]byte:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	case []interface{}:
+		var v []uint32
+		for _, val := range x {
+			v = append(v, ToUint32(val))
+		}
+		return v
+	default:
+		return []uint32{}
+	}
+}
+
+// ToInterfaceSlice 将一个切片接口尽力转换为 []interface{}。
+//
+// 支持的输入切片类型包括：
+//   - []bool, []int, []int8, ..., []uint64, []float32, []float64, []string, [][]byte, []interface{}
+//
+// 切片中的每一个元素都会被转换为 interface{} 类型。
+// 如果输入为 nil，将直接返回 nil。
+// 如果输入为不支持的类型，将返回一个空的 []interface{}{}。
+func ToInterfaceSlice(val interface{}) []interface{} {
+	if val == nil {
+		return nil
+	}
+	switch x := val.(type) {
+	case []bool:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []int:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []int8:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []int16:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []int32:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []int64:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []uint:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []uint8:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []uint16:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []uint32:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []uint64:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []float32:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []float64:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []string:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case [][]byte:
+		var v []interface{}
+		for _, val := range x {
+			v = append(v, val)
+		}
+		return v
+	case []interface{}:
+		return x
+	default:
+		return []interface{}{}
+	}
+}
