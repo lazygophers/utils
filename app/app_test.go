@@ -244,3 +244,94 @@ func TestInitFunctionBranchCoverage(t *testing.T) {
 	}
 }
 
+func TestReleaseTypeIsMethods(t *testing.T) {
+	tests := []struct {
+		name       string
+		release    ReleaseType
+		isDebug    bool
+		isTest     bool
+		isAlpha    bool
+		isBeta     bool
+		isRelease  bool
+	}{
+		{"Debug", Debug, true, false, false, false, false},
+		{"Test", Test, false, true, false, false, false},
+		{"Alpha", Alpha, false, false, true, false, false},
+		{"Beta", Beta, false, false, false, true, false},
+		{"Release", Release, false, false, false, false, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.isDebug, tt.release.IsDebug())
+			assert.Equal(t, tt.isTest, tt.release.IsTest())
+			assert.Equal(t, tt.isAlpha, tt.release.IsAlpha())
+			assert.Equal(t, tt.isBeta, tt.release.IsBeta())
+			assert.Equal(t, tt.isRelease, tt.release.IsRelease())
+		})
+	}
+}
+
+func TestGlobalIsFunctions(t *testing.T) {
+	// 全局函数基于 Env 变量，测试它们的行为一致
+	tests := []struct {
+		name      string
+		getEnv    func() ReleaseType
+		isDebug   bool
+		isTest    bool
+		isAlpha   bool
+		isBeta    bool
+		isRelease bool
+	}{
+		{"Debug", func() ReleaseType { return Debug }, true, false, false, false, false},
+		{"Test", func() ReleaseType { return Test }, false, true, false, false, false},
+		{"Alpha", func() ReleaseType { return Alpha }, false, false, true, false, false},
+		{"Beta", func() ReleaseType { return Beta }, false, false, false, true, false},
+		{"Release", func() ReleaseType { return Release }, false, false, false, false, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// 保存原始 Env
+			originalEnv := Env
+			defer func() { Env = originalEnv }()
+
+			// 设置测试环境
+			Env = tt.getEnv()
+
+			// 测试全局函数
+			assert.Equal(t, tt.isDebug, IsDebug())
+			assert.Equal(t, tt.isDebug, IsDev())
+			assert.Equal(t, tt.isTest, IsTest())
+			assert.Equal(t, tt.isAlpha, IsAlpha())
+			assert.Equal(t, tt.isBeta, IsBeta())
+			assert.Equal(t, tt.isRelease, IsRelease())
+			assert.Equal(t, tt.isRelease, IsProd())
+		})
+	}
+}
+
+func TestIsDevAndIsDebugAlias(t *testing.T) {
+	// 验证 IsDev 和 IsDebug 是同义词
+	originalEnv := Env
+	defer func() { Env = originalEnv }()
+
+	Env = Debug
+	assert.Equal(t, IsDebug(), IsDev())
+
+	Env = Test
+	assert.Equal(t, IsDebug(), IsDev())
+}
+
+func TestIsProdAndIsReleaseAlias(t *testing.T) {
+	// 验证 IsProd 和 IsRelease 是同义词
+	originalEnv := Env
+	defer func() { Env = originalEnv }()
+
+	Env = Release
+	assert.Equal(t, IsRelease(), IsProd())
+
+	Env = Debug
+	assert.Equal(t, IsRelease(), IsProd())
+}
+
