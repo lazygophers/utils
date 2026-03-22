@@ -43,7 +43,6 @@ func TestInitFunctionWithDifferentEnvironments(t *testing.T) {
 			// 测试ReleaseType的String方法
 			releaseType := tt.expectedType
 			assert.NotEmpty(t, releaseType.String())
-			assert.NotEmpty(t, releaseType.Debug())
 		})
 	}
 }
@@ -70,26 +69,6 @@ func TestReleaseTypeString(t *testing.T) {
 	}
 }
 
-func TestReleaseTypeDebug(t *testing.T) {
-	tests := []struct {
-		name     string
-		release  ReleaseType
-		expected string
-	}{
-		{"Debug", Debug, "debug"},
-		{"Test", Test, "test"},
-		{"Alpha", Alpha, "alpha"},
-		{"Beta", Beta, "beta"},
-		{"Release", Release, "release"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := tt.release.Debug()
-			assert.Equal(t, tt.expected, result)
-		})
-	}
-}
 
 func TestOrganization(t *testing.T) {
 	assert.Equal(t, "lazygophers", Organization)
@@ -97,28 +76,30 @@ func TestOrganization(t *testing.T) {
 }
 
 func TestGlobalVariables(t *testing.T) {
-	tests := []struct {
+	// 构建信息变量在测试时通常为空（通过 -ldflags 注入）
+	// 这里仅验证变量存在且可访问，实际值在构建时确定
+	variables := []struct {
 		name  string
-		value string
+		value *string
 	}{
-		{"Commit", Commit},
-		{"ShortCommit", ShortCommit},
-		{"Branch", Branch},
-		{"Tag", Tag},
-		{"BuildDate", BuildDate},
-		{"GoVersion", GoVersion},
-		{"GoOS", GoOS},
-		{"Goarch", Goarch},
-		{"Goarm", Goarm},
-		{"Goamd64", Goamd64},
-		{"Gomips", Gomips},
-		{"Description", Description},
+		{"Commit", &Commit},
+		{"ShortCommit", &ShortCommit},
+		{"Branch", &Branch},
+		{"Tag", &Tag},
+		{"BuildDate", &BuildDate},
+		{"GoVersion", &GoVersion},
+		{"GoOS", &GoOS},
+		{"Goarch", &Goarch},
+		{"Goarm", &Goarm},
+		{"Goamd64", &Goamd64},
+		{"Gomips", &Gomips},
+		{"Description", &Description},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// 这些变量在测试环境中可能为空，所以我们只检查它们的类型
-			_ = tt.value
+	for _, v := range variables {
+		t.Run(v.name, func(t *testing.T) {
+			// 验证变量可访问（不为 nil）
+			assert.NotNil(t, v.value, "Variable %s should be accessible", v.name)
 		})
 	}
 }
@@ -161,13 +142,17 @@ func TestReleaseTypeRange(t *testing.T) {
 		r := ReleaseType(i)
 		assert.NotPanics(t, func() {
 			_ = r.String()
-			_ = r.Debug()
 		})
 	}
 }
 
 func TestPackageVariables(t *testing.T) {
-	// 测试包级变量
+	// 验证包级变量可访问
+	_ = Organization // 固定值 "lazygophers"
+	_ = Name         // 通过 -ldflags 注入
+	_ = Version      // 通过 -ldflags 注入
+
+	// 构建信息变量
 	_ = Commit
 	_ = ShortCommit
 	_ = Branch
@@ -180,8 +165,6 @@ func TestPackageVariables(t *testing.T) {
 	_ = Goamd64
 	_ = Gomips
 	_ = Description
-	_ = Name
-	_ = Version
 }
 
 func TestSetEnvFromEnv(t *testing.T) {
@@ -224,28 +207,40 @@ func TestSetEnvFromEnv(t *testing.T) {
 }
 
 func TestInitFunctionBranchCoverage(t *testing.T) {
-	// 这个测试确保init函数的所有分支都被考虑到
-	testCases := []string{
-		"dev", "development",
-		"test", "canary",
-		"prod", "production", "release",
-		"alpha",
-		"beta",
+	// 确保 setEnvFromEnv 函数的所有分支都被测试
+	testCases := []struct {
+		envValue     string
+		expectedType ReleaseType
+	}{
+		{"dev", Debug},
+		{"development", Debug},
+		{"test", Test},
+		{"canary", Test},
+		{"prod", Release},
+		{"production", Release},
+		{"release", Release},
+		{"alpha", Alpha},
+		{"beta", Beta},
+		{"", Debug},        // 空值，不覆盖
+		{"unknown", Debug}, // 未知值，不覆盖
 	}
 
-	for _, env := range testCases {
-		t.Run(env, func(t *testing.T) {
-			os.Setenv("APP_ENV", env)
-			// 虽然我们不能直接重新运行init函数，但我们可以确保所有可能的环境变量值都被测试
-			assert.True(t, true)
+	originalEnv := os.Getenv("APP_ENV")
+	defer os.Setenv("APP_ENV", originalEnv)
+
+	for _, tc := range testCases {
+		t.Run(tc.envValue, func(t *testing.T) {
+			os.Setenv("APP_ENV", tc.envValue)
+			// 重置 Env 为默认值，然后调用 setEnvFromEnv
+			initialEnv := Env
+			setEnvFromEnv()
+			// 验证：如果 envValue 有效，Env 应该改变；否则保持不变
+			if tc.envValue != "" && tc.envValue != "unknown" {
+				assert.Equal(t, tc.expectedType, Env)
+			} else {
+				assert.Equal(t, initialEnv, Env)
+			}
 		})
 	}
 }
 
-func TestStringAndDebugConsistency(t *testing.T) {
-	for i := ReleaseType(0); i <= ReleaseType(10); i++ {
-		t.Run(i.String(), func(t *testing.T) {
-			assert.Equal(t, i.String(), i.Debug())
-		})
-	}
-}
