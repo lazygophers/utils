@@ -43,3 +43,4 @@ ehthumbs.db
 .sisyphus/
 .gitnexus
 *.db
+.version
