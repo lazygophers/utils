@@ -41,3 +41,5 @@ ehthumbs.db
 .logs/
 .serena/memories
 .sisyphus/
+.gitnexus
+*.db
