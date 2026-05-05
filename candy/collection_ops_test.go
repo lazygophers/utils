@@ -115,3 +115,19 @@ func TestCollectionOps(t *testing.T) {
 		}
 	})
 }
+
+// ============ Sort 基准测试 ============
+
+func BenchmarkSort_Medium(b *testing.B) {
+	data := make([]int, 100)
+	for i := range data {
+		data[i] = (i * 2654435761) % 100
+	}
+
+	b.Run("Baseline", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			_ = Sort(append([]int{}, data...))
+		}
+	})
+}

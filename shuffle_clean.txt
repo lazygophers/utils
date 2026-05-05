@@ -1,0 +1,36 @@
+BenchmarkShuffleBaseline/size-10-8      \t10557603\t       400.2 ns/op\t      80 B/op\t       1 allocs/op
+BenchmarkShuffleBaseline/size-100-8     \t 1000000\t      4568 ns/op\t     896 B/op\t       1 allocs/op
+BenchmarkShuffleBaseline/size-1000-8    \t  151699\t     40363 ns/op\t    8192 B/op\t       1 allocs/op
+   13732\t    284530 ns/op\t   81921 B/op\t       1 allocs/op
+BenchmarkShuffleFisherYatesV2/size-10-8 \t18235718\t       252.0 ns/op\t      80 B/op\t       1 allocs/op
+BenchmarkShuffleFisherYatesV2/size-100-8         \t 1611594\t      4009 ns/op\t     896 B/op\t       1 allocs/op
+BenchmarkShuffleFisherYatesV2/size-1000-8        \t   94070\t     56950 ns/op\t    8192 B/op\t       1 allocs/op
+BenchmarkShuffleFisherYatesV2/size-10000-8       \t    9362\t    331232 ns/op\t   81922 B/op\t       1 allocs/op
+BenchmarkShuffleStdLib/size-10-8                 \t15262260\t       273.5 ns/op\t      80 B/op\t       1 allocs/op
+BenchmarkShuffleStdLib/size-100-8                \t 1466994\t      2815 ns/op\t     896 B/op\t       1 allocs/op
+BenchmarkShuffleStdLib/size-1000-8               \t  288612\t     12247 ns/op\t    8192 B/op\t       1 allocs/op
+BenchmarkShuffleStdLib/size-10000-8              \t   31922\t    163533 ns/op\t   81922 B/op\t       1 allocs/op
+BenchmarkShufflePreAllocRand/size-10-8           \t23299185\t       372.6 ns/op\t     160 B/op\t       2 allocs/op
+BenchmarkShufflePreAllocRand/size-100-8          \t 1476957\t      3056 ns/op\t    1792 B/op\t       2 allocs/op
+BenchmarkShufflePreAllocRand/size-1000-8         \t  103826\t     32192 ns/op\t   16384 B/op\t       2 allocs/op
+BenchmarkShufflePreAllocRand/size-10000-8        \t   10000\t    396529 ns/op\t  163844 B/op\t       2 allocs/op
+BenchmarkShuffleSmallSliceOptimized/size-10-8    \t11074195\t       273.6 ns/op\t      80 B/op\t       1 allocs/op
+BenchmarkShuffleSmallSliceOptimized/size-100-8   \t 1539702\t      2524 ns/op\t     896 B/op\t       1 allocs/op
+BenchmarkShuffleSmallSliceOptimized/size-1000-8  \t  143506\t     35404 ns/op\t    8192 B/op\t       1 allocs/op
+BenchmarkShuffleSmallSliceOptimized/size-10000-8 \t   10000\t    333471 ns/op\t   81921 B/op\t       1 allocs/op
+23868826\t       454.5 ns/op\t      80 B/op\t       1 allocs/op
+BenchmarkShuffleUnroll2/size-100-8               \t 3711847\t       827.8 ns/op\t     896 B/op\t       1 allocs/op
+BenchmarkShuffleUnroll2/size-1000-8              \t  506755\t      8399 ns/op\t    8192 B/op\t       1 allocs/op
+BenchmarkShuffleUnroll2/size-10000-8             \t   51780\t     79766 ns/op\t   81920 B/op\t       1 allocs/op
+BenchmarkShuffleBatchSwap/size-10-8              \t38193482\t        84.71 ns/op\t      80 B/op\t       1 allocs/op
+BenchmarkShuffleBatchSwap/size-100-8             \t 4831434\t       694.6 ns/op\t     896 B/op\t       1 allocs/op
+BenchmarkShuffleBatchSwap/size-1000-8            \t  568998\t      6298 ns/op\t    8192 B/op\t       1 allocs/op
+BenchmarkShuffleBatchSwap/size-10000-8           \t   57536\t     79558 ns/op\t   81920 B/op\t       1 allocs/op
+BenchmarkShuffleBitwiseOpt/size-10-8             \t36367386\t        83.08 ns/op\t      80 B/op\t       1 allocs/op
+BenchmarkShuffleBitwiseOpt/size-100-8            \t 4347495\t       842.2 ns/op\t     896 B/op\t       1 allocs/op
+BenchmarkShuffleBitwiseOpt/size-1000-8           \t  551994\t      6208 ns/op\t    8192 B/op\t       1 allocs/op
+BenchmarkShuffleBitwiseOpt/size-10000-8          \t   53974\t     77474 ns/op\t   81920 B/op\t       1 allocs/op
+BenchmarkShuffleHybrid/size-10-8                 \t13910464\t       233.2 ns/op\t      80 B/op\t       1 allocs/op
+BenchmarkShuffleHybrid/size-100-8                \t 5564652\t       691.8 ns/op\t     896 B/op\t       1 allocs/op
+BenchmarkShuffleHybrid/size-1000-8               \t  487298\t      7745 ns/op\t   16384 B/op\t       2 allocs/op
+BenchmarkShuffleHybrid/size-10000-8              \t   44036\t     69964 ns/op\t  163840 B/op\t       2 allocs/op

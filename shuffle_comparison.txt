@@ -1,0 +1,10 @@
+Go test: 0 passed, 1 failed in 1 packages
+═══════════════════════════════════════
+
+candy [FAIL]
+  goos: darwin
+  goarch: arm64
+  pkg: github.com/lazygophers/utils/candy
+  cpu: Apple M3
+  FAIL	github.com/lazygophers/utils/candy	180.041s
+[full output: ~/Library/Application Support/rtk/tee/1777973693_go_test.log]
