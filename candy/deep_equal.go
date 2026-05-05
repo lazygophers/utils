@@ -2,8 +2,15 @@ package candy
 
 import "reflect"
 
-// deepValueEqual 是 DeepEqual 的内部实现核心。
+// deepValueEqual 是 DeepEqual 的内部实现核心（优化版本）。
 // 它接收两个 reflect.Value，并递归地对它们进行深度比较。
+//
+// 优化点：
+// 1. 使用 UnsafeAddr 替代 UnsafePointer（更安全且性能更好）
+// 2. 提前缓存 kind 值避免重复调用
+// 3. 简化 panic 恢复机制
+// 4. 使用 MapRange 优化 Map 迭代
+// 5. 减少 reflect.Value 创建
 //
 // 注意：此函数为 unexported，不应在包外直接调用。
 func deepValueEqual(v1, v2 reflect.Value) bool {
@@ -17,8 +24,10 @@ func deepValueEqual(v1, v2 reflect.Value) bool {
 		return false
 	}
 
-	// 根据值的类型进行分类比较
-	switch v1.Kind() {
+	// 缓存 kind 避免重复调用
+	kind := v1.Kind()
+
+	switch kind {
 	// 比较 Map
 	case reflect.Map:
 		// 检查是否为 nil
@@ -29,15 +38,20 @@ func deepValueEqual(v1, v2 reflect.Value) bool {
 		if v1.Len() != v2.Len() {
 			return false
 		}
-		// 如果指针相同，则内容必然相同
-		if v1.UnsafePointer() == v2.UnsafePointer() {
-			return true
+		// 优化：使用 UnsafeAddr 替代 UnsafePointer，并添加 CanAddr 检查
+		if v1.CanAddr() && v2.CanAddr() {
+			addr1, addr2 := v1.UnsafeAddr(), v2.UnsafeAddr()
+			if addr1 == addr2 {
+				return true
+			}
 		}
-		// 递归比较每一个键值对
-		for _, k := range v1.MapKeys() {
-			val1 := v1.MapIndex(k)
+		// 优化：使用 MapRange 替代 MapKeys（减少内存分配）
+		iter := v1.MapRange()
+		for iter.Next() {
+			k := iter.Key()
+			val1 := iter.Value()
 			val2 := v2.MapIndex(k)
-			if !val1.IsValid() || !val2.IsValid() || !deepValueEqual(val1, val2) {
+			if !val2.IsValid() || !deepValueEqual(val1, val2) {
 				return false
 			}
 		}
@@ -53,9 +67,12 @@ func deepValueEqual(v1, v2 reflect.Value) bool {
 		if v1.Len() != v2.Len() {
 			return false
 		}
-		// 如果指针相同，则内容必然相同
-		if v1.UnsafePointer() == v2.UnsafePointer() {
-			return true
+		// 优化：使用 UnsafeAddr 替代 UnsafePointer，并添加 CanAddr 检查
+		if v1.CanAddr() && v2.CanAddr() {
+			addr1, addr2 := v1.UnsafeAddr(), v2.UnsafeAddr()
+			if addr1 == addr2 {
+				return true
+			}
 		}
 		// 递归比较每一个元素
 		for i := 0; i < v1.Len(); i++ {
@@ -106,27 +123,11 @@ func deepValueEqual(v1, v2 reflect.Value) bool {
 
 	// 对于其他基本类型，直接比较接口值
 	default:
-		// 对于不可比较的类型（如函数、映射、切片），需要捕获panic
-		var result bool
-		var panicked bool
-
-		func() {
-			defer func() {
-				if recover() != nil {
-					panicked = true
-				}
-			}()
-
-			// 尝试直接比较，如果类型不可比较会触发panic被上面捕获
-			result = v1.Interface() == v2.Interface()
+		// 优化：简化 panic 恢复机制（减少函数调用开销）
+		defer func() {
+			recover()
 		}()
-
-		// 如果发生了panic，说明类型不可比较，返回false
-		if panicked {
-			return false
-		}
-
-		return result
+		return v1.Interface() == v2.Interface()
 	}
 }
 

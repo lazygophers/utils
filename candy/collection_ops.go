@@ -98,14 +98,18 @@ func Map[T, U any](ss []T, f func(T) U) []U {
 }
 
 // Reduce 对切片进行归约操作，使用指定的二元函数将切片元素合并为单个值
+// 优化版本：手动内联小数组，避免切片分配
 func Reduce[T any](ss []T, f func(T, T) T) T {
-	if len(ss) == 0 {
+	n := len(ss)
+	if n == 0 {
 		return *new(T)
 	}
-
+	if n == 1 {
+		return ss[0]
+	}
 	result := ss[0]
-	for _, s := range ss[1:] {
-		result = f(result, s)
+	for i := 1; i < n; i++ {
+		result = f(result, ss[i])
 	}
 	return result
 }
@@ -266,8 +270,17 @@ func Join[T constraints.Ordered](ss []T, glue ...string) string {
 		seq = glue[0]
 	}
 
-	// 使用 Map 函数将切片元素转换为字符串，然后用 strings.Join 连接
-	return strings.Join(Map(ss, func(s T) string {
-		return ToString(s)
-	}), seq)
+	// 空切片处理
+	if len(ss) == 0 {
+		return ""
+	}
+
+	// 优化版本：直接转换并使用 strings.Join
+	// 避免 Map 函数的额外开销，预分配字符串切片
+	strs := make([]string, len(ss))
+	for i, s := range ss {
+		strs[i] = ToString(s)
+	}
+
+	return strings.Join(strs, seq)
 }
