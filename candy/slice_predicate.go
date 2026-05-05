@@ -1,6 +1,6 @@
 package candy
 
-import "golang.org/x/exp/constraints"
+import "slices"
 
 // Drop 丢弃切片前 n 个元素
 //
@@ -127,10 +127,24 @@ func FilterNot[T any](ss []T, f func(T) bool) []T {
 }
 
 // Contains 检查切片中是否包含指定元素
-func Contains[T constraints.Ordered](ss []T, s T) bool {
-	return ContainsUsing(ss, func(v T) bool {
-		return s == v
-	})
+//
+// 性能优化：使用标准库 slices.Contains，它在 Go 1.21+ 中已经过优化
+// 对于大多数用例，这比手动实现的线性搜索性能更好
+//
+// 参数：
+//   - ss: 要搜索的切片
+//   - s: 要查找的元素
+//
+// 返回值：
+//   - bool: 如果找到元素返回 true，否则返回 false
+//
+// 示例：
+//
+//	numbers := []int{1, 2, 3, 4, 5}
+//	found := Contains(numbers, 3) // 返回 true
+//	found = Contains(numbers, 6)  // 返回 false
+func Contains[T comparable](ss []T, s T) bool {
+	return slices.Contains(ss, s)
 }
 
 // ContainsUsing 使用自定义函数检查切片中是否包含满足条件的元素

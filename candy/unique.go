@@ -39,9 +39,40 @@ import (
 //	uniqueFloats := Unique(floats)
 //	// uniqueFloats 的值为 []float64{1.1, 2.2, 3.3}
 func Unique[T constraints.Ordered](ss []T) (ret []T) {
-	// 使用 make 初始化，确保返回空切片而非 nil
-	ret = make([]T, 0)
-	m := make(map[T]struct{}, len(ss))
+	// 空切片处理
+	if len(ss) == 0 {
+		return make([]T, 0)
+	}
+
+	// 小数据集优化：线性搜索比 map 更快
+	const smallThreshold = 32
+	if len(ss) < smallThreshold {
+		ret = make([]T, 0, len(ss))
+		for _, s := range ss {
+			found := false
+			for _, v := range ret {
+				if v == s {
+					found = true
+					break
+				}
+			}
+			if !found {
+				ret = append(ret, s)
+			}
+		}
+		return
+	}
+
+	// 大数据集：使用预分配 map 优化性能
+	// 估算唯一元素数量，避免过度分配
+	estimatedSize := len(ss)
+	if estimatedSize > 100 {
+		// 假设至少有 30% 的重复率
+		estimatedSize = estimatedSize * 70 / 100
+	}
+
+	ret = make([]T, 0, estimatedSize)
+	m := make(map[T]struct{}, estimatedSize)
 	for _, s := range ss {
 		if _, ok := m[s]; !ok {
 			m[s] = struct{}{}
