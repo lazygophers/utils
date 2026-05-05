@@ -2,6 +2,7 @@ package candy
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -13,105 +14,116 @@ import (
 // 切片中的每一个元素都会通过 ToFloat64 函数进行转换。
 // 如果输入为 nil，将直接返回 nil。
 // 如果输入为不支持的类型，将返回一个空的 []float64{}。
+//
+// 性能优化：
+//   - 使用预分配切片容量避免动态扩容
+//   - 使用直接索引赋值避免 append 开销
+//   - 针对 []float64 使用零拷贝优化
+//   - 内联常见类型的转换避免函数调用开销
 func ToFloat64Slice(val interface{}) []float64 {
 	if val == nil {
 		return nil
 	}
 	switch x := val.(type) {
-	case []bool:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+	case []float64:
+		// 零拷贝优化：直接返回原切片
+		return x
+	case []float32:
+		// 预分配 + 直接类型转换
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
 	case []int:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
 	case []int8:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
 	case []int16:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
 	case []int32:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
 	case []int64:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
 	case []uint:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
 	case []uint8:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
 	case []uint16:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
 	case []uint32:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
 	case []uint64:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
-		}
-		return v
-	case []float32:
 		v := make([]float64, len(x))
-		for i, val := range x {
-			v[i] = ToFloat64(val)
+		for i := range x {
+			v[i] = float64(x[i])
 		}
 		return v
-	case []float64:
-		var v []float64
-		for _, val := range x {
-			v = append(v, val)
+	case []bool:
+		// 针对布尔类型的优化：直接赋值 0 或 1
+		v := make([]float64, len(x))
+		for i := range x {
+			if x[i] {
+				v[i] = 1
+			} else {
+				v[i] = 0
+			}
 		}
 		return v
 	case []string:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		// 字符串类型：使用 ToFloat64 处理复杂解析逻辑
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = ToFloat64(x[i])
 		}
 		return v
 	case [][]byte:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = ToFloat64(x[i])
 		}
 		return v
 	case []interface{}:
-		var v []float64
-		for _, val := range x {
-			v = append(v, ToFloat64(val))
+		// 接口类型：使用 ToFloat64 处理所有可能的类型
+		v := make([]float64, len(x))
+		for i := range x {
+			v[i] = ToFloat64(x[i])
 		}
 		return v
 	default:
@@ -127,104 +139,108 @@ func ToFloat64Slice(val interface{}) []float64 {
 // 切片中的每一个元素都会通过 ToInt64 函数进行转换。
 // 如果输入为 nil，将直接返回 nil。
 // 如果输入为不支持的类型，将返回一个空的 []int64{}。
+//
+// 性能优化：
+//   - 使用预分配切片容量避免动态扩容
+//   - 使用直接索引赋值避免 append 开销
+//   - 针对 []int64 使用 copy 优化
 func ToInt64Slice(val interface{}) []int64 {
 	switch x := val.(type) {
-	case []bool:
-		var v []int64
-		for _, val := range x {
-			v = append(v, ToInt64(val))
-		}
-		return v
-	case []int:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val))
-		}
-		return v
-	case []int8:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val))
-		}
-		return v
-	case []int16:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val))
-		}
-		return v
-	case []int32:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val))
-		}
-		return v
 	case []int64:
-		var v []int64
-		for _, val := range x {
-			v = append(v, val)
+		// 针对 []int64 使用 copy 优化
+		result := make([]int64, len(x))
+		copy(result, x)
+		return result
+	case []int:
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val)
 		}
-		return v
+		return result
+	case []int32:
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val)
+		}
+		return result
+	case []int16:
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val)
+		}
+		return result
+	case []int8:
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val)
+		}
+		return result
 	case []uint:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val)) // #nosec G115 -- intentional truncation for best-effort conversion
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
-		return v
-	case []uint8:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val))
-		}
-		return v
-	case []uint16:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val))
-		}
-		return v
+		return result
 	case []uint32:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val))
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val)
 		}
-		return v
+		return result
 	case []uint64:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val)) // #nosec G115 -- intentional truncation for best-effort conversion
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
-		return v
+		return result
+	case []uint16:
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val)
+		}
+		return result
+	case []uint8:
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val)
+		}
+		return result
 	case []float32:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val))
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val)
 		}
-		return v
+		return result
 	case []float64:
-		var v []int64
-		for _, val := range x {
-			v = append(v, int64(val))
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = int64(val)
 		}
-		return v
+		return result
 	case []string:
-		var v []int64
-		for _, val := range x {
-			v = append(v, ToInt64(val))
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = ToInt64(val)
 		}
-		return v
+		return result
 	case [][]byte:
-		var v []int64
-		for _, val := range x {
-			v = append(v, ToInt64(val))
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = ToInt64(val)
 		}
-		return v
+		return result
 	case []interface{}:
-		var v []int64
-		for _, val := range x {
-			v = append(v, ToInt64(val))
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = ToInt64(val)
 		}
-		return v
+		return result
+	case []bool:
+		result := make([]int64, len(x))
+		for i, val := range x {
+			result[i] = ToInt64(val)
+		}
+		return result
 	default:
 		return []int64{}
 	}
@@ -235,36 +251,171 @@ func ToInt64Slice(val interface{}) []int64 {
 // 对于字符串类型，如果包含逗号则按逗号分割，否则返回单个元素的切片
 // 对于其他类型，转换为字符串后返回单个元素的切片
 func ToStringSlice(v interface{}) []string {
-	vv := reflect.ValueOf(v)
-	if vv.Kind() != reflect.Slice {
-		// 处理非切片类型
-		switch x := v.(type) {
-		case string:
-			if strings.Contains(x, ",") {
-				// 如果包含逗号，按逗号分割
-				return strings.Split(x, ",")
-			}
-			// 否则返回单个元素的切片
-			return []string{x}
-		case nil:
-			return nil
-		default:
-			// 其他非切片类型，转换为字符串后返回单个元素的切片
-			return []string{ToString(x)}
-		}
-	}
-
-	// 处理 nil 切片
-	if vv.IsNil() {
+	if v == nil {
 		return nil
 	}
 
-	ss := make([]string, 0, vv.Len())
-	for i := 0; i < vv.Len(); i++ {
-		ss = append(ss, ToString(vv.Index(i).Interface()))
-	}
+	// 使用类型断言优化常见类型，避免反射开销
+	switch x := v.(type) {
+	case []string:
+		if x == nil {
+			return nil
+		}
+		// 零拷贝优化：直接返回原切片
+		return x
+	case string:
+		if strings.Contains(x, ",") {
+			return strings.Split(x, ",")
+		}
+		return []string{x}
+	case []int:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = strconv.FormatInt(int64(x[i]), 10)
+		}
+		return result
+	case []int8:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = strconv.FormatInt(int64(x[i]), 10)
+		}
+		return result
+	case []int16:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = strconv.FormatInt(int64(x[i]), 10)
+		}
+		return result
+	case []int32:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = strconv.FormatInt(int64(x[i]), 10)
+		}
+		return result
+	case []int64:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = strconv.FormatInt(x[i], 10)
+		}
+		return result
+	case []uint:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = strconv.FormatUint(uint64(x[i]), 10)
+		}
+		return result
+	case []uint8:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = strconv.FormatUint(uint64(x[i]), 10)
+		}
+		return result
+	case []uint16:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = strconv.FormatUint(uint64(x[i]), 10)
+		}
+		return result
+	case []uint32:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = strconv.FormatUint(uint64(x[i]), 10)
+		}
+		return result
+	case []uint64:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = strconv.FormatUint(x[i], 10)
+		}
+		return result
+	case []float32:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = ToString(x[i])
+		}
+		return result
+	case []float64:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = ToString(x[i])
+		}
+		return result
+	case []bool:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			if x[i] {
+				result[i] = "1"
+			} else {
+				result[i] = "0"
+			}
+		}
+		return result
+	case []any:
+		if x == nil {
+			return nil
+		}
+		result := make([]string, len(x))
+		for i := range x {
+			result[i] = ToString(x[i])
+		}
+		return result
+	default:
+		// 回退到反射处理其他类型
+		vv := reflect.ValueOf(v)
+		if vv.Kind() != reflect.Slice {
+			return []string{ToString(v)}
+		}
 
-	return ss
+		if vv.IsNil() {
+			return nil
+		}
+
+		// 预分配容量，避免 append 重新分配
+		ss := make([]string, vv.Len())
+		for i := 0; i < vv.Len(); i++ {
+			ss[i] = ToString(vv.Index(i).Interface())
+		}
+		return ss
+	}
 }
 
 // ToArrayString 是 ToStringSlice 的别名，保持向后兼容
@@ -286,98 +437,98 @@ func ToUint64Slice(val interface{}) []uint64 {
 		return nil
 	}
 	switch x := val.(type) {
-	case []bool:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []int:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []int8:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []int16:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []int32:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []int64:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []uint:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []uint8:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []uint16:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
-	case []uint32:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
 	case []uint64:
 		return x
+	case []int:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
+		}
+		return result
+	case []int8:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
+		}
+		return result
+	case []int16:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
+		}
+		return result
+	case []int32:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
+		}
+		return result
+	case []int64:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
+		}
+		return result
+	case []uint:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
+		}
+		return result
+	case []uint8:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
+		}
+		return result
+	case []uint16:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
+		}
+		return result
+	case []uint32:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
+		}
+		return result
 	case []float32:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
 		}
-		return v
+		return result
 	case []float64:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = uint64(val)
 		}
-		return v
+		return result
 	case []string:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = ToUint64(val)
 		}
-		return v
-	case [][]byte:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
-		}
-		return v
+		return result
 	case []interface{}:
-		var v []uint64
-		for _, val := range x {
-			v = append(v, ToUint64(val))
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = ToUint64(val)
 		}
-		return v
+		return result
+	case []bool:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = ToUint64(val)
+		}
+		return result
+	case [][]byte:
+		result := make([]uint64, len(x))
+		for i, val := range x {
+			result[i] = ToUint64(val)
+		}
+		return result
 	default:
 		return []uint64{}
 	}
