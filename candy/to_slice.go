@@ -678,103 +678,146 @@ func ToUint32Slice(val interface{}) []uint32 {
 // 切片中的每一个元素都会被转换为 interface{} 类型。
 // 如果输入为 nil，将直接返回 nil。
 // 如果输入为不支持的类型，将返回一个空的 []interface{}{}。
+//
+// 性能优化：
+//   - 针对最常用类型（[]interface{}, []int, []string）优先处理
+//   - []interface{} 使用零拷贝优化
+//   - 其他类型使用预分配 + 直接索引避免 append 开销
+//   - 针对大数据集使用批量处理（每次8个元素）
 func ToInterfaceSlice(val interface{}) []interface{} {
 	if val == nil {
 		return nil
 	}
 	switch x := val.(type) {
-	case []bool:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
+	case []interface{}:
+		// 零拷贝优化：最常见类型
+		return x
 	case []int:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []int8:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []int16:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []int32:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []int64:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []uint:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []uint8:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []uint16:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []uint32:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []uint64:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []float32:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
-		}
-		return v
-	case []float64:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
+		// 预分配 + 批量处理
+		v := make([]interface{}, len(x))
+		if len(x) >= 8 {
+			i := 0
+			for ; i < len(x)-7; i += 8 {
+				v[i] = x[i]
+				v[i+1] = x[i+1]
+				v[i+2] = x[i+2]
+				v[i+3] = x[i+3]
+				v[i+4] = x[i+4]
+				v[i+5] = x[i+5]
+				v[i+6] = x[i+6]
+				v[i+7] = x[i+7]
+			}
+			for ; i < len(x); i++ {
+				v[i] = x[i]
+			}
+		} else {
+			for i := range x {
+				v[i] = x[i]
+			}
 		}
 		return v
 	case []string:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
+		// 预分配 + 批量处理
+		v := make([]interface{}, len(x))
+		if len(x) >= 8 {
+			i := 0
+			for ; i < len(x)-7; i += 8 {
+				v[i] = x[i]
+				v[i+1] = x[i+1]
+				v[i+2] = x[i+2]
+				v[i+3] = x[i+3]
+				v[i+4] = x[i+4]
+				v[i+5] = x[i+5]
+				v[i+6] = x[i+6]
+				v[i+7] = x[i+7]
+			}
+			for ; i < len(x); i++ {
+				v[i] = x[i]
+			}
+		} else {
+			for i := range x {
+				v[i] = x[i]
+			}
+		}
+		return v
+	case []bool:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []int8:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []int16:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []int32:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []int64:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []uint:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []uint8:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []uint16:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []uint32:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []uint64:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []float32:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
+		}
+		return v
+	case []float64:
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
 		}
 		return v
 	case [][]byte:
-		var v []interface{}
-		for _, val := range x {
-			v = append(v, val)
+		v := make([]interface{}, len(x))
+		for i := range x {
+			v[i] = x[i]
 		}
 		return v
-	case []interface{}:
-		return x
 	default:
 		return []interface{}{}
 	}

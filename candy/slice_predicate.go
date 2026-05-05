@@ -56,13 +56,19 @@ func Drop[T any](ss []T, n int) []T {
 //   - 使用 make 初始化返回切片，确保返回空切片而非 nil
 //   - 该函数不会修改原始切片
 //   - 时间复杂度为 O(n)，其中 n 为切片长度
+//   - 使用长度的一半作为初始容量预分配，在大多数场景下性能最优
 func Filter[T any](ss []T, f func(T) bool) []T {
 	if len(ss) == 0 {
 		return []T{}
 	}
 
-	// 使用原始长度的1/4作为初始容量预估，减少重新分配
-	ret := make([]T, 0, len(ss)/4+1)
+	// 使用长度的一半作为初始容量预分配
+	// 性能测试表明这在大多数场景下（中等和大数据集）表现最佳
+	capacity := len(ss) / 2
+	if capacity == 0 {
+		capacity = 1
+	}
+	ret := make([]T, 0, capacity)
 	for _, s := range ss {
 		if f(s) {
 			ret = append(ret, s)
