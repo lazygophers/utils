@@ -547,96 +547,122 @@ func ToUint32Slice(val interface{}) []uint32 {
 		return nil
 	}
 	switch x := val.(type) {
-	case []bool:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+	case []uint32: // 最常用：零拷贝
+		return x
+	case []int: // 常用：直接转换
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			if val < 0 {
+				v[i] = 0
+			} else {
+				v[i] = uint32(val) // #nosec G115
+			}
 		}
 		return v
-	case []int:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+	case []uint: // 常用：直接转换
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			v[i] = uint32(val) // #nosec G115
 		}
 		return v
-	case []int8:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+	case []int64: // 常用：直接转换
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			if val < 0 {
+				v[i] = 0
+			} else {
+				v[i] = uint32(val) // #nosec G115
+			}
 		}
 		return v
-	case []int16:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []int32:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []int64:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
-		}
-		return v
-	case []uint:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+	case []uint64: // 常用：直接转换
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			v[i] = uint32(val) // #nosec G115
 		}
 		return v
 	case []uint8:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			v[i] = uint32(val)
 		}
 		return v
 	case []uint16:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			v[i] = uint32(val)
 		}
 		return v
-	case []uint32:
-		return x
-	case []uint64:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+	case []int32:
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			if val < 0 {
+				v[i] = 0
+			} else {
+				v[i] = uint32(val)
+			}
+		}
+		return v
+	case []int16:
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			if val < 0 {
+				v[i] = 0
+			} else {
+				v[i] = uint32(val)
+			}
+		}
+		return v
+	case []int8:
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			if val < 0 {
+				v[i] = 0
+			} else {
+				v[i] = uint32(val)
+			}
+		}
+		return v
+	case []bool:
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			if val {
+				v[i] = 1
+			} else {
+				v[i] = 0
+			}
 		}
 		return v
 	case []float32:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			v[i] = uint32(val)
 		}
 		return v
 	case []float64:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			v[i] = uint32(val)
 		}
 		return v
 	case []string:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			parsed, _ := strconv.ParseUint(val, 10, 32)
+			v[i] = uint32(parsed)
 		}
 		return v
 	case [][]byte:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			parsed, _ := strconv.ParseUint(string(val), 10, 32)
+			v[i] = uint32(parsed)
 		}
 		return v
 	case []interface{}:
-		var v []uint32
-		for _, val := range x {
-			v = append(v, ToUint32(val))
+		v := make([]uint32, len(x))
+		for i, val := range x {
+			v[i] = ToUint32(val)
 		}
 		return v
 	default:
