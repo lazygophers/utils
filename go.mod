@@ -1,6 +1,6 @@
 module github.com/lazygophers/utils
 
-go 1.25.0
+go 1.26.2
 
 require (
 	github.com/ProtonMail/go-crypto v1.4.1
@@ -9,9 +9,9 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.2.7
 	github.com/jinzhu/now v1.1.5
-	github.com/lazygophers/log v0.0.0-20260319132848-36bb2550252f
+	github.com/lazygophers/log v0.0.0-20260505025615-e729d19ba2c1
 	github.com/pelletier/go-toml/v2 v2.2.4
-	github.com/petermattis/goid v0.0.0-20260226131333-17d1149c6ac6
+	github.com/petermattis/goid v0.0.0-20260330135022-df67b199bc81
 	github.com/pkg/errors v0.9.1
 	go.uber.org/atomic v1.11.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -32,6 +32,7 @@ require (
 	github.com/bytedance/gopkg v0.1.4 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/lazygophers/log/constant v0.0.0-20260505024342-2c291363de69 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
@@ -56,5 +57,5 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.1 // indirect
+	go.uber.org/zap v1.28.0 // indirect
 )

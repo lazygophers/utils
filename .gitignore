@@ -44,3 +44,5 @@ ehthumbs.db
 .gitnexus
 *.db
 .version
+
+graphify-out/
