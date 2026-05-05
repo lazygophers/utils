@@ -13,10 +13,10 @@ package candy
 //	empty := []string{}
 //	first := First(empty) // 返回 "" (string 的零值)
 func First[T any](ss []T) (ret T) {
-	if len(ss) == 0 {
+	l := len(ss)
+	if l == 0 {
 		return
 	}
-
 	return ss[0]
 }
 
@@ -40,10 +40,10 @@ func First[T any](ss []T) (ret T) {
 //	empty := []int{}
 //	defaultVal := FirstOr(empty, 0) // 返回 0
 func FirstOr[T any](ss []T, or T) (ret T) {
-	if len(ss) == 0 {
+	l := len(ss)
+	if l == 0 {
 		return or
 	}
-
 	return ss[0]
 }
 
@@ -65,11 +65,11 @@ func FirstOr[T any](ss []T, or T) (ret T) {
 //	empty := []string{}
 //	result := Last(empty) // 返回 ""
 func Last[T any](ss []T) (ret T) {
-	if len(ss) == 0 {
+	l := len(ss)
+	if l == 0 {
 		return
 	}
-
-	return ss[len(ss)-1]
+	return ss[l-1]
 }
 
 // LastOr 返回切片中的最后一个元素
@@ -91,23 +91,24 @@ func Last[T any](ss []T) (ret T) {
 //	empty := []string{}
 //	result := LastOr(empty, "default") // 返回 "default"
 func LastOr[T any](ss []T, or T) (ret T) {
-	if len(ss) == 0 {
+	l := len(ss)
+	if l == 0 {
 		return or
 	}
-
-	return ss[len(ss)-1]
+	return ss[l-1]
 }
 
 // Bottom 返回切片的最后 n 个元素
 func Bottom[T any](ss []T, n int) (ret []T) {
+	l := len(ss)
 	if n <= 0 {
 		return []T{}
 	}
-	if n > len(ss) {
-		n = len(ss)
+	if n > l {
+		n = l
 	}
 
 	ret = make([]T, n)
-	copy(ret, ss[len(ss)-n:])
+	copy(ret, ss[l-n:])
 	return ret
 }

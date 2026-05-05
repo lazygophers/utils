@@ -65,6 +65,7 @@ func ToFloat32(val interface{}) float32 {
 }
 
 // ToFloat64 将任何类型的值尽力转换为 float64。
+// 优化版本：将最常用的类型放在前面，减少类型分支开销
 //
 // 支持的输入类型包括：
 //   - bool: true 转换为 1.0, false 转换为 0.0。
@@ -74,37 +75,22 @@ func ToFloat32(val interface{}) float32 {
 //
 // 对于无法转换的类型(如 struct, map 等)或 nil，将返回 0.0。
 func ToFloat64(val interface{}) float64 {
-	switch x := val.(type) {
-	case bool:
-		if x {
-			return 1
-		}
+	// 快速路径：nil 检查
+	if val == nil {
 		return 0
-	case int:
-		return float64(x)
-	case int8:
-		return float64(x)
-	case int16:
-		return float64(x)
-	case int32:
-		return float64(x)
-	case int64:
-		return float64(x)
-	case uint:
-		return float64(x)
-	case uint8:
-		return float64(x)
-	case uint16:
-		return float64(x)
-	case uint32:
-		return float64(x)
-	case uint64:
-		return float64(x)
-	case float32:
-		return float64(x)
-	case float64:
+	}
+
+	switch x := val.(type) {
+	// 常见类型优先
+	case float64: // 最常见
 		return x
-	case string:
+	case float32: // 常见
+		return float64(x)
+	case int: // 常见
+		return float64(x)
+	case int64: // 常见
+		return float64(x)
+	case string: // 常见
 		v := strings.TrimSpace(x)
 		val, err := strconv.ParseFloat(v, 64)
 		if err == nil {
@@ -117,6 +103,27 @@ func ToFloat64(val interface{}) float64 {
 		}
 
 		return 0
+	case bool:
+		if x {
+			return 1
+		}
+		return 0
+	case int8:
+		return float64(x)
+	case int16:
+		return float64(x)
+	case int32:
+		return float64(x)
+	case uint:
+		return float64(x)
+	case uint8:
+		return float64(x)
+	case uint16:
+		return float64(x)
+	case uint32:
+		return float64(x)
+	case uint64:
+		return float64(x)
 	case []byte:
 		v := strings.TrimSpace(string(x))
 		val, err := strconv.ParseFloat(v, 64)

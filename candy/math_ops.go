@@ -42,13 +42,17 @@ import (
 //	result := Max(empty)
 //	// result = 0 (int类型的零值)
 func Max[T constraints.Ordered](ss ...T) (max T) {
-	if len(ss) == 0 {
+	n := len(ss)
+	if n == 0 {
 		return
 	}
+	// 优化：使用索引循环避免 range 的额外开销
 	max = ss[0]
-	for _, s := range ss {
-		if s > max {
-			max = s
+	for i := 1; i < n; i++ {
+		// 优化：减少边界检查，先存入局部变量
+		v := ss[i]
+		if v > max {
+			max = v
 		}
 	}
 	return
@@ -90,13 +94,17 @@ func Max[T constraints.Ordered](ss ...T) (max T) {
 //	result := Min(empty)
 //	// result = 0 (int类型的零值)
 func Min[T constraints.Ordered](ss ...T) (min T) {
-	if len(ss) == 0 {
+	n := len(ss)
+	if n == 0 {
 		return
 	}
+	// 优化：使用索引循环避免 range 的额外开销
 	min = ss[0]
-	for _, s := range ss {
-		if s < min {
-			min = s
+	for i := 1; i < n; i++ {
+		// 优化：减少边界检查，先存入局部变量
+		v := ss[i]
+		if v < min {
+			min = v
 		}
 	}
 	return
@@ -116,19 +124,44 @@ func Min[T constraints.Ordered](ss ...T) (min T) {
 //	sum := Sum([]int{1, 2, 3})  // 返回 6
 //	sum := Sum([]float64{1.5, 2.5})  // 返回 4.0
 func Sum[T constraints.Ordered](ss ...T) (ret T) {
-	for _, s := range ss {
-		ret += s
+	// 优化：SIMD友好的4路累加，减少依赖链
+	n := len(ss)
+	var sum1, sum2, sum3, sum4 T
+	i := 0
+	// 每次处理4个元素，避免数据依赖
+	for i = 0; i+4 <= n; i += 4 {
+		sum1 += ss[i]
+		sum2 += ss[i+1]
+		sum3 += ss[i+2]
+		sum4 += ss[i+3]
 	}
-
+	// 处理剩余元素
+	for j := i; j < n; j++ {
+		ret += ss[j]
+	}
+	ret += sum1 + sum2 + sum3 + sum4
 	return
 }
 
 // Average 计算数值切片的平均值
 func Average[T constraints.Integer | constraints.Float | time.Duration](ss ...T) (ret T) {
-	if len(ss) == 0 {
+	n := len(ss)
+	if n == 0 {
 		return 0
 	}
-	ret = Sum(ss...) / T(len(ss))
+	// 优化：单次遍历，SIMD友好的4路累加
+	var sum1, sum2, sum3, sum4 T
+	i := 0
+	for i = 0; i+4 <= n; i += 4 {
+		sum1 += ss[i]
+		sum2 += ss[i+1]
+		sum3 += ss[i+2]
+		sum4 += ss[i+3]
+	}
+	for j := i; j < n; j++ {
+		sum1 += ss[j]
+	}
+	ret = (sum1 + sum2 + sum3 + sum4) / T(n)
 	return
 }
 

@@ -20,7 +20,7 @@ func parseBoolString(s string) bool {
 }
 
 // ToBool 尝试将任意类型 (interface{}) 的输入值转换为布尔值 (bool)。
-// 此函数现在使用泛型实现，提供更好的性能和类型安全。
+// 优化版本：将最常用的类型放在前面，减少类型分支开销
 //
 // 转换规则如下:
 //
@@ -59,11 +59,21 @@ func parseBoolString(s string) bool {
 //	candy.ToBool("hello") // true
 //	candy.ToBool(nil)     // false
 func ToBool(val interface{}) bool {
+	// 快速路径：nil 检查
+	if val == nil {
+		return false
+	}
+
 	switch x := val.(type) {
-	case bool:
+	// 常见类型优先
+	case bool: // 最常见
 		return x
-	case int:
+	case int: // 常见
 		return x != 0
+	case string: // 常见
+		return parseBoolString(x)
+	case float64: // 常见
+		return x != 0 && !math.IsNaN(x)
 	case int8:
 		return x != 0
 	case int16:
@@ -84,14 +94,8 @@ func ToBool(val interface{}) bool {
 		return x != 0
 	case float32:
 		return x != 0 && !math.IsNaN(float64(x))
-	case float64:
-		return x != 0 && !math.IsNaN(x)
-	case string:
-		return parseBoolString(x)
 	case []byte:
 		return parseBoolString(string(x))
-	case nil:
-		return false
 	default:
 		return false
 	}

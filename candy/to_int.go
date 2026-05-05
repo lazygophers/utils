@@ -6,7 +6,7 @@ import (
 )
 
 // ToInt 将任何类型的值尽力转换为 int。
-// 此函数现在使用泛型实现，提供更好的性能和类型安全。
+// 优化版本：将最常用的类型放在前面，减少类型分支开销
 //
 // 支持的输入类型包括：
 //   - bool: true 转换为 1, false 转换为 0。
@@ -16,14 +16,28 @@ import (
 //
 // 对于无法转换的类型(如 struct, map 等)或 nil，将返回 0。
 func ToInt(val interface{}) int {
+	// 快速路径：nil 检查
+	if val == nil {
+		return 0
+	}
+
 	switch x := val.(type) {
-	case bool:
+	// 常见类型优先，减少平均分支判断次数
+	case int: // 最常见
+		return x
+	case string: // 常见
+		val, err := strconv.ParseInt(x, 10, 0)
+		if err != nil {
+			return 0
+		}
+		return int(val)
+	case float64: // 常见
+		return int(x)
+	case bool: // 常见
 		if x {
 			return 1
 		}
 		return 0
-	case int:
-		return x
 	case int8:
 		return int(x)
 	case int16:
@@ -44,14 +58,6 @@ func ToInt(val interface{}) int {
 		return int(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case float32:
 		return int(x)
-	case float64:
-		return int(x)
-	case string:
-		val, err := strconv.ParseInt(x, 10, 0)
-		if err != nil {
-			return 0
-		}
-		return int(val)
 	case []byte:
 		val, err := strconv.ParseInt(string(x), 10, 0)
 		if err != nil {
