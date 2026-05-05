@@ -64,13 +64,3 @@ func StructEqual[T any](a, b T, comparer func(T, T) bool) bool {
 func Equal[T comparable](a, b T) bool {
 	return a == b
 }
-
-// EqualSlice 切片相等性检查的便捷函数
-func EqualSlice[T comparable](a, b []T) bool {
-	return SliceEqual(a, b)
-}
-
-// EqualMap map 相等性检查的便捷函数
-func EqualMap[K, V comparable](a, b map[K]V) bool {
-	return MapEqual(a, b)
-}

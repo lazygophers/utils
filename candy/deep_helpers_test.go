@@ -60,17 +60,17 @@ func TestStructEqualAndEqualHelpers(t *testing.T) {
 		t.Fatalf("expected false")
 	}
 
-	if !EqualSlice([]int{1, 2}, []int{2, 1}) {
+	if !SliceEqual([]int{1, 2}, []int{2, 1}) {
 		t.Fatalf("expected true (order-insensitive)")
 	}
-	if EqualSlice([]int{1, 2}, []int{1, 3}) {
+	if SliceEqual([]int{1, 2}, []int{1, 3}) {
 		t.Fatalf("expected false")
 	}
 
-	if !EqualMap(map[string]int{"a": 1}, map[string]int{"a": 1}) {
+	if !MapEqual(map[string]int{"a": 1}, map[string]int{"a": 1}) {
 		t.Fatalf("expected true")
 	}
-	if EqualMap(map[string]int{"a": 1}, map[string]int{"a": 2}) {
+	if MapEqual(map[string]int{"a": 1}, map[string]int{"a": 2}) {
 		t.Fatalf("expected false")
 	}
 }
