@@ -338,6 +338,3 @@ Procfile          text
 
 *.sql linguist-detectable=true
 *.sql linguist-language=sql
-
-# Use bd merge for beads JSONL files
-.beads/issues.jsonl merge=beads

@@ -30,6 +30,12 @@ func assertPanicsKeyBy(t *testing.T, fn func()) {
 }
 
 func TestKeyBy(t *testing.T) {
+	// 测试空切片
+	var emptySlice []keyByPerson
+	if got := KeyByInt(emptySlice, "ID"); got != nil {
+		t.Fatalf("expected nil, got %v", got)
+	}
+
 	p1 := keyByPerson{
 		ID: 1, ID8: 2, ID16: 3, ID32: 4, ID64: 5,
 		UID: 6, UID8: 7, UID16: 8, UID32: 9, UID64: 10,
