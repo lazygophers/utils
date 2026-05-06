@@ -171,16 +171,6 @@ func PluckInt(list interface{}, fieldName string) []int {
 	return pluckIntOptimized(list, fieldName)
 }
 
-// PluckInt32 从结构体切片中提取指定字段的 int32 值（优化版本）
-func PluckInt32(list interface{}, fieldName string) []int32 {
-	return pluckInt32Optimized(list, fieldName)
-}
-
-// PluckInt64 从结构体切片中提取指定字段的 int64 值（优化版本）
-func PluckInt64(list interface{}, fieldName string) []int64 {
-	return pluckInt64Optimized(list, fieldName)
-}
-
 // PluckString 从结构体切片中提取指定字段的 string 值（优化版本）
 func PluckString(list interface{}, fieldName string) []string {
 	return pluckStringOptimized(list, fieldName)
@@ -306,21 +296,6 @@ func getPluckStringFieldIndex(elemType reflect.Type, fieldName string) ([]int, r
 	// 缓存字段索引
 	pluckStringFieldCache.cache[elemType][fieldName] = field.Index
 	return field.Index, field.Type, true
-}
-
-// PluckUint32 从结构体切片中提取指定字段的 uint32 值（优化版本）
-func PluckUint32(list interface{}, fileName string) []uint32 {
-	return pluckUint32Optimized(list, fileName)
-}
-
-// PluckUint64 从结构体切片中提取指定字段的 uint64 值（优化版本）
-func PluckUint64(list interface{}, fieldName string) []uint64 {
-	return pluckUint64Optimized(list, fieldName)
-}
-
-// PluckStringSlice 从结构体切片中提取指定字段的 []string 值（优化版本）
-func PluckStringSlice(list interface{}, fieldName string) [][]string {
-	return pluckStringSliceOptimized(list, fieldName)
 }
 
 // ==================== PluckInt 优化实现 ====================
