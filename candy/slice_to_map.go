@@ -2,6 +2,7 @@ package candy
 
 import (
 	"reflect"
+	"sync"
 
 	"golang.org/x/exp/constraints"
 )
@@ -17,16 +18,103 @@ func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
 	return m
 }
 
+// ==================== SliceField2Map 优化：反射字段缓存 ====================
+// 使用缓存避免重复的字段查找，显著提升性能
+
+// sliceField2MapCache 字段索引缓存
+var sliceField2MapCache struct {
+	sync.RWMutex
+	cache map[reflect.Type]map[string][]int
+}
+
+func init() {
+	sliceField2MapCache.cache = make(map[reflect.Type]map[string][]int)
+}
+
+// getFieldIndexCached 获取字段索引，使用缓存避免重复反射
+func getFieldIndexCachedForSlice(elemType reflect.Type, fieldName string) ([]int, reflect.Type, bool) {
+	// 读缓存
+	sliceField2MapCache.RLock()
+	if fields, ok := sliceField2MapCache.cache[elemType]; ok {
+		if index, exists := fields[fieldName]; exists {
+			sliceField2MapCache.RUnlock()
+			// 解析实际类型
+			actualType := elemType
+			for actualType.Kind() == reflect.Ptr {
+				actualType = actualType.Elem()
+			}
+			if field, found := actualType.FieldByName(fieldName); found {
+				return index, field.Type, true
+			}
+		}
+	}
+	sliceField2MapCache.RUnlock()
+
+	// 缓存未命中，获取并缓存
+	sliceField2MapCache.Lock()
+	defer sliceField2MapCache.Unlock()
+
+	// 双重检查
+	if fields, ok := sliceField2MapCache.cache[elemType]; ok {
+		if index, exists := fields[fieldName]; exists {
+			actualType := elemType
+			for actualType.Kind() == reflect.Ptr {
+				actualType = actualType.Elem()
+			}
+			if field, found := actualType.FieldByName(fieldName); found {
+				return index, field.Type, true
+			}
+		}
+	}
+
+	// 解析指针类型
+	actualType := elemType
+	for actualType.Kind() == reflect.Ptr {
+		actualType = actualType.Elem()
+	}
+
+	if actualType.Kind() != reflect.Struct {
+		return nil, nil, false
+	}
+
+	field, found := actualType.FieldByName(fieldName)
+	if !found {
+		return nil, nil, false
+	}
+
+	// 初始化类型缓存
+	if sliceField2MapCache.cache[elemType] == nil {
+		sliceField2MapCache.cache[elemType] = make(map[string][]int)
+	}
+
+	fieldIndex := field.Index
+	sliceField2MapCache.cache[elemType][fieldName] = fieldIndex
+
+	return fieldIndex, field.Type, true
+}
+
 func sliceField2Map[T any, K comparable](ss []T, fieldName string, expectedKind reflect.Kind, converter func(reflect.Value) K) map[K]bool {
 	if len(ss) == 0 {
 		return nil
 	}
 
-	validateStructFieldKind(reflect.TypeOf(ss[0]), fieldName, expectedKind)
+	elemType := reflect.TypeOf(ss[0])
+	fieldIndex, fieldType, ok := getFieldIndexCachedForSlice(elemType, fieldName)
+	if !ok {
+		panic("field not found or element is not a struct")
+	}
+
+	if fieldType.Kind() != expectedKind {
+		panic("field type mismatch")
+	}
 
 	ret := make(map[K]bool, len(ss))
 	for _, item := range ss {
-		fieldValue := getStructFieldValue(item, fieldName)
+		v := reflect.ValueOf(item)
+		for v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
+		fieldValue := v.FieldByIndex(fieldIndex)
 		ret[converter(fieldValue)] = true
 	}
 
