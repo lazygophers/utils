@@ -79,21 +79,32 @@ func ToInt(val interface{}) int {
 //
 // 对于无法转换的类型(如 struct, map 等)或 nil，将返回 0。
 func ToInt8(val interface{}) int8 {
+	// 快速路径：nil 检查
+	if val == nil {
+		return 0
+	}
+
 	switch x := val.(type) {
+	case int8:
+		return x // 零拷贝：直接返回相同类型
+	case int:
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
+	case int64:
+		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
+	case string:
+		val, err := strconv.ParseInt(x, 10, 8)
+		if err != nil {
+			return 0
+		}
+		return int8(val)
 	case bool:
 		if x {
 			return 1
 		}
 		return 0
-	case int:
-		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
-	case int8:
-		return x
 	case int16:
 		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int32:
-		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
-	case int64:
 		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint:
 		return int8(x) // #nosec G115 -- intentional truncation for best-effort conversion
@@ -109,12 +120,6 @@ func ToInt8(val interface{}) int8 {
 		return int8(x)
 	case float64:
 		return int8(x)
-	case string:
-		val, err := strconv.ParseInt(x, 10, 8)
-		if err != nil {
-			return 0
-		}
-		return int8(val)
 	case []byte:
 		val, err := strconv.ParseInt(string(x), 10, 8)
 		if err != nil {
@@ -136,21 +141,32 @@ func ToInt8(val interface{}) int8 {
 //
 // 对于无法转换的类型(如 struct, map 等)或 nil，将返回 0。
 func ToInt16(val interface{}) int16 {
+	// 快速路径：nil 检查
+	if val == nil {
+		return 0
+	}
+
 	switch x := val.(type) {
+	case int16:
+		return x // 零拷贝：直接返回相同类型
+	case int:
+		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
+	case int64:
+		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
+	case string:
+		val, err := strconv.ParseInt(x, 10, 16)
+		if err != nil {
+			return 0
+		}
+		return int16(val)
 	case bool:
 		if x {
 			return 1
 		}
 		return 0
-	case int:
-		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int8:
 		return int16(x)
-	case int16:
-		return x
 	case int32:
-		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
-	case int64:
 		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint:
 		return int16(x) // #nosec G115 -- intentional truncation for best-effort conversion
@@ -166,12 +182,6 @@ func ToInt16(val interface{}) int16 {
 		return int16(x)
 	case float64:
 		return int16(x)
-	case string:
-		val, err := strconv.ParseInt(x, 10, 16)
-		if err != nil {
-			return 0
-		}
-		return int16(val)
 	case []byte:
 		val, err := strconv.ParseInt(string(x), 10, 16)
 		if err != nil {
@@ -193,22 +203,33 @@ func ToInt16(val interface{}) int16 {
 //
 // 对于无法转换的类型(如 struct, map 等)或 nil，将返回 0。
 func ToInt32(val interface{}) int32 {
+	// 快速路径：nil 检查
+	if val == nil {
+		return 0
+	}
+
 	switch x := val.(type) {
+	case int32:
+		return x // 零拷贝：直接返回相同类型
+	case int:
+		return int32(x) // #nosec G115 -- intentional truncation for best-effort conversion
+	case int64:
+		return int32(x) // #nosec G115 -- intentional truncation for best-effort conversion
+	case string:
+		val, err := strconv.ParseInt(x, 10, 32)
+		if err != nil {
+			return 0
+		}
+		return int32(val)
 	case bool:
 		if x {
 			return 1
 		}
 		return 0
-	case int:
-		return int32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case int8:
 		return int32(x)
 	case int16:
 		return int32(x)
-	case int32:
-		return x
-	case int64:
-		return int32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint:
 		return int32(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint8:
@@ -223,12 +244,6 @@ func ToInt32(val interface{}) int32 {
 		return int32(x)
 	case float64:
 		return int32(x)
-	case string:
-		val, err := strconv.ParseInt(x, 10, 32)
-		if err != nil {
-			return 0
-		}
-		return int32(val)
 	case []byte:
 		val, err := strconv.ParseInt(string(x), 10, 32)
 		if err != nil {
@@ -251,22 +266,33 @@ func ToInt32(val interface{}) int32 {
 //
 // 对于无法转换的类型(如 struct, map 等)或 nil，将返回 0。
 func ToInt64(val interface{}) int64 {
+	// 快速路径：nil 检查
+	if val == nil {
+		return 0
+	}
+
 	switch x := val.(type) {
+	case int64:
+		return x // 零拷贝：直接返回相同类型
+	case int:
+		return int64(x)
+	case string:
+		val, err := strconv.ParseInt(x, 10, 64)
+		if err != nil {
+			return 0
+		}
+		return val
 	case bool:
 		if x {
 			return 1
 		}
 		return 0
-	case int:
-		return int64(x)
 	case int8:
 		return int64(x)
 	case int16:
 		return int64(x)
 	case int32:
 		return int64(x)
-	case int64:
-		return x
 	case uint:
 		return int64(x) // #nosec G115 -- intentional truncation for best-effort conversion
 	case uint8:
@@ -283,12 +309,6 @@ func ToInt64(val interface{}) int64 {
 		return int64(x)
 	case float64:
 		return int64(x)
-	case string:
-		val, err := strconv.ParseInt(x, 10, 64)
-		if err != nil {
-			return 0
-		}
-		return val
 	case []byte:
 		val, err := strconv.ParseInt(string(x), 10, 64)
 		if err != nil {

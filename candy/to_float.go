@@ -15,21 +15,37 @@ import (
 //
 // 对于无法转换的类型(如 struct, map 等)或 nil，将返回 0.0。
 func ToFloat32(val interface{}) float32 {
+	// 快速路径：nil 检查
+	if val == nil {
+		return 0
+	}
+
 	switch x := val.(type) {
+	case float32:
+		return x // 零拷贝：直接返回相同类型
+	case float64:
+		return float32(x)
+	case int:
+		return float32(x)
+	case int64:
+		return float32(x)
+	case string:
+		v := strings.TrimSpace(x)
+		val, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return 0
+		}
+		return float32(val)
 	case bool:
 		if x {
 			return 1
 		}
 		return 0
-	case int:
-		return float32(x)
 	case int8:
 		return float32(x)
 	case int16:
 		return float32(x)
 	case int32:
-		return float32(x)
-	case int64:
 		return float32(x)
 	case uint:
 		return float32(x)
@@ -41,17 +57,6 @@ func ToFloat32(val interface{}) float32 {
 		return float32(x)
 	case uint64:
 		return float32(x)
-	case float32:
-		return x
-	case float64:
-		return float32(x)
-	case string:
-		v := strings.TrimSpace(x)
-		val, err := strconv.ParseFloat(v, 64)
-		if err != nil {
-			return 0
-		}
-		return float32(val)
 	case []byte:
 		v := strings.TrimSpace(string(x))
 		val, err := strconv.ParseFloat(v, 64)
