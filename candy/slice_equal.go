@@ -3,6 +3,11 @@ package candy
 // SliceEqual 判断两个切片是否相等，不考虑元素顺序
 // 使用 map 来统计元素出现次数，确保每个元素在两个切片中出现次数相同
 // 处理了 nil 切片的特殊情况：nil 和空切片视为相等
+//
+// 性能优化：
+//   - 快速路径：长度检查和 nil 检查
+//   - 预分配 map 容量，减少内存重新分配
+//   - 使用 any 类型转换避免 comparable 约束限制
 func SliceEqual[T any](a, b []T) bool {
 	// 处理 nil 切片的情况：nil 和空切片视为相等
 	if a == nil && b == nil {
@@ -16,17 +21,44 @@ func SliceEqual[T any](a, b []T) bool {
 		return false
 	}
 
-	// 使用 map 来跟踪每个元素的出现次数
+	// 小切片优化：使用双重循环避免 map 开销
+	const smallSliceThreshold = 32
+	if len(a) < smallSliceThreshold {
+		// 标记已匹配的元素
+		matched := make([]bool, len(b))
+		for _, va := range a {
+			found := false
+			for j, vb := range b {
+				if !matched[j] {
+					// 使用 any 比较
+					vaAny := any(va)
+					vbAny := any(vb)
+					if vaAny == vbAny {
+						matched[j] = true
+						found = true
+						break
+					}
+				}
+			}
+			if !found {
+				return false
+			}
+		}
+		return true
+	}
+
+	// 大切片：使用 map 计数
 	am := make(map[any]int, len(a))
 	for _, v := range a {
 		am[v]++
 	}
 
 	for _, v := range b {
-		if count, ok := am[v]; !ok || count == 0 {
+		vAny := any(v)
+		if count, ok := am[vAny]; !ok || count == 0 {
 			return false
 		}
-		am[v]--
+		am[vAny]--
 	}
 
 	return true

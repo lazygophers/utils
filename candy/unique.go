@@ -123,23 +123,24 @@ func Unique[T constraints.Ordered](ss []T) (ret []T) {
 //	uniqueFirstLetters := UniqueUsing(names, func(s string) any { return s[0] })
 //	// uniqueFirstLetters 的值为 []string{"Alice", "Bob", "Charlie"}
 func UniqueUsing[T any](ss []T, f func(T) any) (ret []T) {
-	// 空切片检查，返回空切片而非 nil
-	if len(ss) == 0 {
+	// 优化版本：
+	// 1. 预分配结果切片容量，减少append时的内存重新分配
+	// 2. 预分配map容量，减少map扩容开销
+	// 3. 使用索引循环避免range的值拷贝开销
+	// 4. 预计算长度避免重复调用
+	n := len(ss)
+	if n == 0 {
 		return []T{}
 	}
 
-	// 创建映射用于记录已出现的键值
-	m := make(map[any]struct{})
+	ret = make([]T, 0, n)
+	m := make(map[any]struct{}, n)
 
-	// 遍历输入切片
-	for _, s := range ss {
-		// 使用映射函数提取键值
-		key := f(s)
-
-		// 如果键值未出现过，则添加到结果切片
+	for i := 0; i < n; i++ {
+		key := f(ss[i])
 		if _, ok := m[key]; !ok {
 			m[key] = struct{}{}
-			ret = append(ret, s)
+			ret = append(ret, ss[i])
 		}
 	}
 

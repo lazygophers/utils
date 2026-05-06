@@ -164,14 +164,12 @@ func Contains[T comparable](ss []T, s T) bool {
 //	    return v > 3
 //	}) // 返回 true
 func ContainsUsing[T any](ss []T, f func(v T) bool) bool {
-	// 遍历切片中的每个元素
-	for _, v := range ss {
-		// 使用自定义函数判断当前元素是否满足条件
-		if f(v) {
+	// 优化版本：使用索引循环避免range的值拷贝开销，预计算长度避免重复调用
+	n := len(ss)
+	for i := 0; i < n; i++ {
+		if f(ss[i]) {
 			return true
 		}
 	}
-
-	// 遍历完所有元素都没有找到满足条件的，返回 false
 	return false
 }

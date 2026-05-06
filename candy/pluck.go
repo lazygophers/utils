@@ -20,7 +20,7 @@ func Pluck[T any, U any](slice []T, selector func(T) U) []U {
 	return result
 }
 
-// PluckPtr 安全地从指针结构体切片中提取字段值
+// PluckPtr 安全地从指针结构体切片中提取字段值（优化版本）
 // 自动处理 nil 指针，提供默认值
 func PluckPtr[T any, U any](slice []*T, selector func(*T) U, defaultVal U) []U {
 	if len(slice) == 0 {
@@ -28,7 +28,10 @@ func PluckPtr[T any, U any](slice []*T, selector func(*T) U, defaultVal U) []U {
 	}
 
 	result := make([]U, len(slice))
-	for i, item := range slice {
+	length := len(slice)
+
+	for i := 0; i < length; i++ {
+		item := slice[i]
 		if item != nil {
 			result[i] = selector(item)
 		} else {
@@ -38,14 +41,14 @@ func PluckPtr[T any, U any](slice []*T, selector func(*T) U, defaultVal U) []U {
 	return result
 }
 
-// PluckUnique 从结构体切片中提取字段值并去重
+// PluckUnique 从结构体切片中提取字段值并去重（优化版本）
 func PluckUnique[T any, U comparable](slice []T, selector func(T) U) []U {
 	if len(slice) == 0 {
 		return nil
 	}
 
 	seen := make(map[U]struct{}, len(slice))
-	var result []U
+	result := make([]U, 0, len(slice))
 
 	for _, item := range slice {
 		value := selector(item)
@@ -57,14 +60,17 @@ func PluckUnique[T any, U comparable](slice []T, selector func(T) U) []U {
 	return result
 }
 
-// PluckMap 从结构体切片中提取键值对，构建 map
+// PluckMap 从结构体切片中提取键值对，构建 map（优化版本）
 func PluckMap[T any, K comparable, V any](slice []T, keySelector func(T) K, valueSelector func(T) V) map[K]V {
 	if len(slice) == 0 {
 		return nil
 	}
 
 	result := make(map[K]V, len(slice))
-	for _, item := range slice {
+	length := len(slice)
+
+	for i := 0; i < length; i++ {
+		item := slice[i]
 		key := keySelector(item)
 		value := valueSelector(item)
 		result[key] = value
@@ -72,13 +78,20 @@ func PluckMap[T any, K comparable, V any](slice []T, keySelector func(T) K, valu
 	return result
 }
 
-// PluckGroupBy 按指定字段对结构体切片进行分组
+// PluckGroupBy 按指定字段对结构体切片进行分组（优化版本）
 func PluckGroupBy[T any, K comparable](slice []T, keySelector func(T) K) map[K][]T {
 	if len(slice) == 0 {
 		return nil
 	}
 
-	result := make(map[K][]T)
+	// 预估分组数量
+	estimatedGroups := len(slice) / 10
+	if estimatedGroups < 4 {
+		estimatedGroups = 4
+	}
+
+	result := make(map[K][]T, estimatedGroups)
+
 	for _, item := range slice {
 		key := keySelector(item)
 		result[key] = append(result[key], item)
@@ -153,23 +166,22 @@ func pluck(list interface{}, fieldName string, deferVal interface{}) interface{}
 	}
 }
 
-// PluckInt 从结构体切片中提取指定字段的 int 值
+// PluckInt 从结构体切片中提取指定字段的 int 值（优化版本）
 func PluckInt(list interface{}, fieldName string) []int {
-	return pluck(list, fieldName, []int{}).([]int)
+	return pluckIntOptimized(list, fieldName)
 }
 
-// PluckInt32 从结构体切片中提取指定字段的 int32 值
+// PluckInt32 从结构体切片中提取指定字段的 int32 值（优化版本）
 func PluckInt32(list interface{}, fieldName string) []int32 {
-	return pluck(list, fieldName, []int32{}).([]int32)
+	return pluckInt32Optimized(list, fieldName)
 }
 
-// PluckInt64 从结构体切片中提取指定字段的 int64 值
+// PluckInt64 从结构体切片中提取指定字段的 int64 值（优化版本）
 func PluckInt64(list interface{}, fieldName string) []int64 {
-	return pluck(list, fieldName, []int64{}).([]int64)
+	return pluckInt64Optimized(list, fieldName)
 }
 
-// PluckString 从结构体切片中提取指定字段的 string 值
-// 优化版本：使用缓存反射机制，比原始实现快约 50-60%
+// PluckString 从结构体切片中提取指定字段的 string 值（优化版本）
 func PluckString(list interface{}, fieldName string) []string {
 	return pluckStringOptimized(list, fieldName)
 }
@@ -296,19 +308,19 @@ func getPluckStringFieldIndex(elemType reflect.Type, fieldName string) ([]int, r
 	return field.Index, field.Type, true
 }
 
-// PluckUint32 从结构体切片中提取指定字段的 uint32 值
+// PluckUint32 从结构体切片中提取指定字段的 uint32 值（优化版本）
 func PluckUint32(list interface{}, fileName string) []uint32 {
-	return pluck(list, fileName, []uint32{}).([]uint32)
+	return pluckUint32Optimized(list, fileName)
 }
 
-// PluckUint64 从结构体切片中提取指定字段的 uint64 值
+// PluckUint64 从结构体切片中提取指定字段的 uint64 值（优化版本）
 func PluckUint64(list interface{}, fieldName string) []uint64 {
-	return pluck(list, fieldName, []uint64{}).([]uint64)
+	return pluckUint64Optimized(list, fieldName)
 }
 
-// PluckStringSlice 从结构体切片中提取指定字段的 []string 值
+// PluckStringSlice 从结构体切片中提取指定字段的 []string 值（优化版本）
 func PluckStringSlice(list interface{}, fieldName string) [][]string {
-	return pluck(list, fieldName, [][]string{}).([][]string)
+	return pluckStringSliceOptimized(list, fieldName)
 }
 
 // ==================== PluckInt 优化实现 ====================

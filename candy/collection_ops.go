@@ -9,28 +9,26 @@ import (
 )
 
 // All 检查切片中的所有元素是否都满足指定条件
+// 优化版本：使用索引循环避免range的值拷贝开销，预计算长度避免重复调用
 func All[T any](ss []T, f func(T) bool) bool {
-	if len(ss) == 0 {
-		return true
-	}
-
-	for _, s := range ss {
-		if !f(s) {
+	n := len(ss)
+	for i := 0; i < n; i++ {
+		if !f(ss[i]) {
 			return false
 		}
 	}
-
 	return true
 }
 
 // Any 检查切片中是否存在至少一个元素满足指定条件
+// 优化版本：使用索引循环避免range的值拷贝开销，预计算长度避免重复调用
 func Any[T any](ss []T, f func(T) bool) bool {
-	for _, s := range ss {
-		if f(s) {
+	n := len(ss)
+	for i := 0; i < n; i++ {
+		if f(ss[i]) {
 			return true
 		}
 	}
-
 	return false
 }
 

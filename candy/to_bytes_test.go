@@ -414,3 +414,66 @@ func TestToBytes_EdgeCases(t *testing.T) {
 		}
 	})
 }
+
+// =============================================================================
+// ToBytes 性能优化基准测试
+// =============================================================================
+
+func BenchmarkToBytes_Optimizations(b *testing.B) {
+	b.Run("bool", func(b *testing.B) {
+		b.Run("Current", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = ToBytes(true)
+			}
+		})
+	})
+
+	b.Run("int", func(b *testing.B) {
+		b.Run("Current", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = ToBytes(42)
+			}
+		})
+	})
+
+	b.Run("int64", func(b *testing.B) {
+		b.Run("Current", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = ToBytes(int64(9223372036854775807))
+			}
+		})
+	})
+
+	b.Run("float64", func(b *testing.B) {
+		b.Run("Current", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = ToBytes(3.141592653589793)
+			}
+		})
+	})
+
+	b.Run("string", func(b *testing.B) {
+		b.Run("Current", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = ToBytes("hello world, this is a test string")
+			}
+		})
+	})
+
+	b.Run("bytes", func(b *testing.B) {
+		data := []byte("hello world, this is test data")
+		b.Run("Current", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = ToBytes(data)
+			}
+		})
+	})
+
+	b.Run("nil", func(b *testing.B) {
+		b.Run("Current", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_ = ToBytes(nil)
+			}
+		})
+	})
+}

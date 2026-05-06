@@ -44,7 +44,7 @@ func ToMapInt32String(v interface{}) map[int32]string {
 		return map[int32]string{}
 	}
 
-	m := make(map[int32]string)
+	m := make(map[int32]string, vv.Len())
 	mg := vv.MapRange()
 
 	for mg.Next() {
@@ -64,7 +64,7 @@ func ToMapInt64String(v interface{}) map[int64]string {
 		return map[int64]string{}
 	}
 
-	m := make(map[int64]string)
+	m := make(map[int64]string, vv.Len())
 	mg := vv.MapRange()
 
 	for mg.Next() {
@@ -89,7 +89,7 @@ func ToMapStringAny(v interface{}) map[string]interface{} {
 		return map[string]interface{}{}
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]interface{}, vv.Len())
 	mg := vv.MapRange()
 
 	for mg.Next() {
@@ -114,7 +114,7 @@ func ToMapStringArrayString(v interface{}) map[string][]string {
 		panic("required map type")
 	}
 
-	m := make(map[string][]string)
+	m := make(map[string][]string, vv.Len())
 	mg := vv.MapRange()
 
 	for mg.Next() {
@@ -134,7 +134,7 @@ func ToMapStringInt64(v interface{}) map[string]int64 {
 		return map[string]int64{}
 	}
 
-	m := make(map[string]int64)
+	m := make(map[string]int64, vv.Len())
 	mg := vv.MapRange()
 
 	for mg.Next() {
@@ -154,7 +154,7 @@ func ToMapStringString(v interface{}) map[string]string {
 		return map[string]string{}
 	}
 
-	m := make(map[string]string)
+	m := make(map[string]string, vv.Len())
 	mg := vv.MapRange()
 
 	for mg.Next() {

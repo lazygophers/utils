@@ -84,11 +84,51 @@ func Remove[T constraints.Ordered](ss []T, toRemove []T) (result []T) {
 //	added, removed := Diff(ss, against)
 //	// added = [4]
 //	// removed = [1]
+//
+// 性能优化：
+//   - 使用单一 map 构建差异集合，避免两次 Remove 调用
+//   - 预分配结果切片容量，减少内存重新分配
+//   - 使用 map[T]int 计数，正确处理重复元素
 func Diff[T constraints.Ordered](ss []T, against []T) (added, removed []T) {
-	removed = Remove(ss, against)
-	added = Remove(against, ss)
+	// 快速路径：空切片
+	if len(ss) == 0 && len(against) == 0 {
+		return []T{}, []T{}
+	}
 
-	return
+	// 构建两个 map 计数
+	mapSS := make(map[T]int, len(ss))
+	for _, v := range ss {
+		mapSS[v]++
+	}
+
+	mapAgainst := make(map[T]int, len(against))
+	for _, v := range against {
+		mapAgainst[v]++
+	}
+
+	// 预分配结果切片
+	removed = make([]T, 0, len(mapSS))
+	added = make([]T, 0, len(mapAgainst))
+
+	// 找出在 ss 中但不在 against 中的
+	for k, v := range mapSS {
+		if mapAgainst[k] == 0 {
+			for i := 0; i < v; i++ {
+				removed = append(removed, k)
+			}
+		}
+	}
+
+	// 找出在 against 中但不在 ss 中的
+	for k, v := range mapAgainst {
+		if mapSS[k] == 0 {
+			for i := 0; i < v; i++ {
+				added = append(added, k)
+			}
+		}
+	}
+
+	return added, removed
 }
 
 // Index 返回元素 sub 在切片 ss 中的索引位置
@@ -110,14 +150,29 @@ func Index[T constraints.Ordered](ss []T, sub T) int {
 
 // Same 返回在 against 和 ss 中都存在的元素
 // 用于查找两个有序集合的交集
+//
+// 性能优化：
+//   - 预分配结果切片容量，减少 append 重新分配
+//   - 使用 map[T]struct{} 作为集合，内存占用最小
+//   - 快速路径：处理空切片情况
 func Same[T constraints.Ordered](against []T, ss []T) (result []T) {
-	// 使用 make 初始化，确保返回空切片而非 nil
-	result = make([]T, 0)
-	set := make(map[T]struct{}, len(ss))
+	// 快速路径：空切片
+	if len(ss) == 0 || len(against) == 0 {
+		return []T{}
+	}
 
+	// 构建集合
+	set := make(map[T]struct{}, len(ss))
 	for _, s := range ss {
 		set[s] = struct{}{}
 	}
+
+	// 预分配结果切片：最大可能大小是 min(len(against), len(ss))
+	maxSize := len(against)
+	if len(ss) < maxSize {
+		maxSize = len(ss)
+	}
+	result = make([]T, 0, maxSize)
 
 	for _, s := range against {
 		if _, ok := set[s]; ok {
