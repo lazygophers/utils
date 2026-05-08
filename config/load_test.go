@@ -2627,3 +2627,170 @@ database:
 		assert.Equal(t, "prod-db", config.Database.Host)
 	})
 }
+
+// TestEnvTagCoverage 补充测试提升覆盖率
+func TestEnvTagCoverage(t *testing.T) {
+	originalConfigPath := configPath
+	defer func() {
+		configPath = originalConfigPath
+	}()
+
+	t.Run("uint type field", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_uint_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		// 创建配置文件
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{"name": "test", "port": 8080}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		// 设置 uint 环境变量（如果字段是 uint 类型）
+		os.Setenv("port", "9000")
+		defer os.Unsetenv("port")
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, 9000, config.Port)
+	})
+
+	t.Run("float type field", func(t *testing.T) {
+		type ConfigWithFloat struct {
+			Name   string  `json:"name" env:"name"`
+			Rate   float64 `json:"rate" env:"rate"`
+		}
+
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_float_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{"name": "test", "rate": 1.5}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		os.Setenv("name", "env-test")
+		os.Setenv("rate", "2.5")
+		defer func() {
+			os.Unsetenv("name")
+			os.Unsetenv("rate")
+		}()
+
+		var config ConfigWithFloat
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "env-test", config.Name)
+		assert.Equal(t, 2.5, config.Rate)
+	})
+
+	t.Run("env tag with omitempty option", func(t *testing.T) {
+		type ConfigWithOpts struct {
+			Name string `json:"name" env:"name,omitempty"`
+		}
+
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_omitempty_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{"name": "file-value"}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		os.Setenv("name", "env-value")
+		defer os.Unsetenv("name")
+
+		var config ConfigWithOpts
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "env-value", config.Name)
+	})
+
+	t.Run("env tag with dash - no override", func(t *testing.T) {
+		type ConfigWithDash struct {
+			Name      string `json:"name" env:"name"`
+			SecretKey string `json:"secret" env:"-"` // - 表示不从 env 读取
+		}
+
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_dash_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{"name": "file-value", "secret": "file-secret"}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		os.Setenv("secret", "env-secret")
+		defer os.Unsetenv("secret")
+
+		var config ConfigWithDash
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "file-value", config.Name)
+		assert.Equal(t, "file-secret", config.SecretKey) // 不被 env 覆盖
+	})
+
+	t.Run("invalid env value for int field", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_invalid_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{"name": "test", "port": 8080}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		// 设置无效的 int 值
+		os.Setenv("name", "env-test")
+		os.Setenv("port", "invalid-int")
+		defer func() {
+			os.Unsetenv("name")
+			os.Unsetenv("port")
+		}()
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "env-test", config.Name)
+		assert.Equal(t, 8080, config.Port) // 保持文件值（类型转换失败）
+	})
+
+	t.Run("invalid env value for bool field", func(t *testing.T) {
+		configPath = ""
+
+		tmpDir, err := os.MkdirTemp("", "env_bool_invalid_test_")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		configFile := filepath.Join(tmpDir, "config.json")
+		configContent := `{"name": "test", "debug": true}`
+		err = os.WriteFile(configFile, []byte(configContent), 0644)
+		require.NoError(t, err)
+
+		os.Setenv("name", "env-test")
+		os.Setenv("debug", "invalid-bool")
+		defer func() {
+			os.Unsetenv("name")
+			os.Unsetenv("debug")
+		}()
+
+		var config TestConfig
+		err = LoadConfigSkipValidate(&config, configFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "env-test", config.Name)
+		assert.True(t, config.Debug) // 保持文件值
+	})
+}
