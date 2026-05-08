@@ -9,11 +9,6 @@ coverage_*.html
 coverage_*.out
 *.coverage
 
-# Claude Code related files
-.claude/
-*.claude
-.beads/
-
 # Additional temporary and build files
 *.prof
 *.test
@@ -46,3 +41,7 @@ ehthumbs.db
 .version
 
 graphify-out/
+.trellis/
+trellis/
+trellis-*
+/.claude/settings.local.json
