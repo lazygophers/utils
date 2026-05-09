@@ -32,7 +32,7 @@ func TestReadPublicKey_ReadKeyRingError(t *testing.T) {
 		require.NoError(t, err)
 		err = writer.Close()
 		require.NoError(t, err)
-		
+
 		_, err = ReadPublicKey(buf.String())
 		assert.Error(t, err)
 	})
@@ -59,7 +59,7 @@ func TestReadPrivateKey_ReadKeyRingError(t *testing.T) {
 		require.NoError(t, err)
 		err = writer.Close()
 		require.NoError(t, err)
-		
+
 		_, err = ReadPrivateKey(buf.String(), "")
 		assert.Error(t, err)
 	})
@@ -89,7 +89,7 @@ func TestEncryptText_EncryptError(t *testing.T) {
 		// 生成一个有效的密钥对
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		// 这里我们需要一个更直接的方式来测试Encrypt错误
 		// 我们可以通过修改EncryptText函数的逻辑来触发，但这不是好的测试方法
 		// 所以我们使用一个间接的方式，确保函数被完全覆盖
@@ -105,7 +105,7 @@ func TestDecryptText_DecodeError(t *testing.T) {
 		invalidArmor := "-----BEGIN INVALID ARMOR-----\ninvalid data\n-----END INVALID ARMOR-----"
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		_, err = DecryptText(invalidArmor, keyPair.PrivateKey, "")
 		assert.Error(t, err)
 	})
@@ -118,7 +118,7 @@ func TestGetFingerprint_ErrorCases(t *testing.T) {
 		_, err := GetFingerprint("not a key at all")
 		assert.Error(t, err)
 	})
-	
+
 	t.Run("get_fingerprint_empty_key_list", func(t *testing.T) {
 		// 生成一个有效的armor块但内容无效，触发ReadKeyRing返回空列表
 		buf := &bytes.Buffer{}
@@ -128,7 +128,7 @@ func TestGetFingerprint_ErrorCases(t *testing.T) {
 		require.NoError(t, err)
 		err = writer.Close()
 		require.NoError(t, err)
-		
+
 		_, err = GetFingerprint(buf.String())
 		assert.Error(t, err)
 	})
@@ -140,11 +140,11 @@ func TestGenerateKeyPair_NewEntityError(t *testing.T) {
 		// 使用无效的参数来触发NewEntity错误
 		// 注意：某些参数组合可能不会触发错误，这取决于openpgp库的实现
 		opts := &GenerateOptions{
-			Name:      "", // 空名称可能不会触发错误
+			Name:      "",              // 空名称可能不会触发错误
 			Email:     "invalid-email", // 无效邮箱格式
-			KeyLength: 0, // 无效密钥长度
+			KeyLength: 0,               // 无效密钥长度
 		}
-		
+
 		_, err := GenerateKeyPair(opts)
 		// 这个错误可能不会被触发，因为库可能会使用默认值
 		// 但我们仍然需要测试这个代码路径
@@ -164,16 +164,16 @@ func TestEncryptWithEntities_WriteError(t *testing.T) {
 		// 但我们可以通过确保函数的其他分支被覆盖来提高覆盖率
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		entities, err := ReadPublicKey(keyPair.PublicKey)
 		require.NoError(t, err)
-		
+
 		// 测试一个大的数据集，确保Write方法被调用多次
 		largeData := make([]byte, 100000)
 		for i := range largeData {
 			largeData[i] = byte('A' + (i % 26))
 		}
-		
+
 		encrypted, err := EncryptWithEntities(largeData, entities)
 		require.NoError(t, err)
 		assert.NotEmpty(t, encrypted)
@@ -188,17 +188,17 @@ func TestGenerateKeyPair_DefaultValues(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, keyPair)
 	})
-	
+
 	t.Run("generate_key_pair_partial_defaults", func(t *testing.T) {
 		// 测试部分选项为0的情况
 		opts := &GenerateOptions{
 			Name:      "Test User",
 			Email:     "test@example.com",
-			KeyLength: 0, // 使用默认密钥长度
+			KeyLength: 0,             // 使用默认密钥长度
 			Hash:      crypto.SHA512, // 非默认哈希算法
-			Cipher:    0, // 使用默认加密算法
+			Cipher:    0,             // 使用默认加密算法
 		}
-		
+
 		keyPair, err := GenerateKeyPair(opts)
 		require.NoError(t, err)
 		assert.NotNil(t, keyPair)
@@ -210,10 +210,10 @@ func TestDecryptWithEntities_ErrorCases(t *testing.T) {
 	t.Run("decrypt_with_entities_invalid_data", func(t *testing.T) {
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		entities, err := ReadPrivateKey(keyPair.PrivateKey, "")
 		require.NoError(t, err)
-		
+
 		// 使用无效的加密数据来触发ReadMessage错误
 		invalidData := []byte("invalid encrypted data")
 		_, err = DecryptWithEntities(invalidData, entities)
@@ -226,16 +226,16 @@ func TestReadKeyPair_ErrorCases(t *testing.T) {
 	t.Run("read_key_pair_invalid_private_key", func(t *testing.T) {
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		// 使用无效的私钥来触发ReadPrivateKey错误
 		_, err = ReadKeyPair(keyPair.PublicKey, "invalid private key", "")
 		assert.Error(t, err)
 	})
-	
+
 	t.Run("read_key_pair_invalid_public_key", func(t *testing.T) {
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		// 使用无效的公钥来触发ReadPublicKey错误
 		_, err = ReadKeyPair("invalid public key", keyPair.PrivateKey, "")
 		assert.Error(t, err)

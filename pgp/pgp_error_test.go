@@ -100,8 +100,8 @@ func TestEncryptErrors(t *testing.T) {
 
 	t.Run("empty_data", func(t *testing.T) {
 		opts := &GenerateOptions{
-			Name:      "Test",
-			Email:     "test@example.com",
+			Name:  "Test",
+			Email: "test@example.com",
 		}
 		keyPair, err := GenerateKeyPair(opts)
 		require.NoError(t, err)
@@ -159,8 +159,8 @@ func TestEncryptTextErrors(t *testing.T) {
 
 	t.Run("empty_data", func(t *testing.T) {
 		opts := &GenerateOptions{
-			Name:      "Test",
-			Email:     "test@example.com",
+			Name:  "Test",
+			Email: "test@example.com",
 		}
 		keyPair, err := GenerateKeyPair(opts)
 		require.NoError(t, err)

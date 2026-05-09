@@ -93,8 +93,6 @@ func TestBatchLastNames(t *testing.T) {
 	}
 }
 
-
-
 func TestBatchJobTitles(t *testing.T) {
 	faker := New()
 

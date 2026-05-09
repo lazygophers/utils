@@ -35,7 +35,7 @@ func TestDeviceInfoExtended(t *testing.T) {
 			device := faker.DeviceInfo()
 			deviceTypes[device.Type] = true
 		}
-		
+
 		// 确保至少生成了几种不同的设备类型
 		assert.Greater(t, len(deviceTypes), 3)
 	})
@@ -70,7 +70,7 @@ func TestDeviceGenerationFunctions(t *testing.T) {
 		desktop := faker.generateDesktopDevice(DeviceTypeDesktop)
 		assert.NotNil(t, desktop)
 		assert.Equal(t, string(DeviceTypeDesktop), desktop.Type)
-		
+
 		// 测试笔记本设备
 		laptop := faker.generateDesktopDevice(DeviceTypeLaptop)
 		assert.NotNil(t, laptop)
@@ -114,7 +114,7 @@ func TestDeviceGenerationFunctions(t *testing.T) {
 			Browser:    "Chrome",
 			DeviceType: DeviceTypeDesktop,
 		}
-		
+
 		ua := faker.generateUserAgentForDevice(
 			opts.Platform,
 			opts.OS,

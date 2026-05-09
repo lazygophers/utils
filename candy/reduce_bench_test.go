@@ -29,8 +29,8 @@ var (
 	hugeFloats  = generateFloats(10000)
 
 	// Struct dataset
-	smallPoints  = generatePoints(10)
-	largePoints  = generatePoints(1000)
+	smallPoints = generatePoints(10)
+	largePoints = generatePoints(1000)
 )
 
 type point struct{ X, Y int }
@@ -321,11 +321,16 @@ func reduce12[T any](ss []T, f func(T, T) T) T {
 
 // 求和函数
 func sumInt(a, b int) int { return a + b }
-func maxInt(a, b int) int { if a > b { return a }; return b }
-func prodInt(a, b int) int { return a * b }
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+func prodInt(a, b int) int            { return a * b }
 func concatString(a, b string) string { return a + b }
-func sumFloat(a, b float64) float64 { return a + b }
-func sumPoint(a, b point) point { return point{X: a.X + b.X, Y: a.Y + b.Y} }
+func sumFloat(a, b float64) float64   { return a + b }
+func sumPoint(a, b point) point       { return point{X: a.X + b.X, Y: a.Y + b.Y} }
 
 // 方案1: 原始实现
 func BenchmarkReduce1_SmallInt_Sum(b *testing.B) {
@@ -648,7 +653,7 @@ func BenchmarkReduce12_LargeInt_Sum(b *testing.B) {
 }
 
 func BenchmarkReduce12_HugeInt_Sum(b *testing.B) {
-for i := 0; i < b.N; i++ {
+	for i := 0; i < b.N; i++ {
 		reduce12(hugeInts, sumInt)
 	}
 }

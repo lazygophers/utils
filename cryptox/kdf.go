@@ -55,9 +55,9 @@ func DeriveKey(password, salt []byte, iterations, keyLen int, hashFunc func() ha
 
 // PBKDF2Config PBKDF2 配置参数
 type PBKDF2Config struct {
-	Iterations int         // 迭代次数，建议 ≥ 100000
-	SaltLen    int         // 盐值长度，建议 ≥ 16
-	KeyLen     int         // 派生密钥长度
+	Iterations int              // 迭代次数，建议 ≥ 100000
+	SaltLen    int              // 盐值长度，建议 ≥ 16
+	KeyLen     int              // 派生密钥长度
 	HashFunc   func() hash.Hash // 哈希函数，默认 sha256.New
 }
 

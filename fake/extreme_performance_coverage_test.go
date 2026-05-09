@@ -9,19 +9,19 @@ func TestExtremePerformanceCoverage(t *testing.T) {
 	// 测试ExtremePerformanceFaker
 	t.Run("test_extreme_performance_faker", func(t *testing.T) {
 		extreme := NewExtremePerformance()
-		
+
 		// 测试ExtremeName
 		extremeName := extreme.ExtremeName()
 		if extremeName == "" {
 			t.Error("ExtremeName() returned empty string")
 		}
-		
+
 		// 测试ZeroAllocExtremeName
 		zeroAllocName := extreme.ZeroAllocExtremeName()
 		if zeroAllocName == "" {
 			t.Error("ZeroAllocExtremeName() returned empty string")
 		}
-		
+
 		// 测试BatchExtreme
 		names := extreme.BatchExtreme(5)
 		if len(names) != 5 {

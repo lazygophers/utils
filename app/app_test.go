@@ -69,7 +69,6 @@ func TestReleaseTypeString(t *testing.T) {
 	}
 }
 
-
 func TestOrganization(t *testing.T) {
 	assert.Equal(t, "lazygophers", Organization)
 	assert.NotEmpty(t, Organization)
@@ -246,13 +245,13 @@ func TestInitFunctionBranchCoverage(t *testing.T) {
 
 func TestReleaseTypeIsMethods(t *testing.T) {
 	tests := []struct {
-		name       string
-		release    ReleaseType
-		isDebug    bool
-		isTest     bool
-		isAlpha    bool
-		isBeta     bool
-		isRelease  bool
+		name      string
+		release   ReleaseType
+		isDebug   bool
+		isTest    bool
+		isAlpha   bool
+		isBeta    bool
+		isRelease bool
 	}{
 		{"Debug", Debug, true, false, false, false, false},
 		{"Test", Test, false, true, false, false, false},
@@ -334,4 +333,3 @@ func TestIsProdAndIsReleaseAlias(t *testing.T) {
 	Env = Debug
 	assert.Equal(t, IsRelease(), IsProd())
 }
-

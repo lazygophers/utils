@@ -126,7 +126,7 @@ func TestNamePrefixCoverage(t *testing.T) {
 		LanguageChineseSimplified,
 		LanguageChineseTraditional,
 		LanguageFrench,
-		LanguageRussian, // 应该返回空字符串，因为不支持
+		LanguageRussian,    // 应该返回空字符串，因为不支持
 		"invalid_language", // 无效语言，应该返回空字符串
 	}
 

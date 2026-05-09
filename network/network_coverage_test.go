@@ -20,7 +20,7 @@ func TestGetListenIpCoverage(t *testing.T) {
 			assert.True(t, strings.Contains(result, ".") || strings.Contains(result, ":"))
 		}
 	})
-	
+
 	t.Run("get_listen_ip_without_preference", func(t *testing.T) {
 		// Test without preference (should default to IPv4)
 		result := GetListenIp()
@@ -29,7 +29,7 @@ func TestGetListenIpCoverage(t *testing.T) {
 			assert.Contains(t, result, ".")
 		}
 	})
-	
+
 	t.Run("get_listen_ip_multiple_params", func(t *testing.T) {
 		// Test with multiple parameters (only first one should be considered)
 		result := GetListenIp(false, true, false)
@@ -38,13 +38,13 @@ func TestGetListenIpCoverage(t *testing.T) {
 			assert.Contains(t, result, ".")
 		}
 	})
-	
+
 	t.Run("get_interface_ip_by_name_invalid", func(t *testing.T) {
 		// Test GetInterfaceIpByName with invalid interface name
 		result := GetInterfaceIpByName("invalid_interface_name_12345", false)
 		assert.Empty(t, result)
 	})
-	
+
 	t.Run("get_interface_ip_by_name_ipv6_preference", func(t *testing.T) {
 		// Test GetInterfaceIpByName with IPv6 preference
 		result := GetInterfaceIpByName("lo0", true)
@@ -72,7 +72,7 @@ func TestGetInterfaceIpByAddrsEdgeCases(t *testing.T) {
 		result := GetInterfaceIpByAddrs(addresses, false)
 		assert.Empty(t, result)
 	})
-	
+
 	t.Run("get_interface_ip_by_addrs_mixed_prev6_true_returns_v6", func(t *testing.T) {
 		// Test with mixed addresses, prev6=true should return IPv6
 		addresses := []net.Addr{
@@ -88,7 +88,7 @@ func TestGetInterfaceIpByAddrsEdgeCases(t *testing.T) {
 		result := GetInterfaceIpByAddrs(addresses, true)
 		assert.Contains(t, result, ":")
 	})
-	
+
 	t.Run("get_interface_ip_by_addrs_mixed_prev6_true_returns_v4_if_no_v6", func(t *testing.T) {
 		// Test with mixed addresses, prev6=true but no valid IPv6 addresses
 		addresses := []net.Addr{

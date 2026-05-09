@@ -4,12 +4,12 @@ import "testing"
 
 // 准备测试数据
 var (
-	smallDataInt   []int
-	mediumDataInt  []int
-	largeDataInt   []int
-	smallDataStr   []string
-	mediumDataStr  []string
-	largeDataStr   []string
+	smallDataInt  []int
+	mediumDataInt []int
+	largeDataInt  []int
+	smallDataStr  []string
+	mediumDataStr []string
+	largeDataStr  []string
 )
 
 func init() {

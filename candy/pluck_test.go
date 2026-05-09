@@ -139,8 +139,6 @@ func TestPluck_UnsupportedElementType(t *testing.T) {
 	PluckString([]int{1, 2, 3}, "X")
 }
 
-
-
 func TestPluck_EmptyArray(t *testing.T) {
 	// 测试空数组
 	var empty [0]pluckPerson
@@ -236,7 +234,6 @@ func TestPluck_PanicCases(t *testing.T) {
 		PluckString(123, "field")
 	})
 
-
 	t.Run("element not struct", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r == nil {
@@ -246,7 +243,6 @@ func TestPluck_PanicCases(t *testing.T) {
 		PluckString([]int{1, 2, 3}, "field")
 	})
 }
-
 
 func TestPluck_NestedSliceFlattening(t *testing.T) {
 	// 测试嵌套切片的展开功能
@@ -259,7 +255,7 @@ func TestPluck_NestedSliceFlattening(t *testing.T) {
 		{Name: "a", Values: [][]int{{1, 2}, {3}}},
 		{Name: "b", Values: [][]int{{4, 5}}},
 	}
-	
+
 	// PluckInt 期望提取 int 字段
 	// 但 Values 是 [][]int，不是 int，所以会 panic
 	defer func() {
@@ -280,7 +276,7 @@ func TestPluck_ArrayFieldFlattening(t *testing.T) {
 		{Name: "a", Data: [2]int{1, 2}},
 		{Name: "b", Data: [2]int{3, 4}},
 	}
-	
+
 	// PluckInt 期望 int，但 Data 是 [2]int
 	defer func() {
 		if r := recover(); r == nil {
@@ -300,7 +296,7 @@ func TestPluck_FlattenNestedSlices(t *testing.T) {
 		{Name: "a", Values: [][]int{{1, 2}, {3}}},
 		{Name: "b", Values: [][]int{{4, 5}}},
 	}
-	
+
 	// 这个分支会在 Values 字段是 [][]int 时触发
 	// PluckInt 会尝试将 [][]int 展开为 []int
 	// 但由于类型不匹配（期望 int，得到 []int），会 panic

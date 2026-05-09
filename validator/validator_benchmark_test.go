@@ -126,28 +126,28 @@ func BenchmarkValidate_MultiField(b *testing.B) {
 
 	b.Run("10Fields", func(b *testing.B) {
 		type Form struct {
-			Name      string `json:"name" validate:"required,min=2"`
-			Email     string `json:"email" validate:"required,email"`
-			Age       int    `json:"age" validate:"required,min=1,max=150"`
-			Phone     string `json:"phone" validate:"required"`
-			Password  string `json:"password" validate:"required,min=6"`
-			Address   string `json:"address" validate:"required,min=5"`
-			City      string `json:"city" validate:"required"`
-			Country   string `json:"country" validate:"required,min=2"`
-			ZipCode   string `json:"zip_code" validate:"required,len=6"`
-			Website   string `json:"website" validate:"url"`
+			Name     string `json:"name" validate:"required,min=2"`
+			Email    string `json:"email" validate:"required,email"`
+			Age      int    `json:"age" validate:"required,min=1,max=150"`
+			Phone    string `json:"phone" validate:"required"`
+			Password string `json:"password" validate:"required,min=6"`
+			Address  string `json:"address" validate:"required,min=5"`
+			City     string `json:"city" validate:"required"`
+			Country  string `json:"country" validate:"required,min=2"`
+			ZipCode  string `json:"zip_code" validate:"required,len=6"`
+			Website  string `json:"website" validate:"url"`
 		}
 		form := Form{
-			Name:      "Zhang San",
-			Email:     "test@example.com",
-			Age:       25,
-			Phone:     "13812345678",
-			Password:  "MyPass123!",
-			Address:   "No.1 Main Street",
-			City:      "Beijing",
-			Country:   "China",
-			ZipCode:   "100000",
-			Website:   "https://example.com",
+			Name:     "Zhang San",
+			Email:    "test@example.com",
+			Age:      25,
+			Phone:    "13812345678",
+			Password: "MyPass123!",
+			Address:  "No.1 Main Street",
+			City:     "Beijing",
+			Country:  "China",
+			ZipCode:  "100000",
+			Website:  "https://example.com",
 		}
 
 		b.ResetTimer()

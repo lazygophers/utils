@@ -42,7 +42,7 @@ func TestEncryptText_CompleteCoverage(t *testing.T) {
 		for i := range largeData {
 			largeData[i] = byte('A' + (i % 26))
 		}
-		
+
 		encrypted, err := EncryptText(largeData, keyPair.PublicKey)
 		require.NoError(t, err)
 		assert.NotEmpty(t, encrypted)
@@ -55,9 +55,9 @@ func TestEncryptText_CompleteCoverage(t *testing.T) {
 			[]byte("你好，世界"),
 			[]byte("!@#$%^&*()_+"),
 			[]byte("1234567890"),
-			[]byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05},
+			{0x00, 0x01, 0x02, 0x03, 0x04, 0x05},
 		}
-		
+
 		for _, data := range testCases {
 			encrypted, err := EncryptText(data, keyPair.PublicKey)
 			require.NoError(t, err)
@@ -161,7 +161,7 @@ func TestEncryptWithEntities_CompleteCoverage(t *testing.T) {
 		for i := range largeData {
 			largeData[i] = byte('A' + (i % 26))
 		}
-		
+
 		encrypted, err := EncryptWithEntities(largeData, entities)
 		require.NoError(t, err)
 		assert.NotEmpty(t, encrypted)

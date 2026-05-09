@@ -911,12 +911,12 @@ func SliceEqualOpt10[T comparable](a, b []T) bool {
 
 // 测试数据
 var (
-	smallSliceInt   []int = []int{1, 2, 3, 4, 5}
-	mediumSliceInt  []int = make([]int, 100)
-	largeSliceInt   []int = make([]int, 1000)
-	smallSliceStr   []string = []string{"a", "b", "c", "d", "e"}
-	mediumSliceStr  []string = make([]string, 100)
-	largeSliceStr   []string = make([]string, 1000)
+	smallSliceInt  []int    = []int{1, 2, 3, 4, 5}
+	mediumSliceInt []int    = make([]int, 100)
+	largeSliceInt  []int    = make([]int, 1000)
+	smallSliceStr  []string = []string{"a", "b", "c", "d", "e"}
+	mediumSliceStr []string = make([]string, 100)
+	largeSliceStr  []string = make([]string, 1000)
 )
 
 func init() {

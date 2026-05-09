@@ -95,7 +95,6 @@ func TestDeepEqual_EdgeCases(t *testing.T) {
 		}
 	})
 
-
 	t.Run("same slice reference", func(t *testing.T) {
 		s := []int{1, 2, 3}
 		if !DeepEqual(s, s) {
@@ -185,7 +184,6 @@ func TestDeepValueEqual_EdgeCases(t *testing.T) {
 		}
 	})
 }
-
 
 func TestDeepEqual_PointerOptimization(t *testing.T) {
 	// 测试指针相同的情况
@@ -448,7 +446,6 @@ func TestDeepValueEqual_AllKinds(t *testing.T) {
 	}
 }
 
-
 func TestDeepValueEqual_NilChecks(t *testing.T) {
 	// 测试 nil 检查的所有情况
 	var nilSlice []int
@@ -503,7 +500,6 @@ func TestDeepValueEqual_Comparisons(t *testing.T) {
 		t.Fatalf("expected true for same nested pointer")
 	}
 }
-
 
 func TestDeepEqual_AllTypes(t *testing.T) {
 	// 测试所有类型的比较
@@ -639,7 +635,6 @@ func TestDeepValueEqual_EdgeCases2(t *testing.T) {
 
 func TestDeepValueEqual_AllComparisons(t *testing.T) {
 	// 测试所有可能的比较情况
-
 
 	t.Run("empty vs non-empty", func(t *testing.T) {
 		if DeepEqual([]int{}, []int{1}) {

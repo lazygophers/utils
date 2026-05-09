@@ -20,7 +20,7 @@ func TestEncryptText_AllBranches(t *testing.T) {
 		// 测试空数据
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		encrypted, err := EncryptText([]byte(""), keyPair.PublicKey)
 		require.NoError(t, err)
 		assert.NotEmpty(t, encrypted)
@@ -34,7 +34,7 @@ func TestDecryptText_AllBranches(t *testing.T) {
 		// 这会触发消息类型不匹配的错误
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		_, err = DecryptText(keyPair.PublicKey, keyPair.PrivateKey, "")
 		assert.Error(t, err)
 	})
@@ -43,7 +43,7 @@ func TestDecryptText_AllBranches(t *testing.T) {
 		// 使用无效的加密数据，触发ReadMessage错误
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		_, err = DecryptText("invalid encrypted data", keyPair.PrivateKey, "")
 		assert.Error(t, err)
 	})
@@ -91,7 +91,7 @@ func TestReadKeyPair_AllBranches(t *testing.T) {
 		// 生成一个密钥对
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		// 使用无效的公钥，触发ReadPublicKey错误
 		_, err = ReadKeyPair("invalid public key", keyPair.PrivateKey, "")
 		assert.Error(t, err)
@@ -101,7 +101,7 @@ func TestReadKeyPair_AllBranches(t *testing.T) {
 		// 生成一个密钥对
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		// 使用无效的私钥，触发ReadPrivateKey错误
 		_, err = ReadKeyPair(keyPair.PublicKey, "invalid private key", "")
 		assert.Error(t, err)
@@ -118,7 +118,7 @@ func TestGenerateKeyPair_AllBranches(t *testing.T) {
 			Comment:   "Test Key",
 			KeyLength: 2048,
 		}
-		
+
 		keyPair, err := GenerateKeyPair(opts)
 		require.NoError(t, err)
 		assert.NotNil(t, keyPair)
@@ -130,7 +130,7 @@ func TestGenerateKeyPair_AllBranches(t *testing.T) {
 			Name:  "Test User",
 			Email: "test@example.com",
 		}
-		
+
 		keyPair, err := GenerateKeyPair(opts)
 		require.NoError(t, err)
 		assert.NotNil(t, keyPair)
@@ -142,14 +142,14 @@ func TestEncryptText_DifferentDataSizes(t *testing.T) {
 	t.Run("encrypt_text_different_data_sizes", func(t *testing.T) {
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		// 测试不同大小的数据，确保EncryptText的所有分支都被覆盖
 		testCases := [][]byte{
 			[]byte("short data"),
-			make([]byte, 1000), // 中等大小
+			make([]byte, 1000),  // 中等大小
 			make([]byte, 10000), // 较大大小
 		}
-		
+
 		for _, data := range testCases {
 			_, err := EncryptText(data, keyPair.PublicKey)
 			require.NoError(t, err)
@@ -164,7 +164,7 @@ func TestEncryptText_EncryptWriterCloseError(t *testing.T) {
 		// 但我们可以通过测试EncryptText的其他分支来提高覆盖率
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		// 测试不同类型的数据，确保EncryptText的所有分支都被覆盖
 		testCases := [][]byte{
 			[]byte("hello world"),
@@ -172,7 +172,7 @@ func TestEncryptText_EncryptWriterCloseError(t *testing.T) {
 			[]byte("!@#$%^&*()_+"),
 			[]byte("1234567890"),
 		}
-		
+
 		for _, data := range testCases {
 			_, err := EncryptText(data, keyPair.PublicKey)
 			require.NoError(t, err)
@@ -187,7 +187,7 @@ func TestEncryptText_ArmorWriterCloseError(t *testing.T) {
 		// 但我们可以通过测试EncryptText的其他分支来提高覆盖率
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		// 测试多次调用，确保EncryptText的所有分支都被覆盖
 		for i := 0; i < 5; i++ {
 			_, err := EncryptText([]byte("test data"), keyPair.PublicKey)
@@ -214,10 +214,10 @@ func TestDecryptWithEntities_AllBranches(t *testing.T) {
 		// 使用无效的加密数据，触发ReadMessage错误
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		entities, err := ReadPrivateKey(keyPair.PrivateKey, "")
 		require.NoError(t, err)
-		
+
 		_, err = DecryptWithEntities([]byte("invalid encrypted data"), entities)
 		assert.Error(t, err)
 	})

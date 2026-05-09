@@ -21,6 +21,7 @@ func genIntsEach(n int) []int {
 
 // 简单回调（累加）
 var sumResult int
+
 func simpleSum(v int) {
 	sumResult += v
 }

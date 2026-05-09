@@ -1767,11 +1767,11 @@ func TestMapGet_AdditionalCoverage(t *testing.T) {
 		val, err := MapGet(m, "intSlice[1]")
 		assert.NoError(t, err)
 		assert.Equal(t, 2, val)
-		
+
 		val, err = MapGet(m, "stringSlice[0]")
 		assert.NoError(t, err)
 		assert.Equal(t, "a", val)
-		
+
 		val, err = MapGet(m, "anySlice[2]")
 		assert.NoError(t, err)
 		assert.Equal(t, true, val)
@@ -1811,7 +1811,7 @@ func TestMapGet_AdditionalCoverage(t *testing.T) {
 	t.Run("separator at end returns empty key", func(t *testing.T) {
 		m := map[string]any{
 			"key": map[string]any{
-				"": "empty_value",
+				"":      "empty_value",
 				"other": "value",
 			},
 		}
@@ -1851,7 +1851,7 @@ func TestMapGet_AdditionalCoverage(t *testing.T) {
 		val, err := MapGet(m, "data[0].name")
 		assert.NoError(t, err)
 		assert.Equal(t, "first", val)
-		
+
 		val, err = MapGet(m, "data[1].id")
 		assert.NoError(t, err)
 		assert.Equal(t, 2, val)
@@ -1894,7 +1894,7 @@ func TestMapGet_AdditionalCoverage(t *testing.T) {
 			"items": make([]any, 100),
 		}
 		m["items"].([]any)[50] = "middle"
-		
+
 		val, err := MapGet(m, "items[50]")
 		assert.NoError(t, err)
 		assert.Equal(t, "middle", val)
@@ -2100,17 +2100,17 @@ func TestMapAny_ComplexScenarios(t *testing.T) {
 		assert.NotNil(t, m.GetMap("nested"))
 
 		// Test with invalid types to cover error paths
-	assert.Equal(t, "42", m.GetString("number"))           // int to string
-	assert.Equal(t, 0, m.GetInt("simple"))                 // string to int
-	assert.True(t, m.GetBool("simple"))                    // string "value" to bool is true
-	assert.Equal(t, []interface{}{}, m.GetSlice("simple")) // string to slice returns empty slice
-	assert.False(t, m.GetMap("simple").Exists("any"))      // string to map
+		assert.Equal(t, "42", m.GetString("number"))           // int to string
+		assert.Equal(t, 0, m.GetInt("simple"))                 // string to int
+		assert.True(t, m.GetBool("simple"))                    // string "value" to bool is true
+		assert.Equal(t, []interface{}{}, m.GetSlice("simple")) // string to slice returns empty slice
+		assert.False(t, m.GetMap("simple").Exists("any"))      // string to map
 	})
 }
 
 // Custom type for testing YAML unmarshal error
 // This type will cause YAML unmarshal error after successful JSON marshal
-type CustomTypeForYamlError struct {}
+type CustomTypeForYamlError struct{}
 
 // Override MarshalJSON to return invalid YAML
 func (c CustomTypeForYamlError) MarshalJSON() ([]byte, error) {
@@ -2246,7 +2246,7 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 	// Additional edge cases to reach 100% coverage
 	t.Run("empty key string", func(t *testing.T) {
 		m := NewMap(map[string]interface{}{
-			"": "empty_key_value",
+			"":     "empty_key_value",
 			"test": "value",
 		})
 		m.EnableCut(".")
@@ -2866,15 +2866,15 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 		m := NewMap(map[string]interface{}{
 			"test": "direct_value",
 		})
-		
+
 		// Enable cut with empty sequence
 		m.EnableCut("")
-		
+
 		// Test 1: Direct key access (should return immediately)
 		result, exists := m.get("test")
 		assert.True(t, exists)
 		assert.Equal(t, "direct_value", result)
-		
+
 		// Test 2: Non-existent key with empty seq
 		result, exists = m.get("nonexistent")
 		assert.False(t, exists)
@@ -2887,10 +2887,10 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 		m := NewMap(map[string]interface{}{
 			"a": "value_a",
 		})
-		
+
 		// Enable cut with empty sequence
 		m.EnableCut("")
-		
+
 		// Test accessing the single character key
 		result, exists := m.get("a")
 		assert.True(t, exists)
@@ -2907,30 +2907,30 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 				},
 			},
 		})
-		
+
 		// Enable cut with dot separator
 		m.EnableCut(".")
-		
+
 		// Test 1: Access with single separator (should enter loop once)
 		result, exists := m.get("level1.level2")
 		assert.True(t, exists)
 		assert.NotNil(t, result)
-		
+
 		// Test 2: Access with multiple separators (should enter loop multiple times)
 		result, exists = m.get("level1.level2.level3")
 		assert.True(t, exists)
 		assert.Equal(t, "final_value", result)
-		
+
 		// Test 3: Access with separator at beginning (should fail in first iteration)
 		result, exists = m.get(".level1.level2.level3")
 		assert.False(t, exists)
 		assert.Nil(t, result)
-		
+
 		// Test 4: Access with separator at end (should fail in last check)
 		result, exists = m.get("level1.level2.level3.")
 		assert.False(t, exists)
 		assert.Nil(t, result)
-		
+
 		// Test 5: Access with non-existent middle key (should fail in loop)
 		result, exists = m.get("level1.non_existent.level3")
 		assert.False(t, exists)
@@ -2943,15 +2943,15 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 		m := NewMap(map[string]interface{}{
 			"key": "value",
 		})
-		
+
 		// Enable cut with a separator that won't be in any key
 		m.EnableCut("|")
-		
+
 		// Test with a key that won't be split
 		result, exists := m.get("key")
 		assert.True(t, exists)
 		assert.Equal(t, "value", result)
-		
+
 		// Test with a key that will be split into empty slice
 		// This should trigger the case where len(keys) == 0 after strings.Split
 		result, exists = m.get("")
@@ -2965,10 +2965,10 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 		m := NewMap(map[string]interface{}{
 			"key": "value",
 		})
-		
+
 		// Enable cut with empty sequence
 		m.EnableCut("")
-		
+
 		// Test with a key that will result in len(keys) == 0 after processing
 		// This should trigger the final return nil, false path
 		result, exists := m.get("")
@@ -2982,10 +2982,10 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 		m := NewMap(map[string]interface{}{
 			"key": "value",
 		})
-		
+
 		// Enable cut with empty sequence
 		m.EnableCut("")
-		
+
 		// Test with empty key - strings.Split("", "") returns []string{}
 		// This should trigger the case where len(keys) == 0 after the loop
 		result, exists := m.get("")
@@ -3007,11 +3007,11 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 				},
 			},
 		}
-		
+
 		m := NewMap(deepMap)
 		// Enable cut with empty sequence
 		m.EnableCut("")
-		
+
 		// Test accessing the deep value
 		result, exists := m.get("abcde")
 		assert.True(t, exists)
@@ -3026,16 +3026,16 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 				"": "value", // Empty string as nested key
 			},
 		})
-		
+
 		// Enable cut with empty sequence
 		m.EnableCut("")
-		
+
 		// Test accessing the top-level empty key
 		result, exists := m.get("")
 		assert.True(t, exists)
 		// The result should be the map itself, not the nested value
 		assert.NotNil(t, result)
-		
+
 		// Test with a longer key that should trigger the nested access
 		result, exists = m.get("")
 		assert.True(t, exists)
@@ -3053,30 +3053,30 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 				},
 			},
 		})
-		
+
 		// Enable cut with dot separator
 		m.EnableCut(".")
-		
+
 		// Test 1: Direct key access
 		result, exists := m.get("test")
 		assert.True(t, exists)
 		assert.Equal(t, "direct_value", result)
-		
+
 		// Test 2: Nested key access with multiple separators
 		result, exists = m.get("nested.level1.level2")
 		assert.True(t, exists)
 		assert.Equal(t, "final_value", result)
-		
+
 		// Test 3: Non-existent key
 		result, exists = m.get("non_existent")
 		assert.False(t, exists)
 		assert.Nil(t, result)
-		
+
 		// Test 4: Non-existent nested key
 		result, exists = m.get("nested.level1.non_existent")
 		assert.False(t, exists)
 		assert.Nil(t, result)
-		
+
 		// Test 5: Middle key not a map
 		result, exists = m.get("nested.test.level2")
 		assert.False(t, exists)
@@ -3089,10 +3089,10 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 		m := NewMap(map[string]interface{}{
 			"key": "value",
 		})
-		
+
 		// Enable cut with empty sequence
 		m.EnableCut("")
-		
+
 		// Test with "a" - strings.Split("a", "") returns ["", "a", ""]
 		// This should trigger the case where len(keys) > 1 is true
 		// and then data.Load("") returns false
@@ -3107,15 +3107,15 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 		m := NewMap(map[string]interface{}{
 			".": "separator_value",
 		})
-		
+
 		// Enable cut with dot separator
 		m.EnableCut(".")
-		
+
 		// Test with "." - strings.Split(".", ".") returns ["", ""]
 		result, exists := m.get(".")
 		assert.True(t, exists)
 		assert.Equal(t, "separator_value", result)
-		
+
 		// Test with ".." - strings.Split("..", ".") returns ["", "", ""]
 		result, exists = m.get("..")
 		assert.False(t, exists)
@@ -3130,20 +3130,20 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 				"level2": "value",
 			},
 		})
-		
+
 		// Enable cut with dot separator
 		m.EnableCut(".")
-		
+
 		// Test case 1: Cover line 115 - data.Load(k) returns false in loop
 		result, exists := m.get("level1.non_existent.level3")
 		assert.False(t, exists)
 		assert.Nil(t, result)
-		
+
 		// Test case 2: Cover line 120 - p.toMap(val) returns nil
 		result, exists = m.get("level1.level2.non_existent")
 		assert.False(t, exists)
 		assert.Nil(t, result)
-		
+
 		// Test case 3: Cover line 129 - data.Load(keys[0]) returns false
 		result, exists = m.get("non_existent.level2.level3")
 		assert.False(t, exists)
@@ -3160,30 +3160,30 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 				},
 			},
 		})
-		
+
 		// Enable cut with empty sequence
 		m.EnableCut("")
-		
+
 		// Test 1: Access with single character key
 		result, exists := m.get("a")
 		assert.True(t, exists)
 		assert.NotNil(t, result)
-		
+
 		// Test 2: Access with multiple character key
 		result, exists = m.get("ab")
 		assert.True(t, exists)
 		assert.NotNil(t, result)
-		
+
 		// Test 3: Access with full key path
 		result, exists = m.get("abc")
 		assert.True(t, exists)
 		assert.Equal(t, "final_value", result)
-		
+
 		// Test 4: Access with non-existent key
 		result, exists = m.get("abd")
 		assert.False(t, exists)
 		assert.Nil(t, result)
-		
+
 		// Test 5: Access with partial key
 		result, exists = m.get("abx")
 		assert.False(t, exists)

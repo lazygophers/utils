@@ -80,14 +80,14 @@ func TestOptimizedFakerLanguage(t *testing.T) {
 		of := NewOptimized(WithLanguage(LanguageChineseSimplified))
 		name := of.FastName()
 		assert.NotEmpty(t, name)
-		
+
 		// 测试其他函数
 		unsafeName := of.UnsafeName()
 		assert.NotEmpty(t, unsafeName)
-		
+
 		pooledName := of.PooledName()
 		assert.NotEmpty(t, pooledName)
-		
+
 		names := of.BatchFastNames(5)
 		assert.Len(t, names, 5)
 	})

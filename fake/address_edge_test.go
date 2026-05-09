@@ -147,4 +147,3 @@ func TestZipCodeEdgeCases(t *testing.T) {
 		}
 	}
 }
-

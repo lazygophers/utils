@@ -2417,7 +2417,7 @@ func TestEnvTagOverride(t *testing.T) {
 		assert.False(t, config.Debug)      // 文件值
 		assert.Equal(t, "env-host", config.Database.Host)
 		assert.Equal(t, "fileuser", config.Database.Username) // 文件值
-		assert.Equal(t, "filepass", config.Database.Password)  // 文件值
+		assert.Equal(t, "filepass", config.Database.Password) // 文件值
 	})
 
 	t.Run("env tag with no environment variable set", func(t *testing.T) {
@@ -2660,8 +2660,8 @@ func TestEnvTagCoverage(t *testing.T) {
 
 	t.Run("float type field", func(t *testing.T) {
 		type ConfigWithFloat struct {
-			Name   string  `json:"name" env:"name"`
-			Rate   float64 `json:"rate" env:"rate"`
+			Name string  `json:"name" env:"name"`
+			Rate float64 `json:"rate" env:"rate"`
 		}
 
 		configPath = ""

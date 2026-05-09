@@ -13,7 +13,7 @@ func TestExecDirError(t *testing.T) {
 		// We can't easily mock os.Executable() to return an error, but we can test the function behavior
 		// The error branch is covered when os.Executable() returns an error
 		// We'll rely on the code coverage report to verify this branch is covered
-		
+
 		// Call ExecDir normally to ensure it works
 		dir := ExecDir()
 		if dir == "" {
@@ -50,7 +50,7 @@ func TestExitErrorPath(t *testing.T) {
 		// We can't easily mock os.FindProcess to return an error for the current PID
 		// but we can test the error handling logic by examining the code
 		// The error branch is covered when os.FindProcess returns an error
-		
+
 		// Test with an invalid PID to exercise some error handling
 		invalidPID := 999999
 		process, err := os.FindProcess(invalidPID)
@@ -75,7 +75,7 @@ func TestCachePanicWithHandleErrorPath(t *testing.T) {
 				t.Log("Panic was cached")
 			}
 		}()
-		
+
 		CachePanicWithHandle(nil)
 		panic("test panic with nil handle")
 	})
@@ -90,7 +90,7 @@ func TestPrintStackErrorPath(t *testing.T) {
 				t.Errorf("PrintStack() panicked: %v", r)
 			}
 		}()
-		
+
 		PrintStack()
 		t.Log("PrintStack() executed without panicking")
 	})
@@ -104,7 +104,7 @@ func TestExitSignalVariables(t *testing.T) {
 		if sigCh == nil {
 			t.Fatal("GetExitSign() returned nil channel")
 		}
-		
+
 		// Try to send a signal to the channel
 		select {
 		case sigCh <- os.Interrupt:
@@ -129,7 +129,7 @@ func TestAllSystemFunctions(t *testing.T) {
 		isWindows := IsWindows()
 		isDarwin := IsDarwin()
 		isLinux := IsLinux()
-		
+
 		// Only one should be true
 		trueCount := 0
 		if isWindows {
@@ -141,7 +141,7 @@ func TestAllSystemFunctions(t *testing.T) {
 		if isLinux {
 			trueCount++
 		}
-		
+
 		if trueCount != 1 {
 			t.Errorf("Expected exactly one OS function to return true, got %d", trueCount)
 		}
@@ -166,16 +166,16 @@ func TestRuntimeFunctionCoverage(t *testing.T) {
 		LazyConfigDir()
 		LazyCacheDir()
 		GetExitSign()
-		
+
 		// Test WaitExit in a goroutine to avoid blocking
 		done := make(chan bool)
 		go func() {
 			WaitExit()
 			done <- true
 		}()
-		
+
 		// Don't wait for WaitExit to return, it will block indefinitely
-		
+
 		// Test Exit in a way that doesn't terminate the test
 		// We can't actually let Exit() execute fully as it would terminate the test
 		// But we can test the components it uses
@@ -185,7 +185,7 @@ func TestRuntimeFunctionCoverage(t *testing.T) {
 		} else {
 			t.Logf("Found current process: %d", process.Pid)
 		}
-		
+
 		// Test system functions
 		IsWindows()
 		IsDarwin()

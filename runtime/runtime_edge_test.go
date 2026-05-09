@@ -64,4 +64,3 @@ func TestRuntimeFunctionsConsistency(t *testing.T) {
 		t.Logf("Pwd() consistency check: %s vs %s", pwd1, pwd2)
 	}
 }
-

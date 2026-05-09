@@ -294,8 +294,8 @@ func TestNestedStructValidation(t *testing.T) {
 	}
 
 	type TestStruct struct {
-		RequiredField string       `validate:"required" json:"required_field"`
-		Nested        NestedStruct `json:"nested"`
+		RequiredField string        `validate:"required" json:"required_field"`
+		Nested        NestedStruct  `json:"nested"`
 		NestedPtr     *NestedStruct `json:"nested_ptr"`
 	}
 
@@ -340,24 +340,24 @@ func TestMinMaxValidationForDifferentTypes(t *testing.T) {
 	require.NoError(t, err)
 
 	type TestStruct struct {
-		StringMin  string `validate:"min=3" json:"string_min"`
-		SliceMin   []int  `validate:"min=2" json:"slice_min"`
-		MapMin     map[string]int `validate:"min=2" json:"map_min"`
-		IntMin     int    `validate:"min=5" json:"int_min"`
-		UintMin    uint   `validate:"min=5" json:"uint_min"`
-		FloatMin   float64 `validate:"min=5.5" json:"float_min"`
-		StringMax  string `validate:"max=5" json:"string_max"`
-		SliceMax   []int  `validate:"max=2" json:"slice_max"`
-		MapMax     map[string]int `validate:"max=2" json:"map_max"`
-		IntMax     int    `validate:"max=5" json:"int_max"`
-		UintMax    uint   `validate:"max=5" json:"uint_max"`
-		FloatMax   float64 `validate:"max=5.5" json:"float_max"`
+		StringMin string         `validate:"min=3" json:"string_min"`
+		SliceMin  []int          `validate:"min=2" json:"slice_min"`
+		MapMin    map[string]int `validate:"min=2" json:"map_min"`
+		IntMin    int            `validate:"min=5" json:"int_min"`
+		UintMin   uint           `validate:"min=5" json:"uint_min"`
+		FloatMin  float64        `validate:"min=5.5" json:"float_min"`
+		StringMax string         `validate:"max=5" json:"string_max"`
+		SliceMax  []int          `validate:"max=2" json:"slice_max"`
+		MapMax    map[string]int `validate:"max=2" json:"map_max"`
+		IntMax    int            `validate:"max=5" json:"int_max"`
+		UintMax   uint           `validate:"max=5" json:"uint_max"`
+		FloatMax  float64        `validate:"max=5.5" json:"float_max"`
 	}
 
 	// 测试所有最小值条件都满足
 	err = v.Struct(TestStruct{
 		StringMin: "abc",
-		SliceMin:  []int{1, 2}, 
+		SliceMin:  []int{1, 2},
 		MapMin:    map[string]int{"a": 1, "b": 2},
 		IntMin:    5,
 		UintMin:   5,

@@ -1,8 +1,8 @@
 package candy_test
 
 import (
-	"testing"
 	"github.com/lazygophers/utils/candy"
+	"testing"
 )
 
 // BenchmarkToStringSlice_StringSlice 测试 []string 类型的性能（零拷贝优化）

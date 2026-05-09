@@ -92,4 +92,3 @@ func IsProd() bool {
 func IsRelease() bool {
 	return Env == Release
 }
-

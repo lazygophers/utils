@@ -8,8 +8,8 @@ import (
 func TestCachePanicWithHandleFullCoverage(t *testing.T) {
 	// 测试各种panic类型，以覆盖CachePanicWithHandle的所有分支
 	tests := []struct {
-		name   string
-		panicVal interface{}
+		name       string
+		panicVal   interface{}
 		withHandle bool
 	}{
 		{"string_panic_with_handle", "test panic", true},
@@ -32,7 +32,7 @@ func TestCachePanicWithHandleFullCoverage(t *testing.T) {
 				if r := recover(); r != nil {
 					t.Logf("Panic %v was cached", r)
 				}
-				
+
 				// 验证handle是否被调用
 				if tt.withHandle && !handleCalled {
 					t.Error("Handle function was not called when expected")
@@ -68,10 +68,10 @@ func TestExitFullCoverage(t *testing.T) {
 	// 测试Exit函数，使用不同的退出码
 	// 注意：我们不能直接调用Exit，因为它会终止测试进程
 	// 我们可以测试Exit函数的各个分支，通过模拟依赖
-	
+
 	// 测试GetExitSign和WaitExit函数
 	_ = GetExitSign()
-	
+
 	// WaitExit会阻塞，所以我们只测试它是否能正常调用
 	// 我们不会实际等待信号，因为这会阻塞测试
 	t.Log("Testing WaitExit function call...")

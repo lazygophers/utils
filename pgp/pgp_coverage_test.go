@@ -14,12 +14,12 @@ func TestReadPrivateKeyWithPassphrase(t *testing.T) {
 	// Note: This test is commented out because we don't currently support generating
 	// passphrase-protected keys in the GenerateKeyPair function
 	// In a real scenario, we would generate a key with a passphrase and test decryption
-	
+
 	t.Run("read_private_key_with_empty_passphrase", func(t *testing.T) {
 		// Test with empty passphrase (most common case)
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		entities, err := ReadPrivateKey(keyPair.PrivateKey, "")
 		require.NoError(t, err)
 		assert.Len(t, entities, 1)
@@ -33,26 +33,26 @@ func TestReadKeyPairIncomplete(t *testing.T) {
 		// Test with empty public key
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		_, err = ReadKeyPair("", keyPair.PrivateKey, "")
 		assert.Error(t, err)
 		// The error will be about decoding armor, not "密钥对不完整"
 		// because ReadPublicKey fails before we check completeness
 		assert.Contains(t, err.Error(), "解码公钥armor失败")
 	})
-	
+
 	t.Run("read_key_pair_empty_private", func(t *testing.T) {
 		// Test with empty private key
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		_, err = ReadKeyPair(keyPair.PublicKey, "", "")
 		assert.Error(t, err)
 		// The error will be about decoding armor, not "密钥对不完整"
 		// because ReadPrivateKey fails before we check completeness
 		assert.Contains(t, err.Error(), "解码私钥armor失败")
 	})
-	
+
 	t.Run("read_key_pair_invalid_both", func(t *testing.T) {
 		// Test with both keys invalid
 		_, err := ReadKeyPair("invalid", "invalid", "")
@@ -69,15 +69,15 @@ func TestEncryptWithEntitiesErrorPaths(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "实体列表不能为空")
 	})
-	
+
 	t.Run("encrypt_with_empty_data", func(t *testing.T) {
 		// Test with empty data
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		entities, err := ReadPublicKey(keyPair.PublicKey)
 		require.NoError(t, err)
-		
+
 		data := []byte("")
 		encrypted, err := EncryptWithEntities(data, entities)
 		require.NoError(t, err)
@@ -94,15 +94,15 @@ func TestDecryptWithEntitiesErrorPaths(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "实体列表不能为空")
 	})
-	
+
 	t.Run("decrypt_with_invalid_data", func(t *testing.T) {
 		// Test with invalid encrypted data
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		entities, err := ReadPrivateKey(keyPair.PrivateKey, "")
 		require.NoError(t, err)
-		
+
 		invalidData := []byte("invalid encrypted data")
 		_, err = DecryptWithEntities(invalidData, entities)
 		assert.Error(t, err)
@@ -117,12 +117,12 @@ func TestEncryptTextErrorPaths(t *testing.T) {
 		_, err := EncryptText(data, "invalid key")
 		assert.Error(t, err)
 	})
-	
+
 	t.Run("encrypt_text_empty_data", func(t *testing.T) {
 		// Test with empty data (this branch should be covered)
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		data := []byte("")
 		encrypted, err := EncryptText(data, keyPair.PublicKey)
 		require.NoError(t, err)
@@ -136,27 +136,27 @@ func TestDecryptTextErrorPaths(t *testing.T) {
 		// Test with invalid armor format
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		_, err = DecryptText("invalid armor", keyPair.PrivateKey, "")
 		assert.Error(t, err)
 	})
-	
+
 	t.Run("decrypt_text_wrong_type", func(t *testing.T) {
 		// Test with wrong armor type
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		// Use public key as encrypted text (wrong type)
 		_, err = DecryptText(keyPair.PublicKey, keyPair.PrivateKey, "")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "无效的消息类型")
 	})
-	
+
 	t.Run("decrypt_text_invalid_message", func(t *testing.T) {
 		// Test with invalid PGP message
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		// Create a valid armor header but invalid content
 		invalidMessage := "-----BEGIN PGP MESSAGE-----\n\ninvalid content\n-----END PGP MESSAGE-----"
 		_, err = DecryptText(invalidMessage, keyPair.PrivateKey, "")
@@ -172,7 +172,7 @@ func TestGetFingerprintErrorPaths(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "无法识别的密钥格式")
 	})
-	
+
 	t.Run("get_fingerprint_empty_key", func(t *testing.T) {
 		// Test with empty key
 		_, err := GetFingerprint("")
@@ -192,7 +192,7 @@ func TestGenerateKeyPairWithCustomOptions(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, keyPair)
 	})
-	
+
 	t.Run("generate_key_pair_no_email", func(t *testing.T) {
 		// Test without email
 		opts := &GenerateOptions{
@@ -203,7 +203,7 @@ func TestGenerateKeyPairWithCustomOptions(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, keyPair)
 	})
-	
+
 	t.Run("generate_key_pair_different_hash", func(t *testing.T) {
 		// Test with different hash algorithm
 		opts := &GenerateOptions{
@@ -227,30 +227,30 @@ func TestKeyPairEntityField(t *testing.T) {
 		assert.NotNil(t, keyPair)
 		// We can't directly access the entity field since it's unexported,
 		// but we can verify by using the key pair for encryption/decryption
-		
+
 		data := []byte("test data")
 		encrypted, err := Encrypt(data, keyPair.PublicKey)
 		require.NoError(t, err)
-		
+
 		decrypted, err := Decrypt(encrypted, keyPair.PrivateKey, "")
 		require.NoError(t, err)
 		assert.Equal(t, data, decrypted)
 	})
-	
+
 	t.Run("key_pair_entity_from_read", func(t *testing.T) {
 		// Test that entity is set when reading key pair
 		originalKeyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		readKeyPair, err := ReadKeyPair(originalKeyPair.PublicKey, originalKeyPair.PrivateKey, "")
 		require.NoError(t, err)
 		assert.NotNil(t, readKeyPair)
-		
+
 		// Verify by using the read key pair for encryption/decryption
 		data := []byte("test data")
 		encrypted, err := Encrypt(data, readKeyPair.PublicKey)
 		require.NoError(t, err)
-		
+
 		decrypted, err := Decrypt(encrypted, readKeyPair.PrivateKey, "")
 		require.NoError(t, err)
 		assert.Equal(t, data, decrypted)
@@ -263,7 +263,7 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 		// Test basic round trip
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		testCases := []struct {
 			name string
 			data []byte
@@ -273,7 +273,7 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 			{"medium", []byte("This is a medium-length string for testing encryption")},
 			{"special_chars", []byte("Special chars: !@#$%^&*()_+-=[]{}|;:,.<>?")},
 		}
-		
+
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				// Encrypt
@@ -281,7 +281,7 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 				require.NoError(t, err)
 				assert.NotEmpty(t, encrypted)
 				assert.NotEqual(t, tc.data, encrypted)
-				
+
 				// Decrypt
 				decrypted, err := Decrypt(encrypted, keyPair.PrivateKey, "")
 				require.NoError(t, err)
@@ -289,12 +289,12 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 			})
 		}
 	})
-	
+
 	t.Run("round_trip_encrypt_text_decrypt_text", func(t *testing.T) {
 		// Test ASCII armor round trip
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
-		
+
 		testCases := []struct {
 			name string
 			data []byte
@@ -303,7 +303,7 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 			{"short", []byte("short")},
 			{"medium", []byte("This is a medium-length string for testing encryption")},
 		}
-		
+
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				// Encrypt to text
@@ -311,7 +311,7 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 				require.NoError(t, err)
 				assert.NotEmpty(t, encryptedText)
 				assert.Contains(t, encryptedText, "PGP MESSAGE")
-				
+
 				// Decrypt from text
 				decrypted, err := DecryptText(encryptedText, keyPair.PrivateKey, "")
 				require.NoError(t, err)

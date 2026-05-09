@@ -18,11 +18,11 @@ type DCBenchStruct struct {
 }
 
 var (
-	benchSmallSlice    = []int{1, 2, 3, 4, 5}
-	benchLargeSlice    = make([]int, 1000)
-	benchSmallMap      = map[string]int{"a": 1, "b": 2, "c": 3}
-	benchLargeMap      = make(map[string]int, 100)
-	benchDCStruct      = DCBenchStruct{
+	benchSmallSlice = []int{1, 2, 3, 4, 5}
+	benchLargeSlice = make([]int, 1000)
+	benchSmallMap   = map[string]int{"a": 1, "b": 2, "c": 3}
+	benchLargeMap   = make(map[string]int, 100)
+	benchDCStruct   = DCBenchStruct{
 		ID:   1,
 		Name: "test",
 		Tags: []string{"a", "b", "c"},
