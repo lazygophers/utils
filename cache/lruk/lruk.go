@@ -22,7 +22,9 @@ type Cache[K comparable, V any] struct {
 type entry[K comparable, V any] struct {
 	key         K
 	value       V
-	accessTimes []time.Time   // Last K access times
+	times       []time.Time // 环形缓冲区存储访问时间
+	head        int         // 环形缓冲区头部
+	count       int         // 当前访问次数
 	element     *list.Element // Element in either history or cache list
 	inCache     bool          // Whether entry is in main cache or just history
 }
@@ -39,7 +41,7 @@ func New[K comparable, V any](capacity, k int) (*Cache[K, V], error) {
 	return &Cache[K, V]{
 		capacity: capacity,
 		k:        k,
-		items:    make(map[K]*entry[K, V]),
+		items:    make(map[K]*entry[K, V], capacity*2), // 预分配优化
 		history:  list.New(),
 		cache:    list.New(),
 	}, nil
@@ -94,10 +96,12 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 
 	// Create new entry
 	entry := &entry[K, V]{
-		key:         key,
-		value:       value,
-		accessTimes: make([]time.Time, 0, c.k),
-		inCache:     false,
+		key:     key,
+		value:   value,
+		times:   make([]time.Time, c.k), // 环形缓冲区预分配
+		head:    0,
+		count:   0,
+		inCache: false,
 	}
 
 	c.items[key] = entry
@@ -247,16 +251,19 @@ func (c *Cache[K, V]) Resize(capacity int) error {
 func (c *Cache[K, V]) recordAccess(entry *entry[K, V]) {
 	now := time.Now()
 
-	// Add new access time
-	entry.accessTimes = append(entry.accessTimes, now)
-
-	// Keep only the most recent K access times
-	if len(entry.accessTimes) > c.k {
-		entry.accessTimes = entry.accessTimes[len(entry.accessTimes)-c.k:]
+	// 使用环形缓冲区优化，避免切片扩容
+	if entry.count < c.k {
+		// 缓冲区未满，直接添加
+		entry.times[entry.count] = now
+		entry.count++
+	} else {
+		// 缓冲区已满，覆盖最旧的时间
+		entry.times[entry.head] = now
+		entry.head = (entry.head + 1) % c.k
 	}
 
 	// If entry has K accesses and not in cache, promote it
-	if len(entry.accessTimes) >= c.k && !entry.inCache {
+	if entry.count >= c.k && !entry.inCache {
 		c.promoteToCache(entry)
 	}
 }

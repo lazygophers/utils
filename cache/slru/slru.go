@@ -43,7 +43,7 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 		capacity:     capacity,
 		probationary: list.New(),
 		protected:    list.New(),
-		items:        make(map[K]*entry[K, V]),
+		items:        make(map[K]*entry[K, V], capacity*2), // 预分配优化
 		pSize:        pSize,
 		protSize:     protSize,
 	}, nil
@@ -68,7 +68,7 @@ func NewWithRatio[K comparable, V any](capacity int, probationaryRatio float64) 
 		capacity:     capacity,
 		probationary: list.New(),
 		protected:    list.New(),
-		items:        make(map[K]*entry[K, V]),
+		items:        make(map[K]*entry[K, V], capacity*2), // 预分配优化
 		pSize:        pSize,
 		protSize:     protSize,
 	}, nil
