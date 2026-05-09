@@ -14,10 +14,19 @@ title: config
 
 ## 常用入口
 
-- `config.LoadConfig`：加载并执行校验。
-- `config.LoadConfigSkipValidate`：只加载，不做校验。
-- `config.SetConfig`：设置全局配置对象。
-- `config.RegisterParser`：注册额外解析器。
+- `config.LoadConfig`：加载并执行校验
+- `config.LoadConfigSkipValidate`：只加载，不做校验
+- `config.LoadConfigWithInheritance`：多文件配置继承（后加载覆盖先加载）
+- `config.LoadConfigByEnvironment`：根据 ENV 自动加载配置文件
+- `config.SetConfig`：设置全局配置对象
+- `config.RegisterParser`：注册额外解析器
+
+## 特性
+
+- **配置继承**：支持多个配置文件的优先级覆盖
+  - 调用顺序：`LoadConfigWithInheritance(cfg, "base.json", "env.json", "local.json")`
+  - 后加载的配置完全覆盖先加载的（而非只覆盖零值）
+- **HCL 完整支持**：支持 slice、array、map 类型的读写
 
 ## 使用建议
 

@@ -14,7 +14,16 @@ title: defaults
 
 ## 常见入口
 
-- `defaults.SetDefaults`
+- `defaults.SetDefaults` — 设置默认值
+- `defaults.SetDefaultsPointer` — 设置指针类型默认值
+
+## 特性
+
+- **条件默认值**：支持基于字段值的动态默认值
+  - 格式：`fieldName=value:default` — 字段等于某值时应用默认值
+  - 格式：`Count>=5:high` — 数值比较条件
+  - 格式：`Status==1:active` — 相等性比较
+  - 字段引用优先级：hcl > json > yaml > toml > ini
 
 ## 使用建议
 

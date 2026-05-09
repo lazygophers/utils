@@ -18,6 +18,12 @@ title: cryptox
 - 任何安全封装都不应绕过审计、轮换和最小暴露原则。
 - 如果你的场景是 OpenPGP 密钥与消息处理，请直接看 [pgp](/modules/network/pgp)。
 
+## 安全警告
+
+- **MD5 / SHA1**：已标记为不安全，仅用于兼容性场景。新增代码请使用 SHA256 或更高版本。
+- **DES / 3DES**：已从代码库中移除（NIST 废弃算法）。
+- HMAC 函数：优先使用 `HMACSHA256` 或 `HMACSHA512`。
+
 ## 相关文档
 
 - [pgp](/modules/network/pgp)
