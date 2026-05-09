@@ -80,7 +80,7 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 	return &Cache[K, V]{
 		capacity:     capacity,
 		windowSize:   windowSize,
-		items:        make(map[K]*entry[K, V]),
+		items:        make(map[K]*entry[K, V], capacity),
 		window:       list.New(),
 		probation:    list.New(),
 		protected:    list.New(),

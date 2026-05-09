@@ -157,9 +157,9 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 		window:     list.New(),
 		probation:  list.New(),
 		protected:  list.New(),
-		items:      make(map[K]*entry[K, V]),
+		items:      make(map[K]*entry[K, V], capacity),
 		sketch:     NewCountMinSketch(capacity),
-		doorkeeper: make(map[K]struct{}),
+		doorkeeper: make(map[K]struct{}, capacity*2),
 	}, nil
 }
 
