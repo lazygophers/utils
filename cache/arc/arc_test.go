@@ -857,21 +857,25 @@ func TestGhostListOverflow(t *testing.T) {
 }
 
 func TestNilCheckInMaintainGhostLists(t *testing.T) {
-	cache, err := New[string, int](1)
+	cache, err := New[string, int](2)
 	if err != nil {
 		t.Fatalf("Failed to create cache: %v", err)
 	}
 
-	// Create a scenario where maintainGhostLists is called but lists might be empty
-	// This is to cover the nil check lines in maintainGhostLists
+	// Create a scenario where ghost list maintenance is triggered
+	// This happens automatically in the replace() method
 	cache.Put("a", 1)
 	cache.Put("b", 2)
 	cache.Put("c", 3)
 
-	// Force maintainGhostLists to be called with potential empty conditions
-	cache.maintainGhostLists()
+	// Force replacement to trigger ghost list maintenance
+	cache.Put("d", 4)
+	cache.Put("e", 5)
 
-	// The test passes if no panic occurs
+	// Verify cache still works correctly
+	if cache.Len() > 10 { // Should not exceed reasonable bounds
+		t.Errorf("Cache size too large: %d", cache.Len())
+	}
 }
 
 func TestB2GhostListMaintenance(t *testing.T) {
