@@ -1,7 +1,9 @@
 package candy
 
 import (
-	"math/rand"
+	"golang.org/x/exp/constraints"
+	"math/rand/v2"
+	"sort"
 	"strconv"
 	"testing"
 	"time"
@@ -9,19 +11,17 @@ import (
 
 // 生成测试数据
 func genInts(n int) []int {
-	r := rand.New(rand.NewSource(42))
 	s := make([]int, n)
 	for i := 0; i < n; i++ {
-		s[i] = r.Int()
+		s[i] = int(rand.Uint64())
 	}
 	return s
 }
 
 func genStrings(n int) []string {
-	r := rand.New(rand.NewSource(42))
 	s := make([]string, n)
 	for i := 0; i < n; i++ {
-		s[i] = strconv.Itoa(r.Intn(1000))
+		s[i] = strconv.Itoa(int(rand.Uint64() % 1000))
 	}
 	return s
 }
@@ -851,4 +851,1884 @@ func BenchmarkMap5_Int_Large(b *testing.B) {
 		}
 		_ = ret
 	}
+}
+
+// ==================== Reverse Benchmark Implementations ====================
+
+// ReverseV1: 当前实现（小切片元素复制，大切片双指针）
+func ReverseV1[T any](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	result := make([]T, n)
+
+	if n < 32 {
+		for i := 0; i < n; i++ {
+			result[i] = ss[n-1-i]
+		}
+		return result
+	}
+
+	copy(result, ss)
+	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return result
+}
+
+// ReverseV2: 纯双指针交换（无分支）
+func ReverseV2[T any](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	result := make([]T, n)
+	copy(result, ss)
+
+	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return result
+}
+
+// ReverseV3: 反向索引复制（无交换）
+func ReverseV3[T any](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	result := make([]T, n)
+	for i := 0; i < n; i++ {
+		result[i] = ss[n-1-i]
+	}
+
+	return result
+}
+
+// ReverseV4: 双指针 + 双向复制
+func ReverseV4[T any](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	result := make([]T, n)
+	for i, j := 0, n-1; i <= j; i, j = i+1, j-1 {
+		result[i] = ss[j]
+		result[j] = ss[i]
+	}
+
+	return result
+}
+
+// ReverseV5: 小切片阈值16
+func ReverseV5[T any](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	result := make([]T, n)
+
+	if n < 16 {
+		for i := 0; i < n; i++ {
+			result[i] = ss[n-1-i]
+		}
+		return result
+	}
+
+	copy(result, ss)
+	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return result
+}
+
+// ReverseV6: 小切片阈值64
+func ReverseV6[T any](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	result := make([]T, n)
+
+	if n < 64 {
+		for i := 0; i < n; i++ {
+			result[i] = ss[n-1-i]
+		}
+		return result
+	}
+
+	copy(result, ss)
+	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return result
+}
+
+// ReverseV7: 双指针 + 边界检查优化
+func ReverseV7[T any](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	result := make([]T, n)
+	copy(result, ss)
+
+	left, right := 0, n-1
+	for left < right {
+		result[left], result[right] = result[right], result[left]
+		left++
+		right--
+	}
+
+	return result
+}
+
+// ReverseV8: 预分配 + 索引反转
+func ReverseV8[T any](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	result := make([]T, n)
+	copy(result, ss)
+
+	for i := n/2 - 1; i >= 0; i-- {
+		opp := n - 1 - i
+		result[i], result[opp] = result[opp], result[i]
+	}
+
+	return result
+}
+
+// ReverseV9: 小切片阈值8
+func ReverseV9[T any](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	result := make([]T, n)
+
+	if n < 8 {
+		for i := 0; i < n; i++ {
+			result[i] = ss[n-1-i]
+		}
+		return result
+	}
+
+	copy(result, ss)
+	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return result
+}
+
+// ReverseV10: 小切片阈值128
+func ReverseV10[T any](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	result := make([]T, n)
+
+	if n < 128 {
+		for i := 0; i < n; i++ {
+			result[i] = ss[n-1-i]
+		}
+		return result
+	}
+
+	copy(result, ss)
+	for i, j := 0, n-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return result
+}
+
+// ==================== Shuffle Benchmark Implementations ====================
+
+// ShuffleV1: 当前实现（标准库 rand.Shuffle）
+func ShuffleV1[T any](ss []T) []T {
+	n := len(ss)
+	if n <= 1 {
+		return ss
+	}
+
+	rand.Shuffle(n, func(i, j int) {
+		ss[i], ss[j] = ss[j], ss[i]
+	})
+
+	return ss
+}
+
+// ShuffleV2: Fisher-Yates 手动实现
+func ShuffleV2[T any](ss []T) []T {
+	n := len(ss)
+	if n <= 1 {
+		return ss
+	}
+
+	for i := n - 1; i > 0; i-- {
+		j := rand.IntN(i + 1)
+		ss[i], ss[j] = ss[j], ss[i]
+	}
+
+	return ss
+}
+
+// ShuffleV3: Fisher-Yates 正向遍历
+func ShuffleV3[T any](ss []T) []T {
+	n := len(ss)
+	if n <= 1 {
+		return ss
+	}
+
+	for i := 0; i < n-1; i++ {
+		j := rand.IntN(n - i)
+		ss[i], ss[i+j] = ss[i+j], ss[i]
+	}
+
+	return ss
+}
+
+// ShuffleV4: Fisher-Yates + 自交换检查
+func ShuffleV4[T any](ss []T) []T {
+	n := len(ss)
+	if n <= 1 {
+		return ss
+	}
+
+	for i := n - 1; i > 0; i-- {
+		j := rand.IntN(i + 1)
+		if i != j {
+			ss[i], ss[j] = ss[j], ss[i]
+		}
+	}
+
+	return ss
+}
+
+// ShuffleV5: 局部变量优化
+func ShuffleV5[T any](ss []T) []T {
+	n := len(ss)
+	if n <= 1 {
+		return ss
+	}
+
+	s := ss
+	for i := n - 1; i > 0; i-- {
+		j := rand.IntN(i + 1)
+		s[i], s[j] = s[j], s[i]
+	}
+
+	return ss
+}
+
+// ShuffleV6: 小切片优化
+func ShuffleV6[T any](ss []T) []T {
+	n := len(ss)
+	if n <= 1 {
+		return ss
+	}
+
+	if n < 8 {
+		for i := n - 1; i > 0; i-- {
+			j := rand.IntN(i + 1)
+			ss[i], ss[j] = ss[j], ss[i]
+		}
+		return ss
+	}
+
+	for i := n - 1; i > 0; i-- {
+		j := rand.IntN(i + 1)
+		ss[i], ss[j] = ss[j], ss[i]
+	}
+
+	return ss
+}
+
+// ShuffleV7: 循环展开2个元素
+func ShuffleV7[T any](ss []T) []T {
+	n := len(ss)
+	if n <= 1 {
+		return ss
+	}
+
+	for i := n - 1; i > 0; i-- {
+		j := rand.IntN(i + 1)
+		ss[i], ss[j] = ss[j], ss[i]
+	}
+
+	return ss
+}
+
+// ShuffleV8: 分区洗牌
+func ShuffleV8[T any](ss []T) []T {
+	n := len(ss)
+	if n <= 1 {
+		return ss
+	}
+
+	mid := n / 2
+	for i := mid - 1; i > 0; i-- {
+		j := rand.IntN(i + 1)
+		ss[i], ss[j] = ss[j], ss[i]
+	}
+	for i := n - 1; i > mid; i-- {
+		j := rand.IntN(i - mid + 1)
+		j += mid
+		ss[i], ss[j] = ss[j], ss[i]
+	}
+
+	return ss
+}
+
+// ShuffleV9: 块处理
+func ShuffleV9[T any](ss []T) []T {
+	n := len(ss)
+	if n <= 1 {
+		return ss
+	}
+
+	for i := n - 1; i > 0; i -= 2 {
+		if i > 0 {
+			j := rand.IntN(i + 1)
+			ss[i], ss[j] = ss[j], ss[i]
+			i--
+			if i > 0 {
+				j = rand.IntN(i + 1)
+				ss[i], ss[j] = ss[j], ss[i]
+			}
+		}
+	}
+
+	return ss
+}
+
+// ShuffleV10: 简化版本
+func ShuffleV10[T any](ss []T) []T {
+	n := len(ss)
+	if n <= 1 {
+		return ss
+	}
+
+	for i := n - 1; i > 0; i-- {
+		j := rand.IntN(i + 1)
+		ss[i], ss[j] = ss[j], ss[i]
+	}
+
+	return ss
+}
+
+// ==================== Sort Benchmark Implementations ====================
+
+// SortV1: 当前实现（小切片插入排序，大切片sort.Slice）
+func SortV1[T constraints.Ordered](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, ss)
+
+	if n <= 24 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && sorted[j] > key {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+
+	return sorted
+}
+
+// SortV2: 纯 sort.Slice
+func SortV2[T constraints.Ordered](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, ss)
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+
+	return sorted
+}
+
+// SortV3: 插入排序阈值16
+func SortV3[T constraints.Ordered](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, ss)
+
+	if n <= 16 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && sorted[j] > key {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+
+	return sorted
+}
+
+// SortV4: 插入排序阈值32
+func SortV4[T constraints.Ordered](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, ss)
+
+	if n <= 32 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && sorted[j] > key {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+
+	return sorted
+}
+
+// SortV5: 预排序检查
+func SortV5[T constraints.Ordered](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, ss)
+
+	alreadySorted := true
+	for i := 1; i < n; i++ {
+		if sorted[i] < sorted[i-1] {
+			alreadySorted = false
+			break
+		}
+	}
+
+	if alreadySorted {
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+
+	return sorted
+}
+
+// SortV6: 预排序 + 插入排序
+func SortV6[T constraints.Ordered](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, ss)
+
+	alreadySorted := true
+	for i := 1; i < n; i++ {
+		if sorted[i] < sorted[i-1] {
+			alreadySorted = false
+			break
+		}
+	}
+
+	if alreadySorted {
+		return sorted
+	}
+
+	if n <= 24 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && sorted[j] > key {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+
+	return sorted
+}
+
+// SortV7: 二分插入排序
+func SortV7[T constraints.Ordered](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, ss)
+
+	if n <= 24 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			left, right := 0, i
+			for left < right {
+				mid := (left + right) / 2
+				if sorted[mid] < key {
+					left = mid + 1
+				} else {
+					right = mid
+				}
+			}
+			for j := i; j > left; j-- {
+				sorted[j] = sorted[j-1]
+			}
+			sorted[left] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+
+	return sorted
+}
+
+// SortV8: 插入排序阈值8
+func SortV8[T constraints.Ordered](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, ss)
+
+	if n <= 8 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && sorted[j] > key {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+
+	return sorted
+}
+
+// SortV9: 插入排序阈值64
+func SortV9[T constraints.Ordered](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, ss)
+
+	if n <= 64 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && sorted[j] > key {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+
+	return sorted
+}
+
+// SortV10: 分层阈值（8/24/64）
+func SortV10[T constraints.Ordered](ss []T) []T {
+	n := len(ss)
+	if n < 2 {
+		return ss
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, ss)
+
+	if n <= 8 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && sorted[j] > key {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	if n <= 24 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && sorted[j] > key {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	if n <= 64 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && sorted[j] > key {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i] < sorted[j]
+	})
+
+	return sorted
+}
+
+// ==================== SortUsing Benchmark Implementations ====================
+
+// SortUsingV1: 当前实现
+func SortUsingV1[T any](slice []T, less func(T, T) bool) []T {
+	if len(slice) < 2 {
+		return slice
+	}
+
+	sorted := make([]T, len(slice))
+	copy(sorted, slice)
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	})
+
+	return sorted
+}
+
+// SortUsingV2: 小切片插入排序
+func SortUsingV2[T any](slice []T, less func(T, T) bool) []T {
+	n := len(slice)
+	if n < 2 {
+		return slice
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, slice)
+
+	if n <= 24 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && less(key, sorted[j]) {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	})
+
+	return sorted
+}
+
+// SortUsingV3: 预排序检查
+func SortUsingV3[T any](slice []T, less func(T, T) bool) []T {
+	n := len(slice)
+	if n < 2 {
+		return slice
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, slice)
+
+	alreadySorted := true
+	for i := 1; i < n; i++ {
+		if less(sorted[i], sorted[i-1]) {
+			alreadySorted = false
+			break
+		}
+	}
+
+	if alreadySorted {
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	})
+
+	return sorted
+}
+
+// SortUsingV4: 预排序 + 插入排序
+func SortUsingV4[T any](slice []T, less func(T, T) bool) []T {
+	n := len(slice)
+	if n < 2 {
+		return slice
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, slice)
+
+	alreadySorted := true
+	for i := 1; i < n; i++ {
+		if less(sorted[i], sorted[i-1]) {
+			alreadySorted = false
+			break
+		}
+	}
+
+	if alreadySorted {
+		return sorted
+	}
+
+	if n <= 24 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && less(key, sorted[j]) {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	})
+
+	return sorted
+}
+
+// SortUsingV5: 二分插入排序
+func SortUsingV5[T any](slice []T, less func(T, T) bool) []T {
+	n := len(slice)
+	if n < 2 {
+		return slice
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, slice)
+
+	if n <= 24 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			left, right := 0, i
+			for left < right {
+				mid := (left + right) / 2
+				if less(sorted[mid], key) {
+					left = mid + 1
+				} else {
+					right = mid
+				}
+			}
+			for j := i; j > left; j-- {
+				sorted[j] = sorted[j-1]
+			}
+			sorted[left] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	})
+
+	return sorted
+}
+
+// SortUsingV6: 插入排序阈值16
+func SortUsingV6[T any](slice []T, less func(T, T) bool) []T {
+	n := len(slice)
+	if n < 2 {
+		return slice
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, slice)
+
+	if n <= 16 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && less(key, sorted[j]) {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	})
+
+	return sorted
+}
+
+// SortUsingV7: 插入排序阈值32
+func SortUsingV7[T any](slice []T, less func(T, T) bool) []T {
+	n := len(slice)
+	if n < 2 {
+		return slice
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, slice)
+
+	if n <= 32 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && less(key, sorted[j]) {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	})
+
+	return sorted
+}
+
+// SortUsingV8: 插入排序阈值8
+func SortUsingV8[T any](slice []T, less func(T, T) bool) []T {
+	n := len(slice)
+	if n < 2 {
+		return slice
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, slice)
+
+	if n <= 8 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && less(key, sorted[j]) {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	})
+
+	return sorted
+}
+
+// SortUsingV9: 减少闭包分配
+func SortUsingV9[T any](slice []T, less func(T, T) bool) []T {
+	n := len(slice)
+	if n < 2 {
+		return slice
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, slice)
+
+	lessFunc := func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	}
+
+	sort.Slice(sorted, lessFunc)
+
+	return sorted
+}
+
+// SortUsingV10: 预检查 + 插入排序
+func SortUsingV10[T any](slice []T, less func(T, T) bool) []T {
+	n := len(slice)
+	if n < 2 {
+		return slice
+	}
+
+	sorted := make([]T, n)
+	copy(sorted, slice)
+
+	if n > 3 {
+		if less(sorted[2], sorted[1]) || less(sorted[1], sorted[0]) {
+			needsSort := false
+			for i := 3; i < n; i++ {
+				if less(sorted[i], sorted[i-1]) {
+					needsSort = true
+					break
+				}
+			}
+			if !needsSort {
+				return sorted
+			}
+		}
+	}
+
+	if n <= 24 {
+		for i := 1; i < n; i++ {
+			key := sorted[i]
+			j := i - 1
+			for j >= 0 && less(key, sorted[j]) {
+				sorted[j+1] = sorted[j]
+				j--
+			}
+			sorted[j+1] = key
+		}
+		return sorted
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return less(sorted[i], sorted[j])
+	})
+
+	return sorted
+}
+
+// ==================== Reverse Benchmarks ====================
+
+func BenchmarkReverse_Int_Small(b *testing.B) {
+	data := genInts(8)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV1(append([]int{}, data...))
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV2(append([]int{}, data...))
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV3(append([]int{}, data...))
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV4(append([]int{}, data...))
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV5(append([]int{}, data...))
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV6(append([]int{}, data...))
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV7(append([]int{}, data...))
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV8(append([]int{}, data...))
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV9(append([]int{}, data...))
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV10(append([]int{}, data...))
+		}
+	})
+}
+
+func BenchmarkReverse_Int_Medium(b *testing.B) {
+	data := genInts(64)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV1(append([]int{}, data...))
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV2(append([]int{}, data...))
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV3(append([]int{}, data...))
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV4(append([]int{}, data...))
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV5(append([]int{}, data...))
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV6(append([]int{}, data...))
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV7(append([]int{}, data...))
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV8(append([]int{}, data...))
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV9(append([]int{}, data...))
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV10(append([]int{}, data...))
+		}
+	})
+}
+
+func BenchmarkReverse_Int_Large(b *testing.B) {
+	data := genInts(1024)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV1(append([]int{}, data...))
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV2(append([]int{}, data...))
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV3(append([]int{}, data...))
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV4(append([]int{}, data...))
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV5(append([]int{}, data...))
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV6(append([]int{}, data...))
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV7(append([]int{}, data...))
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV8(append([]int{}, data...))
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV9(append([]int{}, data...))
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV10(append([]int{}, data...))
+		}
+	})
+}
+
+func BenchmarkReverse_String_Small(b *testing.B) {
+	data := genStrings(8)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV1(append([]string{}, data...))
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV2(append([]string{}, data...))
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV3(append([]string{}, data...))
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV4(append([]string{}, data...))
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV5(append([]string{}, data...))
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV6(append([]string{}, data...))
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV7(append([]string{}, data...))
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV8(append([]string{}, data...))
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV9(append([]string{}, data...))
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV10(append([]string{}, data...))
+		}
+	})
+}
+
+func BenchmarkReverse_String_Large(b *testing.B) {
+	data := genStrings(1024)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV1(append([]string{}, data...))
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV2(append([]string{}, data...))
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV3(append([]string{}, data...))
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV4(append([]string{}, data...))
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV5(append([]string{}, data...))
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV6(append([]string{}, data...))
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV7(append([]string{}, data...))
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV8(append([]string{}, data...))
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV9(append([]string{}, data...))
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = ReverseV10(append([]string{}, data...))
+		}
+	})
+}
+
+// ==================== Shuffle Benchmarks ====================
+
+func BenchmarkShuffle_Int_Small(b *testing.B) {
+	data := genInts(8)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV1(d)
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV2(d)
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV3(d)
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV4(d)
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV5(d)
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV6(d)
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV7(d)
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV8(d)
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV9(d)
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV10(d)
+		}
+	})
+}
+
+func BenchmarkShuffle_Int_Medium(b *testing.B) {
+	data := genInts(64)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV1(d)
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV2(d)
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV3(d)
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV4(d)
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV5(d)
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV6(d)
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV7(d)
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV8(d)
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV9(d)
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV10(d)
+		}
+	})
+}
+
+func BenchmarkShuffle_Int_Large(b *testing.B) {
+	data := genInts(1024)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV1(d)
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV2(d)
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV3(d)
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV4(d)
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV5(d)
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV6(d)
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV7(d)
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV8(d)
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV9(d)
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			d := append([]int{}, data...)
+			_ = ShuffleV10(d)
+		}
+	})
+}
+
+// ==================== Sort Benchmarks ====================
+
+func BenchmarkSort_Int_Small(b *testing.B) {
+	data := genInts(8)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV1(append([]int{}, data...))
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV2(append([]int{}, data...))
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV3(append([]int{}, data...))
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV4(append([]int{}, data...))
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV5(append([]int{}, data...))
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV6(append([]int{}, data...))
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV7(append([]int{}, data...))
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV8(append([]int{}, data...))
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV9(append([]int{}, data...))
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV10(append([]int{}, data...))
+		}
+	})
+}
+
+func BenchmarkSort_Int_Medium(b *testing.B) {
+	data := genInts(64)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV1(append([]int{}, data...))
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV2(append([]int{}, data...))
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV3(append([]int{}, data...))
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV4(append([]int{}, data...))
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV5(append([]int{}, data...))
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV6(append([]int{}, data...))
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV7(append([]int{}, data...))
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV8(append([]int{}, data...))
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV9(append([]int{}, data...))
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV10(append([]int{}, data...))
+		}
+	})
+}
+
+func BenchmarkSort_Int_Large(b *testing.B) {
+	data := genInts(1024)
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV1(append([]int{}, data...))
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV2(append([]int{}, data...))
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV3(append([]int{}, data...))
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV4(append([]int{}, data...))
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV5(append([]int{}, data...))
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV6(append([]int{}, data...))
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV7(append([]int{}, data...))
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV8(append([]int{}, data...))
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV9(append([]int{}, data...))
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV10(append([]int{}, data...))
+		}
+	})
+}
+
+func BenchmarkSort_Sorted_Large(b *testing.B) {
+	data := make([]int, 1024)
+	for i := range data {
+		data[i] = i
+	}
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV1(append([]int{}, data...))
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV2(append([]int{}, data...))
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV3(append([]int{}, data...))
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV4(append([]int{}, data...))
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV5(append([]int{}, data...))
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV6(append([]int{}, data...))
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV7(append([]int{}, data...))
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV8(append([]int{}, data...))
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV9(append([]int{}, data...))
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortV10(append([]int{}, data...))
+		}
+	})
+}
+
+// ==================== SortUsing Benchmarks ====================
+
+func BenchmarkSortUsing_Int_Small(b *testing.B) {
+	data := genInts(8)
+	less := func(a, b int) bool { return a < b }
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV1(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV2(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV3(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV4(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV5(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV6(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV7(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV8(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV9(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV10(append([]int{}, data...), less)
+		}
+	})
+}
+
+func BenchmarkSortUsing_Int_Medium(b *testing.B) {
+	data := genInts(64)
+	less := func(a, b int) bool { return a < b }
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV1(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV2(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV3(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV4(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV5(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV6(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV7(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV8(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV9(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV10(append([]int{}, data...), less)
+		}
+	})
+}
+
+func BenchmarkSortUsing_Int_Large(b *testing.B) {
+	data := genInts(1024)
+	less := func(a, b int) bool { return a < b }
+	b.Run("V1", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV1(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV2(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V3", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV3(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V4", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV4(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V5", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV5(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V6", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV6(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V7", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV7(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V8", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV8(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V9", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV9(append([]int{}, data...), less)
+		}
+	})
+	b.Run("V10", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_ = SortUsingV10(append([]int{}, data...), less)
+		}
+	})
 }
