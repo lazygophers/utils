@@ -34,7 +34,7 @@ func simpleAdd(a, b int) int {
 // 复杂函数（模拟真实场景）
 func complexOp(a, b int) int {
 	time.Sleep(1 * time.Microsecond)
-	return a + b + (a * b) / 2
+	return a + b + (a*b)/2
 }
 
 // 字符串连接
@@ -509,5 +509,346 @@ func BenchmarkReduce7_String(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Reduce7(data, concatStr)
+	}
+}
+
+// ==================== Map 函数性能优化测试 ====================
+
+// 基准方案：当前实现
+func BenchmarkMap_Current_Int_Small(b *testing.B) {
+	data := genInts(10)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		for j := 0; j < n; j++ {
+			ret[j] = data[j] * 2
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap_Current_Int_Medium(b *testing.B) {
+	data := genInts(100)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		for j := 0; j < n; j++ {
+			ret[j] = data[j] * 2
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap_Current_Int_Large(b *testing.B) {
+	data := genInts(1000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		for j := 0; j < n; j++ {
+			ret[j] = data[j] * 2
+		}
+		_ = ret
+	}
+}
+
+// 方案1：移除空检查分支
+func BenchmarkMap1_Int_Small(b *testing.B) {
+	data := genInts(10)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		ret := make([]int, n)
+		for j := 0; j < n; j++ {
+			ret[j] = data[j] * 2
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap1_Int_Medium(b *testing.B) {
+	data := genInts(100)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		ret := make([]int, n)
+		for j := 0; j < n; j++ {
+			ret[j] = data[j] * 2
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap1_Int_Large(b *testing.B) {
+	data := genInts(1000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		ret := make([]int, n)
+		for j := 0; j < n; j++ {
+			ret[j] = data[j] * 2
+		}
+		_ = ret
+	}
+}
+
+// 方案2：循环展开2
+func BenchmarkMap2_Int_Small(b *testing.B) {
+	data := genInts(10)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		for j := 0; j < n; j += 2 {
+			ret[j] = data[j] * 2
+			if j+1 < n {
+				ret[j+1] = data[j+1] * 2
+			}
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap2_Int_Medium(b *testing.B) {
+	data := genInts(100)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		for j := 0; j < n; j += 2 {
+			ret[j] = data[j] * 2
+			if j+1 < n {
+				ret[j+1] = data[j+1] * 2
+			}
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap2_Int_Large(b *testing.B) {
+	data := genInts(1000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		for j := 0; j < n; j += 2 {
+			ret[j] = data[j] * 2
+			if j+1 < n {
+				ret[j+1] = data[j+1] * 2
+			}
+		}
+		_ = ret
+	}
+}
+
+// 方案3：循环展开4
+func BenchmarkMap3_Int_Small(b *testing.B) {
+	data := genInts(10)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		for j := 0; j < n; j += 4 {
+			ret[j] = data[j] * 2
+			if j+1 < n {
+				ret[j+1] = data[j+1] * 2
+			}
+			if j+2 < n {
+				ret[j+2] = data[j+2] * 2
+			}
+			if j+3 < n {
+				ret[j+3] = data[j+3] * 2
+			}
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap3_Int_Medium(b *testing.B) {
+	data := genInts(100)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		for j := 0; j < n; j += 4 {
+			ret[j] = data[j] * 2
+			if j+1 < n {
+				ret[j+1] = data[j+1] * 2
+			}
+			if j+2 < n {
+				ret[j+2] = data[j+2] * 2
+			}
+			if j+3 < n {
+				ret[j+3] = data[j+3] * 2
+			}
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap3_Int_Large(b *testing.B) {
+	data := genInts(1000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		for j := 0; j < n; j += 4 {
+			ret[j] = data[j] * 2
+			if j+1 < n {
+				ret[j+1] = data[j+1] * 2
+			}
+			if j+2 < n {
+				ret[j+2] = data[j+2] * 2
+			}
+			if j+3 < n {
+				ret[j+3] = data[j+3] * 2
+			}
+		}
+		_ = ret
+	}
+}
+
+// 方案4：range循环对比
+func BenchmarkMap4_Int_Small(b *testing.B) {
+	data := genInts(10)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ret := make([]int, len(data))
+		for idx, v := range data {
+			ret[idx] = v * 2
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap4_Int_Medium(b *testing.B) {
+	data := genInts(100)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ret := make([]int, len(data))
+		for idx, v := range data {
+			ret[idx] = v * 2
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap4_Int_Large(b *testing.B) {
+	data := genInts(1000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ret := make([]int, len(data))
+		for idx, v := range data {
+			ret[idx] = v * 2
+		}
+		_ = ret
+	}
+}
+
+// 方案5：嵌套展开4
+func BenchmarkMap5_Int_Small(b *testing.B) {
+	data := genInts(10)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		j := 0
+		for j < n {
+			if j+4 <= n {
+				ret[j] = data[j] * 2
+				ret[j+1] = data[j+1] * 2
+				ret[j+2] = data[j+2] * 2
+				ret[j+3] = data[j+3] * 2
+				j += 4
+			} else {
+				ret[j] = data[j] * 2
+				j++
+			}
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap5_Int_Medium(b *testing.B) {
+	data := genInts(100)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		j := 0
+		for j < n {
+			if j+4 <= n {
+				ret[j] = data[j] * 2
+				ret[j+1] = data[j+1] * 2
+				ret[j+2] = data[j+2] * 2
+				ret[j+3] = data[j+3] * 2
+				j += 4
+			} else {
+				ret[j] = data[j] * 2
+				j++
+			}
+		}
+		_ = ret
+	}
+}
+
+func BenchmarkMap5_Int_Large(b *testing.B) {
+	data := genInts(1000)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		n := len(data)
+		if n == 0 {
+			continue
+		}
+		ret := make([]int, n)
+		j := 0
+		for j < n {
+			if j+4 <= n {
+				ret[j] = data[j] * 2
+				ret[j+1] = data[j+1] * 2
+				ret[j+2] = data[j+2] * 2
+				ret[j+3] = data[j+3] * 2
+				j += 4
+			} else {
+				ret[j] = data[j] * 2
+				j++
+			}
+		}
+		_ = ret
 	}
 }

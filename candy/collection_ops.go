@@ -80,33 +80,22 @@ func EachReverse[T any](ss []T, f func(T)) {
 //	})
 //	// doubled 为 []int{2, 4, 6, 8, 10}
 func Map[T, U any](ss []T, f func(T) U) []U {
-	n := len(ss)
-	if n == 0 {
-		return []U{}
+	// 优化版本：使用 range 循环（benchmark 证明在大多数情况下比索引循环更快）
+	ret := make([]U, len(ss))
+	for i, v := range ss {
+		ret[i] = f(v)
 	}
-
-	// 直接分配最终长度的切片，避免 append 操作
-	ret := make([]U, n)
-	// 使用传统 for 循环避免 range 的值拷贝开销
-	for i := 0; i < n; i++ {
-		ret[i] = f(ss[i])
-	}
-
 	return ret
 }
 
 // Reduce 对切片进行归约操作，使用指定的二元函数将切片元素合并为单个值
 // 优化版本：手动内联小数组，避免切片分配
 func Reduce[T any](ss []T, f func(T, T) T) T {
-	n := len(ss)
-	if n == 0 {
+	if len(ss) == 0 {
 		return *new(T)
 	}
-	if n == 1 {
-		return ss[0]
-	}
 	result := ss[0]
-	for i := 1; i < n; i++ {
+	for i := 1; i < len(ss); i++ {
 		result = f(result, ss[i])
 	}
 	return result
