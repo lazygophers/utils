@@ -24,6 +24,14 @@ title: cryptox
 - **DES / 3DES**：已从代码库中移除（NIST 废弃算法）。
 - HMAC 函数：优先使用 `HMACSHA256` 或 `HMACSHA512`。
 
+## 安全最佳实践
+
+- **对称加密**：优先使用 AES-256-GCM（`Encrypt`/`Decrypt`），提供认证加密
+- **密钥管理**：禁止硬编码，使用环境变量或密钥管理服务
+- **IV/Nonce**：库自动生成，禁止复用或硬编码
+- **RSA 密钥**：最小 2048 位，推荐 4096 位
+- **签名验证**：使用 `crypto/subtle.ConstantTimeCompare` 防止时序攻击
+
 ## 相关文档
 
 - [pgp](/modules/network/pgp)
