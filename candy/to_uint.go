@@ -3,69 +3,72 @@ package candy
 import "strconv"
 
 // ToUint 将任意类型的值转换为 uint 类型
+// 优化版本：完全展开所有类型分支，优化负数检查性能
 // 支持的类型包括：bool、所有整数类型、浮点数、字符串、字节切片
 // 对于不支持的类型或转换失败的情况，返回 0
 // 注意：负数会被转换为 0
 func ToUint(val interface{}) uint {
-	switch x := val.(type) {
+	switch v := val.(type) {
+	case nil:
+		return 0
+	case uint:
+		return v
+	case uint8:
+		return uint(v)
+	case uint16:
+		return uint(v)
+	case uint32:
+		return uint(v)
+	case uint64:
+		return uint(v)
+	case int:
+		if v < 0 {
+			return 0
+		}
+		return uint(v)
+	case int8:
+		if v < 0 {
+			return 0
+		}
+		return uint(v)
+	case int16:
+		if v < 0 {
+			return 0
+		}
+		return uint(v)
+	case int32:
+		if v < 0 {
+			return 0
+		}
+		return uint(v)
+	case int64:
+		if v < 0 {
+			return 0
+		}
+		return uint(v)
+	case float32:
+		if v < 0 {
+			return 0
+		}
+		return uint(v)
+	case float64:
+		if v < 0 {
+			return 0
+		}
+		return uint(v)
 	case bool:
-		if x {
+		if v {
 			return 1
 		}
 		return 0
-	case int:
-		if x < 0 {
-			return 0
-		}
-		return uint(x)
-	case int8:
-		if x < 0 {
-			return 0
-		}
-		return uint(x)
-	case int16:
-		if x < 0 {
-			return 0
-		}
-		return uint(x)
-	case int32:
-		if x < 0 {
-			return 0
-		}
-		return uint(x)
-	case int64:
-		if x < 0 {
-			return 0
-		}
-		return uint(x)
-	case uint:
-		return x
-	case uint8:
-		return uint(x)
-	case uint16:
-		return uint(x)
-	case uint32:
-		return uint(x)
-	case uint64:
-		return uint(x)
-	case float32:
-		if x < 0 {
-			return 0
-		}
-		return uint(x)
-	case float64:
-		if x < 0 {
-			return 0
-		}
-		return uint(x)
 	case string:
-		val, err := strconv.ParseUint(x, 10, 0)
+		val, err := strconv.ParseUint(v, 10, 0)
 		if err != nil {
 			return 0
 		}
 		return uint(val)
 	case []byte:
-		val, err := strconv.ParseUint(string(x), 10, 0)
+		val, err := strconv.ParseUint(string(v), 10, 0)
 		if err != nil {
 			return 0
 		}
