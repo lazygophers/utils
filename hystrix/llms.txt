@@ -1,126 +1,135 @@
 # Hystrix Package - Circuit Breaker Pattern
 
-> 这是 hystrix 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+熔断器模式实现，用于分布式系统的容错和弹性。
 
+## 概述
 
-这是 hystrix 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+hystrix 包实现了熔断器模式，用于防止级联故障，保护系统免受下游服务故障的影响。
 
+## 核心特性
 
-## Overview
-The hystrix package provides circuit breaker pattern implementation for fault tolerance and resilience in distributed systems.
+- **三种状态管理**: Closed（关闭）、Open（开启）、Half-Open（半开）
+- **可配置熔断条件**: 支持自定义失败率阈值
+- **自动恢复**: 熔断后自动尝试恢复
+- **降级支持**: 支持 fallback 降级逻辑
+- **高性能**: 无锁实现，内存对齐优化
 
-## Key Features
-- **Circuit Breaker States**: Closed, Open, Half-Open state management
-- **Failure Threshold**: Configurable failure rate thresholds
-- **Automatic Recovery**: Self-healing with gradual traffic restoration
-- **Metrics Collection**: Request success/failure statistics
-- **Timeout Protection**: Request timeout with fallback execution
+## 核心类型
 
-## Core Types and Functions
-
-### CircuitBreaker
-- **NewCircuitBreaker(name, options)**: Create new circuit breaker instance
-- **Call(func)**: Execute function with circuit breaker protection
-- **State()**: Get current circuit breaker state
-- **IsOpen()**: Check if circuit is open (blocking requests)
-
-### Configuration Options
-- **MaxRequests**: Maximum requests allowed in half-open state
-- **Interval**: Time window for failure rate calculation
-- **Timeout**: Request timeout duration
-- **OnStateChange**: Callback for state transitions
-
-## Code Examples
+### CircuitBreaker - 标准熔断器
 
 ```go
-import "github.com/lazygophers/utils/hystrix"
-
-// Create circuit breaker
-cb := hystrix.NewCircuitBreaker("api-service", &hystrix.Settings{
-    MaxRequests:        3,
-    Interval:          time.Minute,
-    Timeout:           time.Second * 3,
-    ReadyToTrip: func(counts hystrix.Counts) bool {
-        return counts.Requests > 3 && counts.FailureRatio() > 0.5
+// 创建熔断器
+cb := hystrix.NewCircuitBreaker(hystrix.CircuitBreakerConfig{
+    TimeWindow:  time.Minute,
+    ReadyToTrip: func(successes, failures uint64) bool {
+        total := successes + failures
+        return total >= 10 && failures > successes
+    },
+    OnStateChange: func(old, new hystrix.State) {
+        log.Printf("状态变化: %s -> %s", old, new)
     },
 })
 
-// Execute with circuit breaker protection
-result, err := cb.Call(func() (interface{}, error) {
-    // Your potentially failing operation
-    resp, err := http.Get("https://api.example.com/data")
-    if err != nil {
-        return nil, err
-    }
-    return resp, nil
+// 基本调用
+err := cb.Call(func() error {
+    return callService()
 })
 
-// Check circuit state
-if cb.IsOpen() {
-    fmt.Println("Circuit is open - requests are blocked")
-}
-
-// State monitoring
-cb.OnStateChange(func(name string, from, to hystrix.State) {
-    log.Printf("Circuit %s changed from %s to %s", name, from, to)
+// 带降级的调用
+err := cb.CallWithFallback(func() error {
+    return callService()
+}, func() error {
+    // 降级逻辑：返回缓存数据或默认值
+    return returnCachedData()
 })
+
+// 获取状态
+state := cb.State()
+successes, failures := cb.Stat()
+total := cb.Total()
 ```
 
-## Circuit States
-
-### Closed (Normal Operation)
-- All requests pass through
-- Success/failure statistics are collected
-- Transitions to Open when failure threshold is exceeded
-
-### Open (Failing Fast)
-- All requests are immediately rejected
-- No actual service calls are made
-- Transitions to Half-Open after timeout period
-
-### Half-Open (Testing Recovery)
-- Limited number of requests are allowed
-- If requests succeed, transitions to Closed
-- If requests fail, transitions back to Open
-
-## Advanced Features
+### FastCircuitBreaker - 超轻量级熔断器
 
 ```go
-// Batch circuit breaker for high-throughput scenarios
-batchCB := hystrix.NewBatchCircuitBreaker("batch-service", settings)
+// 创建快速熔断器
+cb := hystrix.NewFastCircuitBreaker(
+    10,                // 失败阈值
+    time.Minute,       // 时间窗口
+)
 
-// Fast circuit breaker with minimal overhead
-fastCB := hystrix.NewFastCircuitBreaker("fast-service", settings)
+// 检查是否允许请求
+if cb.AllowRequest() {
+    // 执行调用
+}
 
-// Execute with fallback
-result := cb.CallFast(func() error {
-    return riskyOperation()
-}, func() {
-    return fallbackOperation() // Executed if circuit is open
+// 快速调用
+err := cb.CallFast(func() error {
+    return callService()
+})
+
+// 带降级的快速调用
+err := cb.CallFastWithFallback(func() error {
+    return callService()
+}, func() error {
+    return returnCachedData()
 })
 ```
 
-## Metrics and Monitoring
-- **Request Count**: Total number of requests processed
-- **Success Rate**: Percentage of successful requests  
-- **Failure Rate**: Percentage of failed requests
-- **Response Time**: Average response time statistics
-- **Circuit State Duration**: Time spent in each state
+### BatchCircuitBreaker - 批量熔断器
 
-## Use Cases
-1. **Microservice Communication**: Protect against cascading failures
-2. **Database Access**: Handle database connection failures gracefully
-3. **External API Calls**: Prevent timeout accumulation from slow services
-4. **Resource Protection**: Limit resource consumption during failures
-5. **Graceful Degradation**: Provide fallback responses when services are down
+高吞吐场景下的批量处理熔断器。
 
-## Dependencies
-- `sync/atomic` - Atomic operations for thread-safe statistics
-- `time` - Timing and interval management
-- Standard library for core functionality
+```go
+cb := hystrix.NewBatchCircuitBreaker(
+    hystrix.CircuitBreakerConfig{
+        TimeWindow: time.Minute,
+    },
+    100,              // 批量大小
+    time.Second,      // 批量超时
+)
 
-## Performance Notes
-- Lock-free implementation using atomic operations
-- Minimal overhead in closed state
-- Efficient state transition management
-- Optimized for high-throughput scenarios
+// 批量记录结果
+cb.AfterBatch(success)
+```
+
+## 状态转换
+
+```
+Closed → Open (失败率超过阈值)
+Open → Half-Open (时间窗口后)
+Half-Open → Closed (探测请求成功)
+Half-Open → Open (探测请求失败)
+```
+
+## 配置选项
+
+| 参数 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| TimeWindow | time.Duration | 统计时间窗口 | - |
+| OnStateChange | StateChange | 状态变化回调 | nil |
+| ReadyToTrip | ReadyToTrip | 熔断条件判断 | 失败数 > 成功数 |
+| Probe | Probe | 半开状态探测函数 | 50% 概率 |
+| BufferSize | int | 环形缓冲区大小 | 1000 |
+
+## 辅助函数
+
+```go
+// 创建百分比探测函数
+hystrix.ProbeWithChance(50) // 50% 概率允许请求通过
+```
+
+## 使用场景
+
+1. **微服务通信**: 防止下游服务故障导致级联失败
+2. **数据库访问**: 处理数据库连接失败
+3. **外部 API 调用**: 防止慢请求累积
+4. **资源保护**: 限制失败时的资源消耗
+
+## 性能优化
+
+- 无锁实现（atomic 操作）
+- 内存对齐（缓存行填充，避免伪共享）
+- 环形缓冲区优化
+- 最小化 Closed 状态开销

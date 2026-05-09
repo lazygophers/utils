@@ -34,6 +34,10 @@ type ReadyToTrip func(successes, failures uint64) bool
 // 半开状态下决定是否尝试调用服务
 type Probe func() bool
 
+// FallbackFunc 降级函数类型
+// 当熔断器开启或请求失败时执行的降级逻辑
+type FallbackFunc func() error
+
 // CircuitBreakerConfig 熔断器配置参数
 type CircuitBreakerConfig struct {
 	TimeWindow    time.Duration // 统计成功率的时间窗口
@@ -350,6 +354,27 @@ func (p *CircuitBreaker) Call(fn func() error) error {
 	return err
 }
 
+// CallWithFallback 执行服务调用，支持降级逻辑
+// 当熔断器开启时，直接执行降级函数而不调用原服务
+// 当服务调用失败时，也执行降级函数
+func (p *CircuitBreaker) CallWithFallback(fn func() error, fallback FallbackFunc) error {
+	if !p.Before() {
+		if fallback != nil {
+			return fallback()
+		}
+		return errors.New("circuit breaker is open")
+	}
+
+	err := fn()
+	success := err == nil
+	p.After(success)
+
+	if !success && fallback != nil {
+		return fallback()
+	}
+	return err
+}
+
 // State 返回当前熔断器状态
 func (p *CircuitBreaker) State() State {
 	return stateFromUint32(p.state.Load())
@@ -447,6 +472,32 @@ func (cb *FastCircuitBreaker) CallFast(fn func() error) error {
 	// 半开状态的快速恢复逻辑
 	if err == nil && cb.state.Load() == stateHalfOpenOpt {
 		cb.state.Store(stateClosedOpt)
+	}
+
+	return err
+}
+
+// CallFastWithFallback 快速执行服务调用，支持降级逻辑
+func (cb *FastCircuitBreaker) CallFastWithFallback(fn func() error, fallback FallbackFunc) error {
+	if !cb.AllowRequest() {
+		if fallback != nil {
+			return fallback()
+		}
+		return errors.New("circuit breaker is open")
+	}
+
+	err := fn()
+	cb.RecordResult(err == nil)
+
+	// 半开状态的快速恢复逻辑
+	if err == nil && cb.state.Load() == stateHalfOpenOpt {
+		cb.state.Store(stateClosedOpt)
+		return nil
+	}
+
+	// 失败时执行降级
+	if err != nil && fallback != nil {
+		return fallback()
 	}
 
 	return err

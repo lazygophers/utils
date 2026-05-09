@@ -137,6 +137,77 @@ func TestCall(t *testing.T) {
 	}
 }
 
+func TestCallWithFallback(t *testing.T) {
+	cb := NewCircuitBreaker(CircuitBreakerConfig{
+		TimeWindow: time.Second * 2,
+	})
+
+	fallbackCalled := false
+	fallback := func() error {
+		fallbackCalled = true
+		return errors.New("fallback error")
+	}
+
+	// 测试熔断开启时的降级
+	cb.state.Store(stateOpenOpt)
+	cb.stats.failures.Store(10)
+	cb.stats.changed.Store(0)
+
+	err := cb.CallWithFallback(func() error {
+		return nil
+	}, fallback)
+	if err == nil || err.Error() != "fallback error" {
+		t.Errorf("Expected fallback error, got %v", err)
+	}
+	if !fallbackCalled {
+		t.Error("Expected fallback to be called when circuit is open")
+	}
+
+	// 测试服务调用失败时的降级
+	cb.state.Store(stateClosedOpt)
+	cb.stats.successes.Store(0)
+	cb.stats.failures.Store(0)
+	fallbackCalled = false
+
+	err = cb.CallWithFallback(func() error {
+		return errors.New("service error")
+	}, fallback)
+	if err == nil || err.Error() != "fallback error" {
+		t.Errorf("Expected fallback error, got %v", err)
+	}
+	if !fallbackCalled {
+		t.Error("Expected fallback to be called when service call fails")
+	}
+
+	// 测试成功时不调用降级
+	cb.state.Store(stateClosedOpt)
+	cb.stats.successes.Store(0)
+	cb.stats.failures.Store(0)
+	fallbackCalled = false
+
+	err = cb.CallWithFallback(func() error {
+		return nil
+	}, fallback)
+	if err != nil {
+		t.Errorf("Expected no error for successful call, got %v", err)
+	}
+	if fallbackCalled {
+		t.Error("Expected fallback not to be called when service call succeeds")
+	}
+
+	// 测试 nil fallback 时不降级
+	cb.state.Store(stateOpenOpt)
+	cb.stats.failures.Store(10)
+	cb.stats.changed.Store(0)
+
+	err = cb.CallWithFallback(func() error {
+		return nil
+	}, nil)
+	if err == nil || err.Error() != "circuit breaker is open" {
+		t.Error("Expected circuit breaker open error when fallback is nil")
+	}
+}
+
 func TestCircuitBreakerStateTransition(t *testing.T) {
 	cb := NewCircuitBreaker(CircuitBreakerConfig{
 		TimeWindow: time.Millisecond * 100,
@@ -1247,6 +1318,76 @@ func TestCallFast(t *testing.T) {
 	// 验证状态已恢复为关闭
 	if cb.state.Load() != stateClosedOpt {
 		t.Error("Expected state to be closed after successful call in half-open state")
+	}
+}
+
+func TestCallFastWithFallback(t *testing.T) {
+	cb := NewFastCircuitBreaker(2, time.Millisecond*100)
+
+	fallbackCalled := false
+	fallback := func() error {
+		fallbackCalled = true
+		return errors.New("fallback error")
+	}
+
+	// 测试熔断开启时的降级
+	cb.RecordResult(false)
+	cb.RecordResult(false)
+
+	err := cb.CallFastWithFallback(func() error {
+		return nil
+	}, fallback)
+	if err == nil || err.Error() != "fallback error" {
+		t.Errorf("Expected fallback error, got %v", err)
+	}
+	if !fallbackCalled {
+		t.Error("Expected fallback to be called when circuit is open")
+	}
+
+	// 测试服务调用失败时的降级
+	cb.state.Store(stateClosedOpt)
+	cb.successes.Store(0)
+	cb.failures.Store(0)
+	fallbackCalled = false
+
+	err = cb.CallFastWithFallback(func() error {
+		return errors.New("service error")
+	}, fallback)
+	if err == nil || err.Error() != "fallback error" {
+		t.Errorf("Expected fallback error, got %v", err)
+	}
+	if !fallbackCalled {
+		t.Error("Expected fallback to be called when service call fails")
+	}
+
+	// 测试成功时不调用降级
+	cb.state.Store(stateClosedOpt)
+	cb.successes.Store(0)
+	cb.failures.Store(0)
+	fallbackCalled = false
+
+	err = cb.CallFastWithFallback(func() error {
+		return nil
+	}, fallback)
+	if err != nil {
+		t.Errorf("Expected no error for successful call, got %v", err)
+	}
+	if fallbackCalled {
+		t.Error("Expected fallback not to be called when service call succeeds")
+	}
+
+	// 测试 nil fallback 时不降级
+	cb.state.Store(stateOpenOpt)
+	fallbackCalled = false
+
+	err = cb.CallFastWithFallback(func() error {
+		return nil
+	}, nil)
+	if err == nil || err.Error() != "circuit breaker is open" {
+		t.Error("Expected circuit breaker open error when fallback is nil")
+	}
+	if fallbackCalled {
+		t.Error("Expected fallback not to be called when it's nil")
 	}
 }
 
