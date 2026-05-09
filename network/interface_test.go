@@ -2,6 +2,7 @@ package network
 
 import (
 	"net"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -160,4 +161,21 @@ func TestGetListenIp(t *testing.T) {
 		}
 		assert.NotEmpty(t, result)
 	})
+
+	t.Run("env_override", func(t *testing.T) {
+		const testIP = "1.2.3.4"
+		os.Setenv("LISTEN_IP", testIP)
+		defer os.Unsetenv("LISTEN_IP")
+
+		result := GetListenIp()
+		assert.Equal(t, testIP, result)
+	})
+}
+
+func TestGetListenIPv6(t *testing.T) {
+	result := GetListenIPv6()
+	if result == "" {
+		t.Skip("No non-loopback IPv6 address found")
+	}
+	assert.NotEmpty(t, result)
 }

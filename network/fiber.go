@@ -49,6 +49,38 @@ func RealIpFromHeader(header http.Header) string {
 		}
 	}
 
+	// Amazon CloudFront
+	val = header.Get("X-Amz-Cf-Id")
+	if val != "" {
+		if !IsLocalIp(val) {
+			return val
+		}
+	}
+
+	// Google Cloud CDN
+	val = header.Get("X-Cloud-Trace-Context")
+	if val != "" {
+		if !IsLocalIp(val) {
+			return val
+		}
+	}
+
+	// Azure Front Door
+	val = header.Get("X-Azure-ClientIP")
+	if val != "" {
+		if !IsLocalIp(val) {
+			return val
+		}
+	}
+
+	// Incapsula
+	val = header.Get("Incap-Client-IP")
+	if val != "" {
+		if !IsLocalIp(val) {
+			return val
+		}
+	}
+
 	val = header.Get("X-Real-IP")
 	if val != "" {
 		if !IsLocalIp(val) {

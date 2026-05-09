@@ -1,6 +1,8 @@
 package network
 
 import (
+	"os"
+
 	"github.com/lazygophers/log"
 	"net"
 )
@@ -45,6 +47,11 @@ func GetInterfaceIpByAddrs(address []net.Addr, prev6 bool) string {
 }
 
 func GetListenIp(prev6 ...bool) string {
+	// 尝试环境变量覆盖
+	if ip := os.Getenv("LISTEN_IP"); ip != "" {
+		return ip
+	}
+
 	// 找到内网 IP
 	var _prev6 bool
 	_prev6 = len(prev6) > 0 && prev6[0]
@@ -72,4 +79,9 @@ func GetListenIp(prev6 ...bool) string {
 	log.Error("get interface ip failed")
 
 	return ""
+}
+
+// GetListenIPv6 获取 IPv6 监听地址
+func GetListenIPv6() string {
+	return GetListenIp(true)
 }
