@@ -23,18 +23,19 @@ type KeyPair struct {
 
 // GenerateOptions 密钥生成选项
 type GenerateOptions struct {
-	Name      string                // 姓名
-	Comment   string                // 注释
-	Email     string                // 邮箱地址
-	KeyLength int                   // RSA密钥长度，默认2048
-	Hash      crypto.Hash           // 哈希算法，默认SHA256
-	Cipher    packet.CipherFunction // 加密算法，默认AES256
+	Name       string                // 姓名
+	Comment    string                // 注释
+	Email      string                // 邮箱地址
+	KeyLength  int                   // RSA密钥长度，默认4096，范围1024-16384
+	Hash       crypto.Hash           // 哈希算法，默认SHA256
+	Cipher     packet.CipherFunction // 加密算法，默认AES256
+	Expiration time.Duration         // 密钥过期时间，0表示永不过期
 }
 
 // defaultGenerateOptions 返回默认生成选项
 func defaultGenerateOptions() *GenerateOptions {
 	return &GenerateOptions{
-		KeyLength: 2048,
+		KeyLength: 4096, // 2025年安全标准
 		Hash:      crypto.SHA256,
 		Cipher:    packet.CipherAES256,
 	}
@@ -64,13 +65,25 @@ func GenerateKeyPair(opts *GenerateOptions) (*KeyPair, error) {
 
 	// 设置默认值
 	if opts.KeyLength == 0 {
-		opts.KeyLength = 2048
+		opts.KeyLength = 4096
 	}
 	if opts.Hash == 0 {
 		opts.Hash = crypto.SHA256
 	}
 	if opts.Cipher == 0 {
 		opts.Cipher = packet.CipherAES256
+	}
+
+	// 验证密钥长度（在设置默认值之后）
+	if opts.KeyLength < 1024 || opts.KeyLength > 16384 {
+		return nil, fmt.Errorf("无效的密钥长度 %d，有效范围 1024-16384", opts.KeyLength)
+	}
+
+	// 验证邮箱格式（如果提供）
+	if opts.Email != "" {
+		if !strings.Contains(opts.Email, "@") || !strings.Contains(opts.Email, ".") {
+			return nil, fmt.Errorf("无效的邮箱格式: %s", opts.Email)
+		}
 	}
 
 	config := &packet.Config{
@@ -84,6 +97,16 @@ func GenerateKeyPair(opts *GenerateOptions) (*KeyPair, error) {
 	if err != nil {
 		log.Errorf("生成PGP实体失败: %v", err)
 		return nil, fmt.Errorf("生成PGP实体失败: %w", err)
+	}
+
+	// 设置密钥过期时间
+	if opts.Expiration > 0 {
+		lifetime := uint32(opts.Expiration.Seconds())
+		for _, identity := range entity.Identities {
+			if identity.SelfSignature != nil {
+				identity.SelfSignature.KeyLifetimeSecs = &lifetime
+			}
+		}
 	}
 
 	// 自签名用户ID
@@ -514,3 +537,159 @@ func GetFingerprint(keyPEM string) (string, error) {
 	fingerprint := fmt.Sprintf("%X", entityList[0].PrimaryKey.Fingerprint)
 	return fingerprint, nil
 }
+
+// Sign 使用私钥对数据进行数字签名
+//
+// 参数:
+//   - data: 要签名的数据
+//   - privateKeyPEM: PEM格式的私钥字符串
+//   - passphrase: 私钥密码，如果私钥未加密则为空字符串
+//
+// 返回:
+//   - []byte: ASCII armor格式的签名数据
+//   - error: 错误信息
+//
+// 示例:
+//
+//	signature, err := pgp.Sign([]byte("重要消息"), privateKeyPEM, "")
+func Sign(data []byte, privateKeyPEM, passphrase string) ([]byte, error) {
+	entities, err := ReadPrivateKey(privateKeyPEM, passphrase)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(entities) == 0 || entities[0].PrivateKey == nil {
+		return nil, fmt.Errorf("无效的私钥实体")
+	}
+
+	buf := &bytes.Buffer{}
+
+	// 创建armor编码器
+	armorWriter, err := armor.Encode(buf, openpgp.SignatureType, nil)
+	if err != nil {
+		log.Errorf("创建armor编码器失败: %v", err)
+		return nil, fmt.Errorf("创建armor编码器失败: %w", err)
+	}
+
+	// 创建签名写入器
+	signWriter, err := openpgp.Sign(armorWriter, entities[0], nil, nil)
+	if err != nil {
+		log.Errorf("创建签名写入器失败: %v", err)
+		armorWriter.Close()
+		return nil, fmt.Errorf("创建签名写入器失败: %w", err)
+	}
+
+	// 写入数据
+	_, err = signWriter.Write(data)
+	if err != nil {
+		log.Errorf("写入签名数据失败: %v", err)
+		signWriter.Close()
+		armorWriter.Close()
+		return nil, fmt.Errorf("写入签名数据失败: %w", err)
+	}
+
+	// 关闭写入器
+	err = signWriter.Close()
+	if err != nil {
+		log.Errorf("关闭签名写入器失败: %v", err)
+		armorWriter.Close()
+		return nil, fmt.Errorf("关闭签名写入器失败: %w", err)
+	}
+
+	err = armorWriter.Close()
+	if err != nil {
+		log.Errorf("关闭armor编码器失败: %v", err)
+		return nil, fmt.Errorf("关闭armor编码器失败: %w", err)
+	}
+
+	return buf.Bytes(), nil
+}
+
+// VerifySignature 验证数字签名
+//
+// 参数:
+//   - data: 原始数据
+//   - signature: ASCII armor格式的签名数据
+//   - publicKeyPEM: PEM格式的公钥字符串
+//
+// 返回:
+//   - bool: 签名是否有效
+//   - error: 错误信息
+//
+// 示例:
+//
+//	valid, err := pgp.VerifySignature(data, signature, publicKeyPEM)
+func VerifySignature(data, signature []byte, publicKeyPEM string) (bool, error) {
+	entities, err := ReadPublicKey(publicKeyPEM)
+	if err != nil {
+		return false, err
+	}
+
+	// 解码armor签名
+	block, err := armor.Decode(bytes.NewReader(signature))
+	if err != nil {
+		log.Errorf("解码签名armor失败: %v", err)
+		return false, fmt.Errorf("解码签名armor失败: %w", err)
+	}
+
+	if block.Type != openpgp.SignatureType {
+		return false, fmt.Errorf("无效的签名类型: %s", block.Type)
+	}
+
+	// 读取签名
+	pktReader := packet.NewReader(block.Body)
+	pkt, err := pktReader.Next()
+	if err != nil {
+		log.Errorf("读取签名失败: %v", err)
+		return false, fmt.Errorf("读取签名失败: %w", err)
+	}
+
+	sig, ok := pkt.(*packet.Signature)
+	if !ok {
+		return false, fmt.Errorf("无效的签名包类型")
+	}
+
+	// 验证签名
+	hash := sig.Hash.New()
+	hash.Write(data)
+	err = entities[0].PrimaryKey.VerifySignature(hash, sig)
+	if err != nil {
+		log.Debugf("签名验证失败: %v", err)
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// SignText 对文本进行签名，返回ASCII armor格式的签名字符串
+//
+// 参数:
+//   - text: 要签名的文本
+//   - privateKeyPEM: PEM格式的私钥字符串
+//   - passphrase: 私钥密码，如果私钥未加密则为空字符串
+//
+// 返回:
+//   - string: ASCII armor格式的签名字符串
+//   - error: 错误信息
+func SignText(text, privateKeyPEM, passphrase string) (string, error) {
+	sig, err := Sign([]byte(text), privateKeyPEM, passphrase)
+	if err != nil {
+		return "", err
+	}
+	return string(sig), nil
+}
+
+// VerifyTextSignature 验证文本的签名
+//
+// 参数:
+//   - text: 原始文本
+//   - signatureText: ASCII armor格式的签名字符串
+//   - publicKeyPEM: PEM格式的公钥字符串
+//
+// 返回:
+//   - bool: 签名是否有效
+//   - error: 错误信息
+func VerifyTextSignature(text, signatureText, publicKeyPEM string) (bool, error) {
+	return VerifySignature([]byte(text), []byte(signatureText), publicKeyPEM)
+}
+
