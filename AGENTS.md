@@ -85,6 +85,28 @@ make check
   * GetInt: 22-52% 性能提升
   详细进度见 `docs/reports/anyx-performance-optimization.md`
 
+- **defaults 包条件默认值功能**（2026-05-09）：支持基于字段值的动态默认值
+  - 格式 `fieldName=value:default` — 字段等于某值时应用默认值
+  - 格式 `Count>=5:high` — 数值比较条件
+  - 格式 `Status==1:active` — 相等性比较
+  - 字段引用优先级：hcl > json > yaml > toml > ini
+
+- **config 包配置继承功能**（2026-05-09）：多文件配置继承，后加载完全覆盖先加载
+  - `LoadConfigWithInheritance` — 多文件配置继承
+  - `LoadConfigByEnvironment` — 根据 ENV 自动加载配置文件
+  - HCL 写入完整支持 slice、array、map 类型
+
+- **cryptox 包安全增强**（2026-05-09）：移除 NIST 废弃算法
+  - 移除 DES/3DES（已从代码库删除）
+  - MD5/SHA1 标记为不安全，新增代码使用 SHA256+
+  - HMAC 函数优先使用 HMACSHA256/HMACSHA512
+
+- **文档结构统一**（2026-05-09）：所有项目文档整理到 docs/ 目录
+  - 移动 `anyx/PERFORMANCE_OPTIMIZATION.md` → `docs/reports/`
+  - 移动 `anyx/reports/*.md` → `docs/reports/`
+  - 删除 `cryptox/SECURITY.md`（内容已整合到模块文档）
+  - 删除 `graphify-out/` 临时报告目录
+
 <!-- TRELLIS:START -->
 # Trellis Instructions
 
