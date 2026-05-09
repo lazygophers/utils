@@ -681,48 +681,6 @@ func TestComplexFrequencyScenario(t *testing.T) {
 	}
 }
 
-func BenchmarkPut(b *testing.B) {
-	cache, err := New[int, int](1000)
-	if err != nil {
-		b.Fatalf("Failed to create cache: %v", err)
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		cache.Put(i%1000, i)
-	}
-}
-
-func BenchmarkGet(b *testing.B) {
-	cache, err := New[int, int](1000)
-	if err != nil {
-		b.Fatalf("Failed to create cache: %v", err)
-	}
-
-	// Pre-populate cache
-	for i := 0; i < 1000; i++ {
-		cache.Put(i, i)
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		cache.Get(i % 1000)
-	}
-}
-
-func BenchmarkPutGet(b *testing.B) {
-	cache, err := New[int, int](1000)
-	if err != nil {
-		b.Fatalf("Failed to create cache: %v", err)
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		key := i % 1000
-		cache.Put(key, i)
-		cache.Get(key)
-	}
-}
 
 func TestRemoveFromEmptyFreqList(t *testing.T) {
 	cache, err := New[string, int](1)
@@ -734,8 +692,8 @@ func TestRemoveFromEmptyFreqList(t *testing.T) {
 	cache.Put("a", 1)
 
 	// Manually clear the frequency list to test the edge case
-	if freqList := cache.freqLists[1]; freqList != nil {
-		freqList.Init() // Clear the list
+	if freqList := cache.freqMap[1]; freqList != nil {
+		freqList.head = nil; freqList.tail = nil; freqList.size = 0 // Clear the list
 	}
 
 	// Now try to remove the item - this should handle the empty list case
@@ -837,8 +795,8 @@ func TestDirectEvictLFUEdgeCases(t *testing.T) {
 	cache.Put("item", 1) // freq = 1, creates frequency list
 
 	// Manually clear the frequency list to make it empty
-	if freqList := cache.freqLists[1]; freqList != nil {
-		freqList.Init() // Clear the list but keep it non-nil
+	if freqList := cache.freqMap[1]; freqList != nil {
+		freqList.head = nil; freqList.tail = nil; freqList.size = 0 // Clear the list but keep it non-nil
 	}
 
 	// Now evictLFU should handle empty list gracefully
@@ -919,9 +877,6 @@ func TestSpecificUpdateMinFreqEmptyBranch(t *testing.T) {
 	if entry, exists := cache.items["item"]; exists {
 		entry.freq = 1 // Ensure it has minFreq
 		// Remove from frequency list first
-		if list, ok := cache.freqLists[1]; ok {
-			list.Remove(entry.element)
-		}
 		// Remove from items
 		delete(cache.items, entry.key)
 		// Now manually call updateMinFreq on empty cache

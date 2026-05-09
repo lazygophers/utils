@@ -1,7 +1,6 @@
 package lfu
 
 import (
-	"container/list"
 	"fmt"
 	"sync"
 )
@@ -10,18 +9,26 @@ import (
 type Cache[K comparable, V any] struct {
 	capacity  int
 	items     map[K]*entry[K, V]
-	freqLists map[int]*list.List // frequency -> list of entries with that frequency
-	minFreq   int                // minimum frequency
+	freqMap   map[int]*freqList[K, V]
+	minFreq   int
 	mu        sync.RWMutex
 	onEvict   func(K, V)
 }
 
 // entry represents a cache entry
 type entry[K comparable, V any] struct {
-	key     K
-	value   V
-	freq    int
-	element *list.Element
+	key      K
+	value    V
+	freq     int
+	prev     *entry[K, V]
+	next     *entry[K, V]
+	freqList *freqList[K, V]
+}
+
+// freqList represents a doubly-linked list of entries with the same frequency
+type freqList[K comparable, V any] struct {
+	head, tail *entry[K, V]
+	size       int
 }
 
 // New creates a new LFU cache with the given capacity
@@ -31,10 +38,10 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 	}
 
 	return &Cache[K, V]{
-		capacity:  capacity,
-		items:     make(map[K]*entry[K, V]),
-		freqLists: make(map[int]*list.List),
-		minFreq:   1,
+		capacity: capacity,
+		items:    make(map[K]*entry[K, V], capacity),
+		freqMap:  make(map[int]*freqList[K, V], 16),
+		minFreq:  1,
 	}, nil
 }
 
@@ -50,16 +57,20 @@ func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache
 
 // Get retrieves a value from the cache
 func (c *Cache[K, V]) Get(key K) (value V, ok bool) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+	c.mu.RLock()
+	entry, exists := c.items[key]
+	c.mu.RUnlock()
 
-	if entry, exists := c.items[key]; exists {
-		c.incrementFreq(entry)
-		return entry.value, true
+	if !exists {
+		var zero V
+		return zero, false
 	}
 
-	var zero V
-	return zero, false
+	c.mu.Lock()
+	c.incrementFreq(entry)
+	c.mu.Unlock()
+
+	return entry.value, true
 }
 
 // Put adds or updates a value in the cache
@@ -89,10 +100,14 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 	}
 
 	// Add to frequency list
-	if c.freqLists[1] == nil {
-		c.freqLists[1] = list.New()
+	list := c.freqMap[1]
+	if list == nil {
+		list = &freqList[K, V]{}
+		c.freqMap[1] = list
 	}
-	entry.element = c.freqLists[1].PushFront(entry)
+	list.pushFront(entry)
+	entry.freqList = list
+
 	c.items[key] = entry
 	c.minFreq = 1
 
@@ -160,7 +175,7 @@ func (c *Cache[K, V]) Clear() {
 	}
 
 	c.items = make(map[K]*entry[K, V])
-	c.freqLists = make(map[int]*list.List)
+	c.freqMap = make(map[int]*freqList[K, V])
 	c.minFreq = 1
 }
 
@@ -235,34 +250,36 @@ func (c *Cache[K, V]) incrementFreq(entry *entry[K, V]) {
 	newFreq := oldFreq + 1
 
 	// Remove from old frequency list
-	oldList := c.freqLists[oldFreq]
-	oldList.Remove(entry.element)
+	oldList := entry.freqList
+	oldList.remove(entry)
 
 	// If this was the last item in the minimum frequency list, update minFreq
-	if oldFreq == c.minFreq && oldList.Len() == 0 {
+	if oldFreq == c.minFreq && oldList.size == 0 {
 		c.minFreq++
 	}
 
 	// Add to new frequency list
-	if c.freqLists[newFreq] == nil {
-		c.freqLists[newFreq] = list.New()
+	newList := c.freqMap[newFreq]
+	if newList == nil {
+		newList = &freqList[K, V]{}
+		c.freqMap[newFreq] = newList
 	}
+	newList.pushFront(entry)
+	entry.freqList = newList
 	entry.freq = newFreq
-	entry.element = c.freqLists[newFreq].PushFront(entry)
 }
 
 // evictLFU removes the least frequently used item
 func (c *Cache[K, V]) evictLFU() {
 	// Get the list of items with minimum frequency
-	minFreqList := c.freqLists[c.minFreq]
-	if minFreqList == nil || minFreqList.Len() == 0 {
+	freqList := c.freqMap[c.minFreq]
+	if freqList == nil || freqList.size == 0 {
 		return
 	}
 
 	// Remove the least recently used item among those with minimum frequency
-	element := minFreqList.Back()
-	if element != nil {
-		entry := element.Value.(*entry[K, V])
+	entry := freqList.tail
+	if entry != nil {
 		c.removeEntry(entry)
 	}
 }
@@ -270,11 +287,10 @@ func (c *Cache[K, V]) evictLFU() {
 // removeEntry removes an entry from the cache
 func (c *Cache[K, V]) removeEntry(entry *entry[K, V]) {
 	// Remove from frequency list
-	freqList := c.freqLists[entry.freq]
-	freqList.Remove(entry.element)
+	entry.freqList.remove(entry)
 
 	// Update minFreq if necessary
-	if entry.freq == c.minFreq && freqList.Len() == 0 {
+	if entry.freq == c.minFreq && entry.freqList.size == 0 {
 		c.updateMinFreq()
 	}
 
@@ -294,7 +310,15 @@ func (c *Cache[K, V]) updateMinFreq() {
 		return
 	}
 
-	// Find the new minimum frequency by checking all entries
+	// Fast path: search from current minFreq upward
+	for freq := c.minFreq; freq <= c.minFreq+10; freq++ {
+		if list, exists := c.freqMap[freq]; exists && list.size > 0 {
+			c.minFreq = freq
+			return
+		}
+	}
+
+	// Fallback: iterate through all entries
 	minFreq := 0
 	for _, entry := range c.items {
 		if minFreq == 0 || entry.freq < minFreq {
@@ -309,15 +333,50 @@ func (c *Cache[K, V]) updateMinFreq() {
 	}
 }
 
+// pushFront adds entry to front of list
+func (l *freqList[K, V]) pushFront(entry *entry[K, V]) {
+	entry.prev = nil
+	entry.next = l.head
+
+	if l.head != nil {
+		l.head.prev = entry
+	}
+	l.head = entry
+
+	if l.tail == nil {
+		l.tail = entry
+	}
+	l.size++
+}
+
+// remove removes entry from list
+func (l *freqList[K, V]) remove(entry *entry[K, V]) {
+	if entry.prev != nil {
+		entry.prev.next = entry.next
+	} else {
+		l.head = entry.next
+	}
+
+	if entry.next != nil {
+		entry.next.prev = entry.prev
+	} else {
+		l.tail = entry.prev
+	}
+
+	entry.prev = nil
+	entry.next = nil
+	l.size--
+}
+
 // Stats returns cache statistics
 func (c *Cache[K, V]) Stats() Stats {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	freqDistribution := make(map[int]int)
-	for freq, list := range c.freqLists {
-		if list.Len() > 0 {
-			freqDistribution[freq] = list.Len()
+	for freq, list := range c.freqMap {
+		if list.size > 0 {
+			freqDistribution[freq] = list.size
 		}
 	}
 
