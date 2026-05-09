@@ -524,64 +524,65 @@ func (fr FailingRSAReader) Read(p []byte) (n int, err error) {
 
 // TestRSA_100PercentCoverage triggers all error paths using dependency injection
 func TestRSA_100PercentCoverage(t *testing.T) {
-	// Save original functions
-	originalRSARandReader := rsaRandReader
-
-	// Restore original functions after test
-	defer func() {
-		rsaRandReader = originalRSARandReader
-	}()
-
 	message := []byte("test message for RSA")
 
-	// Test 1: Trigger rand.Reader failure in key generation
-	rsaRandReader = FailingRSAReader{}
-
-	_, err := GenerateRSAKeyPair(2048)
+	// Test 1: Key generation with invalid key size
+	_, err := GenerateRSAKeyPair(512)
 	if err == nil {
-		t.Error("Expected rand.Reader error in GenerateRSAKeyPair")
+		t.Error("Expected error for RSA key size < 1024")
 	}
 
-	// Restore rand.Reader for key generation in next tests
-	rsaRandReader = originalRSARandReader
-
-	// Generate a valid key pair for encryption/decryption tests
+	// Test 2: Generate valid key pair and signature for subsequent tests
 	keyPair, err := GenerateRSAKeyPair(2048)
 	if err != nil {
 		t.Fatalf("Failed to generate RSA key pair: %v", err)
 	}
 
-	// Test 2: Trigger rand.Reader failure in encryption
-	rsaRandReader = FailingRSAReader{}
+	signature, _ := RSASignPSS(keyPair.PrivateKey, message)
 
-	_, err = RSAEncryptOAEP(keyPair.PublicKey, message)
+	// Test 3: Encryption with nil public key
+	_, err = RSAEncryptOAEP(nil, message)
 	if err == nil {
-		t.Error("Expected rand.Reader error in RSAEncryptOAEP")
+		t.Error("Expected error for nil public key in OAEP encrypt")
 	}
 
-	_, err = RSAEncryptPKCS1v15(keyPair.PublicKey, message)
+	_, err = RSAEncryptPKCS1v15(nil, message)
 	if err == nil {
-		t.Error("Expected rand.Reader error in RSAEncryptPKCS1v15")
+		t.Error("Expected error for nil public key in PKCS1v15 encrypt")
 	}
 
-	// Test 3: Trigger rand.Reader failure in signing
-	_, err = RSASignPSS(keyPair.PrivateKey, message)
+	// Test 4: Decryption with nil private key
+	_, err = RSADecryptOAEP(nil, []byte("ciphertext"))
 	if err == nil {
-		t.Error("Expected rand.Reader error in RSASignPSS")
+		t.Error("Expected error for nil private key in OAEP decrypt")
 	}
 
-	// Test PKCS1v15 signing with failing rand.Reader
-	// Note: crypto/rsa.SignPKCS1v15 may or may not use the random reader
-	// depending on the implementation, so we'll check what actually happens
-	_, err = RSASignPKCS1v15(keyPair.PrivateKey, message)
-	if err != nil {
-		t.Logf("RSASignPKCS1v15 failed with failing rand.Reader: %v", err)
-	} else {
-		t.Logf("RSASignPKCS1v15 succeeded despite failing rand.Reader (this is acceptable)")
+	_, err = RSADecryptPKCS1v15(nil, []byte("ciphertext"))
+	if err == nil {
+		t.Error("Expected error for nil private key in PKCS1v15 decrypt")
 	}
 
-	// Restore rand.Reader for the rest of tests
-	rsaRandReader = originalRSARandReader
+	// Test 5: Signing with nil private key
+	_, err = RSASignPSS(nil, message)
+	if err == nil {
+		t.Error("Expected error for nil private key in PSS sign")
+	}
+
+	_, err = RSASignPKCS1v15(nil, message)
+	if err == nil {
+		t.Error("Expected error for nil private key in PKCS1v15 sign")
+	}
+
+	// Test 6: Verification with nil public key
+	err = RSAVerifyPSS(nil, message, signature)
+	if err == nil {
+		t.Error("Expected error for nil public key in PSS verify")
+	}
+
+	err = RSAVerifyPKCS1v15(nil, message, signature)
+	if err == nil {
+		t.Error("Expected error for nil public key in PKCS1v15 verify")
+	}
 }
 
 // TestRSAEncryptionErrorPaths tests various encryption error conditions

@@ -536,14 +536,34 @@ func TestECDHWithDifferentKeyPairs(t *testing.T) {
 
 // TestECDHErrorPathWithMockReader tests error path when rand.Reader fails
 func TestECDHErrorPathWithMockReader(t *testing.T) {
-	t.Run("GenerateECDHKey fails when rand.Reader fails", func(t *testing.T) {
-		originalReader := ecdhRandReader
-		ecdhRandReader = &ecdhFailingReader{}
-		defer func() { ecdhRandReader = originalReader }()
-
-		_, err := GenerateECDHKey(elliptic.P256())
+	t.Run("GenerateECDHKey with nil curve", func(t *testing.T) {
+		_, err := GenerateECDHKey(nil)
 		if err == nil {
-			t.Error("GenerateECDHKey should fail when rand.Reader fails")
+			t.Error("GenerateECDHKey should fail with nil curve")
+		}
+	})
+
+	t.Run("ECDHComputeShared with nil private key", func(t *testing.T) {
+		_, err := ECDHComputeShared(nil, &ecdsa.PublicKey{})
+		if err == nil {
+			t.Error("ECDHComputeShared should fail with nil private key")
+		}
+	})
+
+	t.Run("ECDHComputeShared with nil public key", func(t *testing.T) {
+		key, _ := GenerateECDHP256Key()
+		_, err := ECDHComputeShared(key.PrivateKey, nil)
+		if err == nil {
+			t.Error("ECDHComputeShared should fail with nil public key")
+		}
+	})
+
+	t.Run("ECDHComputeShared with curve mismatch", func(t *testing.T) {
+		p256Key, _ := GenerateECDHP256Key()
+		p384Key, _ := GenerateECDHP384Key()
+		_, err := ECDHComputeShared(p256Key.PrivateKey, p384Key.PublicKey)
+		if err == nil {
+			t.Error("ECDHComputeShared should fail with curve mismatch")
 		}
 	})
 }

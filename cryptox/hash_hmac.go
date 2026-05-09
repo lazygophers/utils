@@ -10,6 +10,12 @@ import (
 )
 
 // HMACMd5 使用 MD5 作为底层哈希函数计算 HMAC 值，并返回十六进制表示的字符串。
+//
+// ⚠️ SECURITY WARNING: MD5 is cryptographically broken.
+// - DO NOT use for any security purpose (authentication, tokens, API signatures)
+// - Use HMACSHA256 instead
+//
+// Deprecated: Use HMACSHA256 for security-critical applications.
 func HMACMd5[M string | []byte](key, message M) string {
 	h := hmac.New(md5.New, []byte(key))
 	_, _ = h.Write([]byte(message))
@@ -17,6 +23,12 @@ func HMACMd5[M string | []byte](key, message M) string {
 }
 
 // HMACSHA1 使用 SHA1 作为底层哈希函数计算 HMAC 值，并返回十六进制表示的字符串。
+//
+// ⚠️ SECURITY WARNING: SHA1 is cryptographically broken (SHAttered attack).
+// - DO NOT use for API signatures, JWT, or authentication tokens
+// - Use HMACSHA256 instead
+//
+// Deprecated: Use HMACSHA256 for security-critical applications.
 func HMACSHA1[M string | []byte](key, message M) string {
 	h := hmac.New(sha1.New, []byte(key))
 	_, _ = h.Write([]byte(message))
