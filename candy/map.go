@@ -42,6 +42,28 @@ func MapKeysInt(m interface{}) []int {
 			i++
 		}
 		return keys
+	case map[int]string:
+		if len(m) == 0 {
+			return nil
+		}
+		keys := make([]int, len(m))
+		i := 0
+		for k := range m {
+			keys[i] = k
+			i++
+		}
+		return keys
+	case map[int]bool:
+		if len(m) == 0 {
+			return nil
+		}
+		keys := make([]int, len(m))
+		i := 0
+		for k := range m {
+			keys[i] = k
+			i++
+		}
+		return keys
 	}
 
 	// 反射路径
@@ -332,6 +354,28 @@ func MapKeysString(m interface{}) []string {
 		}
 		return keys
 	case map[string]interface{}:
+		if len(m) == 0 {
+			return nil
+		}
+		keys := make([]string, len(m))
+		i := 0
+		for k := range m {
+			keys[i] = k
+			i++
+		}
+		return keys
+	case map[string]bool:
+		if len(m) == 0 {
+			return nil
+		}
+		keys := make([]string, len(m))
+		i := 0
+		for k := range m {
+			keys[i] = k
+			i++
+		}
+		return keys
+	case map[string]float64:
 		if len(m) == 0 {
 			return nil
 		}

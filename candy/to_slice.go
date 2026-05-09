@@ -29,69 +29,69 @@ func ToFloat64Slice(val interface{}) []float64 {
 		// 零拷贝优化：直接返回原切片
 		return x
 	case []float32:
-		// 预分配 + 直接类型转换
+		// 优化：使用索引循环
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
 	case []int:
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
 	case []int8:
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
 	case []int16:
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
 	case []int32:
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
 	case []int64:
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
 	case []uint:
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
 	case []uint8:
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
 	case []uint16:
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
 	case []uint32:
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
 	case []uint64:
 		v := make([]float64, len(x))
-		for i := range x {
+		for i := 0; i < len(x); i++ {
 			v[i] = float64(x[i])
 		}
 		return v
@@ -152,93 +152,94 @@ func ToInt64Slice(val interface{}) []int64 {
 		copy(result, x)
 		return result
 	case []int:
+		// 优化：使用索引循环替代 range
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i])
 		}
 		return result
 	case []int32:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i])
 		}
 		return result
 	case []int16:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i])
 		}
 		return result
 	case []int8:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i])
 		}
 		return result
 	case []uint:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val) // #nosec G115 -- intentional truncation for best-effort conversion
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i]) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
 		return result
 	case []uint32:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i])
 		}
 		return result
 	case []uint64:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val) // #nosec G115 -- intentional truncation for best-effort conversion
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i]) // #nosec G115 -- intentional truncation for best-effort conversion
 		}
 		return result
 	case []uint16:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i])
 		}
 		return result
 	case []uint8:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i])
 		}
 		return result
 	case []float32:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i])
 		}
 		return result
 	case []float64:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = int64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = int64(x[i])
 		}
 		return result
 	case []string:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = ToInt64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = ToInt64(x[i])
 		}
 		return result
 	case [][]byte:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = ToInt64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = ToInt64(x[i])
 		}
 		return result
 	case []interface{}:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = ToInt64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = ToInt64(x[i])
 		}
 		return result
 	case []bool:
 		result := make([]int64, len(x))
-		for i, val := range x {
-			result[i] = ToInt64(val)
+		for i := 0; i < len(x); i++ {
+			result[i] = ToInt64(x[i])
 		}
 		return result
 	default:
