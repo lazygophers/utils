@@ -6,10 +6,11 @@ import (
 	"os"
 )
 
+// Deprecated: Use Exist instead. Will be removed in next major version.
 func Exists(path string) bool {
 	_, err := os.Stat(path)
 	if err != nil {
-		return os.IsExist(err)
+		return false
 	}
 	return true
 }
@@ -74,7 +75,11 @@ func Copy(src, dst string) error {
 		return err
 	}
 
-	dstFile, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, stat.Mode())
+	// 安全的权限复制：Perm() 清除了 setuid/setgid/sticky 等特殊位
+	perm := stat.Mode().Perm() & 0777
+
+	//nosec G302 -- perm sanitized via Perm(), safe for file copying
+	dstFile, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, perm)
 	if err != nil {
 		return err
 	}
