@@ -73,6 +73,17 @@ make check
 - Coverage badge in `README.md` currently shows overall coverage below the aspirational threshold; preserve existing test style instead of inventing new structure.
 - `human/` is excluded from some coverage flows.
 - Multi-platform behavior is real in this repo: build tags and cross-platform files are common enough to inspect before editing.
+- **anyx 性能优化项目**（2026-05-09 进行中）：37 个函数逐个优化，每个函数独立 task。已完成的优化成果：
+  * NewMap: 2.7x 性能提升
+  * NewMapWithJson: 3-15% 性能提升（大数据场景）
+  * NewMapWithYaml: 71% 性能提升（大数据场景）
+  * NewMapWithAny: 22-31x 性能提升
+  * Set: 当前实现已是最优（11 种方案对比）
+  * Get: 2.86x 性能提升（并发场景）
+  * Exists: 1.13x 性能提升
+  * GetBool: 3-14% 性能提升
+  * GetInt: 22-52% 性能提升
+  详细进度见 `docs/reports/anyx-performance-optimization.md`
 
 <!-- TRELLIS:START -->
 # Trellis Instructions
