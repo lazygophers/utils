@@ -571,29 +571,12 @@ func Sign(data []byte, privateKeyPEM, passphrase string) ([]byte, error) {
 		return nil, fmt.Errorf("创建armor编码器失败: %w", err)
 	}
 
-	// 创建签名写入器
-	signWriter, err := openpgp.Sign(armorWriter, entities[0], nil, nil)
+	// 使用 DetachSign 创建分离签名（更容易验证）
+	err = openpgp.DetachSign(armorWriter, entities[0], bytes.NewReader(data), nil)
 	if err != nil {
-		log.Errorf("创建签名写入器失败: %v", err)
+		log.Errorf("创建签名失败: %v", err)
 		armorWriter.Close()
-		return nil, fmt.Errorf("创建签名写入器失败: %w", err)
-	}
-
-	// 写入数据
-	_, err = signWriter.Write(data)
-	if err != nil {
-		log.Errorf("写入签名数据失败: %v", err)
-		signWriter.Close()
-		armorWriter.Close()
-		return nil, fmt.Errorf("写入签名数据失败: %w", err)
-	}
-
-	// 关闭写入器
-	err = signWriter.Close()
-	if err != nil {
-		log.Errorf("关闭签名写入器失败: %v", err)
-		armorWriter.Close()
-		return nil, fmt.Errorf("关闭签名写入器失败: %w", err)
+		return nil, fmt.Errorf("创建签名失败: %w", err)
 	}
 
 	err = armorWriter.Close()
@@ -636,25 +619,16 @@ func VerifySignature(data, signature []byte, publicKeyPEM string) (bool, error) 
 		return false, fmt.Errorf("无效的签名类型: %s", block.Type)
 	}
 
-	// 读取签名
-	pktReader := packet.NewReader(block.Body)
-	pkt, err := pktReader.Next()
-	if err != nil {
-		log.Errorf("读取签名失败: %v", err)
-		return false, fmt.Errorf("读取签名失败: %w", err)
-	}
-
-	sig, ok := pkt.(*packet.Signature)
-	if !ok {
-		return false, fmt.Errorf("无效的签名包类型")
-	}
-
-	// 验证签名
-	hash := sig.Hash.New()
-	hash.Write(data)
-	err = entities[0].PrimaryKey.VerifySignature(hash, sig)
+	// 使用 CheckDetachedSignature 验证签名
+	// 参数顺序：keyring, signed, signature, config
+	signer, err := openpgp.CheckDetachedSignature(entities, bytes.NewReader(data), block.Body, nil)
 	if err != nil {
 		log.Debugf("签名验证失败: %v", err)
+		return false, nil
+	}
+
+	// 检查签名者身份
+	if signer == nil {
 		return false, nil
 	}
 
