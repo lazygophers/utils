@@ -2794,3 +2794,280 @@ func TestEnvTagCoverage(t *testing.T) {
 		assert.True(t, config.Debug) // 保持文件值
 	})
 }
+
+// 测试配置继承功能
+func TestLoadConfigWithInheritance(t *testing.T) {
+	type Config struct {
+		Name     string `json:"name" toml:"name" yaml:"name"`
+		Port     int    `json:"port" toml:"port" yaml:"port"`
+		Host     string `json:"host" toml:"host" yaml:"host"`
+		Debug    bool   `json:"debug" toml:"debug" yaml:"debug"`
+		Features []string `json:"features" toml:"features" yaml:"features"`
+	}
+
+	t.Run("inherit from multiple files", func(t *testing.T) {
+		// 创建临时目录
+		tmpDir := t.TempDir()
+
+		// base.json - 基础配置
+		baseConfig := `{
+			"name": "myapp",
+			"port": 8080,
+			"host": "localhost"
+		}`
+		basePath := filepath.Join(tmpDir, "base.json")
+		if err := os.WriteFile(basePath, []byte(baseConfig), 0644); err != nil {
+			t.Fatalf("failed to write base config: %v", err)
+		}
+
+		// dev.json - 开发环境配置（覆盖 port）
+		devConfig := `{
+			"port": 3000
+		}`
+		devPath := filepath.Join(tmpDir, "dev.json")
+		if err := os.WriteFile(devPath, []byte(devConfig), 0644); err != nil {
+			t.Fatalf("failed to write dev config: %v", err)
+		}
+
+		// local.json - 本地配置（添加 debug）
+		localConfig := `{
+			"debug": true,
+			"features": ["feature1", "feature2"]
+		}`
+		localPath := filepath.Join(tmpDir, "local.json")
+		if err := os.WriteFile(localPath, []byte(localConfig), 0644); err != nil {
+			t.Fatalf("failed to write local config: %v", err)
+		}
+
+		// 加载配置
+		var config Config
+		err := LoadConfigWithInheritanceSkipValidate(&config, basePath, devPath, localPath)
+		if err != nil {
+			t.Fatalf("failed to load config: %v", err)
+		}
+
+		// 验证合并结果
+		if config.Name != "myapp" {
+			t.Errorf("expected Name 'myapp', got '%s'", config.Name)
+		}
+		if config.Port != 3000 {
+			t.Errorf("expected Port 3000 (overridden by dev), got %d", config.Port)
+		}
+		if config.Host != "localhost" {
+			t.Errorf("expected Host 'localhost', got '%s'", config.Host)
+		}
+		if !config.Debug {
+			t.Error("expected Debug true (from local)")
+		}
+		if len(config.Features) != 2 {
+			t.Errorf("expected 2 features (from local), got %d", len(config.Features))
+		}
+	})
+
+	t.Run("skip missing files", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		basePath := filepath.Join(tmpDir, "base.json")
+		missingPath := filepath.Join(tmpDir, "missing.json")
+
+		baseConfig := `{"name": "test"}`
+		if err := os.WriteFile(basePath, []byte(baseConfig), 0644); err != nil {
+			t.Fatalf("failed to write base config: %v", err)
+		}
+
+		var config Config
+		err := LoadConfigWithInheritanceSkipValidate(&config, basePath, missingPath)
+		if err != nil {
+			t.Fatalf("failed to load config: %v", err)
+		}
+
+		if config.Name != "test" {
+			t.Errorf("expected Name 'test', got '%s'", config.Name)
+		}
+	})
+}
+
+func TestLoadConfigByEnvironment(t *testing.T) {
+	type Config struct {
+		Name string `json:"name" toml:"name" yaml:"name"`
+		Port int    `json:"port" toml:"port" yaml:"port"`
+	}
+
+	t.Run("load by ENV variable", func(t *testing.T) {
+		// 设置环境变量
+		oldEnv := os.Getenv("ENV")
+		defer func() {
+			if oldEnv != "" {
+				os.Setenv("ENV", oldEnv)
+			} else {
+				os.Unsetenv("ENV")
+			}
+		}()
+		os.Setenv("ENV", "test")
+
+		tmpDir := t.TempDir()
+
+		// base.json
+		baseConfig := `{"name": "myapp", "port": 8080}`
+		basePath := filepath.Join(tmpDir, "base.json")
+		if err := os.WriteFile(basePath, []byte(baseConfig), 0644); err != nil {
+			t.Fatalf("failed to write base config: %v", err)
+		}
+
+		// test.json
+		testConfig := `{"port": 9999}`
+		testPath := filepath.Join(tmpDir, "test.json")
+		if err := os.WriteFile(testPath, []byte(testConfig), 0644); err != nil {
+			t.Fatalf("failed to write test config: %v", err)
+		}
+
+		var config Config
+		err := LoadConfigByEnvironmentSkipValidate(&config, tmpDir)
+		if err != nil {
+			t.Fatalf("failed to load config by environment: %v", err)
+		}
+
+		if config.Name != "myapp" {
+			t.Errorf("expected Name 'myapp', got '%s'", config.Name)
+		}
+		if config.Port != 9999 {
+			t.Errorf("expected Port 9999 (overridden by test), got %d", config.Port)
+		}
+	})
+
+	t.Run("default to dev when ENV not set", func(t *testing.T) {
+		oldEnv := os.Getenv("ENV")
+		defer func() {
+			if oldEnv != "" {
+				os.Setenv("ENV", oldEnv)
+			} else {
+				os.Unsetenv("ENV")
+			}
+		}()
+		os.Unsetenv("ENV")
+
+		tmpDir := t.TempDir()
+
+		// dev.json
+		devConfig := `{"name": "dev-app", "port": 3000}`
+		devPath := filepath.Join(tmpDir, "dev.json")
+		if err := os.WriteFile(devPath, []byte(devConfig), 0644); err != nil {
+			t.Fatalf("failed to write dev config: %v", err)
+		}
+
+		var config Config
+		err := LoadConfigByEnvironmentSkipValidate(&config, tmpDir)
+		if err != nil {
+			t.Fatalf("failed to load config: %v", err)
+		}
+
+		if config.Name != "dev-app" {
+			t.Errorf("expected Name 'dev-app', got '%s'", config.Name)
+		}
+	})
+}
+
+func TestHCLWriteWithComplexTypes(t *testing.T) {
+	type Config struct {
+		Name     string            `hcl:"name"`
+		Port     int               `hcl:"port"`
+		Enabled  bool              `hcl:"enabled"`
+		Tags     []string          `hcl:"tags"`
+		Metadata map[string]string `hcl:"metadata"`
+	}
+
+	t.Run("write struct with slice and map", func(t *testing.T) {
+		config := Config{
+			Name:     "test-service",
+			Port:     8080,
+			Enabled:  true,
+			Tags:     []string{"web", "api"},
+			Metadata: map[string]string{"env": "dev", "region": "us-east"},
+		}
+
+		// 使用反射获取结构体并转换为 HCL
+		result, err := structToHCL(config, "")
+		if err != nil {
+			t.Fatalf("failed to convert to HCL: %v", err)
+		}
+
+		// 验证生成的 HCL 包含数组和 map
+		resultStr := result
+		if !strings.Contains(resultStr, "name") {
+			t.Error("HCL output should contain 'name' field")
+		}
+		if !strings.Contains(resultStr, "port") {
+			t.Error("HCL output should contain 'port' field")
+		}
+		if !strings.Contains(resultStr, "enabled") {
+			t.Error("HCL output should contain 'enabled' field")
+		}
+		// 数组和 map 的格式验证
+		if !strings.Contains(resultStr, "[") || !strings.Contains(resultStr, "]") {
+			t.Error("HCL output should contain array brackets for slice")
+		}
+		if !strings.Contains(resultStr, "{") || !strings.Contains(resultStr, "}") {
+			t.Error("HCL output should contain braces for map")
+		}
+	})
+}
+
+// 修复测试用例以反映"配置继承"的正确语义：后加载的配置覆盖先加载的
+func TestMergeConfig(t *testing.T) {
+	type Config struct {
+		Name    string `json:"name"`
+		Port    int    `json:"port"`
+		Host    string `json:"host"`
+		Debug   bool   `json:"debug"`
+		Timeout int    `json:"timeout"`
+	}
+
+	t.Run("config inheritance - src overrides dest", func(t *testing.T) {
+		dest := &Config{
+			Name:    "base-name",
+			Port:    9000,
+			Host:    "base.com",
+			Debug:   false,
+			Timeout: 10,
+		}
+
+		src := &Config{
+			Name:  "override-name",
+			Port:  8080,
+			Debug: true,
+		}
+
+		err := mergeConfig(dest, src)
+		if err != nil {
+			t.Fatalf("failed to merge config: %v", err)
+		}
+
+		// src 的非零值应该覆盖 dest
+		if dest.Name != "override-name" {
+			t.Errorf("src Name should override dest, got '%s'", dest.Name)
+		}
+		if dest.Port != 8080 {
+			t.Errorf("src Port should override dest, got %d", dest.Port)
+		}
+		if dest.Debug != true {
+			t.Errorf("src Debug should override dest, got %v", dest.Debug)
+		}
+		// src 的零值字段不覆盖 dest
+		if dest.Host != "base.com" {
+			t.Errorf("src zero-value Host should not override dest, got '%s'", dest.Host)
+		}
+		if dest.Timeout != 10 {
+			t.Errorf("src zero-value Timeout should not override dest, got %d", dest.Timeout)
+		}
+	})
+
+	t.Run("type mismatch error", func(t *testing.T) {
+		dest := &Config{Name: "test"}
+		src := "not a struct"
+
+		err := mergeConfig(dest, src)
+		if err == nil {
+			t.Error("expected error for type mismatch, got nil")
+		}
+	})
+}

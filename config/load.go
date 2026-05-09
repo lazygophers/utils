@@ -642,14 +642,39 @@ func structToHCL(v interface{}, indent string) (string, error) {
 			continue
 		}
 
-		if fieldValue.Kind() == reflect.Struct {
+		// 跳过零值字段（可选，HCL 通常包含所有字段）
+		if fieldValue.IsZero() && field.Tag.Get("hcl") == "omitempty" {
+			continue
+		}
+
+		switch fieldValue.Kind() {
+		case reflect.Struct:
+			// 嵌套结构体
 			nestedContent, err := structToHCL(fieldValue.Interface(), indent+"  ")
 			if err != nil {
 				log.Errorf("err:%v", err)
 				return "", err
 			}
 			result.WriteString(fmt.Sprintf("%s%s {\n%s%s}\n", indent, tagName, nestedContent, indent))
-		} else {
+
+		case reflect.Slice, reflect.Array:
+			// 切片和数组
+			if fieldValue.Len() == 0 {
+				result.WriteString(fmt.Sprintf("%s%s = []\n", indent, tagName))
+			} else {
+				result.WriteString(fmt.Sprintf("%s%s = %s\n", indent, tagName, formatHCLValue(fieldValue.Interface())))
+			}
+
+		case reflect.Map:
+			// Map 类型
+			if fieldValue.Len() == 0 {
+				result.WriteString(fmt.Sprintf("%s%s = {}\n", indent, tagName))
+			} else {
+				result.WriteString(fmt.Sprintf("%s%s = %s\n", indent, tagName, formatHCLValue(fieldValue.Interface())))
+			}
+
+		default:
+			// 基础类型
 			value := formatHCLValue(fieldValue.Interface())
 			result.WriteString(fmt.Sprintf("%s%s = %s\n", indent, tagName, value))
 		}
@@ -791,6 +816,254 @@ func formatHCLValue(value interface{}) string {
 	case float32, float64:
 		return fmt.Sprintf("%g", v)
 	default:
-		return fmt.Sprintf(`"%v"`, v)
+		// 使用反射处理复杂类型
+		rv := reflect.ValueOf(value)
+		switch rv.Kind() {
+		case reflect.Slice, reflect.Array:
+			if rv.Len() == 0 {
+				return "[]"
+			}
+			var elements []string
+			for i := 0; i < rv.Len(); i++ {
+				elem := rv.Index(i).Interface()
+				elements = append(elements, formatHCLValue(elem))
+			}
+			return fmt.Sprintf("[%s]", strings.Join(elements, ", "))
+		case reflect.Map:
+			if rv.Len() == 0 {
+				return "{}"
+			}
+			var pairs []string
+			iter := rv.MapRange()
+			for iter.Next() {
+				k := iter.Key()
+				v := iter.Value()
+				// HCL map 键通常是字符串
+				keyStr := fmt.Sprintf("%v", k.Interface())
+				valStr := formatHCLValue(v.Interface())
+				pairs = append(pairs, fmt.Sprintf("%s = %s", keyStr, valStr))
+			}
+			return fmt.Sprintf("{%s}", strings.Join(pairs, ", "))
+		default:
+			return fmt.Sprintf(`"%v"`, v)
+		}
+	}
+}
+
+// LoadConfigWithInheritance 支持配置继承的多层加载
+// 按优先级从低到高加载多个配置文件：默认配置 < 基础配置 < 环境配置 < 本地配置
+// 后加载的配置会覆盖先加载的配置中的同名字段
+// paths 配置文件路径列表，按优先级从低到高排列
+func LoadConfigWithInheritance(c any, paths ...string) (err error) {
+	for _, path := range paths {
+		if !osx.IsFile(path) {
+			log.Debugf("config file not found: %s, skipping", path)
+			continue
+		}
+
+		log.Debugf("loading config from: %s", path)
+		err = loadSingleFile(c, path)
+		if err != nil {
+			log.Errorf("failed to load config from %s: %v", path, err)
+			return err
+		}
+	}
+
+	// 应用环境变量覆盖（最高优先级）
+	err = overrideConfigWithEnv(c)
+	if err != nil {
+		log.Errorf("failed to override config with env: %v", err)
+		return err
+	}
+
+	// 验证最终配置
+	err = validator.Struct(c)
+	if err != nil {
+		log.Errorf("config validation failed: %v", err)
+		return err
+	}
+
+	log.Info("load config with inheritance success")
+	return nil
+}
+
+// LoadConfigWithInheritanceSkipValidate 支持配置继承但不验证
+func LoadConfigWithInheritanceSkipValidate(c any, paths ...string) error {
+	for _, path := range paths {
+		if !osx.IsFile(path) {
+			log.Debugf("config file not found: %s, skipping", path)
+			continue
+		}
+
+		log.Debugf("loading config from: %s", path)
+		err := loadSingleFile(c, path)
+		if err != nil {
+			log.Errorf("failed to load config from %s: %v", path, err)
+			return err
+		}
+	}
+
+	// 应用环境变量覆盖（最高优先级）
+	err := overrideConfigWithEnv(c)
+	if err != nil {
+		log.Errorf("failed to override config with env: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+// loadSingleFile 加载单个配置文件到结构体
+// 不覆盖已设置的非零值（实现配置继承）
+func loadSingleFile(c any, path string) error {
+	ext := filepath.Ext(path)
+
+	parser, ok := supportedExtMap[ext]
+	if !ok {
+		return fmt.Errorf("unsupported config file format: %s", ext)
+	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// 创建临时结构体接收新配置
+	tempConfig := reflect.New(reflect.TypeOf(c).Elem())
+
+	err = parser.Unmarshaler(file, tempConfig.Interface())
+	if err != nil {
+		return err
+	}
+
+	// 合并配置：将新配置值合并到目标结构体
+	err = mergeConfig(c, tempConfig.Interface())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// mergeConfig 合并配置：只覆盖零值字段
+func mergeConfig(dest, src interface{}) error {
+	destValue := reflect.ValueOf(dest)
+	srcValue := reflect.ValueOf(src)
+
+	if destValue.Kind() == reflect.Ptr {
+		destValue = destValue.Elem()
+	}
+	if srcValue.Kind() == reflect.Ptr {
+		srcValue = srcValue.Elem()
+	}
+
+	if destValue.Kind() != reflect.Struct || srcValue.Kind() != reflect.Struct {
+		return fmt.Errorf("both dest and src must be struct or pointer to struct")
+	}
+
+	destType := destValue.Type()
+	srcType := srcValue.Type()
+
+	// 类型必须匹配
+	if destType != srcType {
+		return fmt.Errorf("config type mismatch: dest %v, src %v", destType, srcType)
+	}
+
+	for i := 0; i < destValue.NumField(); i++ {
+		destField := destValue.Field(i)
+		srcField := srcValue.Field(i)
+
+		if !destField.CanSet() {
+			continue
+		}
+
+		// 如果 src 字段是非零值，覆盖 dest 字段（实现配置继承）
+		if !isZero(srcField) {
+			destField.Set(srcField)
+		} else if destField.Kind() == reflect.Struct && srcField.Kind() == reflect.Struct {
+			// 递归合并嵌套结构体
+			err := mergeConfig(destField.Addr().Interface(), srcField.Addr().Interface())
+			if err != nil {
+				log.Debugf("failed to merge nested field: %v", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadConfigByEnvironment 根据环境自动加载配置文件
+// 环境通过 ENV 环境变量指定（dev, test, prod）
+// 支持配置继承：base.{ext} < {env}.{ext} < local.{ext}
+func LoadConfigByEnvironment(c any, baseDir string) (err error) {
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "dev"
+	}
+
+	var paths []string
+
+	// 按优先级从低到高添加配置文件路径
+	for ext := range supportedExtMap {
+		basePath := filepath.Join(baseDir, "base"+ext)
+		envPath := filepath.Join(baseDir, env+ext)
+		localPath := filepath.Join(baseDir, "local"+ext)
+
+		paths = append(paths, basePath, envPath, localPath)
+	}
+
+	return LoadConfigWithInheritance(c, paths...)
+}
+
+// LoadConfigByEnvironmentSkipValidate 根据环境自动加载配置但不验证
+func LoadConfigByEnvironmentSkipValidate(c any, baseDir string) error {
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "dev"
+	}
+
+	var paths []string
+
+	// 按优先级从低到高添加配置文件路径
+	for ext := range supportedExtMap {
+		basePath := filepath.Join(baseDir, "base"+ext)
+		envPath := filepath.Join(baseDir, env+ext)
+		localPath := filepath.Join(baseDir, "local"+ext)
+
+		paths = append(paths, basePath, envPath, localPath)
+	}
+
+	return LoadConfigWithInheritanceSkipValidate(c, paths...)
+}
+
+// isZero 检查值是否为零值
+func isZero(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.String:
+		return v.String() == ""
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Ptr, reflect.Interface:
+		return v.IsNil()
+	case reflect.Slice, reflect.Array, reflect.Map:
+		return v.Len() == 0
+	case reflect.Struct:
+		// 结构体的零值判断需要递归检查所有字段
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Field(i)
+			if field.CanInterface() && !isZero(field) {
+				return false
+			}
+		}
+		return true
+	default:
+		return false
 	}
 }

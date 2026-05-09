@@ -1447,3 +1447,333 @@ func TestComprehensiveBoundaryTests(t *testing.T) {
 		t.Errorf("Expected Array5 to be zero value array, got %v", vat.Array5)
 	}
 }
+
+// TestSetDefaultsPanicBranch 测试 SetDefaults 的 panic 分支
+func TestSetDefaultsPanicBranch(t *testing.T) {
+	// 创建一个会触发错误的结构体
+	type InvalidDefault struct {
+		Field int `default:"invalid_number"`
+	}
+
+	var id InvalidDefault
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected SetDefaults to panic with invalid default value")
+		}
+	}()
+
+	// 这应该触发 panic 因为默认值无法解析
+	defaults.SetDefaults(&id)
+}
+
+// TestConditionalDefaults 测试条件默认值功能
+func TestConditionalDefaults(t *testing.T) {
+	t.Run("basic string field match", func(t *testing.T) {
+		type Order struct {
+			UserType string `default:"guest"`
+			Discount  int    `default:"UserType=guest:10,UserType=vip:20"`
+		}
+
+		var order Order
+		defaults.SetDefaults(&order)
+
+		if order.UserType != "guest" {
+			t.Errorf("Expected UserType to be 'guest', got '%s'", order.UserType)
+		}
+
+		if order.Discount != 10 {
+			t.Errorf("Expected Discount to be 10 when UserType='guest', got %d", order.Discount)
+		}
+	})
+
+	t.Run("multiple conditions with different values", func(t *testing.T) {
+		type Order struct {
+			UserType string `default:"vip"`
+			Discount  int    `default:"UserType=guest:10,UserType=vip:20,UserType=admin:30"`
+		}
+
+		var order Order
+		defaults.SetDefaults(&order)
+
+		if order.UserType != "vip" {
+			t.Errorf("Expected UserType to be 'vip', got '%s'", order.UserType)
+		}
+
+		if order.Discount != 20 {
+			t.Errorf("Expected Discount to be 20 when UserType='vip', got %d", order.Discount)
+		}
+	})
+
+	t.Run("no matching condition keeps zero value", func(t *testing.T) {
+		type Order struct {
+			UserType string `default:"unknown"`
+			Discount  int    `default:"UserType=guest:10,UserType=vip:20"`
+		}
+
+		var order Order
+		defaults.SetDefaults(&order)
+
+		if order.UserType != "unknown" {
+			t.Errorf("Expected UserType to be 'unknown', got '%s'", order.UserType)
+		}
+
+		if order.Discount != 0 {
+			t.Errorf("Expected Discount to be 0 when no condition matches, got %d", order.Discount)
+		}
+	})
+
+	t.Run("non-zero value is not overwritten", func(t *testing.T) {
+		type Order struct {
+			UserType string `default:"guest"`
+			Discount  int    `default:"UserType=guest:10,UserType=vip:20"`
+		}
+
+		var order Order
+		order.Discount = 99
+		defaults.SetDefaults(&order)
+
+		if order.Discount != 99 {
+			t.Errorf("Expected Discount to remain 99, got %d", order.Discount)
+		}
+	})
+
+	t.Run("string field conditional", func(t *testing.T) {
+		type Config struct {
+			Env  string `default:"dev"`
+			Path string `default:"Env=dev:/local/path,Env=prod:/prod/path"`
+		}
+
+		var config Config
+		defaults.SetDefaults(&config)
+
+		if config.Env != "dev" {
+			t.Errorf("Expected Env to be 'dev', got '%s'", config.Env)
+		}
+
+		if config.Path != "/local/path" {
+			t.Errorf("Expected Path to be '/local/path' when Env='dev', got '%s'", config.Path)
+		}
+	})
+
+	t.Run("float field conditional", func(t *testing.T) {
+		type Product struct {
+			Category string  `default:"electronics"`
+			TaxRate  float64 `default:"Category=food:0.05,Category=electronics:0.15"`
+		}
+
+		var product Product
+		defaults.SetDefaults(&product)
+
+		if product.Category != "electronics" {
+			t.Errorf("Expected Category to be 'electronics', got '%s'", product.Category)
+		}
+
+		if product.TaxRate != 0.15 {
+			t.Errorf("Expected TaxRate to be 0.15, got %f", product.TaxRate)
+		}
+	})
+
+	t.Run("bool field conditional", func(t *testing.T) {
+		type User struct {
+			Role    string `default:"admin"`
+			IsAdmin bool   `default:"Role=admin:true,Role=user:false"`
+		}
+
+		var user User
+		defaults.SetDefaults(&user)
+
+		if user.Role != "admin" {
+			t.Errorf("Expected Role to be 'admin', got '%s'", user.Role)
+		}
+
+		if !user.IsAdmin {
+			t.Error("Expected IsAdmin to be true when Role='admin'")
+		}
+	})
+}
+
+// TestConditionalDefaultsEdgeCases 测试条件默认值的边界情况
+// TestConditionalDefaultsEdgeCases 测试条件默认值的边界情况
+// TestConditionalDefaultsEdgeCases 测试条件默认值的边界情况
+// TestConditionalDefaultsEdgeCases 测试条件默认值的边界情况
+func TestConditionalDefaultsEdgeCases(t *testing.T) {
+	t.Run("spaces in conditions", func(t *testing.T) {
+		type Test struct {
+			Env    string `default:"dev"`
+			Config string `default:" Env = dev : value1 , Env = prod : value2 "`
+		}
+
+		var test Test
+		defaults.SetDefaults(&test)
+
+		if test.Config != "value1" {
+			t.Errorf("Expected Config to be 'value1', got '%s'", test.Config)
+		}
+	})
+
+	t.Run("JSON with colons is not conditional", func(t *testing.T) {
+		type Test struct {
+			Field map[string]string `default:"{\"key\":\"value\"}"`
+		}
+
+		var test Test
+		defaults.SetDefaults(&test)
+
+		if test.Field == nil {
+			t.Error("Expected Field to be initialized")
+		}
+		if test.Field["key"] != "value" {
+			t.Errorf("Expected Field[\"key\"] to be 'value', got '%s'", test.Field["key"])
+		}
+	})
+
+	t.Run("URL with colons is not conditional", func(t *testing.T) {
+		type Test struct {
+			APIEndpoint string `default:"http://example.com/api"`
+		}
+
+		var test Test
+		defaults.SetDefaults(&test)
+
+		if test.APIEndpoint != "http://example.com/api" {
+			t.Errorf("Expected APIEndpoint to be 'http://example.com/api', got '%s'", test.APIEndpoint)
+		}
+	})
+}
+
+
+// TestConditionalDefaultsCoverage 提高条件默认值覆盖率
+func TestConditionalDefaultsCoverage(t *testing.T) {
+	t.Run("numeric conditions - int field", func(t *testing.T) {
+		type Test struct {
+			Count int    `default:"10"`
+			Level string `default:"Count>=5:high,Count<5:low"`
+		}
+
+		var test Test
+		defaults.SetDefaults(&test)
+
+		if test.Level != "high" {
+			t.Errorf("Expected Level to be 'high' when Count>=5, got '%s'", test.Level)
+		}
+	})
+
+	t.Run("numeric conditions - float field", func(t *testing.T) {
+		type Test struct {
+			Score float64 `default:"85.5"`
+			Grade string  `default:"Score>=90:A,Score>=60:B,Score<60:C"`
+		}
+
+		var test Test
+		defaults.SetDefaults(&test)
+
+		if test.Grade != "B" {
+			t.Errorf("Expected Grade to be 'B' when Score=85.5, got '%s'", test.Grade)
+		}
+	})
+
+	t.Run("numeric conditions - uint field", func(t *testing.T) {
+		type Test struct {
+			Age   uint   `default:"25"`
+			Stage string `default:"Age>=18:adult,Age<18:minor"`
+		}
+
+		var test Test
+		defaults.SetDefaults(&test)
+
+		if test.Stage != "adult" {
+			t.Errorf("Expected Stage to be 'adult' when Age>=18, got '%s'", test.Stage)
+		}
+	})
+
+	t.Run("equality conditions - int", func(t *testing.T) {
+		type Test struct {
+			Status int    `default:"1"`
+			Label  string `default:"Status=1:active,Status=0:inactive"`
+		}
+
+		var test Test
+		defaults.SetDefaults(&test)
+
+		if test.Label != "active" {
+			t.Errorf("Expected Label to be 'active' when Status=1, got '%s'", test.Label)
+		}
+	})
+
+	t.Run("field name case insensitive", func(t *testing.T) {
+		type Test struct {
+			USERNAME string `default:"admin"`
+			Role     string `default:"username=admin:admin,username=user:guest"`
+		}
+
+		var test Test
+		defaults.SetDefaults(&test)
+
+		if test.Role != "admin" {
+			t.Errorf("Expected Role to be 'admin' (case insensitive), got '%s'", test.Role)
+		}
+	})
+
+	t.Run("setValueFromString - all types", func(t *testing.T) {
+		type Test struct {
+			Str   string  `default:"hello"`
+			Int   int     `default:"42"`
+			Uint  uint    `default:"100"`
+			Float float64 `default:"3.14"`
+			Bool  bool    `default:"true"`
+		}
+
+		var test Test
+		defaults.SetDefaults(&test)
+
+		if test.Str != "hello" {
+			t.Errorf("Expected Str='hello', got '%s'", test.Str)
+		}
+		if test.Int != 42 {
+			t.Errorf("Expected Int=42, got %d", test.Int)
+		}
+		if test.Uint != 100 {
+			t.Errorf("Expected Uint=100, got %d", test.Uint)
+		}
+		if test.Float != 3.14 {
+			t.Errorf("Expected Float=3.14, got %f", test.Float)
+		}
+		if !test.Bool {
+			t.Error("Expected Bool=true")
+		}
+	})
+
+	t.Run("ErrorModeReturn with invalid default", func(t *testing.T) {
+		type Test struct {
+			Field int `default:"invalid"`
+		}
+
+		opts := &defaults.Options{
+			ErrorMode: defaults.ErrorModeReturn,
+		}
+
+		var test Test
+		err := defaults.SetDefaultsWithOptions(&test, opts)
+
+		if err == nil {
+			t.Error("Expected error for invalid default value, got nil")
+		}
+	})
+
+	t.Run("ErrorModeIgnore with invalid default", func(t *testing.T) {
+		type Test struct {
+			Field int `default:"invalid"`
+		}
+
+		opts := &defaults.Options{
+			ErrorMode: defaults.ErrorModeIgnore,
+		}
+
+		var test Test
+		err := defaults.SetDefaultsWithOptions(&test, opts)
+
+		if err != nil {
+			t.Errorf("Expected no error in Ignore mode, got %v", err)
+		}
+	})
+}

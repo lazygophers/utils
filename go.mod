@@ -32,8 +32,11 @@ require (
 	github.com/bytedance/gopkg v0.1.4 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lazygophers/log/constant v0.0.0-20260505024342-2c291363de69 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty v1.18.0 // indirect
