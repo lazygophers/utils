@@ -8,14 +8,16 @@ import (
 
 // Pluck 从结构体切片中提取指定字段的值（泛型版本）
 // 使用函数选择器而不是反射，提供类型安全和高性能
+// 优化：使用索引循环代替 range，避免值拷贝
 func Pluck[T any, U any](slice []T, selector func(T) U) []U {
 	if len(slice) == 0 {
 		return nil
 	}
 
 	result := make([]U, len(slice))
-	for i, item := range slice {
-		result[i] = selector(item)
+	n := len(slice)
+	for i := 0; i < n; i++ {
+		result[i] = selector(slice[i])
 	}
 	return result
 }

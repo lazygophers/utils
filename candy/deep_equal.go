@@ -149,6 +149,70 @@ func deepValueEqual(v1, v2 reflect.Value) bool {
 // @param y 第二个待比较的值。
 // @return 如果两个值在结构和内容上完全相等，则返回 true，否则返回 false。
 func DeepEqual[M any](x, y M) bool {
+	// 快速路径：常见切片类型
+	switch xv := any(x).(type) {
+	case []int:
+		yv, ok := any(y).([]int)
+		if !ok {
+			return false
+		}
+		if len(xv) != len(yv) {
+			return false
+		}
+		for i := 0; i < len(xv); i++ {
+			if xv[i] != yv[i] {
+				return false
+			}
+		}
+		return true
+
+	case []string:
+		yv, ok := any(y).([]string)
+		if !ok {
+			return false
+		}
+		if len(xv) != len(yv) {
+			return false
+		}
+		for i := 0; i < len(xv); i++ {
+			if xv[i] != yv[i] {
+				return false
+			}
+		}
+		return true
+
+	case map[string]int:
+		yv, ok := any(y).(map[string]int)
+		if !ok {
+			return false
+		}
+		if len(xv) != len(yv) {
+			return false
+		}
+		for k, v := range xv {
+			if yv[k] != v {
+				return false
+			}
+		}
+		return true
+
+	case map[string]string:
+		yv, ok := any(y).(map[string]string)
+		if !ok {
+			return false
+		}
+		if len(xv) != len(yv) {
+			return false
+		}
+		for k, v := range xv {
+			if yv[k] != v {
+				return false
+			}
+		}
+		return true
+	}
+
+	// 回退到反射
 	v1 := reflect.ValueOf(x)
 	v2 := reflect.ValueOf(y)
 	return deepValueEqual(v1, v2)
