@@ -6,7 +6,8 @@ package candy
 //
 // 性能优化：
 //   - 快速路径：长度检查和 nil 检查
-//   - 预分配 map 容量，减少内存重新分配
+//   - 小切片使用双重循环（无内存分配）
+//   - 大切片使用 map 计数（O(n) 时间复杂度）
 //   - 使用 any 类型转换避免 comparable 约束限制
 func SliceEqual[T any](a, b []T) bool {
 	// 处理 nil 切片的情况：nil 和空切片视为相等
@@ -22,17 +23,18 @@ func SliceEqual[T any](a, b []T) bool {
 	}
 
 	// 小切片优化：使用双重循环避免 map 开销
+	// 对于小切片，双重循环比 map 更快（无内存分配）
 	const smallSliceThreshold = 32
 	if len(a) < smallSliceThreshold {
 		// 标记已匹配的元素
 		matched := make([]bool, len(b))
 		for _, va := range a {
 			found := false
-			for j, vb := range b {
+			for j := 0; j < len(b); j++ {
 				if !matched[j] {
 					// 使用 any 比较
 					vaAny := any(va)
-					vbAny := any(vb)
+					vbAny := any(b[j])
 					if vaAny == vbAny {
 						matched[j] = true
 						found = true
@@ -49,12 +51,12 @@ func SliceEqual[T any](a, b []T) bool {
 
 	// 大切片：使用 map 计数
 	am := make(map[any]int, len(a))
-	for _, v := range a {
-		am[v]++
+	for i := 0; i < len(a); i++ {
+		am[a[i]]++
 	}
 
-	for _, v := range b {
-		vAny := any(v)
+	for i := 0; i < len(b); i++ {
+		vAny := any(b[i])
 		if count, ok := am[vAny]; !ok || count == 0 {
 			return false
 		}

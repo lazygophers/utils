@@ -21,8 +21,8 @@ import "golang.org/x/exp/constraints"
 //
 // 性能优化：
 //   - 快速路径：空切片或无需移除直接返回
-//   - 两遍扫描：第一遍计数，第二遍填充（避免 append 重新分配）
-//   - 使用 map[T]bool 替代 map[T]struct{}（略微更快的查找）
+//   - 使用索引循环构建移除集合（比 range 更快）
+//   - 单遍扫描 + append（避免两次遍历开销）
 func Remove[T constraints.Ordered](ss []T, toRemove []T) (result []T) {
 	// 快速路径：空切片
 	if len(ss) == 0 {
@@ -38,32 +38,23 @@ func Remove[T constraints.Ordered](ss []T, toRemove []T) (result []T) {
 
 	// 构建移除集合
 	removeSet := make(map[T]bool, len(toRemove))
-	for _, item := range toRemove {
-		removeSet[item] = true
+	for i := 0; i < len(toRemove); i++ {
+		removeSet[toRemove[i]] = true
 	}
 
-	// 第一遍扫描：计算保留元素数量
-	count := 0
-	for _, item := range ss {
-		if !removeSet[item] {
-			count++
+	// 单遍扫描 + append（比两遍扫描更快）
+	result = make([]T, 0, len(ss))
+	for i := 0; i < len(ss); i++ {
+		if !removeSet[ss[i]] {
+			result = append(result, ss[i])
 		}
 	}
 
-	// 快速路径：所有元素都被移除
-	if count == 0 {
+	// 如果结果为空，返回空切片而非 nil
+	if len(result) == 0 {
 		return make([]T, 0)
 	}
 
-	// 第二遍扫描：直接填充预分配的切片
-	result = make([]T, count)
-	idx := 0
-	for _, item := range ss {
-		if !removeSet[item] {
-			result[idx] = item
-			idx++
-		}
-	}
 	return result
 }
 

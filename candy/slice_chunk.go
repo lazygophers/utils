@@ -1,10 +1,10 @@
 package candy
 
 // Chunk 将切片分割成指定大小的子切片
-// 使用混合策略优化性能：
-// - size >= len(ss): 直接返回包含整个切片的单元素结果
-// - size == 1: 使用预分配切片和索引赋值
-// - 其他情况: 预分配容量并使用完全切片避免容量扩展
+// 性能优化策略：
+// - size >= len(ss): 直接返回包含整个切片的单元素结果（无分配）
+// - size == 1: 使用索引循环预分配（比 range 更快）
+// - 其他情况: 使用索引循环，避免 range 的开销
 func Chunk[T any](ss []T, size int) (ret [][]T) {
 	if len(ss) == 0 || size <= 0 {
 		return [][]T{}
@@ -18,24 +18,22 @@ func Chunk[T any](ss []T, size int) (ret [][]T) {
 	// 特殊情况：chunk 大小为 1，使用优化的单个元素处理
 	if size == 1 {
 		ret = make([][]T, len(ss))
-		for i := range ss {
+		for i := 0; i < len(ss); i++ {
 			ret[i] = []T{ss[i]}
 		}
 		return
 	}
 
-	// 通用情况：预分配容量并使用完全切片
+	// 通用情况：使用索引循环，比 range 更快
 	ret = make([][]T, 0, (len(ss)+size-1)/size)
-	i := 0
 	n := len(ss)
-	for i < n {
+	for i := 0; i < n; i += size {
 		end := i + size
 		if end > n {
 			end = n
 		}
 		// 使用完全切片（三参数）防止容量扩展
 		ret = append(ret, ss[i:end:end])
-		i = end
 	}
 
 	return

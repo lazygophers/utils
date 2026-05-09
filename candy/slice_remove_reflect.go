@@ -10,14 +10,14 @@ func RemoveSlice(src interface{}, rm interface{}) interface{} {
 	// 快速路径：int 类型
 	if srcInt, ok := src.([]int); ok {
 		if rmInt, ok := rm.([]int); ok {
-			m := make(map[int]struct{}, len(rmInt))
-			for _, v := range rmInt {
-				m[v] = struct{}{}
+			m := make(map[int]bool, len(rmInt))
+			for i := 0; i < len(rmInt); i++ {
+				m[rmInt[i]] = true
 			}
 			result := make([]int, 0, len(srcInt)-len(rmInt)/2)
-			for _, v := range srcInt {
-				if _, ok := m[v]; !ok {
-					result = append(result, v)
+			for i := 0; i < len(srcInt); i++ {
+				if !m[srcInt[i]] {
+					result = append(result, srcInt[i])
 				}
 			}
 			return result
@@ -27,14 +27,14 @@ func RemoveSlice(src interface{}, rm interface{}) interface{} {
 	// 快速路径：string 类型
 	if srcStr, ok := src.([]string); ok {
 		if rmStr, ok := rm.([]string); ok {
-			m := make(map[string]struct{}, len(rmStr))
-			for _, v := range rmStr {
-				m[v] = struct{}{}
+			m := make(map[string]bool, len(rmStr))
+			for i := 0; i < len(rmStr); i++ {
+				m[rmStr[i]] = true
 			}
 			result := make([]string, 0, len(srcStr)-len(rmStr)/2)
-			for _, v := range srcStr {
-				if _, ok := m[v]; !ok {
-					result = append(result, v)
+			for i := 0; i < len(srcStr); i++ {
+				if !m[srcStr[i]] {
+					result = append(result, srcStr[i])
 				}
 			}
 			return result
