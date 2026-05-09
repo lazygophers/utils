@@ -73,12 +73,15 @@ func KeyByInt[T any](ss []T, fieldName string) map[int]T {
 	}
 	ret := make(map[int]T, len(ss))
 	if isPtr {
+		// 优化：直接使用 unsafe 转换，避免 reflect.ValueOf
 		for _, item := range ss {
-			v := reflect.ValueOf(item)
-			if v.IsNil() {
+			// 将泛型 T 转换为 unsafe.Pointer
+			itemPtr := unsafe.Pointer(&item)
+			// 解引用获取实际指针
+			elemPtr := *(*unsafe.Pointer)(itemPtr)
+			if elemPtr == nil {
 				panic("nil pointer in slice")
 			}
-			elemPtr := unsafe.Pointer(v.Pointer())
 			fieldPtr := unsafe.Pointer(uintptr(elemPtr) + field.Offset)
 			id := *(*int)(fieldPtr)
 			ret[id] = item
@@ -112,11 +115,11 @@ func KeyByInt8[T any](ss []T, fieldName string) map[int8]T {
 	ret := make(map[int8]T, len(ss))
 	if isPtr {
 		for _, item := range ss {
-			v := reflect.ValueOf(item)
-			if v.IsNil() {
+			itemPtr := unsafe.Pointer(&item)
+			elemPtr := *(*unsafe.Pointer)(itemPtr)
+			if elemPtr == nil {
 				panic("nil pointer in slice")
 			}
-			elemPtr := unsafe.Pointer(v.Pointer())
 			fieldPtr := unsafe.Pointer(uintptr(elemPtr) + field.Offset)
 			id := *(*int8)(fieldPtr)
 			ret[id] = item
@@ -150,11 +153,11 @@ func KeyByInt16[T any](ss []T, fieldName string) map[int16]T {
 	ret := make(map[int16]T, len(ss))
 	if isPtr {
 		for _, item := range ss {
-			v := reflect.ValueOf(item)
-			if v.IsNil() {
+			itemPtr := unsafe.Pointer(&item)
+			elemPtr := *(*unsafe.Pointer)(itemPtr)
+			if elemPtr == nil {
 				panic("nil pointer in slice")
 			}
-			elemPtr := unsafe.Pointer(v.Pointer())
 			fieldPtr := unsafe.Pointer(uintptr(elemPtr) + field.Offset)
 			id := *(*int16)(fieldPtr)
 			ret[id] = item
@@ -188,11 +191,11 @@ func KeyByInt32[T any](ss []T, fieldName string) map[int32]T {
 	ret := make(map[int32]T, len(ss))
 	if isPtr {
 		for _, item := range ss {
-			v := reflect.ValueOf(item)
-			if v.IsNil() {
+			itemPtr := unsafe.Pointer(&item)
+			elemPtr := *(*unsafe.Pointer)(itemPtr)
+			if elemPtr == nil {
 				panic("nil pointer in slice")
 			}
-			elemPtr := unsafe.Pointer(v.Pointer())
 			fieldPtr := unsafe.Pointer(uintptr(elemPtr) + field.Offset)
 			id := *(*int32)(fieldPtr)
 			ret[id] = item
@@ -226,11 +229,11 @@ func KeyByInt64[T any](ss []T, fieldName string) map[int64]T {
 	ret := make(map[int64]T, len(ss))
 	if isPtr {
 		for _, item := range ss {
-			v := reflect.ValueOf(item)
-			if v.IsNil() {
+			itemPtr := unsafe.Pointer(&item)
+			elemPtr := *(*unsafe.Pointer)(itemPtr)
+			if elemPtr == nil {
 				panic("nil pointer in slice")
 			}
-			elemPtr := unsafe.Pointer(v.Pointer())
 			fieldPtr := unsafe.Pointer(uintptr(elemPtr) + field.Offset)
 			id := *(*int64)(fieldPtr)
 			ret[id] = item
@@ -264,11 +267,11 @@ func KeyByUint8[T any](ss []T, fieldName string) map[uint8]T {
 	ret := make(map[uint8]T, len(ss))
 	if isPtr {
 		for _, item := range ss {
-			v := reflect.ValueOf(item)
-			if v.IsNil() {
+			itemPtr := unsafe.Pointer(&item)
+			elemPtr := *(*unsafe.Pointer)(itemPtr)
+			if elemPtr == nil {
 				panic("nil pointer in slice")
 			}
-			elemPtr := unsafe.Pointer(v.Pointer())
 			fieldPtr := unsafe.Pointer(uintptr(elemPtr) + field.Offset)
 			id := *(*uint8)(fieldPtr)
 			ret[id] = item
@@ -302,11 +305,11 @@ func KeyByUint16[T any](ss []T, fieldName string) map[uint16]T {
 	ret := make(map[uint16]T, len(ss))
 	if isPtr {
 		for _, item := range ss {
-			v := reflect.ValueOf(item)
-			if v.IsNil() {
+			itemPtr := unsafe.Pointer(&item)
+			elemPtr := *(*unsafe.Pointer)(itemPtr)
+			if elemPtr == nil {
 				panic("nil pointer in slice")
 			}
-			elemPtr := unsafe.Pointer(v.Pointer())
 			fieldPtr := unsafe.Pointer(uintptr(elemPtr) + field.Offset)
 			id := *(*uint16)(fieldPtr)
 			ret[id] = item
@@ -340,11 +343,11 @@ func KeyByUint32[T any](ss []T, fieldName string) map[uint32]T {
 	ret := make(map[uint32]T, len(ss))
 	if isPtr {
 		for _, item := range ss {
-			v := reflect.ValueOf(item)
-			if v.IsNil() {
+			itemPtr := unsafe.Pointer(&item)
+			elemPtr := *(*unsafe.Pointer)(itemPtr)
+			if elemPtr == nil {
 				panic("nil pointer in slice")
 			}
-			elemPtr := unsafe.Pointer(v.Pointer())
 			fieldPtr := unsafe.Pointer(uintptr(elemPtr) + field.Offset)
 			id := *(*uint32)(fieldPtr)
 			ret[id] = item
@@ -378,11 +381,11 @@ func KeyByUint64[T any](ss []T, fieldName string) map[uint64]T {
 	ret := make(map[uint64]T, len(ss))
 	if isPtr {
 		for _, item := range ss {
-			v := reflect.ValueOf(item)
-			if v.IsNil() {
+			itemPtr := unsafe.Pointer(&item)
+			elemPtr := *(*unsafe.Pointer)(itemPtr)
+			if elemPtr == nil {
 				panic("nil pointer in slice")
 			}
-			elemPtr := unsafe.Pointer(v.Pointer())
 			fieldPtr := unsafe.Pointer(uintptr(elemPtr) + field.Offset)
 			id := *(*uint64)(fieldPtr)
 			ret[id] = item
@@ -416,11 +419,11 @@ func KeyByUint[T any](ss []T, fieldName string) map[uint]T {
 	ret := make(map[uint]T, len(ss))
 	if isPtr {
 		for _, item := range ss {
-			v := reflect.ValueOf(item)
-			if v.IsNil() {
+			itemPtr := unsafe.Pointer(&item)
+			elemPtr := *(*unsafe.Pointer)(itemPtr)
+			if elemPtr == nil {
 				panic("nil pointer in slice")
 			}
-			elemPtr := unsafe.Pointer(v.Pointer())
 			fieldPtr := unsafe.Pointer(uintptr(elemPtr) + field.Offset)
 			id := *(*uint)(fieldPtr)
 			ret[id] = item
