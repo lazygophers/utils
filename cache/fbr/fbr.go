@@ -7,12 +7,13 @@ import (
 )
 
 // Cache represents a Frequency-Based Replacement cache
+// 优化版本：预分配 map 容量
 type Cache[K comparable, V any] struct {
 	capacity    int
 	items       map[K]*entry[K, V]
-	frequencies map[int]*list.List // frequency -> LRU list of entries with that frequency
-	minFreq     int                // minimum frequency in the cache
-	maxFreq     int                // maximum frequency in the cache
+	frequencies map[int]*list.List
+	minFreq     int
+	maxFreq     int
 	mu          sync.RWMutex
 	onEvict     func(K, V)
 }
@@ -33,8 +34,8 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 
 	return &Cache[K, V]{
 		capacity:    capacity,
-		items:       make(map[K]*entry[K, V]),
-		frequencies: make(map[int]*list.List),
+		items:       make(map[K]*entry[K, V], capacity), // 预分配容量
+		frequencies: make(map[int]*list.List, 16),       // 预分配频率层级
 		minFreq:     1,
 		maxFreq:     1,
 	}, nil
@@ -69,35 +70,28 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Check if key already exists
 	if entry, exists := c.items[key]; exists {
-		// Update existing entry
 		entry.value = value
 		c.incrementFrequency(entry)
 		return false
 	}
 
-	// Check if cache is full
 	if len(c.items) >= c.capacity {
 		evicted = c.evictLeastFrequent()
 	}
 
-	// Add new entry with frequency 1
 	entry := &entry[K, V]{
 		key:       key,
 		value:     value,
 		frequency: 1,
 	}
 
-	// Ensure frequency list exists
 	if c.frequencies[1] == nil {
 		c.frequencies[1] = list.New()
 	}
 
 	entry.element = c.frequencies[1].PushFront(entry)
 	c.items[key] = entry
-
-	// Update min frequency
 	c.minFreq = 1
 
 	return evicted
@@ -165,7 +159,6 @@ func (c *Cache[K, V]) Clear() {
 		delete(c.items, k)
 	}
 
-	// Clear all frequency lists
 	for freq := range c.frequencies {
 		delete(c.frequencies, freq)
 	}
@@ -181,7 +174,6 @@ func (c *Cache[K, V]) Keys() []K {
 
 	keys := make([]K, 0, len(c.items))
 
-	// Iterate from highest to lowest frequency
 	for freq := c.maxFreq; freq >= c.minFreq; freq-- {
 		if freqList, exists := c.frequencies[freq]; exists && freqList.Len() > 0 {
 			for element := freqList.Front(); element != nil; element = element.Next() {
@@ -201,7 +193,6 @@ func (c *Cache[K, V]) Values() []V {
 
 	values := make([]V, 0, len(c.items))
 
-	// Iterate from highest to lowest frequency
 	for freq := c.maxFreq; freq >= c.minFreq; freq-- {
 		if freqList, exists := c.frequencies[freq]; exists && freqList.Len() > 0 {
 			for element := freqList.Front(); element != nil; element = element.Next() {
@@ -240,90 +231,82 @@ func (c *Cache[K, V]) Resize(capacity int) error {
 	oldCapacity := c.capacity
 	c.capacity = capacity
 
-	// Remove excess items if new capacity is smaller
 	for len(c.items) > capacity {
 		c.evictLeastFrequent()
 	}
 
-	_ = oldCapacity // Prevent unused variable warning
+	_ = oldCapacity
 	return nil
 }
 
-// incrementFrequency increments the frequency of an entry
+// incrementFrequency increases the frequency of an entry
 func (c *Cache[K, V]) incrementFrequency(entry *entry[K, V]) {
 	oldFreq := entry.frequency
 	newFreq := oldFreq + 1
 
-	// Remove from old frequency list
-	c.frequencies[oldFreq].Remove(entry.element)
-
-	// If old frequency list is empty and it's the minimum, update minFreq
-	if c.frequencies[oldFreq].Len() == 0 && oldFreq == c.minFreq {
-		c.updateMinFrequency()
+	if c.frequencies[oldFreq] != nil {
+		c.frequencies[oldFreq].Remove(entry.element)
 	}
 
-	// Update entry frequency
-	entry.frequency = newFreq
-
-	// Ensure new frequency list exists
 	if c.frequencies[newFreq] == nil {
 		c.frequencies[newFreq] = list.New()
 	}
 
-	// Add to new frequency list
 	entry.element = c.frequencies[newFreq].PushFront(entry)
+	entry.frequency = newFreq
 
-	// Update max frequency
 	if newFreq > c.maxFreq {
 		c.maxFreq = newFreq
 	}
-}
 
-// updateMinFrequency finds and updates the minimum frequency
-func (c *Cache[K, V]) updateMinFrequency() {
-	for freq := c.minFreq; freq <= c.maxFreq; freq++ {
-		if freqList, exists := c.frequencies[freq]; exists && freqList.Len() > 0 {
-			c.minFreq = freq
-			return
+	if oldFreq == c.minFreq {
+		if c.frequencies[oldFreq] == nil || c.frequencies[oldFreq].Len() == 0 {
+			c.minFreq = newFreq
 		}
 	}
-	// If no frequency found, reset to 1
-	c.minFreq = 1
 }
 
-// evictLeastFrequent removes the least frequently used item
+// evictLeastFrequent removes and returns the least frequently used entry
 func (c *Cache[K, V]) evictLeastFrequent() bool {
-	// Find the minimum frequency list that has entries
-	for freq := c.minFreq; freq <= c.maxFreq; freq++ {
-		if freqList, exists := c.frequencies[freq]; exists && freqList.Len() > 0 {
-			// Remove the least recently used item from this frequency
-			element := freqList.Back()
-			if element != nil {
-				entry := element.Value.(*entry[K, V])
-				c.removeEntry(entry)
-				return true
-			}
+	for c.frequencies[c.minFreq] == nil || c.frequencies[c.minFreq].Len() == 0 {
+		c.minFreq++
+		if c.minFreq > c.maxFreq {
+			return false
 		}
 	}
+
+	element := c.frequencies[c.minFreq].Back()
+	if element != nil {
+		entry := element.Value.(*entry[K, V])
+		c.frequencies[c.minFreq].Remove(element)
+		delete(c.items, entry.key)
+
+		if c.onEvict != nil {
+			c.onEvict(entry.key, entry.value)
+		}
+		return true
+	}
+
 	return false
 }
 
-// removeEntry removes an entry completely from the cache
+// removeEntry removes an entry from the cache
 func (c *Cache[K, V]) removeEntry(entry *entry[K, V]) {
-	// Remove from frequency list
-	c.frequencies[entry.frequency].Remove(entry.element)
-
-	// If this was the only entry with min frequency, update minFreq
-	if c.frequencies[entry.frequency].Len() == 0 && entry.frequency == c.minFreq {
-		c.updateMinFrequency()
+	if entry.element != nil {
+		c.frequencies[entry.frequency].Remove(entry.element)
 	}
-
-	// Remove from items map
 	delete(c.items, entry.key)
 
-	// Call eviction callback
-	if c.onEvict != nil {
-		c.onEvict(entry.key, entry.value)
+	if entry.frequency == c.minFreq {
+		if c.frequencies[entry.frequency] == nil || c.frequencies[entry.frequency].Len() == 0 {
+			for c.frequencies[c.minFreq] == nil || c.frequencies[c.minFreq].Len() == 0 {
+				c.minFreq++
+				if c.minFreq > c.maxFreq {
+					c.minFreq = 1
+					break
+				}
+			}
+		}
 	}
 }
 
@@ -335,7 +318,7 @@ func (c *Cache[K, V]) Stats() Stats {
 	// Count frequencies
 	freqCounts := make(map[int]int)
 	for freq, freqList := range c.frequencies {
-		if freqList.Len() > 0 {
+		if freqList != nil && freqList.Len() > 0 {
 			freqCounts[freq] = freqList.Len()
 		}
 	}

@@ -3,21 +3,21 @@ package alfu
 import (
 	"container/list"
 	"fmt"
-	"math"
 	"sync"
 	"time"
 )
 
 // Cache represents an Adaptive LFU cache that adjusts to access patterns
+// 优化版本：int64时间戳 + 预分配
 type Cache[K comparable, V any] struct {
 	capacity      int
 	items         map[K]*entry[K, V]
-	frequencies   map[int]*list.List // frequency -> LRU list of entries with that frequency
-	minFreq       int                // minimum frequency in the cache
-	maxFreq       int                // maximum frequency in the cache
-	decayFactor   float64            // decay factor for aging frequencies
-	lastDecay     time.Time          // last time decay was applied
-	decayInterval time.Duration      // interval between decay operations
+	frequencies   map[int]*list.List // 保留 container/list 以确保 LRU 顺序正确
+	minFreq       int
+	maxFreq       int
+	decayFactor   float64
+	lastDecay     time.Time
+	decayInterval time.Duration
 	mu            sync.RWMutex
 	onEvict       func(K, V)
 }
@@ -27,7 +27,7 @@ type entry[K comparable, V any] struct {
 	key        K
 	value      V
 	frequency  int
-	lastAccess time.Time
+	lastAccess int64 // 使用 int64 纳秒时间戳，减少 time.Time 开销
 	element    *list.Element
 }
 
@@ -39,12 +39,12 @@ func New[K comparable, V any](capacity int) (*Cache[K, V], error) {
 
 	return &Cache[K, V]{
 		capacity:      capacity,
-		items:         make(map[K]*entry[K, V]),
-		frequencies:   make(map[int]*list.List),
+		items:         make(map[K]*entry[K, V], capacity), // 预分配容量
+		frequencies:   make(map[int]*list.List, 16),       // 预分配频率层级
 		minFreq:       1,
 		maxFreq:       1,
-		decayFactor:   0.9,             // 10% decay
-		decayInterval: 5 * time.Minute, // Decay every 5 minutes
+		decayFactor:   0.9,
+		decayInterval: 5 * time.Minute,
 		lastDecay:     time.Now(),
 	}, nil
 }
@@ -60,8 +60,8 @@ func NewWithConfig[K comparable, V any](capacity int, decayFactor float64, decay
 
 	return &Cache[K, V]{
 		capacity:      capacity,
-		items:         make(map[K]*entry[K, V]),
-		frequencies:   make(map[int]*list.List),
+		items:         make(map[K]*entry[K, V], capacity),
+		frequencies:   make(map[int]*list.List, 16),
 		minFreq:       1,
 		maxFreq:       1,
 		decayFactor:   decayFactor,
@@ -85,12 +85,11 @@ func (c *Cache[K, V]) Get(key K) (value V, ok bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Check if it's time to decay frequencies
 	c.checkAndDecay()
 
 	if entry, exists := c.items[key]; exists {
 		c.incrementFrequency(entry)
-		entry.lastAccess = time.Now()
+		entry.lastAccess = time.Now().UnixNano()
 		return entry.value, true
 	}
 
@@ -103,40 +102,32 @@ func (c *Cache[K, V]) Put(key K, value V) (evicted bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Check if it's time to decay frequencies
 	c.checkAndDecay()
 
-	// Check if key already exists
 	if entry, exists := c.items[key]; exists {
-		// Update existing entry
 		entry.value = value
-		entry.lastAccess = time.Now()
+		entry.lastAccess = time.Now().UnixNano()
 		c.incrementFrequency(entry)
 		return false
 	}
 
-	// Check if cache is full
 	if len(c.items) >= c.capacity {
 		evicted = c.evictLeastFrequent()
 	}
 
-	// Add new entry with frequency 1
 	entry := &entry[K, V]{
 		key:        key,
 		value:      value,
 		frequency:  1,
-		lastAccess: time.Now(),
+		lastAccess: time.Now().UnixNano(),
 	}
 
-	// Ensure frequency list exists
 	if c.frequencies[1] == nil {
 		c.frequencies[1] = list.New()
 	}
 
 	entry.element = c.frequencies[1].PushFront(entry)
 	c.items[key] = entry
-
-	// Update min frequency
 	c.minFreq = 1
 
 	return evicted
@@ -204,7 +195,6 @@ func (c *Cache[K, V]) Clear() {
 		delete(c.items, k)
 	}
 
-	// Clear all frequency lists
 	for freq := range c.frequencies {
 		delete(c.frequencies, freq)
 	}
@@ -221,7 +211,6 @@ func (c *Cache[K, V]) Keys() []K {
 
 	keys := make([]K, 0, len(c.items))
 
-	// Iterate from highest to lowest frequency
 	for freq := c.maxFreq; freq >= c.minFreq; freq-- {
 		if freqList, exists := c.frequencies[freq]; exists && freqList.Len() > 0 {
 			for element := freqList.Front(); element != nil; element = element.Next() {
@@ -241,7 +230,6 @@ func (c *Cache[K, V]) Values() []V {
 
 	values := make([]V, 0, len(c.items))
 
-	// Iterate from highest to lowest frequency
 	for freq := c.maxFreq; freq >= c.minFreq; freq-- {
 		if freqList, exists := c.frequencies[freq]; exists && freqList.Len() > 0 {
 			for element := freqList.Front(); element != nil; element = element.Next() {
@@ -280,121 +268,136 @@ func (c *Cache[K, V]) Resize(capacity int) error {
 	oldCapacity := c.capacity
 	c.capacity = capacity
 
-	// Remove excess items if new capacity is smaller
 	for len(c.items) > capacity {
 		c.evictLeastFrequent()
 	}
 
-	_ = oldCapacity // Prevent unused variable warning
+	_ = oldCapacity
 	return nil
 }
 
-// checkAndDecay checks if it's time to decay frequencies and applies decay if needed
-func (c *Cache[K, V]) checkAndDecay() {
-	if time.Since(c.lastDecay) >= c.decayInterval {
-		c.applyDecay()
-		c.lastDecay = time.Now()
-	}
-}
-
-// applyDecay applies frequency decay to all entries
-func (c *Cache[K, V]) applyDecay() {
-	// Create a map to track entries that need to be moved
-	toMove := make([]*entry[K, V], 0)
-
-	// Collect entries that will have their frequency changed
-	for freq := c.maxFreq; freq >= c.minFreq; freq-- {
-		if freqList, exists := c.frequencies[freq]; exists && freqList.Len() > 0 {
-			for element := freqList.Front(); element != nil; element = element.Next() {
-				entry := element.Value.(*entry[K, V])
-
-				// Apply time-based decay: more recent accesses decay less
-				timeSinceAccess := time.Since(entry.lastAccess)
-				timeDecayFactor := math.Exp(-float64(timeSinceAccess) / float64(time.Hour))
-
-				// Calculate new frequency with both frequency and time decay
-				newFreq := int(math.Max(1, float64(entry.frequency)*c.decayFactor*timeDecayFactor))
-
-				if newFreq != entry.frequency {
-					toMove = append(toMove, entry)
-				}
-			}
-		}
-	}
-
-	// Move entries to their new frequency lists
-	for _, entry := range toMove {
-		oldFreq := entry.frequency
-		newFreq := int(math.Max(1, float64(oldFreq)*c.decayFactor))
-
-		// Remove from old frequency list
-		c.frequencies[oldFreq].Remove(entry.element)
-
-		// Update frequency
-		entry.frequency = newFreq
-
-		// Ensure new frequency list exists
-		if c.frequencies[newFreq] == nil {
-			c.frequencies[newFreq] = list.New()
-		}
-
-		// Add to new frequency list
-		entry.element = c.frequencies[newFreq].PushFront(entry)
-	}
-
-	// Update min/max frequencies
-	c.updateMinMaxFrequency()
-}
-
-// incrementFrequency increments the frequency of an entry
+// incrementFrequency increases the frequency of an entry
 func (c *Cache[K, V]) incrementFrequency(entry *entry[K, V]) {
 	oldFreq := entry.frequency
 	newFreq := oldFreq + 1
 
-	// Remove from old frequency list
-	c.frequencies[oldFreq].Remove(entry.element)
-
-	// If old frequency list is empty and it's the minimum, update minFreq
-	if c.frequencies[oldFreq].Len() == 0 && oldFreq == c.minFreq {
-		c.updateMinFrequency()
+	if c.frequencies[oldFreq] != nil {
+		c.frequencies[oldFreq].Remove(entry.element)
 	}
 
-	// Update entry frequency
-	entry.frequency = newFreq
-
-	// Ensure new frequency list exists
 	if c.frequencies[newFreq] == nil {
 		c.frequencies[newFreq] = list.New()
 	}
 
-	// Add to new frequency list
 	entry.element = c.frequencies[newFreq].PushFront(entry)
+	entry.frequency = newFreq
 
-	// Update max frequency
 	if newFreq > c.maxFreq {
 		c.maxFreq = newFreq
 	}
-}
 
-// updateMinFrequency finds and updates the minimum frequency
-func (c *Cache[K, V]) updateMinFrequency() {
-	for freq := c.minFreq; freq <= c.maxFreq; freq++ {
-		if freqList, exists := c.frequencies[freq]; exists && freqList.Len() > 0 {
-			c.minFreq = freq
-			return
+	if oldFreq == c.minFreq {
+		if c.frequencies[oldFreq] == nil || c.frequencies[oldFreq].Len() == 0 {
+			c.minFreq = newFreq
 		}
 	}
-	// If no frequency found, reset to 1
-	c.minFreq = 1
+}
+
+// evictLeastFrequent removes and returns the least frequently used entry
+func (c *Cache[K, V]) evictLeastFrequent() bool {
+	for c.frequencies[c.minFreq] == nil || c.frequencies[c.minFreq].Len() == 0 {
+		c.minFreq++
+		if c.minFreq > c.maxFreq {
+			return false
+		}
+	}
+
+	element := c.frequencies[c.minFreq].Back()
+	if element != nil {
+		entry := element.Value.(*entry[K, V])
+		c.frequencies[c.minFreq].Remove(element)
+		delete(c.items, entry.key)
+
+		if c.onEvict != nil {
+			c.onEvict(entry.key, entry.value)
+		}
+		return true
+	}
+
+	return false
+}
+
+// removeEntry removes an entry from the cache
+func (c *Cache[K, V]) removeEntry(entry *entry[K, V]) {
+	if entry.element != nil {
+		c.frequencies[entry.frequency].Remove(entry.element)
+	}
+	delete(c.items, entry.key)
+
+	if entry.frequency == c.minFreq {
+		if c.frequencies[entry.frequency] == nil || c.frequencies[entry.frequency].Len() == 0 {
+			for c.frequencies[c.minFreq] == nil || c.frequencies[c.minFreq].Len() == 0 {
+				c.minFreq++
+				if c.minFreq > c.maxFreq {
+					c.minFreq = 1
+					break
+				}
+			}
+		}
+	}
+}
+
+// checkAndDecay checks if it's time to decay frequencies
+func (c *Cache[K, V]) checkAndDecay() {
+	now := time.Now()
+	if now.Sub(c.lastDecay) < c.decayInterval {
+		return
+	}
+
+	c.applyDecay()
+	c.lastDecay = now
+}
+
+// applyDecay applies decay factor to all frequencies
+func (c *Cache[K, V]) applyDecay() {
+	entriesToDecay := make([]*entry[K, V], 0, len(c.items))
+	for _, entry := range c.items {
+		entriesToDecay = append(entriesToDecay, entry)
+	}
+
+	for _, entry := range entriesToDecay {
+		oldFreq := entry.frequency
+
+		newFreq := int(float64(entry.frequency) * c.decayFactor)
+		if newFreq < 1 {
+			newFreq = 1
+		}
+
+		if newFreq != oldFreq {
+			if entry.element != nil {
+				c.frequencies[oldFreq].Remove(entry.element)
+			}
+
+			entry.frequency = newFreq
+
+			if c.frequencies[newFreq] == nil {
+				c.frequencies[newFreq] = list.New()
+			}
+
+			entry.element = c.frequencies[newFreq].PushFront(entry)
+		}
+	}
+
+	c.updateMinMaxFrequency()
 }
 
 // updateMinMaxFrequency updates both min and max frequencies after decay
 func (c *Cache[K, V]) updateMinMaxFrequency() {
-	c.minFreq = math.MaxInt32
+	c.minFreq = int(^uint(0) >> 1)
 	c.maxFreq = 0
 
 	for freq, freqList := range c.frequencies {
-		if freqList.Len() > 0 {
+		if freqList != nil && freqList.Len() > 0 {
 			if freq < c.minFreq {
 				c.minFreq = freq
 			}
@@ -404,46 +407,11 @@ func (c *Cache[K, V]) updateMinMaxFrequency() {
 		}
 	}
 
-	// If no items, reset to defaults
-	if c.maxFreq == 0 {
+	if c.minFreq == int(^uint(0)>>1) {
 		c.minFreq = 1
+	}
+	if c.maxFreq == 0 {
 		c.maxFreq = 1
-	}
-}
-
-// evictLeastFrequent removes the least frequently used item
-func (c *Cache[K, V]) evictLeastFrequent() bool {
-	// Find the minimum frequency list that has entries
-	for freq := c.minFreq; freq <= c.maxFreq; freq++ {
-		if freqList, exists := c.frequencies[freq]; exists && freqList.Len() > 0 {
-			// Remove the least recently used item from this frequency (back of list)
-			element := freqList.Back()
-			if element != nil {
-				entry := element.Value.(*entry[K, V])
-				c.removeEntry(entry)
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// removeEntry removes an entry completely from the cache
-func (c *Cache[K, V]) removeEntry(entry *entry[K, V]) {
-	// Remove from frequency list
-	c.frequencies[entry.frequency].Remove(entry.element)
-
-	// If this was the only entry with min frequency, update minFreq
-	if c.frequencies[entry.frequency].Len() == 0 && entry.frequency == c.minFreq {
-		c.updateMinFrequency()
-	}
-
-	// Remove from items map
-	delete(c.items, entry.key)
-
-	// Call eviction callback
-	if c.onEvict != nil {
-		c.onEvict(entry.key, entry.value)
 	}
 }
 
@@ -464,7 +432,7 @@ func (c *Cache[K, V]) Stats() Stats {
 	// Count frequencies
 	freqCounts := make(map[int]int)
 	for freq, freqList := range c.frequencies {
-		if freqList.Len() > 0 {
+		if freqList != nil && freqList.Len() > 0 {
 			freqCounts[freq] = freqList.Len()
 		}
 	}
