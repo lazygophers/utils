@@ -17,7 +17,14 @@ import (
 //
 // Deprecated: Use Sha256 or Sha512 instead for any security purpose.
 func Md5[M string | []byte](s M) string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(s)))
+	hash := md5.Sum([]byte(s))
+	var result [32]byte
+	for i := 0; i < 16; i++ {
+		b := hash[i]
+		result[i*2] = "0123456789abcdef"[b>>4]
+		result[i*2+1] = "0123456789abcdef"[b&0x0f]
+	}
+	return string(result[:])
 }
 
 // SHA1 计算输入字符串或字节切片的 SHA1 哈希值，并返回十六进制表示的字符串。
