@@ -340,7 +340,7 @@ func OrderMod(a, b int64) (result int64) {
 	if result == 0 {
 		result = b
 	}
-	return
+	return result
 }
 
 // daysOfLunarYear 计算指定农历年的总天数。
