@@ -7,12 +7,18 @@ import (
 )
 
 func ULID() string {
-	return ulid.Make().String()
+	id := ulid.Make()
+	var buf [26]byte
+	_ = id.MarshalTextTo(buf[:])
+	return string(buf[:])
 }
 
 func ULIDWithTimestamp() (string, int64) {
 	id := ulid.Make()
-	return id.String(), int64(id.Time())
+	var buf [26]byte
+	_ = id.MarshalTextTo(buf[:])
+	timestamp := int64(id.Time())
+	return string(buf[:]), timestamp
 }
 
 // GetULIDTimestamp 从 ULID 中提取时间戳（毫秒级）

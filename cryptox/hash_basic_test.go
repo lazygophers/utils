@@ -434,3 +434,25 @@ func BenchmarkSha256_Long(b *testing.B) {
 		_ = Sha256(data)
 	}
 }
+
+// ============================================================
+// HMACSHA1 Benchmark Tests
+// ============================================================
+
+func BenchmarkHMACSHA1_Optimized(b *testing.B) {
+	key := "test_key"
+	msg := "hello"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = HMACSHA1(key, msg)
+	}
+}
+
+func BenchmarkHMACSHA1_Bytes(b *testing.B) {
+	key := []byte("test_key")
+	msg := []byte("hello")
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = HMACSHA1(key, msg)
+	}
+}

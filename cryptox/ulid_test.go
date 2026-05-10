@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/oklog/ulid/v2"
 )
 
 // TestULID tests the ULID function
@@ -220,4 +222,95 @@ func BenchmarkGetULIDTimestamp(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, _ = GetULIDTimestamp(id)
 	}
+}
+
+// ============== 性能优化基准测试 ==============
+
+// BenchmarkULID_Opt1_Monotonic 使用单调熵源优化
+func BenchmarkULID_Opt1_Monotonic(b *testing.B) {
+	entropy := ulid.Monotonic(randReader, 0)
+	for i := 0; i < b.N; i++ {
+		_ = ulid.MustNew(ulid.Timestamp(time.Now()), entropy).String()
+	}
+}
+
+// BenchmarkULID_Opt2_PreAllocBuffer 预分配缓冲区优化
+func BenchmarkULID_Opt2_PreAllocBuffer(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		id := ulid.Make()
+		buf := make([]byte, 26)
+		_ = id.MarshalTextTo(buf)
+		_ = string(buf)
+	}
+}
+
+// BenchmarkULID_Opt3_ArrayBuffer 数组缓冲优化
+func BenchmarkULID_Opt3_ArrayBuffer(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		id := ulid.Make()
+		var buf [26]byte
+		_ = id.MarshalTextTo(buf[:])
+		_ = string(buf[:])
+	}
+}
+
+// BenchmarkULIDWithTimestamp_Opt4_OptimizedOrder 优化顺序
+func BenchmarkULIDWithTimestamp_Opt4_OptimizedOrder(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		id := ulid.Make()
+		timestamp := int64(id.Time())
+		str := id.String()
+		_, _ = str, timestamp
+	}
+}
+
+// BenchmarkULIDWithTimestamp_Opt5_SingleEncode 单次编码优化
+func BenchmarkULIDWithTimestamp_Opt5_SingleEncode(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		id := ulid.Make()
+		var buf [26]byte
+		_ = id.MarshalTextTo(buf[:])
+		timestamp := int64(id.Time())
+		_ = string(buf[:])
+		_ = timestamp
+	}
+}
+
+// BenchmarkGetULIDTimestamp_Opt6_MustParse 直接解析优化
+func BenchmarkGetULIDTimestamp_Opt6_MustParse(b *testing.B) {
+	testID := ulid.Make().String()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		parsedId := ulid.MustParse(testID)
+		_ = int64(parsedId.Time())
+	}
+}
+
+// BenchmarkGetULIDTimestamp_Opt7_CachedParsed 缓存解析结果优化
+func BenchmarkGetULIDTimestamp_Opt7_CachedParsed(b *testing.B) {
+	testID := ulid.MustParse(ulid.Make().String())
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = int64(testID.Time())
+	}
+}
+
+// BenchmarkGetULIDTimestamp_Opt8_DirectBytes 从字节提取优化
+func BenchmarkGetULIDTimestamp_Opt8_DirectBytes(b *testing.B) {
+	testID := ulid.Make()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		bytes := testID.Bytes()
+		_ = int64(bytesToTimestamp(bytes))
+	}
+}
+
+// 辅助函数：从字节提取时间戳
+func bytesToTimestamp(b []byte) uint64 {
+	return uint64(b[0])<<40 |
+		uint64(b[1])<<32 |
+		uint64(b[2])<<24 |
+		uint64(b[3])<<16 |
+		uint64(b[4])<<8 |
+		uint64(b[5])
 }

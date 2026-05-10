@@ -3,6 +3,8 @@ package cryptox
 import (
 	"strings"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 // TestUUID tests the UUID function
@@ -150,4 +152,141 @@ func BenchmarkUUIDParallel(b *testing.B) {
 			_ = UUID()
 		}
 	})
+}
+
+// ============== 性能优化基准测试 ==============
+
+// BenchmarkUUID_Opt1_FixedIndexes 固定索引位置优化
+func BenchmarkUUID_Opt1_FixedIndexes(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		s := uuid.New().String()
+		result := make([]byte, 32)
+		copy(result[0:8], s[0:8])
+		copy(result[8:12], s[9:13])
+		copy(result[12:16], s[14:18])
+		copy(result[16:20], s[19:23])
+		copy(result[20:32], s[24:36])
+		_ = string(result)
+	}
+}
+
+// BenchmarkUUID_Opt2_StringConcat 字符串拼接优化
+func BenchmarkUUID_Opt2_StringConcat(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		s := uuid.New().String()
+		_ = s[0:8] + s[9:13] + s[14:18] + s[19:23] + s[24:36]
+	}
+}
+
+// BenchmarkUUID_Opt3_ArrayCopy 数组复制优化
+func BenchmarkUUID_Opt3_ArrayCopy(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		s := uuid.New().String()
+		var result [32]byte
+		copy(result[0:8], s[0:8])
+		copy(result[8:12], s[9:13])
+		copy(result[12:16], s[14:18])
+		copy(result[16:20], s[19:23])
+		copy(result[20:32], s[24:36])
+		_ = string(result[:])
+	}
+}
+
+// BenchmarkUUID_Opt4_HexEncode 直接 hex 编码优化
+func BenchmarkUUID_Opt4_HexEncode(b *testing.B) {
+	hex := "0123456789abcdef"
+	for i := 0; i < b.N; i++ {
+		id := uuid.New()
+		bytes := id[:]
+		result := make([]byte, 32)
+		for j := 0; j < 16; j++ {
+			result[j*2] = hex[bytes[j]>>4]
+			result[j*2+1] = hex[bytes[j]&0x0F]
+		}
+		_ = string(result)
+	}
+}
+
+// BenchmarkUUID_Opt5_PreAllocAppend 预分配 append 优化
+func BenchmarkUUID_Opt5_PreAllocAppend(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		s := uuid.New().String()
+		result := make([]byte, 0, 32)
+		result = append(result, s[0:8]...)
+		result = append(result, s[9:13]...)
+		result = append(result, s[14:18]...)
+		result = append(result, s[19:23]...)
+		result = append(result, s[24:36]...)
+		_ = string(result)
+	}
+}
+
+// BenchmarkUUID_Opt6_ByteLoop 字节循环优化
+func BenchmarkUUID_Opt6_ByteLoop(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		s := uuid.New().String()
+		result := make([]byte, 0, 32)
+		for j := 0; j < len(s); j++ {
+			if s[j] != '-' {
+				result = append(result, s[j])
+			}
+		}
+		_ = string(result)
+	}
+}
+
+// BenchmarkUUID_Opt7_StringBuilder strings.Builder 优化
+func BenchmarkUUID_Opt7_StringBuilder(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		s := uuid.New().String()
+		var builder strings.Builder
+		builder.Grow(32)
+		for j := 0; j < len(s); j++ {
+			if s[j] != '-' {
+				builder.WriteByte(s[j])
+			}
+		}
+		_ = builder.String()
+	}
+}
+
+// BenchmarkUUID_Opt8_HybridOpt 混合优化
+func BenchmarkUUID_Opt8_HybridOpt(b *testing.B) {
+	hexTable := [16]byte{
+		'0', '1', '2', '3', '4', '5', '6', '7',
+		'8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
+	}
+	for i := 0; i < b.N; i++ {
+		id := uuid.New()
+		bytes := id[:]
+		var result [32]byte
+		for j := 0; j < 16; j++ {
+			v := bytes[j]
+			result[j*2] = hexTable[v>>4]
+			result[j*2+1] = hexTable[v&0x0F]
+		}
+		_ = string(result[:])
+	}
+}
+
+// BenchmarkUUID_Opt9_NewVsNewString uuid.New() vs uuid.NewString()
+func BenchmarkUUID_Opt9_NewVsNewString(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		id := uuid.New()
+		s := id.String()
+		result := make([]byte, 32)
+		copy(result[0:8], s[0:8])
+		copy(result[8:12], s[9:13])
+		copy(result[12:16], s[14:18])
+		copy(result[16:20], s[19:23])
+		copy(result[20:32], s[24:36])
+		_ = string(result)
+	}
+}
+
+// BenchmarkUUID_Opt10_ReplaceAll 当前实现（对比基线）
+func BenchmarkUUID_Opt10_ReplaceAll(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = strings.ReplaceAll(uuid.NewString(), "-", "")
+	}
 }
