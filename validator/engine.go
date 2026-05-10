@@ -845,3 +845,204 @@ func (e *Engine) RegisterStructValidation(fn StructValidatorFunc, typeName strin
 func RegisterStructValidation(fn StructValidatorFunc, typeName string) error {
 	return Default().RegisterStructValidation(fn, typeName)
 }
+
+
+// And 组合验证器 - 所有验证器都通过才返回 true
+func And(validators ...ValidatorFunc) ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		for _, v := range validators {
+			if !v(fl) {
+				return false
+			}
+		}
+		return true
+	}
+}
+
+// Or 组合验证器 - 任一验证器通过即返回 true
+func Or(validators ...ValidatorFunc) ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		for _, v := range validators {
+			if v(fl) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// Not 反转验证器结果
+func Not(validator ValidatorFunc) ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		return !validator(fl)
+	}
+}
+
+// Required 必填验证器构造函数
+func Required() ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		field := fl.Field()
+		switch field.Kind() {
+		case reflect.String:
+			return field.String() != ""
+		case reflect.Slice, reflect.Map, reflect.Array:
+			return field.Len() > 0
+		case reflect.Ptr, reflect.Interface:
+			return !field.IsNil()
+		default:
+			return field.IsValid() && !field.IsZero()
+		}
+	}
+}
+
+// MinLength 最小长度验证器构造函数
+func MinLength(min int) ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		field := fl.Field()
+		switch field.Kind() {
+		case reflect.String:
+			return len(field.String()) >= min
+		case reflect.Slice, reflect.Map, reflect.Array:
+			return field.Len() >= min
+		default:
+			return false
+		}
+	}
+}
+
+// MaxLength 最大长度验证器构造函数
+func MaxLength(max int) ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		field := fl.Field()
+		switch field.Kind() {
+		case reflect.String:
+			return len(field.String()) <= max
+		case reflect.Slice, reflect.Map, reflect.Array:
+			return field.Len() <= max
+		default:
+			return false
+		}
+	}
+}
+
+// ContainsSpecial 包含特殊字符验证器
+func ContainsSpecial() ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		str := fl.Field().String()
+		for _, ch := range str {
+			if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9')) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// Email 邮箱验证器构造函数
+func Email() ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		email := fl.Field().String()
+		if email == "" {
+			return true
+		}
+		return emailRegex.MatchString(email)
+	}
+}
+
+// URL URL验证器构造函数
+func URL() ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		url := fl.Field().String()
+		if url == "" {
+			return true
+		}
+		return urlRegex.MatchString(url)
+	}
+}
+
+// Alpha 字母验证器构造函数
+func Alpha() ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		return alphaRegex.MatchString(fl.Field().String())
+	}
+}
+
+// Alphanum 字母数字验证器构造函数
+func Alphanum() ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		return alphanumRegex.MatchString(fl.Field().String())
+	}
+}
+
+// Range 范围验证器构造函数
+func Range(min, max float64) ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		field := fl.Field()
+		switch field.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			val := float64(field.Int())
+			return val >= min && val <= max
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			val := float64(field.Uint())
+			return val >= min && val <= max
+		case reflect.Float32, reflect.Float64:
+			val := field.Float()
+			return val >= min && val <= max
+		default:
+			return false
+		}
+	}
+}
+
+// Length 长度范围验证器构造函数
+func Length(min, max int) ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		field := fl.Field()
+		length := 0
+		switch field.Kind() {
+		case reflect.String:
+			length = len(field.String())
+		case reflect.Slice, reflect.Map, reflect.Array:
+			length = field.Len()
+		default:
+			return false
+		}
+		return length >= min && length <= max
+	}
+}
+
+// Pattern 正则表达式验证器构造函数
+func Pattern(pattern string) ValidatorFunc {
+	regex := regexp.MustCompile(pattern)
+	return func(fl FieldLevel) bool {
+		return regex.MatchString(fl.Field().String())
+	}
+}
+
+// In 包含验证器构造函数
+func In(values ...interface{}) ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		field := fl.Field()
+
+		for _, v := range values {
+			if compareFields(field, reflect.ValueOf(v)) == 0 {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+// NotIn 不包含验证器构造函数
+func NotIn(values ...interface{}) ValidatorFunc {
+	return func(fl FieldLevel) bool {
+		field := fl.Field()
+
+		for _, v := range values {
+			if compareFields(field, reflect.ValueOf(v)) == 0 {
+				return false
+			}
+		}
+		return true
+	}
+}

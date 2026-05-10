@@ -318,3 +318,13 @@ func RegisterValidation(tag string, fn ValidatorFunc) error {
 func RegisterTranslation(locale, tag, translation string) {
 	Default().RegisterTranslation(locale, tag, translation)
 }
+
+// RegisterValidationWithComposition 注册组合验证器
+func (v *Validator) RegisterValidationWithComposition(tag string, fn ValidatorFunc) error {
+	return v.engine.RegisterValidation(tag, fn)
+}
+
+// RegisterValidationWithComposition 在默认验证器上注册组合验证规则
+func RegisterValidationWithComposition(tag string, fn ValidatorFunc) error {
+	return Default().RegisterValidationWithComposition(tag, fn)
+}
