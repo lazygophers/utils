@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	stdatomic "sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -19,7 +20,7 @@ func TestNewMap(t *testing.T) {
 		mapAny := NewMap(m)
 		assert.NotNil(t, mapAny)
 		assert.NotNil(t, mapAny.data)
-		assert.False(t, mapAny.cut.Load())
+		assert.False(t, stdatomic.LoadUint32(&mapAny.cut) != 0)
 		assert.Equal(t, "", mapAny.seq.Load())
 
 		// Verify data was copied
@@ -32,7 +33,7 @@ func TestNewMap(t *testing.T) {
 		mapAny := NewMap(nil)
 		assert.NotNil(t, mapAny)
 		assert.NotNil(t, mapAny.data)
-		assert.False(t, mapAny.cut.Load())
+		assert.False(t, stdatomic.LoadUint32(&mapAny.cut) != 0)
 	})
 
 	t.Run("create from empty map", func(t *testing.T) {
@@ -216,7 +217,7 @@ func TestMapAny_EnableCut(t *testing.T) {
 	mapAny := NewMap(nil)
 	result := mapAny.EnableCut(".")
 
-	assert.True(t, mapAny.cut.Load())
+	assert.True(t, stdatomic.LoadUint32(&mapAny.cut) != 0)
 	assert.Equal(t, ".", mapAny.seq.Load())
 	assert.Equal(t, mapAny, result) // should return self for chaining
 }
@@ -225,7 +226,7 @@ func TestMapAny_DisableCut(t *testing.T) {
 	mapAny := NewMap(nil).EnableCut(".")
 	result := mapAny.DisableCut()
 
-	assert.False(t, mapAny.cut.Load())
+	assert.False(t, stdatomic.LoadUint32(&mapAny.cut) != 0)
 	assert.Equal(t, mapAny, result) // should return self for chaining
 }
 
@@ -1288,7 +1289,7 @@ func TestMapAny_Clone(t *testing.T) {
 	assert.Equal(t, 42, clone.GetInt("key2"))
 
 	// Verify clone has same settings
-	assert.Equal(t, original.cut.Load(), clone.cut.Load())
+	assert.Equal(t, stdatomic.LoadUint32(&original.cut), stdatomic.LoadUint32(&clone.cut))
 	assert.Equal(t, original.seq.Load(), clone.seq.Load())
 
 	// Verify clone is independent
