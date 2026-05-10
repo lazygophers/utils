@@ -11,7 +11,7 @@ import (
 // 预编译正则表达式
 var (
 	emailRegex    = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	urlRegex      = regexp.MustCompile(`^(https?|ftp)://[^\s/$.?#].[^\s]*$`)
+	urlRegex      = regexp.MustCompile(`^(https?|ftp|ws|wss)://[^\s/$.?#].[^\s]*$`)
 	alphaRegex    = regexp.MustCompile(`^[a-zA-Z]+$`)
 	alphanumRegex = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
 )
@@ -42,6 +42,8 @@ type FieldLevel interface {
 	Param() string
 	// GetTag 获取指定的标签值
 	GetTag(key string) string
+	// GetFieldByName 根据字段名获取字段值（用于跨字段验证）
+	GetFieldByName(name string) reflect.Value
 }
 
 // fieldLevel 字段级别实现
@@ -81,6 +83,13 @@ func (fl *fieldLevel) Param() string {
 
 func (fl *fieldLevel) GetTag(key string) string {
 	return fl.structField.Tag.Get(key)
+}
+
+func (fl *fieldLevel) GetFieldByName(name string) reflect.Value {
+	if fl.top.Kind() != reflect.Struct {
+		return reflect.Value{}
+	}
+	return fl.top.FieldByName(name)
 }
 
 // NewEngine 创建新的验证引擎
@@ -127,6 +136,9 @@ func (e *Engine) Struct(s interface{}) error {
 	rv := reflect.ValueOf(s)
 	if rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
+		if !rv.IsValid() {
+			return fmt.Errorf("nil pointer dereference")
+		}
 	}
 
 	if rv.Kind() != reflect.Struct {
@@ -223,6 +235,53 @@ func (e *Engine) validateStruct(top, current reflect.Value, namespace string, er
 
 		for _, rule := range rules {
 			fl.param = rule.param
+
+			// 检查是否为 dive tag（用于切片/数组元素验证）
+			if rule.tag == "dive" {
+				// 验证切片/数组中的每个元素
+				if field.Kind() == reflect.Slice || field.Kind() == reflect.Array {
+					for j := 0; j < field.Len(); j++ {
+						elem := field.Index(j)
+						elemFieldName := fmt.Sprintf("%s[%d]", fieldName, j)
+
+						// 如果元素是结构体，递归验证
+						if elem.Kind() == reflect.Struct {
+							e.validateStruct(top, elem, elemFieldName, errors)
+						} else if elem.Kind() == reflect.Ptr && !elem.IsNil() && elem.Elem().Kind() == reflect.Struct {
+							e.validateStruct(top, elem.Elem(), elemFieldName, errors)
+						} else if rule.param != "" {
+							// 如果 dive 有参数，验证元素
+							elemRules := e.parseTag(rule.param)
+							elemFl := &fieldLevel{
+								top:             top,
+								parent:          field,
+								field:           elem,
+								fieldName:       elemFieldName,
+								structFieldName: elemFieldName,
+								structField:     fieldType,
+							}
+
+							for _, elemRule := range elemRules {
+								elemFl.param = elemRule.param
+								if !e.validateField(elemFl, elemRule.tag) {
+									*errors = append(*errors, &FieldError{
+										Field:       elemFieldName,
+										Tag:         elemRule.tag,
+										Value:       elem.Interface(),
+										Param:       elemRule.param,
+										ActualTag:   elemRule.tag,
+										Namespace:   elemFieldName,
+										StructField: elemFieldName,
+										Message:     fmt.Sprintf("validation failed for tag '%s'", elemRule.tag),
+									})
+								}
+							}
+						}
+					}
+				}
+				continue
+			}
+
 			if !e.validateField(fl, rule.tag) {
 				fieldError := &FieldError{
 					Field:       displayName,
@@ -470,5 +529,234 @@ func (e *Engine) registerBuiltinValidators() {
 		// 复用eq验证，然后取反
 		eqValidator := e.validators["eq"]
 		return !eqValidator(fl)
+	}
+
+	// 跨字段验证器
+	// eqfield 验证当前字段等于指定字段的值
+	e.validators["eqfield"] = func(fl FieldLevel) bool {
+		currentField := fl.Field()
+		targetFieldName := fl.Param()
+
+		if targetFieldName == "" {
+			return false
+		}
+
+		targetField := fl.GetFieldByName(targetFieldName)
+		if !targetField.IsValid() {
+			return false
+		}
+
+		return compareFields(currentField, targetField) == 0
+	}
+
+	// nefield 验证当前字段不等于指定字段的值
+	e.validators["nefield"] = func(fl FieldLevel) bool {
+		currentField := fl.Field()
+		targetFieldName := fl.Param()
+
+		if targetFieldName == "" {
+			return false
+		}
+
+		targetField := fl.GetFieldByName(targetFieldName)
+		if !targetField.IsValid() {
+			return false
+		}
+
+		return compareFields(currentField, targetField) != 0
+	}
+
+	// 条件验证器
+	// required_with 当指定字段有值时，当前字段必填
+	e.validators["required_with"] = func(fl FieldLevel) bool {
+		currentField := fl.Field()
+		targetFieldName := fl.Param()
+
+		if targetFieldName == "" {
+			return isFieldNotEmpty(currentField)
+		}
+
+		targetField := fl.GetFieldByName(targetFieldName)
+		if !targetField.IsValid() {
+			return true
+		}
+
+		if isFieldNotEmpty(targetField) {
+			return isFieldNotEmpty(currentField)
+		}
+		return true
+	}
+
+	// required_without 当指定字段无值时，当前字段必填
+	e.validators["required_without"] = func(fl FieldLevel) bool {
+		currentField := fl.Field()
+		targetFieldName := fl.Param()
+
+		if targetFieldName == "" {
+			return isFieldNotEmpty(currentField)
+		}
+
+		targetField := fl.GetFieldByName(targetFieldName)
+		if !targetField.IsValid() {
+			return isFieldNotEmpty(currentField)
+		}
+
+		if !isFieldNotEmpty(targetField) {
+			return isFieldNotEmpty(currentField)
+		}
+		return true
+	}
+
+	// required_if 当指定字段等于某个值时，当前字段必填
+	e.validators["required_if"] = func(fl FieldLevel) bool {
+		currentField := fl.Field()
+		param := fl.Param()
+
+		parts := strings.SplitN(param, "=", 2)
+		if len(parts) != 2 {
+			return true
+		}
+
+		targetFieldName := parts[0]
+		expectedValue := parts[1]
+
+		targetField := fl.GetFieldByName(targetFieldName)
+		if !targetField.IsValid() {
+			return true
+		}
+
+		if getFieldValueAsString(targetField) == expectedValue {
+			return isFieldNotEmpty(currentField)
+		}
+		return true
+	}
+}
+
+// compareFields 比较两个字段的值
+func compareFields(current, target reflect.Value) int {
+	if !current.IsValid() || !target.IsValid() {
+		return 0
+	}
+
+	switch current.Kind() {
+	case reflect.String:
+		currentStr := current.String()
+		targetStr := target.String()
+		if currentStr == targetStr {
+			return 0
+		}
+		if currentStr < targetStr {
+			return -1
+		}
+		return 1
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		currentInt := current.Int()
+		targetInt := target.Int()
+		if currentInt == targetInt {
+			return 0
+		}
+		if currentInt < targetInt {
+			return -1
+		}
+		return 1
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		currentUint := current.Uint()
+		targetUint := target.Uint()
+		if currentUint == targetUint {
+			return 0
+		}
+		if currentUint < targetUint {
+			return -1
+		}
+		return 1
+	case reflect.Float32, reflect.Float64:
+		currentFloat := current.Float()
+		targetFloat := target.Float()
+		if currentFloat == targetFloat {
+			return 0
+		}
+		if currentFloat < targetFloat {
+			return -1
+		}
+		return 1
+	case reflect.Bool:
+		currentBool := current.Bool()
+		targetBool := target.Bool()
+		if currentBool == targetBool {
+			return 0
+		}
+		if !currentBool && targetBool {
+			return -1
+		}
+		return 1
+	case reflect.Ptr, reflect.Interface:
+		if current.IsNil() && target.IsNil() {
+			return 0
+		}
+		if current.IsNil() {
+			return -1
+		}
+		if target.IsNil() {
+			return 1
+		}
+		return compareFields(current.Elem(), target.Elem())
+	default:
+		currentStr := getFieldValueAsString(current)
+		targetStr := getFieldValueAsString(target)
+		if currentStr == targetStr {
+			return 0
+		}
+		if currentStr < targetStr {
+			return -1
+		}
+		return 1
+	}
+}
+
+// isFieldNotEmpty 检查字段是否有值
+func isFieldNotEmpty(field reflect.Value) bool {
+	if !field.IsValid() {
+		return false
+	}
+
+	switch field.Kind() {
+	case reflect.String:
+		return field.String() != ""
+	case reflect.Slice, reflect.Map, reflect.Array:
+		return field.Len() > 0
+	case reflect.Ptr, reflect.Interface:
+		return !field.IsNil() && isFieldNotEmpty(field.Elem())
+	case reflect.Bool:
+		return field.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return field.Int() != 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return field.Uint() != 0
+	case reflect.Float32, reflect.Float64:
+		return field.Float() != 0
+	default:
+		return !field.IsZero()
+	}
+}
+
+// getFieldValueAsString 获取字段值的字符串表示
+func getFieldValueAsString(field reflect.Value) string {
+	if !field.IsValid() {
+		return ""
+	}
+
+	switch field.Kind() {
+	case reflect.String:
+		return field.String()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return strconv.FormatInt(field.Int(), 10)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return strconv.FormatUint(field.Uint(), 10)
+	case reflect.Float32, reflect.Float64:
+		return strconv.FormatFloat(field.Float(), 'f', -1, 64)
+	case reflect.Bool:
+		return strconv.FormatBool(field.Bool())
+	default:
+		return fmt.Sprintf("%v", field.Interface())
 	}
 }
