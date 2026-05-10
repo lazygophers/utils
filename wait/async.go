@@ -1,6 +1,7 @@
 package wait
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/lazygophers/log"
@@ -128,7 +129,12 @@ func AsyncUnique[M UniqueTask](process int, push func(chan M), logic func(M)) {
 					continue
 				}
 				func() {
-					defer uniqueMap.Delete(key)
+					defer func() {
+						if r := recover(); r != nil {
+							log.Errorf("AsyncUnique task panic [key=%s]: %v", key, r)
+						}
+						uniqueMap.Delete(key)
+					}()
 					logic(x)
 				}()
 			}
@@ -141,6 +147,58 @@ func AsyncUnique[M UniqueTask](process int, push func(chan M), logic func(M)) {
 	close(c)
 
 	w.Wait()
+}
+
+// AsyncCollect 使用协程池处理任务并收集错误
+// 参数:
+//
+//	process: 并发处理的任务数量（协程数量）
+//	push: 任务推送函数，接收一个通道参数用于发送任务
+//	logic: 任务处理逻辑函数，返回 error
+//
+// 返回值: 错误通道，接收所有任务执行产生的错误
+func AsyncCollect[M any](process int, push func(chan M), logic func(M) error) <-chan error {
+	if process <= 0 {
+		return nil
+	}
+
+	c := make(chan M, process*2)
+	errCh := make(chan error, process*2)
+
+	w := Wgp.Get().(*sync.WaitGroup)
+	defer func() {
+		w.Wait()
+		Wgp.Put(w)
+		close(errCh)
+	}()
+
+	w.Add(process)
+	for i := 0; i < process; i++ {
+		routine.GoWithRecover(func() error {
+			defer w.Done()
+
+			for x := range c {
+				func() {
+					defer func() {
+						if r := recover(); r != nil {
+							log.Errorf("AsyncCollect task panic: %v", r)
+							errCh <- fmt.Errorf("panic: %v", r)
+						}
+					}()
+					if err := logic(x); err != nil {
+						errCh <- err
+					}
+				}()
+			}
+
+			return nil
+		})
+	}
+
+	push(c)
+	close(c)
+
+	return errCh
 }
 
 // AsyncAlwaysUnique 创建任务通道并启动带唯一性校验的协程
@@ -188,7 +246,12 @@ func AsyncAlwaysUniqueWithChan[M UniqueTask](c chan M, process int, logic func(M
 					continue
 				}
 				func() {
-					defer uniqueMap.Delete(key)
+					defer func() {
+						if r := recover(); r != nil {
+							log.Errorf("AsyncAlwaysUniqueWithChan task panic [key=%s]: %v", key, r)
+						}
+						uniqueMap.Delete(key)
+					}()
 					logic(x)
 				}()
 			}

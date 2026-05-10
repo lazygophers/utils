@@ -3,6 +3,7 @@ package wait
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/lazygophers/log"
 )
@@ -33,9 +34,30 @@ func (p *Pool) Unlock() {
 	<-p.c
 }
 
-// Depth 返回当前已获取的信号量数量，即通道中当前的元素数量。
-func (p *Pool) Depth() int {
+// TryLock 尝试获取一个信号量，非阻塞。
+// 返回 true 表示成功获取，false 表示池已满。
+func (p *Pool) TryLock() bool {
+	select {
+	case p.c <- struct{}{}:
+		return true
+	default:
+		return false
+	}
+}
+
+// Available 返回当前可用的信号量数量。
+func (p *Pool) Available() int {
 	return len(p.c)
+}
+
+// Acquired 返回当前已获取的信号量数量。
+func (p *Pool) Acquired() int {
+	return cap(p.c) - len(p.c)
+}
+
+// Deprecated: Use Available instead.
+func (p *Pool) Depth() int {
+	return p.Available()
 }
 
 // getPool 根据key从poolMap中获取对应的Pool实例。
@@ -54,28 +76,17 @@ func newPool(key string, max int) {
 		max = 1
 	}
 
-	// 先尝试读锁下检查
-	poolLock.RLock()
-	p := poolMap[key]
-	poolLock.RUnlock()
-
-	if p != nil {
-		return
-	}
-
-	// 写锁下再次检查并创建
+	// 写锁下检查并创建（避免双重检查锁的间隙问题）
 	poolLock.Lock()
 	defer poolLock.Unlock()
-	p = poolMap[key]
 
-	if p != nil {
+	if poolMap[key] != nil {
 		return
 	}
 
-	p = &Pool{
+	poolMap[key] = &Pool{
 		c: make(chan struct{}, max),
 	}
-	poolMap[key] = p
 }
 
 // Lock 获取指定key对应的Pool的锁。
@@ -102,7 +113,32 @@ func DepthOK(key string) (depth int, ok bool) {
 	if pool == nil {
 		return 0, false
 	}
-	return pool.Depth(), true
+	return pool.Available(), true
+}
+
+// Resize 调整 Pool 的最大并发数。
+// 如果新值小于当前已获取的信号量数量，则阻塞直到释放足够多的信号量。
+func (p *Pool) Resize(newMax int) {
+	if newMax <= 0 {
+		newMax = 1
+	}
+
+	oldCap := cap(p.c)
+	oldUsed := p.Acquired()
+
+	if newMax == oldCap {
+		return
+	}
+
+	// 创建新通道
+	newC := make(chan struct{}, newMax)
+
+	// 复制已使用的信号量到新通道
+	for i := 0; i < oldUsed; i++ {
+		newC <- struct{}{}
+	}
+
+	p.c = newC
 }
 
 // Sync 在指定key的Pool上同步执行逻辑函数logic。
@@ -125,4 +161,52 @@ func Sync(key string, logic func() error) error {
 // 如果key对应的Pool已经存在，则不会重复创建。
 func Ready(key string, max int) {
 	newPool(key, max)
+}
+
+// TryLock 尝试获取指定key对应的Pool的锁，非阻塞。
+// 返回 true 表示成功获取，false 表示池已满或不存在。
+func TryLock(key string) bool {
+	pool := getPool(key)
+	if pool == nil {
+		return false
+	}
+	return pool.TryLock()
+}
+
+// Resize 调整指定key的Pool的最大并发数。
+func Resize(key string, newMax int) {
+	pool := getPool(key)
+	if pool == nil {
+		return
+	}
+	pool.Resize(newMax)
+}
+
+// SyncTimeout 在指定key的Pool上同步执行逻辑函数，带超时控制。
+func SyncTimeout(key string, timeout time.Duration, logic func() error) error {
+	pool := getPool(key)
+	if pool == nil {
+		return ErrPoolNotReady
+	}
+
+	done := make(chan struct{}, 1)
+	var err error
+
+	log.Debugf("%s pool depth:%d", key, pool.Depth())
+	pool.Lock()
+	go func() {
+		defer func() {
+			pool.Unlock()
+			log.Infof("%s pool depth:%d", key, pool.Depth())
+			done <- struct{}{}
+		}()
+		err = logic()
+	}()
+
+	select {
+	case <-done:
+		return err
+	case <-time.After(timeout):
+		return errors.New("wait: timeout")
+	}
 }

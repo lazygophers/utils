@@ -10,14 +10,19 @@ import (
 // Worker 管理一组goroutine worker，通过任务队列和等待组协调任务执行
 // 使用NewWorker创建，Add提交任务，Wait等待完成
 type Worker struct {
-	w *sync.WaitGroup // 用于等待所有任务完成的WaitGroup
-	c chan func()     // 任务队列，接收待执行函数
+	w      *sync.WaitGroup // 用于等待所有任务完成的WaitGroup
+	c      chan func()     // 任务队列，接收待执行函数
+	closed bool            // 标记通道是否已关闭
 }
 
 // Add 向工作队列提交一个任务
 // 任务是一个无参数的函数，将被Worker管理的goroutine执行
 // 如果任务队列已满，该方法会阻塞，直到有可用空间
+// 如果 Wait() 已调用，会 panic
 func (p *Worker) Add(fn func()) {
+	if p.closed {
+		panic("wait: Worker already closed, cannot add task")
+	}
 	p.c <- fn
 }
 
@@ -25,9 +30,12 @@ func (p *Worker) Add(fn func()) {
 // 注意：调用后不可再调用Add
 // 内部会关闭通道并将WaitGroup放回对象池
 func (p *Worker) Wait() {
-	close(p.c)   // 关闭通道，停止接收新任务
-	p.w.Wait()   // 等待所有正在执行的任务完成
-	Wgp.Put(p.w) // 将WaitGroup放回对象池
+	if !p.closed {
+		p.closed = true
+		close(p.c)   // 关闭通道，停止接收新任务
+		p.w.Wait()   // 等待所有正在执行的任务完成
+		Wgp.Put(p.w) // 将WaitGroup放回对象池
+	}
 }
 
 // NewWorker 创建Worker实例
