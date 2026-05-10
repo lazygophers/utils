@@ -36,7 +36,14 @@ func Md5[M string | []byte](s M) string {
 //
 // Deprecated: Use Sha256 or Sha512 instead.
 func SHA1[M string | []byte](s M) string {
-	return fmt.Sprintf("%x", sha1.Sum([]byte(s)))
+	hash := sha1.Sum([]byte(s))
+	var result [40]byte
+	for i := 0; i < 20; i++ {
+		b := hash[i]
+		result[i*2] = "0123456789abcdef"[b>>4]
+		result[i*2+1] = "0123456789abcdef"[b&0x0f]
+	}
+	return string(result[:])
 }
 
 // Sha224 计算输入字符串或字节切片的 SHA-224 哈希值，并返回十六进制表示的字符串。
