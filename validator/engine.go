@@ -20,6 +20,7 @@ var (
 type Engine struct {
 	validators    map[string]ValidatorFunc
 	tagName       string
+	structValidators  map[string]StructValidatorFunc
 	fieldNameFunc func(reflect.StructField) string
 }
 
@@ -147,7 +148,25 @@ func (e *Engine) Struct(s interface{}) error {
 
 	var errors ValidationErrors
 	e.validateStruct(rv, rv, "", &errors)
+	rt := rv.Type()
 
+
+	// 执行结构体级别验证
+	if e.structValidators != nil {
+		typeName := rt.Name()
+		if fn, ok := e.structValidators[typeName]; ok {
+			sl := &structLevel{
+				top:       rv,
+				current:   rv,
+				validator: e,
+				errors:    &errors,
+				namespace: "",
+			}
+			if !fn(sl) {
+				// 错误已通过 ReportError 添加到 errors 中
+			}
+		}
+	}
 	if len(errors) > 0 {
 		return errors
 	}
@@ -180,7 +199,7 @@ func (e *Engine) Var(field interface{}, tag string) error {
 				Tag:     rule.tag,
 				Value:   field,
 				Param:   rule.param,
-				Message: fmt.Sprintf("validation failed for tag '%s'", rule.tag),
+				Message: formatMessage(getDefaultMessage(rule.tag), "var", rule.tag, rule.param),
 			}
 		}
 	}
@@ -291,7 +310,7 @@ func (e *Engine) validateStruct(top, current reflect.Value, namespace string, er
 					ActualTag:   rule.tag,
 					Namespace:   fieldName,
 					StructField: fieldType.Name,
-					Message:     fmt.Sprintf("validation failed for tag '%s'", rule.tag),
+					Message:     formatMessage(getDefaultMessage(rule.tag), "var", rule.tag, rule.param),
 				}
 				*errors = append(*errors, fieldError)
 			}
@@ -759,4 +778,70 @@ func getFieldValueAsString(field reflect.Value) string {
 	default:
 		return fmt.Sprintf("%v", field.Interface())
 	}
+}
+
+// StructLevel 结构体级别验证接口
+type StructLevel interface {
+	// Top 获取顶级结构体
+	Top() reflect.Value
+	// GetStruct 获取当前结构体
+	GetStruct() reflect.Value
+	// ReportError 报告验证错误
+	ReportError(field interface{}, fieldName, tagName, message string)
+}
+
+// structLevel 结构体级别实现
+type structLevel struct {
+	top         reflect.Value
+	current     reflect.Value
+	validator   *Engine
+	errors      *ValidationErrors
+	namespace   string
+}
+
+func (sl *structLevel) Top() reflect.Value {
+	return sl.top
+}
+
+func (sl *structLevel) GetStruct() reflect.Value {
+	return sl.current
+}
+
+func (sl *structLevel) ReportError(field interface{}, fieldName, tagName, message string) {
+	rv := reflect.ValueOf(field)
+	if rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+
+	if message == "" {
+		message = getDefaultMessage(tagName)
+	}
+
+	*sl.errors = append(*sl.errors, &FieldError{
+		Field:     fieldName,
+		Tag:       tagName,
+		Value:     field,
+		Namespace: sl.namespace,
+		Message:   formatMessage(message, fieldName, tagName, ""),
+	})
+}
+
+// StructValidatorFunc 结构体级别验证函数类型
+type StructValidatorFunc func(sl StructLevel) bool
+
+// RegisterStructValidation 注册结构体级别验证器
+func (e *Engine) RegisterStructValidation(fn StructValidatorFunc, typeName string) error {
+	if fn == nil {
+		return fmt.Errorf("validation function cannot be nil")
+	}
+	if e.structValidators == nil {
+		e.structValidators = make(map[string]StructValidatorFunc)
+	}
+	e.structValidators[typeName] = fn
+	return nil
+}
+
+// RegisterStructValidation 在默认验证器上注册结构体级别验证规则
+func RegisterStructValidation(fn StructValidatorFunc, typeName string) error {
+	return Default().RegisterStructValidation(fn, typeName)
 }

@@ -117,6 +117,11 @@ func (v *Validator) RegisterValidation(tag string, fn ValidatorFunc) error {
 	return v.engine.RegisterValidation(tag, fn)
 }
 
+
+// RegisterStructValidation 注册结构体级别验证规则
+func (v *Validator) RegisterStructValidation(fn StructValidatorFunc, typeName string) error {
+	return v.engine.RegisterStructValidation(fn, typeName)
+}
 // RegisterTranslation 注册翻译
 func (v *Validator) RegisterTranslation(locale, tag, translation string) {
 	v.mu.Lock()
