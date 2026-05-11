@@ -1,0 +1,22 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/lazygophers/utils/validator
+cpu: Apple M3
+BenchmarkValidateUUID_Original_Valid-8        	 1777779	      2025 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_Original_Invalid-8      	 3541465	      1047 ns/op	      96 B/op	       2 allocs/op
+BenchmarkValidateUUID_Manual_Valid-8          	 6713570	       517.4 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_Manual_Invalid-8        	25923704	       144.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_Segmented_Valid-8       	 7825419	       428.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_Segmented_Invalid-8     	30098236	       125.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_LookupTable_Valid-8     	12869886	       288.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_LookupTable_Invalid-8   	44682381	        80.71 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_Hybrid_Valid-8          	10978152	       306.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_Hybrid_Invalid-8        	45530572	        80.49 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_ASCII_Valid-8           	12472782	       306.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_ASCII_Invalid-8         	47748181	        81.04 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_ByteCompare_Valid-8     	10661137	       314.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_ByteCompare_Invalid-8   	46632778	        77.70 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_BitOps_Valid-8          	11329815	       315.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateUUID_BitOps_Invalid-8        	47453206	        77.14 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/lazygophers/utils/validator	67.479s

@@ -1,0 +1,38 @@
+UUID 验证性能优化总结
+=====================
+
+优化位置: validator/custom_validators.go:408
+优化日期: 2026-05-11
+
+性能提升
+--------
+有效 UUID: 2025 ns/op → 288.1 ns/op (7.0x 提升)
+无效 UUID: 1047 ns/op → 80.71 ns/op (13.0x 提升)
+内存分配: 96 B/op (2 allocs) → 0 B/op (0 allocs)
+
+测试结果
+--------
+✅ 84 个测试全部通过
+✅ 100% 正确性保持
+✅ 零内存分配
+✅ 向后兼容
+
+优化策略
+--------
+1. 快速长度检查 (36字符)
+2. 固定位置验证 (4个分隔符)
+3. 字节级十六进制检查
+4. 早期退出机制
+5. 零内存分配
+
+基准测试环境
+------------
+goos: darwin
+goarch: arm64
+cpu: Apple M3
+
+文件变更
+--------
+修改: validator/custom_validators.go
+新增: validator/uuid_benchmark_test.go (12种方案对比)
+新增: validator/UUID_OPTIMIZATION_REPORT.md (详细报告)

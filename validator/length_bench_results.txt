@@ -1,0 +1,16 @@
+BenchmarkLength_Opt1_CacheKind-8                       	 3091868	       394.9 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt10_Hybrid-8                         	 3014402	       401.1 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt11_Minimal-8                        	 3033453	       432.7 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt12_ShortCircuit-8                   	 3058260	       406.4 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt13_Precompute-8                     	 2830329	       403.2 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt14_BitOps-8                         	 2967063	       401.6 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt15_Expanded-8                       	 3048903	       411.2 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt2_StringDirect-8                    	 3036592	       404.3 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt3_IfElse-8                          	 2598294	       388.5 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt4_NoIntermediate-8                  	 3077880	       404.5 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt5_PreCheck-8                        	 3079088	       403.0 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt6_SeparatePaths-8                   	 3102019	       397.5 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt7_FastPath-8                        	 2912119	       407.3 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt8_Inlined-8                         	 2880864	       394.1 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Opt9_Goto-8                            	 2860344	       408.1 ns/op	     480 B/op	      20 allocs/op
+BenchmarkLength_Original-8                             	 3063987	       399.8 ns/op	     480 B/op	      20 allocs/op

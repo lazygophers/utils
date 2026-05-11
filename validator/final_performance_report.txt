@@ -1,0 +1,165 @@
+Go test: 1620 passed, 40 failed, 30 skipped in 1 packages
+═══════════════════════════════════════
+
+validator (1620 passed, 40 failed)
+  [FAIL] TestEngineWithCustomFieldNameFunc
+     engine_methods_test.go:200:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/engine_methods_test.go:200
+     Error:      	Should be true
+  [FAIL] TestValidatorJSONFields
+     validator_test.go:89:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:89
+     Error:      	Expected value not to be nil.
+  [FAIL] TestValidationErrorsMethods
+     validator_test.go:129:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:129
+     Error:      	Should be true
+  [FAIL] TestErrorFiltering
+     validator_test.go:174:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:174
+     Error:      	Should be true
+  [FAIL] TestEngineWithCustomFieldNameFunc
+     engine_methods_test.go:200:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/engine_methods_test.go:200
+     Error:      	Should be true
+  [FAIL] TestValidatorJSONFields
+     validator_test.go:89:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:89
+     Error:      	Expected value not to be nil.
+  [FAIL] TestValidationErrorsMethods
+     validator_test.go:129:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:129
+     Error:      	Should be true
+  [FAIL] TestErrorFiltering
+     validator_test.go:174:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:174
+     Error:      	Should be true
+  [FAIL] TestEngineWithCustomFieldNameFunc
+     engine_methods_test.go:200:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/engine_methods_test.go:200
+     Error:      	Should be true
+  [FAIL] TestValidatorJSONFields
+     validator_test.go:89:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:89
+     Error:      	Expected value not to be nil.
+  [FAIL] TestValidationErrorsMethods
+     validator_test.go:129:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:129
+     Error:      	Should be true
+  [FAIL] TestErrorFiltering
+     validator_test.go:174:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:174
+     Error:      	Should be true
+  [FAIL] TestEngineWithCustomFieldNameFunc
+     engine_methods_test.go:200:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/engine_methods_test.go:200
+     Error:      	Should be true
+  [FAIL] TestValidatorJSONFields
+     validator_test.go:89:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:89
+     Error:      	Expected value not to be nil.
+  [FAIL] TestValidationErrorsMethods
+     validator_test.go:129:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:129
+     Error:      	Should be true
+  [FAIL] TestErrorFiltering
+     validator_test.go:174:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:174
+     Error:      	Should be true
+  [FAIL] TestEngineWithCustomFieldNameFunc
+     engine_methods_test.go:200:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/engine_methods_test.go:200
+     Error:      	Should be true
+  [FAIL] TestValidatorJSONFields
+     validator_test.go:89:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:89
+     Error:      	Expected value not to be nil.
+  [FAIL] TestValidationErrorsMethods
+     validator_test.go:129:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:129
+     Error:      	Should be true
+  [FAIL] TestErrorFiltering
+     validator_test.go:174:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:174
+     Error:      	Should be true
+  [FAIL] TestEngineWithCustomFieldNameFunc
+     engine_methods_test.go:200:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/engine_methods_test.go:200
+     Error:      	Should be true
+  [FAIL] TestValidatorJSONFields
+     validator_test.go:89:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:89
+     Error:      	Expected value not to be nil.
+  [FAIL] TestValidationErrorsMethods
+     validator_test.go:129:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:129
+     Error:      	Should be true
+  [FAIL] TestErrorFiltering
+     validator_test.go:174:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:174
+     Error:      	Should be true
+  [FAIL] TestEngineWithCustomFieldNameFunc
+     engine_methods_test.go:200:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/engine_methods_test.go:200
+     Error:      	Should be true
+  [FAIL] TestValidatorJSONFields
+     validator_test.go:89:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:89
+     Error:      	Expected value not to be nil.
+  [FAIL] TestValidationErrorsMethods
+     validator_test.go:129:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:129
+     Error:      	Should be true
+  [FAIL] TestErrorFiltering
+     validator_test.go:174:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:174
+     Error:      	Should be true
+  [FAIL] TestEngineWithCustomFieldNameFunc
+     engine_methods_test.go:200:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/engine_methods_test.go:200
+     Error:      	Should be true
+  [FAIL] TestValidatorJSONFields
+     validator_test.go:89:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:89
+     Error:      	Expected value not to be nil.
+  [FAIL] TestValidationErrorsMethods
+     validator_test.go:129:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:129
+     Error:      	Should be true
+  [FAIL] TestErrorFiltering
+     validator_test.go:174:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:174
+     Error:      	Should be true
+  [FAIL] TestEngineWithCustomFieldNameFunc
+     engine_methods_test.go:200:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/engine_methods_test.go:200
+     Error:      	Should be true
+  [FAIL] TestValidatorJSONFields
+     validator_test.go:89:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:89
+     Error:      	Expected value not to be nil.
+  [FAIL] TestValidationErrorsMethods
+     validator_test.go:129:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:129
+     Error:      	Should be true
+  [FAIL] TestErrorFiltering
+     validator_test.go:174:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:174
+     Error:      	Should be true
+  [FAIL] TestEngineWithCustomFieldNameFunc
+     engine_methods_test.go:200:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/engine_methods_test.go:200
+     Error:      	Should be true
+  [FAIL] TestValidatorJSONFields
+     validator_test.go:89:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:89
+     Error:      	Expected value not to be nil.
+  [FAIL] TestValidationErrorsMethods
+     validator_test.go:129:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:129
+     Error:      	Should be true
+  [FAIL] TestErrorFiltering
+     validator_test.go:174:
+     Error Trace:	/Users/luoxin/persons/go/lazygophers/utils/validator/validator_test.go:174
+     Error:      	Should be true
+[full output: ~/Library/Application Support/rtk/tee/1778472824_go_test.log]

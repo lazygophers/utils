@@ -1,0 +1,19 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/lazygophers/utils/validator
+cpu: Apple M3
+BenchmarkURL_OriginalRegex-8          	 6065570	       106.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme1_ManualParser-8   	 2783132	       256.0 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme2_FastPath-8       	 2804724	       218.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme3_Map-8            	 1943467	       300.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme4_ByteLevel-8      	 3109092	       182.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme5_LengthCheck-8    	 3226876	       216.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme6_StdLib-8         	  199210	      2851 ns/op	    3584 B/op	      28 allocs/op
+BenchmarkURL_Scheme7_TwoPhase-8       	 2350803	       255.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme8_LookupTable-8    	 3243158	       191.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme9_StateMachine-8   	  721106	       858.3 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme10_Hybrid-8        	 5381012	       118.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme11_Minimal-8       	 3093459	       199.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkURL_Scheme12_Constants-8     	 2980902	       245.5 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/lazygophers/utils/validator	11.180s

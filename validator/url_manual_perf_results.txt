@@ -1,0 +1,22 @@
+URL 验证性能测试 (每个方案 100000 次迭代)
+=========================================
+有效 URL 测试:
+Base (正则)           :     304.52 ns/op,    3283891 ops/sec
+HasPrefix           :      17.06 ns/op,   58629964 ops/sec
+Combined            :      16.58 ns/op,   60319088 ops/sec
+BytesOnly           :      16.61 ns/op,   60206735 ops/sec
+SimpleBytes         :      22.90 ns/op,   43660019 ops/sec
+
+无效 URL 测试:
+Base (正则)           :      78.71 ns/op,   12705084 ops/sec
+HasPrefix           :       8.11 ns/op,  123335873 ops/sec
+Combined            :       3.76 ns/op,  265979959 ops/sec
+BytesOnly           :       3.76 ns/op,  266018125 ops/sec
+SimpleBytes         :      10.64 ns/op,   93942977 ops/sec
+
+混合测试:
+Base (正则)           :     201.15 ns/op,    4971527 ops/sec
+HasPrefix           :      12.89 ns/op,   77587246 ops/sec
+Combined            :      10.66 ns/op,   93774653 ops/sec
+BytesOnly           :      10.55 ns/op,   94760937 ops/sec
+SimpleBytes         :      17.47 ns/op,   57229068 ops/sec

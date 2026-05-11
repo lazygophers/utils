@@ -1,0 +1,16 @@
+Go test: 0 passed, 1 failed in 1 packages
+═══════════════════════════════════════
+
+command-line-arguments [build failed]
+  ./in_notin_perf_test.go:11:34: undefined: ValidatorFunc
+  ./in_notin_perf_test.go:29:37: undefined: ValidatorFunc
+  ./in_notin_perf_test.go:47:34: undefined: ValidatorFunc
+  ./in_notin_perf_test.go:95:37: undefined: ValidatorFunc
+  ./in_notin_perf_test.go:140:34: undefined: ValidatorFunc
+  ./in_notin_perf_test.go:187:37: undefined: ValidatorFunc
+  ./in_notin_perf_test.go:232:34: undefined: ValidatorFunc
+  ./in_notin_perf_test.go:280:37: undefined: ValidatorFunc
+  ./in_notin_perf_test.go:327:34: undefined: ValidatorFunc
+  ./in_notin_perf_test.go:351:37: undefined: ValidatorFunc
+  ./in_notin_perf_test.go:351:37: too many errors
+[full output: ~/Library/Application Support/rtk/tee/1778478519_go_test.log]
