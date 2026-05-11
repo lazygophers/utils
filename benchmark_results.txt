@@ -1,0 +1,16 @@
+Go test: 0 passed, 1 failed in 1 packages
+═══════════════════════════════════════
+
+defaults [build failed]
+  defaults/benchmark_test.go:575:8: declared and not used: v
+  defaults/benchmark_test.go:576:22: undefined: c
+  defaults/benchmark_test.go:666:8: declared and not used: v
+  defaults/benchmark_test.go:667:23: undefined: c
+  defaults/benchmark_test.go:787:8: declared and not used: v
+  defaults/benchmark_test.go:788:23: undefined: c
+  defaults/benchmark_test.go:822:8: declared and not used: v
+  defaults/benchmark_test.go:823:29: undefined: c
+  defaults/benchmark_test.go:917:8: declared and not used: v
+  defaults/benchmark_test.go:918:22: undefined: c
+  defaults/benchmark_test.go:917:8: too many errors
+[full output: ~/Library/Application Support/rtk/tee/1778433184_go_test.log]

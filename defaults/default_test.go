@@ -1471,7 +1471,7 @@ func TestConditionalDefaults(t *testing.T) {
 	t.Run("basic string field match", func(t *testing.T) {
 		type Order struct {
 			UserType string `default:"guest"`
-			Discount  int    `default:"UserType=guest:10,UserType=vip:20"`
+			Discount int    `default:"UserType=guest:10,UserType=vip:20"`
 		}
 
 		var order Order
@@ -1489,7 +1489,7 @@ func TestConditionalDefaults(t *testing.T) {
 	t.Run("multiple conditions with different values", func(t *testing.T) {
 		type Order struct {
 			UserType string `default:"vip"`
-			Discount  int    `default:"UserType=guest:10,UserType=vip:20,UserType=admin:30"`
+			Discount int    `default:"UserType=guest:10,UserType=vip:20,UserType=admin:30"`
 		}
 
 		var order Order
@@ -1507,7 +1507,7 @@ func TestConditionalDefaults(t *testing.T) {
 	t.Run("no matching condition keeps zero value", func(t *testing.T) {
 		type Order struct {
 			UserType string `default:"unknown"`
-			Discount  int    `default:"UserType=guest:10,UserType=vip:20"`
+			Discount int    `default:"UserType=guest:10,UserType=vip:20"`
 		}
 
 		var order Order
@@ -1525,7 +1525,7 @@ func TestConditionalDefaults(t *testing.T) {
 	t.Run("non-zero value is not overwritten", func(t *testing.T) {
 		type Order struct {
 			UserType string `default:"guest"`
-			Discount  int    `default:"UserType=guest:10,UserType=vip:20"`
+			Discount int    `default:"UserType=guest:10,UserType=vip:20"`
 		}
 
 		var order Order
@@ -1640,7 +1640,6 @@ func TestConditionalDefaultsEdgeCases(t *testing.T) {
 		}
 	})
 }
-
 
 // TestConditionalDefaultsCoverage 提高条件默认值覆盖率
 func TestConditionalDefaultsCoverage(t *testing.T) {

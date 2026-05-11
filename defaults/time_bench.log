@@ -1,0 +1,16 @@
+Go test: 0 passed, 1 failed in 1 packages
+═══════════════════════════════════════
+
+defaults [build failed]
+  ./optimize_bench_test.go:39:33: undefined: reflect
+  ./optimize_bench_test.go:72:42: undefined: reflect
+  ./optimize_bench_test.go:113:44: undefined: reflect
+  ./optimize_bench_test.go:169:38: undefined: reflect
+  ./optimize_bench_test.go:215:41: undefined: reflect
+  ./optimize_bench_test.go:278:43: undefined: reflect
+  ./optimize_bench_test.go:316:32: undefined: reflect
+  ./optimize_bench_test.go:334:37: undefined: reflect
+  ./optimize_bench_test.go:358:40: undefined: reflect
+  ./optimize_bench_test.go:383:46: undefined: reflect
+  ./optimize_bench_test.go:383:46: too many errors
+[full output: ~/Library/Application Support/rtk/tee/1778436874_go_test.log]
