@@ -12,3 +12,4 @@ title: 数据处理
 - [json](./json.md) - 增强的 JSON 处理
 - [stringx](./stringx.md) - 字符串工具
 - [anyx](./anyx.md) - Interface{} 辅助
+- [bufiox](./bufiox.md) - 数据扫描函数

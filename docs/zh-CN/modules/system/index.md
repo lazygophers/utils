@@ -13,3 +13,4 @@ title: 系统与配置
 - [osx](./osx.md) - 操作系统操作
 - [app](./app.md) - 应用框架
 - [atexit](./atexit.md) - 优雅关闭
+- [human](./human.md) - 人性化格式化

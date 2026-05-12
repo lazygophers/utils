@@ -8,7 +8,4 @@ title: 时间与调度
 
 ## 模块列表
 
-- [xtime](./xtime.md) - 高级时间处理
-- [xtime996](./xtime996.md) - 996 工作时间
-- [xtime955](./xtime955.md) - 955 工作时间
-- [xtime007](./xtime007.md) - 24/7 操作
+- [xtime](./xtime.md) - 高级时间处理与调度

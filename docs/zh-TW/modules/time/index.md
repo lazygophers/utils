@@ -8,7 +8,4 @@ title: 時間與調度
 
 ## 模組列表
 
-- [xtime](./xtime.md) - 高級時間處理
-- [xtime996](./xtime996.md) - 996 工作時間
-- [xtime955](./xtime955.md) - 955 工作時間
-- [xtime007](./xtime007.md) - 24/7 操作
+- [xtime](./xtime.md) - 高級時間處理與調度
