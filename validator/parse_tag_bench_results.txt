@@ -1,0 +1,6 @@
+Go test: 0 passed, 1 failed in 1 packages
+═══════════════════════════════════════
+
+validator [build failed]
+  validator/parse_tag_bench_test.go:214:5: undefined: hasParam
+[full output: ~/Library/Application Support/rtk/tee/1778516375_go_test.log]

@@ -1,0 +1,20 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/lazygophers/utils/validator
+cpu: Apple M3
+BenchmarkValidateField_Current-8                   	  671306	       807.1 ns/op	     225 B/op	       6 allocs/op
+BenchmarkValidateField_Current_Single-8            	 2189355	       272.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateField_Opt2_InlineMap-8            	  822358	       748.6 ns/op	     225 B/op	       6 allocs/op
+BenchmarkValidateField_Opt3_SingleLookup-8         	  842558	       769.3 ns/op	     226 B/op	       6 allocs/op
+BenchmarkValidateField_Opt5_HotPathSwitch-8        	  817934	       778.4 ns/op	     225 B/op	       6 allocs/op
+BenchmarkValidateField_Opt6_FullSwitch-8           	  723598	       823.1 ns/op	     225 B/op	       6 allocs/op
+BenchmarkValidateField_Opt11_InlinedValidators-8   	  826900	       793.9 ns/op	     225 B/op	       6 allocs/op
+BenchmarkValidateField_Opt13_GotoOptimized-8       	  822937	       758.9 ns/op	     225 B/op	       6 allocs/op
+BenchmarkValidateField_Alloc_Current-8             	 2196171	       272.1 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateField_Alloc_Opt5_Switch-8         	 2199075	       271.2 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateField_Alloc_Opt11_Inlined-8       	 2312012	       257.9 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateField_Parallel_Current-8          	 8008804	        83.10 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateField_Parallel_Opt5_Switch-8      	 9042806	        80.23 ns/op	       0 B/op	       0 allocs/op
+BenchmarkValidateField_Parallel_Opt11_Inlined-8    	 7205133	        79.95 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/lazygophers/utils/validator	11.123s

@@ -5,6 +5,47 @@ import (
 	"testing"
 )
 
+// mockFieldLevel is a mock implementation of FieldLevel for testing
+type mockFieldLevel struct {
+	top       reflect.Value
+	parent    reflect.Value
+	field     reflect.Value
+	fieldName string
+	param     string
+}
+
+func (m mockFieldLevel) Top() reflect.Value {
+	return m.top
+}
+
+func (m mockFieldLevel) Parent() reflect.Value {
+	return m.parent
+}
+
+func (m mockFieldLevel) Field() reflect.Value {
+	return m.field
+}
+
+func (m mockFieldLevel) FieldName() string {
+	return m.fieldName
+}
+
+func (m mockFieldLevel) StructFieldName() string {
+	return m.fieldName
+}
+
+func (m mockFieldLevel) Param() string {
+	return m.param
+}
+
+func (m mockFieldLevel) GetTag(key string) string {
+	return ""
+}
+
+func (m mockFieldLevel) GetFieldByName(name string) reflect.Value {
+	return reflect.Value{}
+}
+
 // alwaysTrue returns true
 func alwaysTrue(fl FieldLevel) bool {
 	return true
