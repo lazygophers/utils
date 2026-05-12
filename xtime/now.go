@@ -193,8 +193,25 @@ func (p *Time) EndOfQuarter() *Time {
 }
 
 // EndOfHalf 获取当前半年的结束时间（下半年首日前1纳秒）
+// 优化版本：直接计算半年结束月 + time.Date(0) 溢出技巧，零内存分配
+// 返回半年最后一天 23:59:59.999999999（H1: 6/30, H2: 12/31）
 func (p *Time) EndOfHalf() *Time {
-	return With(p.BeginningOfHalf().AddDate(0, 6, 0).Add(-time.Nanosecond))
+	year, month, _ := p.Date()
+
+	var endMonth time.Month
+	if month <= time.June {
+		// 上半年：结束于 6/30 23:59:59.999999999
+		endMonth = time.July
+	} else {
+		// 下半年：结束于 12/31 23:59:59.999999999
+		year++
+		endMonth = time.January
+	}
+
+	return &Time{
+		Time:   time.Date(year, endMonth, 0, 23, 59, 59, 999999999, p.Location()),
+		Config: p.Config,
+	}
 }
 
 // EndOfYear 获取当前年的结束时间（下年首日前1纳秒）
