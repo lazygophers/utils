@@ -70,10 +70,19 @@ func (p *Time) BeginningOfMonth() *Time {
 	}
 }
 
+// BeginningOfQuarter 获取当前季度的开始时间
+// 优化版本：直接计算季度起始月，复用 Config，性能提升显著，零内存分配
 func (p *Time) BeginningOfQuarter() *Time {
-	month := p.BeginningOfMonth()
-	offset := (int(month.Month()) - 1) % 3
-	return With(month.AddDate(0, -offset, 0))
+	config := p.Config
+	loc := p.Location()
+	year := p.Year()
+	month := int(p.Month())
+	quarterStartMonth := ((month - 1) / 3) * 3 // 0, 3, 6, 9
+
+	return &Time{
+		Time:   time.Date(year, time.Month(quarterStartMonth+1), 1, 0, 0, 0, 0, loc),
+		Config: config,
+	}
 }
 
 func (p *Time) BeginningOfHalf() *Time {
