@@ -12,3 +12,4 @@ title: 數據處理
 - [json](./json.md) - 增強的 JSON 處理
 - [stringx](./stringx.md) - 字符串工具
 - [anyx](./anyx.md) - Interface{} 輔助
+- [bufiox](./bufiox.md) - 自訂数據掃描函數

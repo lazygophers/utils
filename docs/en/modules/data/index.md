@@ -12,3 +12,4 @@ Provides type conversion, JSON processing, string operations, and other data pro
 - [json](./json.md) - Enhanced JSON handling
 - [stringx](./stringx.md) - String utilities
 - [anyx](./anyx.md) - Interface{} helpers
+- [bufiox](./bufiox.md) - Custom data scanning functions

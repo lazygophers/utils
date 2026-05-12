@@ -13,3 +13,4 @@ Provides configuration management, runtime information, OS operations, and other
 - [osx](./osx.md) - OS operations
 - [app](./app.md) - Application framework
 - [atexit](./atexit.md) - Graceful shutdown
+- [human](./human.md) - Human-friendly formatting
