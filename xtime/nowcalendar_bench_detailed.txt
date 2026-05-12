@@ -1,0 +1,60 @@
+=== Run 1 ===
+BenchmarkNowCalendar_Current-8        	  555631	      2147 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_InlineTime-8     	  625422	      1961 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_Lazy-8           	  880348	      1226 ns/op	     384 B/op	       4 allocs/op
+BenchmarkNowCalendar_CachedZodiac-8   	  588998	      2335 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_SimpleSeason-8   	  861607	      1546 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_Minimal-8        	 1000000	      1224 ns/op	     384 B/op	       4 allocs/op
+BenchmarkNowCalendar_Prealloc-8       	  621099	      2063 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNewCalendar_Only-8           	  567954	      1917 ns/op	     416 B/op	       8 allocs/op
+BenchmarkTimeNow_Only-8               	42102800	        29.62 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWithLunar_Only-8             	 1000000	      1225 ns/op	      64 B/op	       1 allocs/op
+BenchmarkNextSolarterm_Only-8         	 2169621	       535.6 ns/op	       0 B/op	       0 allocs/op
+=== Run 2 ===
+BenchmarkNowCalendar_Current-8        	  598580	      1976 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_InlineTime-8     	  619999	      2090 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_Lazy-8           	  961300	      1255 ns/op	     384 B/op	       4 allocs/op
+BenchmarkNowCalendar_CachedZodiac-8   	  590235	      1957 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_SimpleSeason-8   	  834220	      1411 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_Minimal-8        	 1000000	      1244 ns/op	     384 B/op	       4 allocs/op
+BenchmarkNowCalendar_Prealloc-8       	  602920	      1995 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNewCalendar_Only-8           	  628137	      2008 ns/op	     416 B/op	       8 allocs/op
+BenchmarkTimeNow_Only-8               	41860586	        30.45 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWithLunar_Only-8             	 1000000	      1155 ns/op	      64 B/op	       1 allocs/op
+BenchmarkNextSolarterm_Only-8         	 2263050	       535.6 ns/op	       0 B/op	       0 allocs/op
+=== Run 3 ===
+BenchmarkNowCalendar_Current-8        	  608695	      2054 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_InlineTime-8     	  511315	      2016 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_Lazy-8           	  972637	      1298 ns/op	     384 B/op	       4 allocs/op
+BenchmarkNowCalendar_CachedZodiac-8   	  603292	      2078 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_SimpleSeason-8   	  801361	      1696 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_Minimal-8        	  859808	      1275 ns/op	     384 B/op	       4 allocs/op
+BenchmarkNowCalendar_Prealloc-8       	  569276	      1949 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNewCalendar_Only-8           	  627483	      2020 ns/op	     416 B/op	       8 allocs/op
+BenchmarkTimeNow_Only-8               	40684804	        30.69 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWithLunar_Only-8             	 1000000	      1145 ns/op	      64 B/op	       1 allocs/op
+BenchmarkNextSolarterm_Only-8         	 2245621	       570.9 ns/op	       0 B/op	       0 allocs/op
+=== Run 4 ===
+BenchmarkNowCalendar_Current-8        	  549966	      2088 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_InlineTime-8     	  584680	      2231 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_Lazy-8           	  895984	      1291 ns/op	     384 B/op	       4 allocs/op
+BenchmarkNowCalendar_CachedZodiac-8   	  566104	      2202 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_SimpleSeason-8   	  843061	      1441 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_Minimal-8        	  979965	      1221 ns/op	     384 B/op	       4 allocs/op
+BenchmarkNowCalendar_Prealloc-8       	  638330	      1972 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNewCalendar_Only-8           	  641776	      2021 ns/op	     416 B/op	       8 allocs/op
+BenchmarkTimeNow_Only-8               	42334512	        29.38 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWithLunar_Only-8             	 1000000	      1089 ns/op	      64 B/op	       1 allocs/op
+BenchmarkNextSolarterm_Only-8         	 2211476	       538.6 ns/op	       0 B/op	       0 allocs/op
+=== Run 5 ===
+BenchmarkNowCalendar_Current-8        	  615724	      1921 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_InlineTime-8     	  632134	      1928 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_Lazy-8           	  907975	      1403 ns/op	     384 B/op	       4 allocs/op
+BenchmarkNowCalendar_CachedZodiac-8   	  555170	      1980 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_SimpleSeason-8   	  870008	      1403 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNowCalendar_Minimal-8        	 1000000	      1228 ns/op	     384 B/op	       4 allocs/op
+BenchmarkNowCalendar_Prealloc-8       	  613107	      2019 ns/op	     416 B/op	       8 allocs/op
+BenchmarkNewCalendar_Only-8           	  638718	      1964 ns/op	     416 B/op	       8 allocs/op
+BenchmarkTimeNow_Only-8               	41593611	        29.40 ns/op	       0 B/op	       0 allocs/op
+BenchmarkWithLunar_Only-8             	 1000000	      1086 ns/op	      64 B/op	       1 allocs/op
+BenchmarkNextSolarterm_Only-8         	 2283602	       552.2 ns/op	       0 B/op	       0 allocs/op
