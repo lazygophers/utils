@@ -83,8 +83,13 @@ func (p *Time) BeginningOfHalf() *Time {
 }
 
 func (p *Time) BeginningOfYear() *Time {
-	y, _, _ := p.Date()
-	return With(time.Date(y, time.January, 1, 0, 0, 0, 0, p.Location()))
+	config := p.Config
+	loc := p.Location()
+	year := p.Year()
+	return &Time{
+		Time:   time.Date(year, time.January, 1, 0, 0, 0, 0, loc),
+		Config: config,
+	}
 }
 
 func (p *Time) EndOfMinute() *Time {
