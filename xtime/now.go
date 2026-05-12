@@ -278,7 +278,17 @@ func BeginningOfYear() *Time {
 }
 
 func EndOfMinute() *Time {
-	return With(time.Now()).EndOfMinute()
+	now := time.Now()
+	result := now.Truncate(time.Minute).Add(time.Minute - time.Nanosecond)
+	return &Time{
+		Time:   result,
+		Config: &Config{
+			WeekStartDay:  time.Monday,
+			TimeLocation: time.Local,
+			TimeFormats:  nil,
+			Monotonic:    now,
+		},
+	}
 }
 
 func EndOfHour() *Time {
