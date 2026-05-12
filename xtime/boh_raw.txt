@@ -1,2 +1,0 @@
-PASS
-ok  	github.com/lazygophers/utils	0.282s
