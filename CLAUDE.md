@@ -6,7 +6,7 @@ Go 工具库，模块路径 `github.com/lazygophers/utils`，Go 1.26.2。
 
 - 根包 `utils`：`Must()`, `MustSuccess()`, `MustOk()`, `Value()`, `Scan()`
 - 每个子目录 = 独立 Go package（如 `candy/`, `xtime/`, `cache/lru/`）
-- `cache/` 下有 11 个子算法包（alfu, arc, fbr, lfu, lru, lruk, mru, optimal, slru, tinylfu, wtinylfu）
+- `cache/` 下有 10 个子算法包（alfu, arc, fbr, lfu, lru, lruk, mru, slru, tinylfu, wtinylfu）
 - `docs/` 是 Rspress 多语言文档站（zh-CN 默认 + zh-TW + en）
 
 ## 常用命令
