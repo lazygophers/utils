@@ -104,6 +104,7 @@ func (t *Tag) Match(target *Tag) bool {
 }
 
 // IsRTL reports whether the language is written right-to-left.
+// Covers the 10 well-known RTL languages; not derived from CLDR data.
 func (t *Tag) IsRTL() bool {
 	b, _ := t.underlying.Base()
 	switch b.String() {
@@ -144,17 +145,14 @@ func ParseAcceptLanguage(header string) []*Tag {
 		q := 1.0
 		skip := false
 		if len(seg) == 2 {
-			for _, param := range strings.Split(seg[1], ";") {
-				param = strings.TrimSpace(param)
-				if strings.HasPrefix(param, "q=") {
-					if v, err := strconv.ParseFloat(param[2:], 64); err == nil {
-						if v <= 0 {
-							skip = true
-						} else if v <= 1 {
-							q = v
-						}
+			param := strings.TrimSpace(seg[1])
+			if strings.HasPrefix(param, "q=") {
+				if v, err := strconv.ParseFloat(param[2:], 64); err == nil {
+					if v <= 0 {
+						skip = true
+					} else if v <= 1 {
+						q = v
 					}
-					break
 				}
 			}
 		}
@@ -193,10 +191,7 @@ func Detect(header string, supported []*Tag) (*Tag, int) {
 		return supported[0], 0
 	}
 
-	xtags := make([]xlanguage.Tag, len(supported))
-	for i, s := range supported {
-		xtags[i] = s.underlying
-	}
+	xtags := toXTags(supported)
 
 	matcher := xlanguage.NewMatcher(xtags)
 	_, idx, _ := matcher.Match(toXTags(parsed)...)
