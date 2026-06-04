@@ -43,6 +43,7 @@ ehthumbs.db
 graphify-out/
 .trellis/
 trellis/
+.worktrees/
 trellis-*
 /.claude/settings.local.json
 
