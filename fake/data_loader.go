@@ -1,15 +1,9 @@
 package fake
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/fs"
-	"path"
-	"strings"
 	"sync"
 )
-
-// dataFS 现在通过 data_fs.go 中的 DataFS 变量提供
 
 // DataItem 数据项结构
 type DataItem struct {
@@ -30,8 +24,8 @@ type DataSet struct {
 
 // DataManager 数据管理器
 type DataManager struct {
-	cache sync.Map // map[string]*DataSet
-	mu    sync.RWMutex
+	registered map[string]*DataSet
+	mu         sync.RWMutex
 }
 
 var (
@@ -42,39 +36,33 @@ var (
 // getDataManager 获取全局数据管理器实例
 func getDataManager() *DataManager {
 	dataManagerOnce.Do(func() {
-		dataManager = &DataManager{}
+		dataManager = &DataManager{
+			registered: make(map[string]*DataSet),
+		}
 	})
 	return dataManager
+}
+
+// registerDataSet registers a data set directly (used by data_xx.go init functions)
+func registerDataSet(lang, dataType, subType string, ds *DataSet) {
+	dm := getDataManager()
+	key := fmt.Sprintf("%s:%s:%s", lang, dataType, subType)
+	dm.registered[key] = ds
 }
 
 // LoadDataSet 加载指定的数据集
 func (dm *DataManager) LoadDataSet(language Language, dataType, subType string) (*DataSet, error) {
 	key := fmt.Sprintf("%s:%s:%s", language, dataType, subType)
 
-	// 尝试从缓存获取
-	if cached, ok := dm.cache.Load(key); ok {
-		return cached.(*DataSet), nil
+	dm.mu.RLock()
+	ds, ok := dm.registered[key]
+	dm.mu.RUnlock()
+
+	if !ok {
+		return nil, fmt.Errorf("data set not found: %s", key)
 	}
 
-	// 构建文件路径
-	filePath := path.Join("data", string(language), dataType, subType+".json")
-
-	// 读取嵌入的文件
-	data, err := fs.ReadFile(DataFS, filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read data file %s: %w", filePath, err)
-	}
-
-	// 解析JSON
-	var dataSet DataSet
-	if err := json.Unmarshal(data, &dataSet); err != nil {
-		return nil, fmt.Errorf("failed to parse data file %s: %w", filePath, err)
-	}
-
-	// 存入缓存
-	dm.cache.Store(key, &dataSet)
-
-	return &dataSet, nil
+	return ds, nil
 }
 
 // GetItems 获取指定数据集的所有条目
@@ -116,7 +104,7 @@ func (dm *DataManager) GetWeightedItems(language Language, dataType, subType str
 		values[i] = item.Value
 		weight := item.Weight
 		if weight == 0 {
-			weight = 1.0 // 默认权重
+			weight = 1.0
 		}
 		weights[i] = weight
 	}
@@ -144,99 +132,16 @@ func (dm *DataManager) GetItemsByTag(language Language, dataType, subType, tag s
 	return filtered, nil
 }
 
-// ClearCache 清空数据缓存
-func (dm *DataManager) ClearCache() {
-	dm.cache.Range(func(key, value interface{}) bool {
-		dm.cache.Delete(key)
-		return true
-	})
-}
-
 // ListAvailableDataSets 列出可用的数据集
-func (dm *DataManager) ListAvailableDataSets() ([]string, error) {
+func (dm *DataManager) ListAvailableDataSets() []string {
+	dm.mu.RLock()
+	defer dm.mu.RUnlock()
+
 	var dataSets []string
-
-	// 读取所有支持的语言目录
-	for _, lang := range GetSupportedLanguages() {
-		langDir := path.Join("data", string(lang))
-
-		entries, err := fs.ReadDir(DataFS, langDir)
-		if err != nil {
-			continue // 跳过不存在的语言目录
-		}
-
-		for _, entry := range entries {
-			if entry.IsDir() {
-				dataType := entry.Name()
-
-				// 读取数据类型目录
-				typeDir := path.Join(langDir, dataType)
-				subEntries, err := fs.ReadDir(DataFS, typeDir)
-				if err != nil {
-					continue
-				}
-
-				for _, subEntry := range subEntries {
-					if !subEntry.IsDir() && strings.HasSuffix(subEntry.Name(), ".json") {
-						subType := strings.TrimSuffix(subEntry.Name(), ".json")
-						dataSetName := fmt.Sprintf("%s:%s:%s", lang, dataType, subType)
-						dataSets = append(dataSets, dataSetName)
-					}
-				}
-			}
-		}
+	for key := range dm.registered {
+		dataSets = append(dataSets, key)
 	}
-
-	return dataSets, nil
-}
-
-// PreloadData 预加载指定语言的所有数据
-func (dm *DataManager) PreloadData(language Language) error {
-	langDir := path.Join("data", string(language))
-
-	entries, err := dataFS.ReadDir(langDir)
-	if err != nil {
-		return fmt.Errorf("language %s not supported: %w", language, err)
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			dataType := entry.Name()
-
-			typeDir := path.Join(langDir, dataType)
-			subEntries, err := fs.ReadDir(DataFS, typeDir)
-			if err != nil {
-				continue
-			}
-
-			for _, subEntry := range subEntries {
-				if !subEntry.IsDir() && strings.HasSuffix(subEntry.Name(), ".json") {
-					subType := strings.TrimSuffix(subEntry.Name(), ".json")
-
-					// 预加载数据集
-					_, err := dm.LoadDataSet(language, dataType, subType)
-					if err != nil {
-						return fmt.Errorf("failed to preload %s:%s:%s: %w", language, dataType, subType, err)
-					}
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-// GetCacheStats 获取缓存统计信息
-func (dm *DataManager) GetCacheStats() map[string]int {
-	count := 0
-	dm.cache.Range(func(key, value interface{}) bool {
-		count++
-		return true
-	})
-
-	return map[string]int{
-		"cached_datasets": count,
-	}
+	return dataSets
 }
 
 // 快速访问函数
