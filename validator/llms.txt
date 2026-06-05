@@ -1,0 +1,146 @@
+# validator
+
+Go 数据验证库。包路径：`github.com/lazygophers/utils/validator`。
+
+## 功能
+
+提供结构体字段验证引擎，支持自定义验证器、多语言错误消息、银行卡/身份证/邮箱/手机号等内置验证。
+
+## 快速开始
+
+```go
+import "github.com/lazygophers/utils/validator"
+
+// 结构体标签验证
+type User struct {
+    Name  string `validate:"required,min=1,max=100"`
+    Email string `validate:"required,email"`
+    Age   int    `validate:"min=0,max=150"`
+    Phone string `validate:"required,mobile"`
+}
+
+err := validator.Struct(user)
+
+// 单字段验证
+err := validator.Var(field, "required,email")
+
+// 获取默认验证器实例
+v := validator.Default()
+
+// 自定义配置
+v, err := validator.New(
+    validator.WithLocale("zh"),
+    validator.WithUseJSON(true),
+)
+```
+
+## 核心类型
+
+### Validator
+
+主验证器。通过 `New()` 创建或 `Default()` 获取单例。
+
+```go
+v, _ := validator.New(validator.WithLocale("en"))
+err := v.Struct(myStruct)
+err := v.Var(field, "required,email")
+```
+
+### Engine
+
+验证引擎。管理验证器注册和执行。适合需要多实例、隔离验证规则的高级场景。
+
+```go
+e := validator.NewEngine()
+e.RegisterValidation("custom", myValidatorFunc)
+```
+
+### Option
+
+配置函数。`WithLocale`、`WithUseJSON`、`WithTranslations`、`WithCustomValidator`、`WithConfig`。
+
+## 内置验证标签
+
+| 标签 | 说明 |
+|------|------|
+| `required` | 非零值 |
+| `email` | 邮箱格式 |
+| `url` | URL 格式 |
+| `mobile` | 手机号（中国大陆 11 位） |
+| `bankcard` | 银行卡号（Luhn 校验） |
+| `idcard` | 身份证号（18 位，含校验位） |
+| `alpha` | 纯字母 |
+| `alphanum` | 字母+数字 |
+| `min=N` | 最小值/最小长度 |
+| `max=N` | 最大值/最大长度 |
+| `len=N` | 精确长度 |
+| `minlen=N` | 最小长度 |
+| `maxlen=N` | 最大长度 |
+| `range=min,max` | 数值范围 |
+| `in=v1,v2,...` | 枚举值 |
+| `notin=v1,v2,...` | 排除枚举 |
+| `pattern=regex` | 正则匹配 |
+| `containspecial` | 包含特殊字符 |
+| `strong_password` | 强密码（大小写+数字+特殊字符） |
+
+## 自定义验证器
+
+```go
+// 函数签名
+type ValidatorFunc func(fl FieldLevel) bool
+
+// 注册
+validator.RegisterValidation("mytag", func(fl validator.FieldLevel) bool {
+    return fl.Field().String() != "bad"
+})
+
+// 组合逻辑
+combined := validator.And(validator.Required(), validator.MinLength(5))
+either := validator.Or(validator.Email(), validator.Pattern(`^\d+$`))
+negated := validator.Not(validator.In("a", "b"))
+```
+
+## 多语言
+
+支持语言：`en`（默认）、`zh`、`zh-TW`、`ja`、`ko`、`ar`、`de`、`es`、`fr`、`it`、`pt`、`ru`。
+
+```go
+validator.SetLocale("zh")  // 全局设置
+v, _ := validator.New(validator.WithLocale("ja"))  // 实例级别
+
+// 自定义翻译
+validator.RegisterTranslation("zh", "required", "此字段为必填项")
+```
+
+## 错误处理
+
+```go
+err := validator.Struct(user)
+if err != nil {
+    if ve, ok := err.(validator.ValidationErrors); ok {
+        for _, fe := range ve {
+            fmt.Printf("field: %s, tag: %s, value: %v\n", fe.Field(), fe.Tag(), fe.Value())
+        }
+    }
+}
+```
+
+## 性能
+
+内置多种算法变体用于关键验证（银行卡 Luhn、身份证校验、邮箱格式），通过基准测试对比选择最优实现。
+
+## 文件结构
+
+| 文件 | 职责 |
+|------|------|
+| `validator.go` | Validator 主结构、Option、公共 API |
+| `engine.go` | Engine 验证引擎、FieldLevel/StructLevel 接口、验证器注册 |
+| `types.go` | FieldError、ValidationErrors 类型 |
+| `options.go` | Option 函数、Config 类型 |
+| `messages.go` | 默认错误消息 |
+| `locale.go` | 多语言注册与查询 |
+| `locale_*.go` | 各语言翻译 |
+| `custom_validators.go` | 内置验证器实现（email/mobile/bankcard 等） |
+| `bankcard_variants.go` | 银行卡 Luhn 多算法变体 |
+| `format_variants.go` | 消息格式化多实现变体 |
+| `idcard18_variants.go` | 身份证 18 位多算法变体 |
