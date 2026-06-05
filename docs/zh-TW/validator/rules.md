@@ -29,15 +29,6 @@ Validator 內建豐富的驗證標籤，覆蓋常見校驗場景。
 | `maxlen=N` | 最大長度 | `validate:"maxlen=20"` |
 | `range=min,max` | 數值範圍 | `validate:"range=0.0,5.0"` |
 
-## 中國特色
-
-| 標籤 | 說明 | 範例 |
-|------|------|------|
-| `mobile` | 手機號（11 位） | `validate:"mobile"` |
-| `bankcard` | 銀行卡號（Luhn） | `validate:"bankcard"` |
-| `idcard` | 身分證號（18 位） | `validate:"idcard"` |
-| `chinese_name` | 中文姓名 | `validate:"chinese_name"` |
-
 ## 集合/模式
 
 | 標籤 | 說明 | 範例 |

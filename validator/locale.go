@@ -162,10 +162,6 @@ func init() {
 			"excluded_without_all": "{field} is excluded when none of {param} are present",
 
 			// 自定义验证规则
-			"mobile":          "{field} must be a valid mobile phone number",
-			"idcard":          "{field} must be a valid ID card number",
-			"bankcard":        "{field} must be a valid bank card number",
-			"chinese_name":    "{field} must be a valid Chinese name",
 			"strong_password": "{field} must be a strong password (at least 8 characters with uppercase, lowercase, numbers, and special characters)",
 		},
 	})

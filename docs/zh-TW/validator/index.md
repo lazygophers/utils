@@ -21,9 +21,7 @@ type User struct {
     Name     string `validate:"required,min=2,max=50"`
     Email    string `validate:"required,email"`
     Age      int    `validate:"min=0,max=150"`
-    Phone    string `validate:"required,mobile"`
-    BankCard string `validate:"required,bankcard"`
-    IDCard   string `validate:"required,idcard"`
+    Password string `validate:"required,strong_password"`
 }
 
 err := validator.Struct(&user)

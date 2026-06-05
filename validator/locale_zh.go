@@ -100,10 +100,6 @@ func init() {
 			"excluded_without_all": "当不存在任何{param}时，{field}不能存在",
 
 			// 自定义验证规则
-			"mobile":          "{field}必须是有效的手机号码",
-			"idcard":          "{field}必须是有效的身份证号码",
-			"bankcard":        "{field}必须是有效的银行卡号",
-			"chinese_name":    "{field}必须是有效的中文姓名",
 			"strong_password": "{field}必须是强密码（至少8位，包含大写字母、小写字母、数字和特殊字符）",
 		},
 	})
@@ -207,10 +203,6 @@ func init() {
 			"excluded_without_all": "当不存在任何{param}时，{field}不能存在",
 
 			// 自定义验证规则
-			"mobile":          "{field}必须是有效的手机号码",
-			"idcard":          "{field}必须是有效的身份证号码",
-			"bankcard":        "{field}必须是有效的银行卡号",
-			"chinese_name":    "{field}必须是有效的中文姓名",
 			"strong_password": "{field}必须是强密码（至少8位，包含大写字母、小写字母、数字和特殊字符）",
 		},
 	})

@@ -167,45 +167,6 @@ func BenchmarkValidate_CustomValidator(b *testing.B) {
 		b.Fatalf("Failed to create validator: %v", err)
 	}
 
-	b.Run("Mobile", func(b *testing.B) {
-		type Form struct {
-			Phone string `validate:"mobile"`
-		}
-		form := Form{Phone: "13812345678"}
-
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			_ = v.Struct(form)
-		}
-	})
-
-	b.Run("IDCard", func(b *testing.B) {
-		type Form struct {
-			IDCard string `validate:"idcard"`
-		}
-		form := Form{IDCard: "11010119800101123X"}
-
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			_ = v.Struct(form)
-		}
-	})
-
-	b.Run("ChineseName", func(b *testing.B) {
-		type Form struct {
-			Name string `validate:"chinese_name"`
-		}
-		form := Form{Name: "张三"}
-
-		b.ResetTimer()
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			_ = v.Struct(form)
-		}
-	})
-
 	b.Run("StrongPassword", func(b *testing.B) {
 		type Form struct {
 			Password string `validate:"strong_password"`
@@ -314,14 +275,12 @@ func BenchmarkValidate_ChineseMessage(b *testing.B) {
 	type User struct {
 		Name  string `json:"name" validate:"required,min=2"`
 		Email string `json:"email" validate:"required,email"`
-		Phone string `json:"phone" validate:"mobile"`
 	}
 
 	// 使用无效数据触发中文错误消息
 	user := User{
 		Name:  "",
 		Email: "invalid",
-		Phone: "123",
 	}
 
 	b.ResetTimer()

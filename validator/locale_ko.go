@@ -102,10 +102,6 @@ func init() {
 			"excluded_without_all": "모든 {param}이 없을 때 {field}은(는) 있으면 안 됩니다",
 
 			// 사용자 정의 검증 규칙
-			"mobile":          "{field}은(는) 유효한 휴대폰 번호여야 합니다",
-			"idcard":          "{field}은(는) 유효한 신분증 번호여야 합니다",
-			"bankcard":        "{field}은(는) 유효한 은행 카드 번호여야 합니다",
-			"chinese_name":    "{field}은(는) 유효한 중국 이름이어야 합니다",
 			"strong_password": "{field}은(는) 강력한 비밀번호여야 합니다 (8자 이상, 대문자, 소문자, 숫자, 특수문자 포함)",
 		},
 	})

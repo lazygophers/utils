@@ -10,8 +10,6 @@ Built-in algorithm variants benchmarked to select optimal implementation:
 
 | Validation | Optimization |
 |------------|-------------|
-| Bank card | 12 Luhn variants (byte-level, lookup table, branchless, etc.) |
-| ID card | 9 checksum variants |
 | Message formatting | 5 template implementations (original/builder/compiled/byte-slice/no-fmt) |
 | Email | Multiple regex/non-regex approaches compared |
 

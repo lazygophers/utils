@@ -29,15 +29,6 @@ Rich set of built-in validation tags covering common scenarios.
 | `maxlen=N` | Max length | `validate:"maxlen=20"` |
 | `range=min,max` | Numeric range | `validate:"range=0.0,5.0"` |
 
-## China-Specific
-
-| Tag | Description | Example |
-|-----|-------------|---------|
-| `mobile` | Phone number (11 digits) | `validate:"mobile"` |
-| `bankcard` | Bank card (Luhn) | `validate:"bankcard"` |
-| `idcard` | ID card (18 digits) | `validate:"idcard"` |
-| `chinese_name` | Chinese name | `validate:"chinese_name"` |
-
 ## Collection / Pattern
 
 | Tag | Description | Example |

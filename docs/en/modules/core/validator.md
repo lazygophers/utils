@@ -207,16 +207,13 @@ type Event struct {
 
 ```go
 type User struct {
-    Mobile  string `validate:"required,mobile"`
-    IDCard  string `validate:"required,idcard"`
-    BankCard string `validate:"required,bankcard"`
-    Name    string `validate:"required,chinese_name"`
     Email   string `validate:"required,email"`
     URL     string `validate:"required,url"`
     IP      string `validate:"required,ipv4"`
     MAC     string `validate:"required,mac"`
     JSON    string `validate:"required,json"`
     UUID    string `validate:"required,uuid"`
+    Password string `validate:"required,strong_password"`
 }
 ```
 
@@ -228,11 +225,8 @@ type User struct {
 
 ```go
 type User struct {
-    Name     string `validate:"required,min=2,max=50,chinese_name"`
+    Name     string `validate:"required,min=2,max=50"`
     Email    string `validate:"required,email"`
-    Mobile   string `validate:"required,mobile"`
-    IDCard   string `validate:"required,idcard"`
-    BankCard string `validate:"required,bankcard"`
     Age      int    `validate:"required,min=18,max=120"`
     Password string `validate:"required,min=8,strong_password"`
 }

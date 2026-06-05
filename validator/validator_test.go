@@ -12,8 +12,6 @@ import (
 type TestUser struct {
 	Name     string `json:"name" validate:"required,min=2"`
 	Email    string `json:"email" validate:"required,email"`
-	Phone    string `json:"phone" validate:"mobile"`
-	IDCard   string `json:"id_card" validate:"idcard"`
 	Password string `json:"password" validate:"strong_password"`
 }
 
@@ -25,10 +23,8 @@ func TestValidatorBasic(t *testing.T) {
 
 	// 测试有效数据
 	validUser := TestUser{
-		Name:     "张三",
+		Name:     "test",
 		Email:    "test@example.com",
-		Phone:    "13812345678",
-		IDCard:   "11010119800101123X",
 		Password: "MyPass123!",
 	}
 
@@ -44,8 +40,6 @@ func TestValidatorErrors(t *testing.T) {
 	invalidUser := TestUser{
 		Name:     "",
 		Email:    "invalid",
-		Phone:    "123",
-		IDCard:   "invalid",
 		Password: "weak",
 	}
 
@@ -94,19 +88,11 @@ func TestValidatorVar(t *testing.T) {
 	v, err := New()
 	require.NoError(t, err)
 
-	// 测试手机号
-	err1 := v.Var("13812345678", "mobile")
+	err1 := v.Var("test@example.com", "email")
 	assert.NoError(t, err1)
 
-	err2 := v.Var("123", "mobile")
+	err2 := v.Var("invalid", "email")
 	assert.Error(t, err2)
-
-	// 测试身份证
-	err3 := v.Var("11010119800101123X", "idcard")
-	assert.NoError(t, err3)
-
-	err4 := v.Var("invalid", "idcard")
-	assert.Error(t, err4)
 }
 
 // Validation Errors Tests
@@ -256,37 +242,12 @@ func TestAllCustomValidators(t *testing.T) {
 		tag      string
 		expected bool
 	}{
-		// 手机号
-		{"valid mobile 1", "13812345678", "mobile", true},
-		{"valid mobile 2", "15912345678", "mobile", true},
-		{"invalid mobile 1", "123456", "mobile", false},
-		{"invalid mobile 2", "", "mobile", false},
-
-		// 身份证
-		{"valid idcard 15", "110101800101123", "idcard", true},
-		{"valid idcard 18", "11010119800101123X", "idcard", true},
-		{"invalid idcard", "123", "idcard", false},
-
 		// 强密码
 		{"strong password 1", "MyPass123!", "strong_password", true},
 		{"strong password 2", "Complex1@", "strong_password", true},
 		{"weak password 1", "123456", "strong_password", false},
 		{"weak password 2", "password", "strong_password", false},
 		{"weak password 3", "12345", "strong_password", false}, // 长度不够
-
-		// 中文姓名
-		{"chinese name 1", "张三", "chinese_name", true},
-		{"chinese name 2", "李四", "chinese_name", true},
-		{"chinese name with dot", "阿·布", "chinese_name", true},
-		{"invalid chinese name 1", "John", "chinese_name", false},
-		{"invalid chinese name 2", "", "chinese_name", false},
-		{"invalid chinese name 3", "a", "chinese_name", false},
-
-		// 银行卡
-		{"valid bankcard", "4111111111111111", "bankcard", true},
-		{"invalid bankcard 1", "123456", "bankcard", false},
-		{"invalid bankcard 2", "", "bankcard", false},
-		{"invalid bankcard 3", "abc", "bankcard", false},
 	}
 
 	v, err := New()
@@ -304,66 +265,13 @@ func TestAllCustomValidators(t *testing.T) {
 	}
 }
 
-func TestCustomValidators(t *testing.T) {
-	v, err := New()
-	require.NoError(t, err)
-
-	// 测试中文名
-	err1 := v.Var("张三", "chinese_name")
-	assert.NoError(t, err1)
-
-	err2 := v.Var("John", "chinese_name")
-	assert.Error(t, err2)
-
-	// 测试银行卡 - 使用一个符合Luhn算法的测试卡号
-	err3 := v.Var("4111111111111111", "bankcard")
-	assert.NoError(t, err3)
-
-	err4 := v.Var("123456", "bankcard")
-	assert.Error(t, err4)
-}
-
 func TestCustomValidatorEdgeCases(t *testing.T) {
 	v, err := New()
 	require.NoError(t, err)
 
-	// 测试银行卡验证的边界情况
-	err1 := v.Var("123456789012", "bankcard") // 太短
-	assert.Error(t, err1)
-
-	err2 := v.Var("12345678901234567890", "bankcard") // 太长
-	assert.Error(t, err2)
-
-	err3 := v.Var("123456789012345a", "bankcard") // 包含字母
-	assert.Error(t, err3)
-
-	// 测试 Luhn 算法的错误情况
-	assert.False(t, luhnCheck("123a"))
-
-	// 测试手机号的边界情况
-	err4 := v.Var("", "mobile")
-	assert.Error(t, err4)
-
-	err5 := v.Var("12345678901", "mobile") // 不是1开头的正确格式
-	assert.Error(t, err5)
-
-	// 测试身份证边界情况
-	err6 := v.Var("", "idcard")
-	assert.Error(t, err6)
-
-	err7 := v.Var("1234", "idcard") // 太短
-	assert.Error(t, err7)
-
 	// 测试强密码边界情况
-	err8 := v.Var("1234567", "strong_password") // 太短
-	assert.Error(t, err8)
-
-	// 测试中文姓名边界情况
-	err9 := v.Var("", "chinese_name")
-	assert.Error(t, err9)
-
-	err10 := v.Var("a", "chinese_name") // 非中文
-	assert.Error(t, err10)
+	err1 := v.Var("1234567", "strong_password") // 太短
+	assert.Error(t, err1)
 }
 
 // Options and Configuration Tests
@@ -615,7 +523,7 @@ func TestLocaleMessages(t *testing.T) {
 func TestCustomRulesInAllLocales(t *testing.T) {
 	t.Skip("Skipping multi-language test - requires all locale files to be available")
 
-	customRules := []string{"mobile", "idcard", "bankcard", "chinese_name", "strong_password"}
+	customRules := []string{"strong_password"}
 	locales := []string{"en", "zh", "zh-CN", "zh-TW", "ja", "ko", "fr", "es", "ar", "ru", "it", "pt", "de"}
 
 	for _, locale := range locales {
@@ -631,58 +539,5 @@ func TestCustomRulesInAllLocales(t *testing.T) {
 				}
 			}
 		})
-	}
-}
-
-// TestIDCardChecksum 测试validateIDCardChecksum函数
-func TestIDCardChecksum(t *testing.T) {
-	// 测试17位身份证（应该返回false）
-	shortID := "110101900101123"
-	assert.False(t, validateIDCardChecksum(shortID))
-
-	// 测试19位身份证（应该返回false）
-	longID := "1101011990010112345"
-	assert.False(t, validateIDCardChecksum(longID))
-
-	// 测试包含字母的身份证（应该返回false）
-	alphaID := "11010119900101123A"
-	assert.False(t, validateIDCardChecksum(alphaID))
-
-	// 测试无效的校验码计算
-	// 这个测试确保函数的计算逻辑被覆盖
-	// 由于我们不需要实际计算正确的校验码，我们可以直接测试函数的计算分支
-	// 使用一个简单的18位数字，其中前17位都是1，这样计算会比较简单
-	testID := "111111111111111111"
-	result := validateIDCardChecksum(testID)
-	// 无论结果如何，我们只需要确保函数执行了计算分支
-	assert.IsType(t, bool(result), result)
-}
-
-// TestLuhnCheck 测试luhnCheck函数
-func TestLuhnCheck(t *testing.T) {
-	// 测试有效的Luhn数字
-	validNumbers := []string{
-		"4111111111111111", // 有效的Visa卡
-		"5555555555554444", // 有效的Mastercard
-		"378282246310005",  // 有效的American Express
-		"0",                // 特殊情况：单个0
-		"1234567890123452", // 示例数字
-	}
-
-	for _, num := range validNumbers {
-		assert.True(t, luhnCheck(num))
-	}
-
-	// 测试无效的Luhn数字
-	invalidNumbers := []string{
-		"4111111111111112", // 无效的Visa卡
-		"5555555555554445", // 无效的Mastercard
-		"1234567890123456", // 无效的示例数字
-		"1",                // 单个1
-		"abc123",           // 包含字母
-	}
-
-	for _, num := range invalidNumbers {
-		assert.False(t, luhnCheck(num))
 	}
 }

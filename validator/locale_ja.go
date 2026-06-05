@@ -102,10 +102,6 @@ func init() {
 			"excluded_without_all": "いずれの{param}も存在しない場合、{field}は存在してはいけません",
 
 			// カスタム検証ルール
-			"mobile":          "{field}は有効な携帯電話番号である必要があります",
-			"idcard":          "{field}は有効なIDカード番号である必要があります",
-			"bankcard":        "{field}は有効な銀行カード番号である必要があります",
-			"chinese_name":    "{field}は有効な中国名である必要があります",
 			"strong_password": "{field}は強力なパスワードである必要があります（8文字以上で大文字、小文字、数字、特殊文字を含む）",
 		},
 	})

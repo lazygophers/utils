@@ -102,10 +102,6 @@ func init() {
 			"excluded_without_all": "當不存在任何{param}時，{field}不能存在",
 
 			// 自定義驗證規則
-			"mobile":          "{field}必須是有效的手機號碼",
-			"idcard":          "{field}必須是有效的身份證號碼",
-			"bankcard":        "{field}必須是有效的銀行卡號",
-			"chinese_name":    "{field}必須是有效的中文姓名",
 			"strong_password": "{field}必須是強密碼（至少8位，包含大寫字母、小寫字母、數字和特殊字符）",
 		},
 	})

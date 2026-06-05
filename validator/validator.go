@@ -270,26 +270,6 @@ func (v *Validator) structFieldNameFunc(field reflect.StructField) string {
 
 // registerDefaultValidators 注册默认验证器
 func (v *Validator) registerDefaultValidators() error {
-	// 注册自定义手机号验证
-	if err := v.RegisterValidation("mobile", validateMobile); err != nil {
-		return fmt.Errorf("failed to register mobile validator: %w", err)
-	}
-
-	// 注册自定义身份证验证
-	if err := v.RegisterValidation("idcard", validateIDCard); err != nil {
-		return fmt.Errorf("failed to register idcard validator: %w", err)
-	}
-
-	// 注册自定义银行卡验证
-	if err := v.RegisterValidation("bankcard", validateBankCard); err != nil {
-		return fmt.Errorf("failed to register bankcard validator: %w", err)
-	}
-
-	// 注册中文名称验证
-	if err := v.RegisterValidation("chinese_name", validateChineseName); err != nil {
-		return fmt.Errorf("failed to register chinese_name validator: %w", err)
-	}
-
 	// 注册强密码验证
 	if err := v.RegisterValidation("strong_password", validateStrongPassword); err != nil {
 		return fmt.Errorf("failed to register strong_password validator: %w", err)

@@ -102,10 +102,6 @@ func init() {
 			"excluded_without_all": "{field} está excluido cuando ninguno de los {param} está presente",
 
 			// Reglas de validación personalizadas
-			"mobile":          "{field} debe ser un número de teléfono móvil válido",
-			"idcard":          "{field} debe ser un número de tarjeta de identidad válido",
-			"bankcard":        "{field} debe ser un número de tarjeta bancaria válido",
-			"chinese_name":    "{field} debe ser un nombre chino válido",
 			"strong_password": "{field} debe ser una contraseña segura (al menos 8 caracteres con mayúsculas, minúsculas, números y caracteres especiales)",
 		},
 	})
