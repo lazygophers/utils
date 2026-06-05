@@ -27,6 +27,8 @@ make all           # clean + fmt + lint + test + build
 - 保持零分配路径和高性能基准
 - 不引入重型依赖
 - **测试文件命名**：`xxx.go` 的测试在 `xxx_test.go`，性能测试在 `xxx_benchmark_test.go`（禁止 `_coverage_test.go`、`_perf_test.go` 等变体后缀）
+- **禁止 `cmd/` 目录和 `package main`**：这是纯库项目，不包含可执行文件
+- **build tag 策略**：`en`（英文）和 `zh`（中文）的 locale 文件不加 `//go:build` tag，始终注册；其他语言（ja/ko/ar/es/fr/ru/zh-tw）保留 `//go:build lang_xx || lang_all`
 
 ## 文档维护
 
