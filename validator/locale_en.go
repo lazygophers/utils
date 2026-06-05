@@ -1,5 +1,3 @@
-//go:build lang_en || lang_all
-
 package validator
 
 // Register English language configuration
