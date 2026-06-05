@@ -681,7 +681,6 @@ func TestComplexFrequencyScenario(t *testing.T) {
 	}
 }
 
-
 func TestRemoveFromEmptyFreqList(t *testing.T) {
 	cache, err := New[string, int](1)
 	if err != nil {
@@ -693,7 +692,9 @@ func TestRemoveFromEmptyFreqList(t *testing.T) {
 
 	// Manually clear the frequency list to test the edge case
 	if freqList := cache.freqMap[1]; freqList != nil {
-		freqList.head = nil; freqList.tail = nil; freqList.size = 0 // Clear the list
+		freqList.head = nil
+		freqList.tail = nil
+		freqList.size = 0 // Clear the list
 	}
 
 	// Now try to remove the item - this should handle the empty list case
@@ -796,7 +797,9 @@ func TestDirectEvictLFUEdgeCases(t *testing.T) {
 
 	// Manually clear the frequency list to make it empty
 	if freqList := cache.freqMap[1]; freqList != nil {
-		freqList.head = nil; freqList.tail = nil; freqList.size = 0 // Clear the list but keep it non-nil
+		freqList.head = nil
+		freqList.tail = nil
+		freqList.size = 0 // Clear the list but keep it non-nil
 	}
 
 	// Now evictLFU should handle empty list gracefully

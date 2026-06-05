@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lazygophers/utils/xtime"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lazygophers/utils/xtime"
 )
 
 func TestConstants(t *testing.T) {

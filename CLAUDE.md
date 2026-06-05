@@ -26,6 +26,7 @@ make all           # clean + fmt + lint + test + build
 - 泛型优先：`candy/`, `anyx/` 等包广泛使用 Go generics
 - 保持零分配路径和高性能基准
 - 不引入重型依赖
+- **测试文件命名**：`xxx.go` 的测试在 `xxx_test.go`，性能测试在 `xxx_benchmark_test.go`（禁止 `_coverage_test.go`、`_perf_test.go` 等变体后缀）
 
 ## 文档维护
 

@@ -3,8 +3,6 @@
 package atexit
 
 import (
-	"os"
-	"syscall"
 	"testing"
 	"time"
 )

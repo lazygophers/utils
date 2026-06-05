@@ -1,6 +1,8 @@
 package candy
 
-import "testing"
+import (
+	"testing"
+)
 
 type keyByPerson struct {
 	ID      int

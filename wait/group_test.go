@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lazygophers/utils/wait"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/lazygophers/utils/wait"
 )
 
 func TestNewWorker(t *testing.T) {

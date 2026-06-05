@@ -2798,10 +2798,10 @@ func TestEnvTagCoverage(t *testing.T) {
 // 测试配置继承功能
 func TestLoadConfigWithInheritance(t *testing.T) {
 	type Config struct {
-		Name     string `json:"name" toml:"name" yaml:"name"`
-		Port     int    `json:"port" toml:"port" yaml:"port"`
-		Host     string `json:"host" toml:"host" yaml:"host"`
-		Debug    bool   `json:"debug" toml:"debug" yaml:"debug"`
+		Name     string   `json:"name" toml:"name" yaml:"name"`
+		Port     int      `json:"port" toml:"port" yaml:"port"`
+		Host     string   `json:"host" toml:"host" yaml:"host"`
+		Debug    bool     `json:"debug" toml:"debug" yaml:"debug"`
 		Features []string `json:"features" toml:"features" yaml:"features"`
 	}
 

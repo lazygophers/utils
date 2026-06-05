@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/lazygophers/log"
 	"github.com/lazygophers/utils/wait"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestReady(t *testing.T) {

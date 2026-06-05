@@ -1,12 +1,10 @@
-package defaults_test
+package defaults
 
 import (
 	"fmt"
 	"reflect"
 	"testing"
 	"time"
-
-	"github.com/lazygophers/utils/defaults"
 )
 
 // 基础类型测试结构体
@@ -74,7 +72,7 @@ type ParentStruct struct {
 // 测试基础类型默认值设置
 func TestBasicTypes(t *testing.T) {
 	var bt BasicTypes
-	defaults.SetDefaults(&bt)
+	SetDefaults(&bt)
 
 	if bt.StringField != "test_string" {
 		t.Errorf("Expected StringField to be 'test_string', got '%s'", bt.StringField)
@@ -123,7 +121,7 @@ func TestBasicTypes(t *testing.T) {
 // 测试指针类型默认值设置
 func TestPointerTypes(t *testing.T) {
 	var pt PointerTypes
-	defaults.SetDefaults(&pt)
+	SetDefaults(&pt)
 
 	if pt.StringPtr == nil || *pt.StringPtr != "ptr_string" {
 		t.Errorf("Expected StringPtr to be 'ptr_string', got %v", pt.StringPtr)
@@ -153,7 +151,7 @@ func TestPointerTypes(t *testing.T) {
 // 测试复杂类型默认值设置
 func TestComplexTypes(t *testing.T) {
 	var ct ComplexTypes
-	defaults.SetDefaults(&ct)
+	SetDefaults(&ct)
 
 	expectedSliceInt := []int{1, 2, 3, 4, 5}
 	if !reflect.DeepEqual(ct.SliceInt, expectedSliceInt) {
@@ -207,7 +205,7 @@ func TestComplexTypes(t *testing.T) {
 // 测试时间类型默认值设置
 func TestTimeTypes(t *testing.T) {
 	var tt TimeTypes
-	defaults.SetDefaults(&tt)
+	SetDefaults(&tt)
 
 	if tt.TimeNow.IsZero() {
 		t.Errorf("Expected TimeNow to be set to current time")
@@ -232,7 +230,7 @@ func TestTimeTypes(t *testing.T) {
 // 测试嵌套结构体
 func TestNestedStruct(t *testing.T) {
 	var ps ParentStruct
-	defaults.SetDefaults(&ps)
+	SetDefaults(&ps)
 
 	if ps.ID != 1 {
 		t.Errorf("Expected ID to be 1, got %d", ps.ID)
@@ -253,9 +251,9 @@ func TestNestedStruct(t *testing.T) {
 
 // 测试自定义选项
 func TestCustomOptions(t *testing.T) {
-	opts := &defaults.Options{
-		ErrorMode:      defaults.ErrorModeReturn,
-		CustomDefaults: make(map[string]defaults.DefaultFunc),
+	opts := &Options{
+		ErrorMode:      ErrorModeReturn,
+		CustomDefaults: make(map[string]DefaultFunc),
 	}
 
 	// 注册自定义默认值函数
@@ -272,7 +270,7 @@ func TestCustomOptions(t *testing.T) {
 	}
 
 	var ct CustomTest
-	err := defaults.SetDefaultsWithOptions(&ct, opts)
+	err := SetDefaultsWithOptions(&ct, opts)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -293,16 +291,16 @@ func TestErrorModes(t *testing.T) {
 	}
 
 	var it InvalidTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&it, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&it, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid int default, got nil")
 	}
 
 	// 测试 ErrorModeIgnore
 	var it2 InvalidTest
-	opts2 := &defaults.Options{ErrorMode: defaults.ErrorModeIgnore}
-	err = defaults.SetDefaultsWithOptions(&it2, opts2)
+	opts2 := &Options{ErrorMode: ErrorModeIgnore}
+	err = SetDefaultsWithOptions(&it2, opts2)
 	if err != nil {
 		t.Errorf("Expected no error with ErrorModeIgnore, got %v", err)
 	}
@@ -317,7 +315,7 @@ func TestErrorModes(t *testing.T) {
 			t.Errorf("Expected panic with ErrorModePanic, got no panic")
 		}
 	}()
-	defaults.SetDefaults(&it3) // 使用默认选项（ErrorModePanic）
+	SetDefaults(&it3) // 使用默认选项（ErrorModePanic）
 }
 
 // 测试 AllowOverwrite 选项
@@ -329,7 +327,7 @@ func TestAllowOverwrite(t *testing.T) {
 
 	// 测试不允许覆盖（默认行为）
 	ot1 := OverwriteTest{StringField: "existing", IntField: 50}
-	defaults.SetDefaults(&ot1)
+	SetDefaults(&ot1)
 	if ot1.StringField != "existing" {
 		t.Errorf("Expected StringField to remain 'existing', got '%s'", ot1.StringField)
 	}
@@ -339,8 +337,8 @@ func TestAllowOverwrite(t *testing.T) {
 
 	// 测试允许覆盖
 	ot2 := OverwriteTest{StringField: "existing", IntField: 50}
-	opts := &defaults.Options{AllowOverwrite: true}
-	defaults.SetDefaultsWithOptions(&ot2, opts)
+	opts := &Options{AllowOverwrite: true}
+	SetDefaultsWithOptions(&ot2, opts)
 	if ot2.StringField != "default_value" {
 		t.Errorf("Expected StringField to be overwritten to 'default_value', got '%s'", ot2.StringField)
 	}
@@ -352,10 +350,10 @@ func TestAllowOverwrite(t *testing.T) {
 // 测试全局自定义默认值函数
 func TestGlobalCustomDefaults(t *testing.T) {
 	// 清除之前的自定义默认值
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 
 	// 注册全局自定义默认值
-	defaults.RegisterCustomDefault("string", func() interface{} {
+	RegisterCustomDefault("string", func() interface{} {
 		return "global_custom"
 	})
 
@@ -364,13 +362,13 @@ func TestGlobalCustomDefaults(t *testing.T) {
 	}
 
 	var gt GlobalTest
-	defaults.SetDefaults(&gt)
+	SetDefaults(&gt)
 	if gt.StringField != "global_custom" {
 		t.Errorf("Expected StringField to be 'global_custom', got '%s'", gt.StringField)
 	}
 
 	// 清除自定义默认值
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 }
 
 // 测试切片和数组的逗号分隔值
@@ -382,7 +380,7 @@ func TestSliceArrayCommaSeparated(t *testing.T) {
 	}
 
 	var cst CommaSeparatedTest
-	defaults.SetDefaults(&cst)
+	SetDefaults(&cst)
 
 	expectedSliceInt := []int{10, 20, 30}
 	if !reflect.DeepEqual(cst.SliceInt, expectedSliceInt) {
@@ -408,7 +406,7 @@ func TestChannelDefaults(t *testing.T) {
 	}
 
 	var ct ChannelTest
-	defaults.SetDefaults(&ct)
+	SetDefaults(&ct)
 
 	if ct.UnbufferedChan == nil {
 		t.Errorf("Expected UnbufferedChan to be initialized")
@@ -429,8 +427,8 @@ func TestFunctionDefaults(t *testing.T) {
 	}
 
 	// 使用自定义选项设置函数默认值
-	opts := &defaults.Options{
-		CustomDefaults: map[string]defaults.DefaultFunc{
+	opts := &Options{
+		CustomDefaults: map[string]DefaultFunc{
 			"func": func() interface{} {
 				return func() string { return "test_func" }
 			},
@@ -438,7 +436,7 @@ func TestFunctionDefaults(t *testing.T) {
 	}
 
 	var ft FuncTest
-	defaults.SetDefaultsWithOptions(&ft, opts)
+	SetDefaultsWithOptions(&ft, opts)
 
 	if ft.Func == nil {
 		t.Errorf("Expected Func to be initialized")
@@ -454,8 +452,8 @@ func TestInvalidTimeFormat(t *testing.T) {
 	}
 
 	var itt InvalidTimeTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&itt, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&itt, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid time format, got nil")
 	}
@@ -468,8 +466,8 @@ func TestInvalidChannelBufferSize(t *testing.T) {
 	}
 
 	var ict InvalidChanTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&ict, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&ict, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid channel buffer size, got nil")
 	}
@@ -483,8 +481,8 @@ func TestInvalidJSONFormat(t *testing.T) {
 	}
 
 	var ijt InvalidJSONTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&ijt, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&ijt, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid JSON format, got nil")
 	}
@@ -498,7 +496,7 @@ func TestEmptySliceMapInit(t *testing.T) {
 	}
 
 	var et EmptyTest
-	defaults.SetDefaults(&et)
+	SetDefaults(&et)
 
 	if et.SliceField == nil {
 		t.Errorf("Expected SliceField to be initialized as empty slice")
@@ -524,7 +522,7 @@ func TestZeroValues(t *testing.T) {
 	}
 
 	var zt ZeroTest
-	defaults.SetDefaults(&zt)
+	SetDefaults(&zt)
 
 	if zt.StringField != "zero_string" {
 		t.Errorf("Expected StringField to be 'zero_string', got '%s'", zt.StringField)
@@ -554,7 +552,7 @@ func BenchmarkSetDefaults(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		var bs BenchmarkStruct
-		defaults.SetDefaults(&bs)
+		SetDefaults(&bs)
 	}
 }
 
@@ -573,7 +571,7 @@ func TestComplexNested(t *testing.T) {
 	}
 
 	var l1 Level1
-	defaults.SetDefaults(&l1)
+	SetDefaults(&l1)
 
 	if l1.Value != "level1" {
 		t.Errorf("Expected Level1.Value to be 'level1', got '%s'", l1.Value)
@@ -593,7 +591,7 @@ func TestNilInput(t *testing.T) {
 			t.Errorf("Expected panic for nil input, got no panic")
 		}
 	}()
-	defaults.SetDefaults(nil)
+	SetDefaults(nil)
 }
 
 // 测试无效类型
@@ -608,13 +606,13 @@ func TestUnsupportedType(t *testing.T) {
 			t.Errorf("Expected panic for unsupported type, got no panic")
 		}
 	}()
-	defaults.SetDefaults(&ut)
+	SetDefaults(&ut)
 }
 
 // 测试自定义默认值函数返回nil
 func TestCustomDefaultReturnsNil(t *testing.T) {
-	opts := &defaults.Options{
-		CustomDefaults: map[string]defaults.DefaultFunc{
+	opts := &Options{
+		CustomDefaults: map[string]DefaultFunc{
 			"string": func() interface{} {
 				return nil // 返回nil
 			},
@@ -626,7 +624,7 @@ func TestCustomDefaultReturnsNil(t *testing.T) {
 	}
 
 	var nct NilCustomTest
-	defaults.SetDefaultsWithOptions(&nct, opts)
+	SetDefaultsWithOptions(&nct, opts)
 
 	// 当自定义函数返回nil时，字段保持空值（因为if-else if逻辑）
 	if nct.StringField != "" {
@@ -636,8 +634,8 @@ func TestCustomDefaultReturnsNil(t *testing.T) {
 
 // 测试自定义默认值函数返回错误类型
 func TestCustomDefaultWrongType(t *testing.T) {
-	opts := &defaults.Options{
-		CustomDefaults: map[string]defaults.DefaultFunc{
+	opts := &Options{
+		CustomDefaults: map[string]DefaultFunc{
 			"string": func() interface{} {
 				return 123 // 返回错误类型
 			},
@@ -649,7 +647,7 @@ func TestCustomDefaultWrongType(t *testing.T) {
 	}
 
 	var wtt WrongTypeTest
-	defaults.SetDefaultsWithOptions(&wtt, opts)
+	SetDefaultsWithOptions(&wtt, opts)
 
 	// 类型不匹配时，字段保持空值（因为if-else if逻辑）
 	if wtt.StringField != "" {
@@ -664,7 +662,7 @@ func TestInterfaceJSONDefault(t *testing.T) {
 	}
 
 	var ijt InterfaceJSONTest
-	defaults.SetDefaults(&ijt)
+	SetDefaults(&ijt)
 
 	if ijt.JSONInterface == nil {
 		t.Errorf("Expected JSONInterface to be set")
@@ -699,7 +697,7 @@ func TestNonZeroNotOverwritten(t *testing.T) {
 		BoolField:  true,
 	}
 
-	defaults.SetDefaults(&nzt)
+	SetDefaults(&nzt)
 
 	// 验证非零值未被覆盖
 	if nzt.UintField != 123 {
@@ -720,8 +718,8 @@ func TestParseSliceFailed(t *testing.T) {
 	}
 
 	var ist InvalidSliceTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&ist, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&ist, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid slice format, got nil")
 	}
@@ -734,8 +732,8 @@ func TestParseArrayFailed(t *testing.T) {
 	}
 
 	var iat InvalidArrayTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&iat, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&iat, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid array format, got nil")
 	}
@@ -748,7 +746,7 @@ func TestArrayOverflow(t *testing.T) {
 	}
 
 	var aot ArrayOverflowTest
-	defaults.SetDefaults(&aot)
+	SetDefaults(&aot)
 
 	// 应该只设置前两个元素
 	expected := [2]int{1, 2}
@@ -760,10 +758,10 @@ func TestArrayOverflow(t *testing.T) {
 // 测试RegisterCustomDefault中初始化逻辑
 func TestRegisterCustomDefaultInit(t *testing.T) {
 	// 先清空以确保测试环境
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 
 	// 通过将CustomDefaults设置为nil来测试初始化逻辑
-	defaults.RegisterCustomDefault("test", func() interface{} {
+	RegisterCustomDefault("test", func() interface{} {
 		return "test_value"
 	})
 
@@ -772,14 +770,14 @@ func TestRegisterCustomDefaultInit(t *testing.T) {
 	}
 
 	var it InitTest
-	defaults.SetDefaults(&it)
+	SetDefaults(&it)
 
 	// 由于我们注册了"test"类型而不是"string"类型，所以应该使用原始值
 	if it.TestField != "original" {
 		t.Errorf("Expected TestField to be 'original', got '%s'", it.TestField)
 	}
 
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 }
 
 // 测试结构体字段错误处理
@@ -793,8 +791,8 @@ func TestStructFieldError(t *testing.T) {
 	}
 
 	var pet ParentErrorTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&pet, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&pet, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid field default, got nil")
 	}
@@ -809,13 +807,13 @@ func TestDefaultErrorMode(t *testing.T) {
 
 	var dmt DefaultModeTest
 	// 使用一个无效的ErrorMode来触发default分支
-	opts := &defaults.Options{ErrorMode: defaults.ErrorMode(999)}
+	opts := &Options{ErrorMode: ErrorMode(999)}
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("Expected panic for invalid error mode, got no panic")
 		}
 	}()
-	defaults.SetDefaultsWithOptions(&dmt, opts)
+	SetDefaultsWithOptions(&dmt, opts)
 }
 
 // 测试SetDefaultsWithOptions的nil选项
@@ -825,7 +823,7 @@ func TestSetDefaultsWithOptionsNil(t *testing.T) {
 	}
 
 	var not NilOptsTest
-	err := defaults.SetDefaultsWithOptions(&not, nil)
+	err := SetDefaultsWithOptions(&not, nil)
 	if err != nil {
 		t.Errorf("Unexpected error with nil options: %v", err)
 	}
@@ -846,13 +844,13 @@ func TestSetDefaultsError(t *testing.T) {
 			t.Errorf("Expected panic for SetDefaults error, got no panic")
 		}
 	}()
-	defaults.SetDefaults(&et)
+	SetDefaults(&et)
 }
 
 // 测试uint类型的自定义默认值函数
 func TestUintCustomDefault(t *testing.T) {
-	opts := &defaults.Options{
-		CustomDefaults: map[string]defaults.DefaultFunc{
+	opts := &Options{
+		CustomDefaults: map[string]DefaultFunc{
 			"uint": func() interface{} {
 				return uint64(999)
 			},
@@ -864,7 +862,7 @@ func TestUintCustomDefault(t *testing.T) {
 	}
 
 	var uct UintCustomTest
-	defaults.SetDefaultsWithOptions(&uct, opts)
+	SetDefaultsWithOptions(&uct, opts)
 
 	if uct.UintField != 999 {
 		t.Errorf("Expected UintField to be 999, got %d", uct.UintField)
@@ -873,8 +871,8 @@ func TestUintCustomDefault(t *testing.T) {
 
 // 测试float类型的自定义默认值函数
 func TestFloatCustomDefault(t *testing.T) {
-	opts := &defaults.Options{
-		CustomDefaults: map[string]defaults.DefaultFunc{
+	opts := &Options{
+		CustomDefaults: map[string]DefaultFunc{
 			"float": func() interface{} {
 				return float64(3.14159)
 			},
@@ -886,7 +884,7 @@ func TestFloatCustomDefault(t *testing.T) {
 	}
 
 	var fct FloatCustomTest
-	defaults.SetDefaultsWithOptions(&fct, opts)
+	SetDefaultsWithOptions(&fct, opts)
 
 	if fct.FloatField != 3.14159 {
 		t.Errorf("Expected FloatField to be 3.14159, got %f", fct.FloatField)
@@ -895,8 +893,8 @@ func TestFloatCustomDefault(t *testing.T) {
 
 // 测试bool类型的自定义默认值函数
 func TestBoolCustomDefault(t *testing.T) {
-	opts := &defaults.Options{
-		CustomDefaults: map[string]defaults.DefaultFunc{
+	opts := &Options{
+		CustomDefaults: map[string]DefaultFunc{
 			"bool": func() interface{} {
 				return true
 			},
@@ -908,7 +906,7 @@ func TestBoolCustomDefault(t *testing.T) {
 	}
 
 	var bct BoolCustomTest
-	defaults.SetDefaultsWithOptions(&bct, opts)
+	SetDefaultsWithOptions(&bct, opts)
 
 	if bct.BoolField != true {
 		t.Errorf("Expected BoolField to be true, got %v", bct.BoolField)
@@ -923,7 +921,7 @@ func TestStructUnexportedField(t *testing.T) {
 	}
 
 	var uft UnexportedFieldTest
-	defaults.SetDefaults(&uft)
+	SetDefaults(&uft)
 
 	if uft.ExportedField != "exported" {
 		t.Errorf("Expected ExportedField to be 'exported', got '%s'", uft.ExportedField)
@@ -948,8 +946,8 @@ func TestSliceElementError(t *testing.T) {
 	var set SliceErrorTest
 	set.SliceField = make([]InvalidElement, 1) // 初始化一个元素
 
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&set, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&set, opts)
 	if err == nil {
 		t.Errorf("Expected error for slice element with invalid default, got nil")
 	}
@@ -968,8 +966,8 @@ func TestArrayElementError(t *testing.T) {
 
 	var aet ArrayErrorTest
 
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&aet, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&aet, opts)
 	if err == nil {
 		t.Errorf("Expected error for array element with invalid default, got nil")
 	}
@@ -982,8 +980,8 @@ func TestMapDefaultError(t *testing.T) {
 	}
 
 	var met MapErrorTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&met, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&met, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid map JSON, got nil")
 	}
@@ -993,10 +991,10 @@ func TestMapDefaultError(t *testing.T) {
 func TestRegisterCustomDefaultNilMap(t *testing.T) {
 	// 手动将默认选项的CustomDefaults设置为nil以测试初始化逻辑
 	// 注意：这个测试可能会影响其他测试，所以我们在最后清理
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 
 	// 现在注册一个自定义默认值，这应该触发map的初始化
-	defaults.RegisterCustomDefault("string", func() interface{} {
+	RegisterCustomDefault("string", func() interface{} {
 		return "initialized"
 	})
 
@@ -1005,21 +1003,21 @@ func TestRegisterCustomDefaultNilMap(t *testing.T) {
 	}
 
 	var imt InitMapTest
-	defaults.SetDefaults(&imt)
+	SetDefaults(&imt)
 
 	if imt.StringField != "initialized" {
 		t.Errorf("Expected StringField to be 'initialized', got '%s'", imt.StringField)
 	}
 
 	// 清理
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 }
 
 // 测试自定义默认值函数返回nil和错误类型的情况（uint、float、bool）
 func TestCustomDefaultTypesNilAndWrongType(t *testing.T) {
 	// 测试uint类型返回nil
-	opts1 := &defaults.Options{
-		CustomDefaults: map[string]defaults.DefaultFunc{
+	opts1 := &Options{
+		CustomDefaults: map[string]DefaultFunc{
 			"uint": func() interface{} {
 				return nil
 			},
@@ -1031,14 +1029,14 @@ func TestCustomDefaultTypesNilAndWrongType(t *testing.T) {
 	}
 
 	var unt UintNilTest
-	defaults.SetDefaultsWithOptions(&unt, opts1)
+	SetDefaultsWithOptions(&unt, opts1)
 	if unt.UintField != 0 {
 		t.Errorf("Expected UintField to remain 0 when custom func returns nil, got %d", unt.UintField)
 	}
 
 	// 测试float类型返回错误类型
-	opts2 := &defaults.Options{
-		CustomDefaults: map[string]defaults.DefaultFunc{
+	opts2 := &Options{
+		CustomDefaults: map[string]DefaultFunc{
 			"float": func() interface{} {
 				return "not_a_float"
 			},
@@ -1050,14 +1048,14 @@ func TestCustomDefaultTypesNilAndWrongType(t *testing.T) {
 	}
 
 	var fwt FloatWrongTypeTest
-	defaults.SetDefaultsWithOptions(&fwt, opts2)
+	SetDefaultsWithOptions(&fwt, opts2)
 	if fwt.FloatField != 0 {
 		t.Errorf("Expected FloatField to remain 0 when custom func returns wrong type, got %f", fwt.FloatField)
 	}
 
 	// 测试bool类型返回错误类型
-	opts3 := &defaults.Options{
-		CustomDefaults: map[string]defaults.DefaultFunc{
+	opts3 := &Options{
+		CustomDefaults: map[string]DefaultFunc{
 			"bool": func() interface{} {
 				return 123
 			},
@@ -1069,7 +1067,7 @@ func TestCustomDefaultTypesNilAndWrongType(t *testing.T) {
 	}
 
 	var bwt BoolWrongTypeTest
-	defaults.SetDefaultsWithOptions(&bwt, opts3)
+	SetDefaultsWithOptions(&bwt, opts3)
 	if bwt.BoolField != false {
 		t.Errorf("Expected BoolField to remain false when custom func returns wrong type, got %v", bwt.BoolField)
 	}
@@ -1088,7 +1086,7 @@ func TestTypeParseErrors(t *testing.T) {
 			t.Errorf("Expected panic for uint parse error, got no panic")
 		}
 	}()
-	defaults.SetDefaults(&upet)
+	SetDefaults(&upet)
 }
 
 // 测试数组解析中的边界情况
@@ -1099,7 +1097,7 @@ func TestArrayParseBoundaries(t *testing.T) {
 	}
 
 	var abt ArrayBoundaryTest
-	defaults.SetDefaults(&abt)
+	SetDefaults(&abt)
 
 	// 数组应该只设置第一个元素
 	expected := [1]int{1}
@@ -1118,7 +1116,7 @@ func TestSetDefaultsNoError(t *testing.T) {
 
 	var net NoErrorTest
 	// 这应该成功执行，不会触发panic
-	defaults.SetDefaults(&net)
+	SetDefaults(&net)
 
 	if net.StringField != "test_value" {
 		t.Errorf("Expected StringField to be 'test_value', got '%s'", net.StringField)
@@ -1132,8 +1130,8 @@ func TestFloatParseError(t *testing.T) {
 	}
 
 	var fpet FloatParseErrorTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&fpet, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&fpet, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid float default, got nil")
 	}
@@ -1146,8 +1144,8 @@ func TestBoolParseError(t *testing.T) {
 	}
 
 	var bpet BoolParseErrorTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&bpet, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&bpet, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid bool default, got nil")
 	}
@@ -1165,8 +1163,8 @@ func TestArrayParseElementError(t *testing.T) {
 	}
 
 	var aeet ArrayElementErrorTest
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&aeet, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&aeet, opts)
 	if err == nil {
 		t.Errorf("Expected error for array element parse error, got nil")
 	}
@@ -1178,28 +1176,28 @@ func TestRegisterCustomDefaultInitMap(t *testing.T) {
 	// 但我们可以通过多次调用来确保覆盖率
 
 	// 先确保有一些自定义默认值
-	defaults.RegisterCustomDefault("test1", func() interface{} { return "value1" })
+	RegisterCustomDefault("test1", func() interface{} { return "value1" })
 
 	// 然后清空 - 这会重新初始化map
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 
 	// 直接调用多次来增加覆盖率
 	for i := 0; i < 3; i++ {
-		defaults.RegisterCustomDefault(fmt.Sprintf("test%d", i), func() interface{} {
+		RegisterCustomDefault(fmt.Sprintf("test%d", i), func() interface{} {
 			return fmt.Sprintf("value%d", i)
 		})
 	}
 
 	// 清理
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 
 	// 备用测试：确保函数可以正常工作
-	defaults.RegisterCustomDefault("final_test", func() interface{} {
+	RegisterCustomDefault("final_test", func() interface{} {
 		return "final_value"
 	})
 
 	// 清理
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 }
 
 // 测试数组解析中的边界检查分支
@@ -1213,7 +1211,7 @@ func TestArrayParseBoundaryCheck(t *testing.T) {
 	}
 
 	var bt BoundaryTest
-	defaults.SetDefaults(&bt)
+	SetDefaults(&bt)
 
 	// 应该只设置第一个元素
 	expected := [1]string{"elem1"}
@@ -1227,7 +1225,7 @@ func TestArrayParseBoundaryCheck(t *testing.T) {
 	}
 
 	var zat ZeroLengthArrayTest
-	defaults.SetDefaults(&zat)
+	SetDefaults(&zat)
 
 	// 长度为0的数组应该保持不变
 	expected0 := [0]string{}
@@ -1242,7 +1240,7 @@ func TestArrayParseBoundaryCheck(t *testing.T) {
 	}
 
 	var etc EdgeCaseTest
-	defaults.SetDefaults(&etc)
+	SetDefaults(&etc)
 
 	// 这应该产生两个空字符串元素
 	expectedEdge := [2]string{"", ""}
@@ -1258,10 +1256,10 @@ func TestArrayParseBoundaryCheck(t *testing.T) {
 // Note: This test is adapted to work without direct access to private members
 func TestRegisterCustomDefaultInitBranch(t *testing.T) {
 	// 清除当前的自定义默认值以确保干净的测试环境
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 
 	// 注册一个自定义默认值
-	defaults.RegisterCustomDefault("test_init", func() interface{} {
+	RegisterCustomDefault("test_init", func() interface{} {
 		return "initialized"
 	})
 
@@ -1271,8 +1269,8 @@ func TestRegisterCustomDefaultInitBranch(t *testing.T) {
 	}
 
 	// 使用自定义选项来测试
-	opts := &defaults.Options{
-		CustomDefaults: map[string]defaults.DefaultFunc{
+	opts := &Options{
+		CustomDefaults: map[string]DefaultFunc{
 			"test_init": func() interface{} {
 				return "initialized"
 			},
@@ -1280,24 +1278,24 @@ func TestRegisterCustomDefaultInitBranch(t *testing.T) {
 	}
 
 	var ibt InitBranchTest
-	err := defaults.SetDefaultsWithOptions(&ibt, opts)
+	err := SetDefaultsWithOptions(&ibt, opts)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
 
 	// 验证全局注册的函数确实存在（通过再次使用它）
-	defaults.RegisterCustomDefault("string", func() interface{} {
+	RegisterCustomDefault("string", func() interface{} {
 		return "global_test"
 	})
 
 	var ibt2 InitBranchTest
-	defaults.SetDefaults(&ibt2)
+	SetDefaults(&ibt2)
 	if ibt2.StringField != "global_test" {
 		t.Errorf("Expected StringField to be 'global_test', got '%s'", ibt2.StringField)
 	}
 
 	// 清理
-	defaults.ClearCustomDefaults()
+	ClearCustomDefaults()
 }
 
 // 测试SetDefaults的成功路径
@@ -1309,7 +1307,7 @@ func TestSetDefaultsSuccessPath(t *testing.T) {
 	var st SuccessTest
 
 	// 这应该成功执行，不触发panic分支
-	defaults.SetDefaults(&st)
+	SetDefaults(&st)
 
 	if st.Field != "success" {
 		t.Errorf("Expected Field to be 'success', got '%s'", st.Field)
@@ -1326,8 +1324,8 @@ func TestSetDefaultsErrorHandling(t *testing.T) {
 	var et ErrorTest
 
 	// 使用ErrorModeReturn来测试错误处理
-	opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
-	err := defaults.SetDefaultsWithOptions(&et, opts)
+	opts := &Options{ErrorMode: ErrorModeReturn}
+	err := SetDefaultsWithOptions(&et, opts)
 	if err == nil {
 		t.Errorf("Expected error for invalid int value, got nil")
 	}
@@ -1339,7 +1337,7 @@ func TestSetDefaultsErrorHandling(t *testing.T) {
 			t.Errorf("Expected panic from SetDefaults when encountering invalid value")
 		}
 	}()
-	defaults.SetDefaults(&et2) // 这应该panic
+	SetDefaults(&et2) // 这应该panic
 }
 
 // 测试数组解析中的边界条件
@@ -1350,7 +1348,7 @@ func TestArrayBoundaryConditions(t *testing.T) {
 	}
 
 	var zat ZeroArrayTest
-	defaults.SetDefaults(&zat)
+	SetDefaults(&zat)
 
 	// 零长度数组应该保持不变
 	expected := [0]string{}
@@ -1364,7 +1362,7 @@ func TestArrayBoundaryConditions(t *testing.T) {
 	}
 
 	var sat SmallArrayTest
-	defaults.SetDefaults(&sat)
+	SetDefaults(&sat)
 
 	// 应该只设置第一个元素
 	expectedSmall := [1]int{100}
@@ -1378,7 +1376,7 @@ func TestArrayBoundaryConditions(t *testing.T) {
 	}
 
 	var evat EmptyValueArrayTest
-	defaults.SetDefaults(&evat)
+	SetDefaults(&evat)
 
 	// 应该设置为空字符串
 	expectedEmpty := [2]string{"", ""}
@@ -1395,7 +1393,7 @@ func TestArrayParsingSpecialCases(t *testing.T) {
 	}
 
 	var sat SpecialArrayTest
-	defaults.SetDefaults(&sat)
+	SetDefaults(&sat)
 
 	expected := [3]string{"first", "", "third"}
 	if sat.ArrayField != expected {
@@ -1408,7 +1406,7 @@ func TestArrayParsingSpecialCases(t *testing.T) {
 	}
 
 	var iat IntArrayTest
-	defaults.SetDefaults(&iat)
+	SetDefaults(&iat)
 
 	expectedInt := [2]int{42, 84}
 	if iat.IntArray != expectedInt {
@@ -1428,7 +1426,7 @@ func TestComprehensiveBoundaryTests(t *testing.T) {
 	}
 
 	var vat VariousArrayTest
-	defaults.SetDefaults(&vat)
+	SetDefaults(&vat)
 
 	// 验证结果
 	if vat.Array1 != [0]int{} {
@@ -1463,7 +1461,7 @@ func TestSetDefaultsPanicBranch(t *testing.T) {
 	}()
 
 	// 这应该触发 panic 因为默认值无法解析
-	defaults.SetDefaults(&id)
+	SetDefaults(&id)
 }
 
 // TestConditionalDefaults 测试条件默认值功能
@@ -1475,7 +1473,7 @@ func TestConditionalDefaults(t *testing.T) {
 		}
 
 		var order Order
-		defaults.SetDefaults(&order)
+		SetDefaults(&order)
 
 		if order.UserType != "guest" {
 			t.Errorf("Expected UserType to be 'guest', got '%s'", order.UserType)
@@ -1493,7 +1491,7 @@ func TestConditionalDefaults(t *testing.T) {
 		}
 
 		var order Order
-		defaults.SetDefaults(&order)
+		SetDefaults(&order)
 
 		if order.UserType != "vip" {
 			t.Errorf("Expected UserType to be 'vip', got '%s'", order.UserType)
@@ -1511,7 +1509,7 @@ func TestConditionalDefaults(t *testing.T) {
 		}
 
 		var order Order
-		defaults.SetDefaults(&order)
+		SetDefaults(&order)
 
 		if order.UserType != "unknown" {
 			t.Errorf("Expected UserType to be 'unknown', got '%s'", order.UserType)
@@ -1530,7 +1528,7 @@ func TestConditionalDefaults(t *testing.T) {
 
 		var order Order
 		order.Discount = 99
-		defaults.SetDefaults(&order)
+		SetDefaults(&order)
 
 		if order.Discount != 99 {
 			t.Errorf("Expected Discount to remain 99, got %d", order.Discount)
@@ -1544,7 +1542,7 @@ func TestConditionalDefaults(t *testing.T) {
 		}
 
 		var config Config
-		defaults.SetDefaults(&config)
+		SetDefaults(&config)
 
 		if config.Env != "dev" {
 			t.Errorf("Expected Env to be 'dev', got '%s'", config.Env)
@@ -1562,7 +1560,7 @@ func TestConditionalDefaults(t *testing.T) {
 		}
 
 		var product Product
-		defaults.SetDefaults(&product)
+		SetDefaults(&product)
 
 		if product.Category != "electronics" {
 			t.Errorf("Expected Category to be 'electronics', got '%s'", product.Category)
@@ -1580,7 +1578,7 @@ func TestConditionalDefaults(t *testing.T) {
 		}
 
 		var user User
-		defaults.SetDefaults(&user)
+		SetDefaults(&user)
 
 		if user.Role != "admin" {
 			t.Errorf("Expected Role to be 'admin', got '%s'", user.Role)
@@ -1604,7 +1602,7 @@ func TestConditionalDefaultsEdgeCases(t *testing.T) {
 		}
 
 		var test Test
-		defaults.SetDefaults(&test)
+		SetDefaults(&test)
 
 		if test.Config != "value1" {
 			t.Errorf("Expected Config to be 'value1', got '%s'", test.Config)
@@ -1617,7 +1615,7 @@ func TestConditionalDefaultsEdgeCases(t *testing.T) {
 		}
 
 		var test Test
-		defaults.SetDefaults(&test)
+		SetDefaults(&test)
 
 		if test.Field == nil {
 			t.Error("Expected Field to be initialized")
@@ -1633,7 +1631,7 @@ func TestConditionalDefaultsEdgeCases(t *testing.T) {
 		}
 
 		var test Test
-		defaults.SetDefaults(&test)
+		SetDefaults(&test)
 
 		if test.APIEndpoint != "http://example.com/api" {
 			t.Errorf("Expected APIEndpoint to be 'http://example.com/api', got '%s'", test.APIEndpoint)
@@ -1650,7 +1648,7 @@ func TestConditionalDefaultsCoverage(t *testing.T) {
 		}
 
 		var test Test
-		defaults.SetDefaults(&test)
+		SetDefaults(&test)
 
 		if test.Level != "high" {
 			t.Errorf("Expected Level to be 'high' when Count>=5, got '%s'", test.Level)
@@ -1664,7 +1662,7 @@ func TestConditionalDefaultsCoverage(t *testing.T) {
 		}
 
 		var test Test
-		defaults.SetDefaults(&test)
+		SetDefaults(&test)
 
 		if test.Grade != "B" {
 			t.Errorf("Expected Grade to be 'B' when Score=85.5, got '%s'", test.Grade)
@@ -1678,7 +1676,7 @@ func TestConditionalDefaultsCoverage(t *testing.T) {
 		}
 
 		var test Test
-		defaults.SetDefaults(&test)
+		SetDefaults(&test)
 
 		if test.Stage != "adult" {
 			t.Errorf("Expected Stage to be 'adult' when Age>=18, got '%s'", test.Stage)
@@ -1692,7 +1690,7 @@ func TestConditionalDefaultsCoverage(t *testing.T) {
 		}
 
 		var test Test
-		defaults.SetDefaults(&test)
+		SetDefaults(&test)
 
 		if test.Label != "active" {
 			t.Errorf("Expected Label to be 'active' when Status=1, got '%s'", test.Label)
@@ -1706,7 +1704,7 @@ func TestConditionalDefaultsCoverage(t *testing.T) {
 		}
 
 		var test Test
-		defaults.SetDefaults(&test)
+		SetDefaults(&test)
 
 		if test.Role != "admin" {
 			t.Errorf("Expected Role to be 'admin' (case insensitive), got '%s'", test.Role)
@@ -1723,7 +1721,7 @@ func TestConditionalDefaultsCoverage(t *testing.T) {
 		}
 
 		var test Test
-		defaults.SetDefaults(&test)
+		SetDefaults(&test)
 
 		if test.Str != "hello" {
 			t.Errorf("Expected Str='hello', got '%s'", test.Str)
@@ -1747,12 +1745,12 @@ func TestConditionalDefaultsCoverage(t *testing.T) {
 			Field int `default:"invalid"`
 		}
 
-		opts := &defaults.Options{
-			ErrorMode: defaults.ErrorModeReturn,
+		opts := &Options{
+			ErrorMode: ErrorModeReturn,
 		}
 
 		var test Test
-		err := defaults.SetDefaultsWithOptions(&test, opts)
+		err := SetDefaultsWithOptions(&test, opts)
 
 		if err == nil {
 			t.Error("Expected error for invalid default value, got nil")
@@ -1764,15 +1762,58 @@ func TestConditionalDefaultsCoverage(t *testing.T) {
 			Field int `default:"invalid"`
 		}
 
-		opts := &defaults.Options{
-			ErrorMode: defaults.ErrorModeIgnore,
+		opts := &Options{
+			ErrorMode: ErrorModeIgnore,
 		}
 
 		var test Test
-		err := defaults.SetDefaultsWithOptions(&test, opts)
+		err := SetDefaultsWithOptions(&test, opts)
 
 		if err != nil {
 			t.Errorf("Expected no error in Ignore mode, got %v", err)
 		}
 	})
+}
+func TestIsZeroOptimization(t *testing.T) {
+	// 正确性验证
+	testCases := []struct {
+		name     string
+		value    interface{}
+		expected bool
+	}{
+		{"空字符串", "", true},
+		{"非空字符串", "hello", false},
+		{"零整数", 0, true},
+		{"非零整数", 42, false},
+		{"零浮点", 0.0, true},
+		{"非零浮点", 3.14, false},
+		{"假布尔", false, true},
+		{"真布尔", true, false},
+		{"nil指针", (*int)(nil), true},
+		{"非nil指针", new(int), false},
+		{"nil接口", interface{}(nil), true},
+		{"零值uint", uint(0), true},
+		{"非零uint", uint(42), false},
+		{"零值int8", int8(0), true},
+		{"非零int8", int8(42), false},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			v := reflect.ValueOf(tt.value)
+
+			// 验证新版本
+			newResult := isZero(v)
+			if newResult != tt.expected {
+				t.Errorf("isZero(%v) = %v, want %v", tt.value, newResult, tt.expected)
+			}
+
+			// 验证与旧版本结果一致
+			oldResult := isZeroOld(v)
+			if newResult != oldResult {
+				t.Errorf("新旧版本结果不一致: 新=%v, 旧=%v", newResult, oldResult)
+			}
+		})
+	}
+
 }

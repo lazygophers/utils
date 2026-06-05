@@ -401,11 +401,11 @@ var benchmarkFieldError = &FieldError{
 }
 
 var benchmarkTemplates = map[string]string{
-	"simple":   "{field} 格式无效",
-	"param":    "{field} 长度不能小于 {param}",
-	"value":    "{field} 的值 {value} 无效",
-	"complex":  "{field} 验证失败: {tag} (参数: {param}, 值: {value})",
-	"noplace":  "验证失败",
+	"simple":  "{field} 格式无效",
+	"param":   "{field} 长度不能小于 {param}",
+	"value":   "{field} 的值 {value} 无效",
+	"complex": "{field} 验证失败: {tag} (参数: {param}, 值: {value})",
+	"noplace": "验证失败",
 }
 
 // 方案1: 基准 - 当前实现 (strings.ReplaceAll)

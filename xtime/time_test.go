@@ -1,10 +1,9 @@
-package xtime_test
+package xtime
 
 import (
 	"testing"
 	"time"
 
-	"github.com/lazygophers/utils/xtime"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +23,7 @@ func TestParse(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				result, err := xtime.Parse(tc.input)
+				result, err := Parse(tc.input)
 				if tc.expected {
 					assert.NoError(t, err, "Should parse %s successfully", tc.input)
 					assert.NotNil(t, result, "Result should not be nil")
@@ -46,7 +45,7 @@ func TestParse(t *testing.T) {
 		}
 
 		for _, input := range invalidInputs {
-			result, err := xtime.Parse(input)
+			result, err := Parse(input)
 			// Note: The underlying now.Parse might be lenient, so we test actual behavior
 			if err != nil {
 				assert.Error(t, err, "Should error on invalid input: %s", input)
@@ -58,13 +57,13 @@ func TestParse(t *testing.T) {
 
 	t.Run("multiple_inputs", func(t *testing.T) {
 		// Test with multiple string arguments
-		result, err := xtime.Parse("2023-01-15", "14:30:00")
+		result, err := Parse("2023-01-15", "14:30:00")
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
 	})
 
 	t.Run("empty_input", func(t *testing.T) {
-		result, err := xtime.Parse("")
+		result, err := Parse("")
 		// Test actual behavior - empty string might parse to current time or error
 		if err != nil {
 			assert.Error(t, err)
@@ -78,7 +77,7 @@ func TestParse(t *testing.T) {
 func TestMustParse(t *testing.T) {
 	t.Run("valid_input", func(t *testing.T) {
 		// Test that MustParse returns valid result for good input
-		result := xtime.MustParse("2023-01-15")
+		result := MustParse("2023-01-15")
 		assert.NotNil(t, result)
 		assert.NotNil(t, result.Config)
 		assert.Equal(t, time.Monday, result.Config.WeekStartDay)
@@ -89,7 +88,7 @@ func TestMustParse(t *testing.T) {
 		// Test that MustParse panics on invalid input
 		assert.Panics(t, func() {
 			// Use a string that's definitely invalid for parsing
-			xtime.MustParse("definitely-not-a-valid-date-format-12345")
+			MustParse("definitely-not-a-valid-date-format-12345")
 		}, "MustParse should panic on invalid input")
 	})
 }
@@ -97,7 +96,7 @@ func TestMustParse(t *testing.T) {
 func TestWith(t *testing.T) {
 	t.Run("wrap_time_instance", func(t *testing.T) {
 		now := time.Now()
-		wrapped := xtime.With(now)
+		wrapped := With(now)
 
 		assert.NotNil(t, wrapped)
 		assert.Equal(t, now, wrapped.Time)
@@ -118,7 +117,7 @@ func TestWith(t *testing.T) {
 		}
 
 		for i, timeVal := range times {
-			wrapped := xtime.With(timeVal)
+			wrapped := With(timeVal)
 			assert.Equal(t, timeVal, wrapped.Time, "Time %d should be preserved", i)
 			assert.NotNil(t, wrapped.Config, "Config should be initialized for time %d", i)
 		}
@@ -126,7 +125,7 @@ func TestWith(t *testing.T) {
 
 	t.Run("zero_time", func(t *testing.T) {
 		zeroTime := time.Time{}
-		wrapped := xtime.With(zeroTime)
+		wrapped := With(zeroTime)
 
 		assert.Equal(t, zeroTime, wrapped.Time)
 		assert.NotNil(t, wrapped.Config)
@@ -137,7 +136,7 @@ func TestWith(t *testing.T) {
 func TestRandSleep(t *testing.T) {
 	t.Run("default_range", func(t *testing.T) {
 		start := time.Now()
-		xtime.RandSleep() // Should sleep for 1-3 seconds by default
+		RandSleep() // Should sleep for 1-3 seconds by default
 		elapsed := time.Since(start)
 
 		// Should sleep for at least 1 second and at most 3 seconds (with some tolerance)
@@ -148,7 +147,7 @@ func TestRandSleep(t *testing.T) {
 	t.Run("custom_single_duration", func(t *testing.T) {
 		start := time.Now()
 		maxSleep := 50 * time.Millisecond
-		xtime.RandSleep(maxSleep) // Should sleep for 0 to maxSleep
+		RandSleep(maxSleep) // Should sleep for 0 to maxSleep
 		elapsed := time.Since(start)
 
 		// Should sleep for at most maxSleep duration (with some tolerance for timing)
@@ -160,7 +159,7 @@ func TestRandSleep(t *testing.T) {
 		start := time.Now()
 		minSleep := 20 * time.Millisecond
 		maxSleep := 100 * time.Millisecond
-		xtime.RandSleep(minSleep, maxSleep)
+		RandSleep(minSleep, maxSleep)
 		elapsed := time.Since(start)
 
 		// Should sleep within the specified range (with tolerance)
@@ -182,13 +181,13 @@ func TestRandSleep(t *testing.T) {
 			assert.True(t, elapsed < 10*time.Millisecond, "Should complete quickly for zero duration")
 		}()
 
-		xtime.RandSleep(0)
+		RandSleep(0)
 	})
 
 	t.Run("multiple_durations", func(t *testing.T) {
 		// Test with more than 2 durations - should only use first two
 		start := time.Now()
-		xtime.RandSleep(10*time.Millisecond, 50*time.Millisecond, time.Second, time.Minute)
+		RandSleep(10*time.Millisecond, 50*time.Millisecond, time.Second, time.Minute)
 		elapsed := time.Since(start)
 
 		// Should use only first two parameters
@@ -199,7 +198,7 @@ func TestRandSleep(t *testing.T) {
 
 func TestConfig(t *testing.T) {
 	t.Run("default_config_values", func(t *testing.T) {
-		config := &xtime.Config{
+		config := &Config{
 			WeekStartDay: time.Monday,
 			TimeLocation: time.Local,
 			TimeFormats:  []string{},
@@ -211,7 +210,7 @@ func TestConfig(t *testing.T) {
 	})
 
 	t.Run("config_modification", func(t *testing.T) {
-		wrapped := xtime.With(time.Now())
+		wrapped := With(time.Now())
 
 		// Modify config
 		wrapped.Config.WeekStartDay = time.Sunday
@@ -228,7 +227,7 @@ func TestConfig(t *testing.T) {
 func TestTimeEmbedding(t *testing.T) {
 	t.Run("time_methods_available", func(t *testing.T) {
 		baseTime := time.Date(2023, 6, 15, 14, 30, 45, 0, time.UTC)
-		wrapped := xtime.With(baseTime)
+		wrapped := With(baseTime)
 
 		// Test that standard time.Time methods are available
 		assert.Equal(t, 2023, wrapped.Year())
@@ -245,7 +244,7 @@ func TestTimeEmbedding(t *testing.T) {
 
 	t.Run("time_formatting", func(t *testing.T) {
 		baseTime := time.Date(2023, 1, 15, 9, 30, 0, 0, time.UTC)
-		wrapped := xtime.With(baseTime)
+		wrapped := With(baseTime)
 
 		// Test formatting
 		formatted := wrapped.Format("2006-01-02 15:04:05")

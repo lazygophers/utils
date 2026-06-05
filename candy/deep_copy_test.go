@@ -1,6 +1,8 @@
 package candy
 
-import "testing"
+import (
+	"testing"
+)
 
 type deepCopyStruct struct {
 	A int
