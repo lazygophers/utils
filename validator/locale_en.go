@@ -105,6 +105,12 @@ func init() {
 				"lowercase":      "{field} must contain only lowercase letters",
 				"alphanum_upper": "{field} must contain only uppercase letters and numbers",
 				"alphanum_lower": "{field} must contain only lowercase letters and numbers",
+				"port":          "{field} must be a valid port number",
+				"http_url":      "{field} must be a valid HTTP(S) URL",
+				"https_url":     "{field} must be a valid HTTPS URL",
+				"origin":        "{field} must be a valid web origin",
+				"urn_rfc2141":   "{field} must be a valid URN (RFC 2141)",
+				"uds_exists":    "{field} must be an existing Unix domain socket",
 		},
 	})
 }

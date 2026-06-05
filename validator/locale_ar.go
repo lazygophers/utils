@@ -107,6 +107,12 @@ func init() {
 				"lowercase":      "{field} يجب أن يحتوي فقط على أحرف صغيرة",
 				"alphanum_upper": "{field} يجب أن يحتوي فقط على أحرف كبيرة وأرقام",
 				"alphanum_lower": "{field} يجب أن يحتوي فقط على أحرف صغيرة وأرقام",
+				"port":          "{field} يجب أن يكون رقم منفذ صالح",
+				"http_url":      "{field} يجب أن يكون URL HTTP(S) صالح",
+				"https_url":     "{field} يجب أن يكون URL HTTPS صالح",
+				"origin":        "{field} يجب أن يكون أصل ويب صالح",
+				"urn_rfc2141":   "{field} يجب أن يكون URN صالح (RFC 2141)",
+				"uds_exists":    "{field} يجب أن يكون مقبس نطاق Unix موجود",
 		},
 	})
 }

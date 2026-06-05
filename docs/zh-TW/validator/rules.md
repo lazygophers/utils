@@ -27,6 +27,41 @@ Validator 內建豐富的驗證標籤，覆蓋常見校驗場景。
 | `alphanum_upper` | 大寫字母 + 數字 | `validate:"alphanum_upper"` |
 | `alphanum_lower` | 小寫字母 + 數字 | `validate:"alphanum_lower"` |
 
+## 網絡與地址
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `ip` | IP 地址（v4 或 v6） | `validate:"ip"` |
+| `ipv4` | IPv4 地址 | `validate:"ipv4"` |
+| `ipv6` | IPv6 地址 | `validate:"ipv6"` |
+| `ip_addr` | IP 地址 | `validate:"ip_addr"` |
+| `ip4_addr` | IPv4 地址 | `validate:"ip4_addr"` |
+| `ip6_addr` | IPv6 地址 | `validate:"ip6_addr"` |
+| `cidr` | CIDR 記法 | `validate:"cidr"` |
+| `cidrv4` | IPv4 CIDR | `validate:"cidrv4"` |
+| `cidrv6` | IPv6 CIDR | `validate:"cidrv6"` |
+| `tcp_addr` | TCP 地址 | `validate:"tcp_addr"` |
+| `tcp4_addr` | TCPv4 地址 | `validate:"tcp4_addr"` |
+| `tcp6_addr` | TCPv6 地址 | `validate:"tcp6_addr"` |
+| `udp_addr` | UDP 地址 | `validate:"udp_addr"` |
+| `udp4_addr` | UDPv4 地址 | `validate:"udp4_addr"` |
+| `udp6_addr` | UDPv6 地址 | `validate:"udp6_addr"` |
+| `unix_addr` | Unix 域套接字地址 | `validate:"unix_addr"` |
+| `uds_exists` | Unix 域套接字已存在 | `validate:"uds_exists"` |
+| `mac` | MAC 地址 | `validate:"mac"` |
+| `port` | 端口號 | `validate:"port"` |
+| `hostname` | 主機名（RFC 952） | `validate:"hostname"` |
+| `hostname_rfc1123` | 主機名（RFC 1123） | `validate:"hostname_rfc1123"` |
+| `hostname_port` | 主機名:端口 | `validate:"hostname_port"` |
+| `fqdn` | 完全限定域名 | `validate:"fqdn"` |
+| `uri` | URI | `validate:"uri"` |
+| `http_url` | HTTP(S) URL | `validate:"http_url"` |
+| `https_url` | 僅 HTTPS URL | `validate:"https_url"` |
+| `origin` | Web Origin | `validate:"origin"` |
+| `url_encoded` | URL 編碼 | `validate:"url_encoded"` |
+| `datauri` | Data URI | `validate:"datauri"` |
+| `urn_rfc2141` | URN（RFC 2141） | `validate:"urn_rfc2141"` |
+
 ## 數值/長度
 
 | 標籤 | 說明 | 範例 |

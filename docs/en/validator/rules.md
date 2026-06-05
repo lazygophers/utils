@@ -27,6 +27,41 @@ Rich set of built-in validation tags covering common scenarios.
 | `alphanum_upper` | Uppercase letters + digits | `validate:"alphanum_upper"` |
 | `alphanum_lower` | Lowercase letters + digits | `validate:"alphanum_lower"` |
 
+## Network & Address
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `ip` | IP address (v4 or v6) | `validate:"ip"` |
+| `ipv4` | IPv4 address | `validate:"ipv4"` |
+| `ipv6` | IPv6 address | `validate:"ipv6"` |
+| `ip_addr` | IP address | `validate:"ip_addr"` |
+| `ip4_addr` | IPv4 address | `validate:"ip4_addr"` |
+| `ip6_addr` | IPv6 address | `validate:"ip6_addr"` |
+| `cidr` | CIDR notation | `validate:"cidr"` |
+| `cidrv4` | IPv4 CIDR | `validate:"cidrv4"` |
+| `cidrv6` | IPv6 CIDR | `validate:"cidrv6"` |
+| `tcp_addr` | TCP address | `validate:"tcp_addr"` |
+| `tcp4_addr` | TCPv4 address | `validate:"tcp4_addr"` |
+| `tcp6_addr` | TCPv6 address | `validate:"tcp6_addr"` |
+| `udp_addr` | UDP address | `validate:"udp_addr"` |
+| `udp4_addr` | UDPv4 address | `validate:"udp4_addr"` |
+| `udp6_addr` | UDPv6 address | `validate:"udp6_addr"` |
+| `unix_addr` | Unix domain socket address | `validate:"unix_addr"` |
+| `uds_exists` | Unix domain socket exists | `validate:"uds_exists"` |
+| `mac` | MAC address | `validate:"mac"` |
+| `port` | Port number | `validate:"port"` |
+| `hostname` | Hostname (RFC 952) | `validate:"hostname"` |
+| `hostname_rfc1123` | Hostname (RFC 1123) | `validate:"hostname_rfc1123"` |
+| `hostname_port` | Hostname:port | `validate:"hostname_port"` |
+| `fqdn` | Fully Qualified Domain Name | `validate:"fqdn"` |
+| `uri` | URI | `validate:"uri"` |
+| `http_url` | HTTP(S) URL | `validate:"http_url"` |
+| `https_url` | HTTPS-only URL | `validate:"https_url"` |
+| `origin` | Web origin | `validate:"origin"` |
+| `url_encoded` | URL encoded | `validate:"url_encoded"` |
+| `datauri` | Data URI | `validate:"datauri"` |
+| `urn_rfc2141` | URN (RFC 2141) | `validate:"urn_rfc2141"` |
+
 ## Numeric / Length
 
 | Tag | Description | Example |

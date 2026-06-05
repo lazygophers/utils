@@ -107,6 +107,12 @@ func init() {
 				"lowercase":      "{field}只能包含小寫字母",
 				"alphanum_upper": "{field}只能包含大寫字母和數字",
 				"alphanum_lower": "{field}只能包含小寫字母和數字",
+				"port":          "{field}必須是有效的端口號",
+				"http_url":      "{field}必須是有效的HTTP(S) URL",
+				"https_url":     "{field}必須是有效的HTTPS URL",
+				"origin":        "{field}必須是有效的Web Origin",
+				"urn_rfc2141":   "{field}必須是有效的URN（RFC 2141）",
+				"uds_exists":    "{field}必須是已存在的Unix域套接字",
 		},
 	})
 }

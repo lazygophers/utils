@@ -107,6 +107,12 @@ func init() {
 				"lowercase":      "{field} deve contenere solo lettere minuscole",
 				"alphanum_upper": "{field} deve contenere solo lettere maiuscole e numeri",
 				"alphanum_lower": "{field} deve contenere solo lettere minuscole e numeri",
+				"port":          "{field} deve essere un numero di porta valido",
+				"http_url":      "{field} deve essere un URL HTTP(S) valido",
+				"https_url":     "{field} deve essere un URL HTTPS valido",
+				"origin":        "{field} deve essere un'origine web valida",
+				"urn_rfc2141":   "{field} deve essere un URN valido (RFC 2141)",
+				"uds_exists":    "{field} deve essere un socket di dominio Unix esistente",
 		},
 	})
 }

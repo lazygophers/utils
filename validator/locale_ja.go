@@ -107,6 +107,12 @@ func init() {
 				"lowercase":      "{field}は小文字のみを含む必要があります",
 				"alphanum_upper": "{field}は大文字と数字のみを含む必要があります",
 				"alphanum_lower": "{field}は小文字と数字のみを含む必要があります",
+				"port":          "{field}は有効なポート番号である必要があります",
+				"http_url":      "{field}は有効なHTTP(S) URLである必要があります",
+				"https_url":     "{field}は有効なHTTPS URLである必要があります",
+				"origin":        "{field}は有効なWeb Originである必要があります",
+				"urn_rfc2141":   "{field}は有効なURN（RFC 2141）である必要があります",
+				"uds_exists":    "{field}は既存のUnixドメインソケットである必要があります",
 		},
 	})
 }

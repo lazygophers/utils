@@ -105,6 +105,12 @@ func init() {
 				"lowercase":      "{field}只能包含小写字母",
 				"alphanum_upper": "{field}只能包含大写字母和数字",
 				"alphanum_lower": "{field}只能包含小写字母和数字",
+				"port":          "{field}必须是有效的端口号",
+				"http_url":      "{field}必须是有效的HTTP(S) URL",
+				"https_url":     "{field}必须是有效的HTTPS URL",
+				"origin":        "{field}必须是有效的Web Origin",
+				"urn_rfc2141":   "{field}必须是有效的URN（RFC 2141）",
+				"uds_exists":    "{field}必须是已存在的Unix域套接字",
 		},
 	})
 
@@ -212,6 +218,12 @@ func init() {
 				"lowercase":      "{field}只能包含小写字母",
 				"alphanum_upper": "{field}只能包含大写字母和数字",
 				"alphanum_lower": "{field}只能包含小写字母和数字",
+				"port":          "{field}必须是有效的端口号",
+				"http_url":      "{field}必须是有效的HTTP(S) URL",
+				"https_url":     "{field}必须是有效的HTTPS URL",
+				"origin":        "{field}必须是有效的Web Origin",
+				"urn_rfc2141":   "{field}必须是有效的URN（RFC 2141）",
+				"uds_exists":    "{field}必须是已存在的Unix域套接字",
 		},
 	})
 }

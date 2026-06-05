@@ -107,6 +107,12 @@ func init() {
 				"lowercase":      "{field}은(는) 소문자만 포함해야 합니다",
 				"alphanum_upper": "{field}은(는) 대문자와 숫자만 포함해야 합니다",
 				"alphanum_lower": "{field}은(는) 소문자와 숫자만 포함해야 합니다",
+				"port":          "{field}은(는) 유효한 포트 번호여야 합니다",
+				"http_url":      "{field}은(는) 유효한 HTTP(S) URL이어야 합니다",
+				"https_url":     "{field}은(는) 유효한 HTTPS URL이어야 합니다",
+				"origin":        "{field}은(는) 유효한 웹 오리진이어야 합니다",
+				"urn_rfc2141":   "{field}은(는) 유효한 URN（RFC 2141）이어야 합니다",
+				"uds_exists":    "{field}은(는) 기존 Unix 도메인 소켓이어야 합니다",
 		},
 	})
 }
