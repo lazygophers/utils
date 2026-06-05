@@ -21,7 +21,6 @@ const moduleGroups: GroupDef[] = [
     items: [
       { text: 'must', link: '/modules/core/must' },
       { text: 'orm', link: '/modules/core/orm' },
-      { text: 'validator', link: '/modules/core/validator' },
     ],
   },
   {
@@ -112,6 +111,48 @@ const moduleGroups: GroupDef[] = [
     ],
   },
 ];
+
+const validatorLabels: Record<string, { text: string; items: { text: string; link: string }[] }> = {
+  'zh-CN': {
+    text: 'Validator',
+    items: [
+      { text: '概览', link: '/validator/' },
+      { text: '核心函数', link: '/validator/core' },
+      { text: '内置规则', link: '/validator/rules' },
+      { text: '自定义验证器', link: '/validator/custom' },
+      { text: '验证引擎', link: '/validator/engine' },
+      { text: '错误处理', link: '/validator/errors' },
+      { text: '多语言', link: '/validator/i18n' },
+      { text: '性能与最佳实践', link: '/validator/performance' },
+    ],
+  },
+  en: {
+    text: 'Validator',
+    items: [
+      { text: 'Overview', link: '/en/validator/' },
+      { text: 'Core Functions', link: '/en/validator/core' },
+      { text: 'Built-in Rules', link: '/en/validator/rules' },
+      { text: 'Custom Validators', link: '/en/validator/custom' },
+      { text: 'Validation Engine', link: '/en/validator/engine' },
+      { text: 'Error Handling', link: '/en/validator/errors' },
+      { text: 'i18n', link: '/en/validator/i18n' },
+      { text: 'Performance & Best Practices', link: '/en/validator/performance' },
+    ],
+  },
+  'zh-TW': {
+    text: 'Validator',
+    items: [
+      { text: '概覽', link: '/zh-TW/validator/' },
+      { text: '核心函數', link: '/zh-TW/validator/core' },
+      { text: '內建規則', link: '/zh-TW/validator/rules' },
+      { text: '自訂驗證器', link: '/zh-TW/validator/custom' },
+      { text: '驗證引擎', link: '/zh-TW/validator/engine' },
+      { text: '錯誤處理', link: '/zh-TW/validator/errors' },
+      { text: '多語言', link: '/zh-TW/validator/i18n' },
+      { text: '效能與最佳實踐', link: '/zh-TW/validator/performance' },
+    ],
+  },
+};
 
 function withLocale(locale: string, path: string) {
   return locale === 'zh-CN' ? path : `/${locale}${path}`;
@@ -208,42 +249,55 @@ export default defineConfig({
     nav: [
       { text: '开始', link: '/guide/getting-started' },
       { text: '模块', link: '/modules/overview' },
+      { text: 'Validator', link: '/validator/' },
       { text: 'API', link: '/api/overview' },
       { text: 'GitHub', link: 'https://github.com/lazygophers/utils' },
     ],
     sidebar: {
-      '/': buildSidebar('zh-CN', {
-        guide: '指南',
-        gettingStarted: '快速开始',
-        modules: '模块',
-        overview: '模块总览',
-        api: 'API',
-        apiOverview: 'API 概览',
-      }),
-      '/zh-CN/': buildSidebar('zh-CN', {
-        guide: '指南',
-        gettingStarted: '快速开始',
-        modules: '模块',
-        overview: '模块总览',
-        api: 'API',
-        apiOverview: 'API 概览',
-      }),
-      '/en/': buildSidebar('en', {
-        guide: 'Guide',
-        gettingStarted: 'Getting Started',
-        modules: 'Modules',
-        overview: 'Module Overview',
-        api: 'API',
-        apiOverview: 'API Overview',
-      }),
-      '/zh-TW/': buildSidebar('zh-TW', {
-        guide: '指南',
-        gettingStarted: '快速開始',
-        modules: '模組',
-        overview: '模組總覽',
-        api: 'API',
-        apiOverview: 'API 概覽',
-      }),
+      '/': [
+        ...buildSidebar('zh-CN', {
+          guide: '指南',
+          gettingStarted: '快速开始',
+          modules: '模块',
+          overview: '模块总览',
+          api: 'API',
+          apiOverview: 'API 概览',
+        }),
+        validatorLabels['zh-CN'],
+      ],
+      '/zh-CN/': [
+        ...buildSidebar('zh-CN', {
+          guide: '指南',
+          gettingStarted: '快速开始',
+          modules: '模块',
+          overview: '模块总览',
+          api: 'API',
+          apiOverview: 'API 概览',
+        }),
+        validatorLabels['zh-CN'],
+      ],
+      '/en/': [
+        ...buildSidebar('en', {
+          guide: 'Guide',
+          gettingStarted: 'Getting Started',
+          modules: 'Modules',
+          overview: 'Module Overview',
+          api: 'API',
+          apiOverview: 'API Overview',
+        }),
+        validatorLabels['en'],
+      ],
+      '/zh-TW/': [
+        ...buildSidebar('zh-TW', {
+          guide: '指南',
+          gettingStarted: '快速開始',
+          modules: '模組',
+          overview: '模組總覽',
+          api: 'API',
+          apiOverview: 'API 概覽',
+        }),
+        validatorLabels['zh-TW'],
+      ],
     },
     socialLinks: [
       {

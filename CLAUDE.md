@@ -36,3 +36,4 @@ make all           # clean + fmt + lint + test + build
 - 新增模块 → 三语言各补对应 .md
 - 文档优先说明"适合做什么、适用场景、约束"，而非堆 API 列表
 - `docs/` 下 `npm run dev` 预览，`npm run build` 构建
+- `docs/` 基于 Rspress 框架，修改时参考 [Rspress 文档](https://rspress.rs/llms.txt)
