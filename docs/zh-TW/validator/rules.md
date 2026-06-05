@@ -13,10 +13,19 @@ Validator 內建豐富的驗證標籤，覆蓋常見校驗場景。
 | `required` | 非零值 | `validate:"required"` |
 | `email` | 郵箱格式 | `validate:"email"` |
 | `url` | URL 格式 | `validate:"url"` |
-| `alpha` | 純字母 | `validate:"alpha"` |
+| `alpha` | 純字母（大小寫） | `validate:"alpha"` |
 | `alphanum` | 字母 + 數字 | `validate:"alphanum"` |
 | `json` | JSON 格式 | `validate:"json"` |
 | `uuid` | UUID 格式 | `validate:"uuid"` |
+
+## 字母/數字變體
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `uppercase` | 僅大寫字母 | `validate:"uppercase"` |
+| `lowercase` | 僅小寫字母 | `validate:"lowercase"` |
+| `alphanum_upper` | 大寫字母 + 數字 | `validate:"alphanum_upper"` |
+| `alphanum_lower` | 小寫字母 + 數字 | `validate:"alphanum_lower"` |
 
 ## 數值/長度
 

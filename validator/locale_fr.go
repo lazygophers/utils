@@ -103,6 +103,10 @@ func init() {
 
 			// Règles de validation personnalisées
 			"strong_password": "{field} doit être un mot de passe fort (au moins 8 caractères avec majuscules, minuscules, chiffres et caractères spéciaux)",
+				"uppercase":      "{field} ne doit contenir que des lettres majuscules",
+				"lowercase":      "{field} ne doit contenir que des lettres minuscules",
+				"alphanum_upper": "{field} ne doit contenir que des lettres majuscules et des chiffres",
+				"alphanum_lower": "{field} ne doit contenir que des lettres minuscules et des chiffres",
 		},
 	})
 }

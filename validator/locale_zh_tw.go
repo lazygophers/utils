@@ -103,6 +103,10 @@ func init() {
 
 			// 自定義驗證規則
 			"strong_password": "{field}必須是強密碼（至少8位，包含大寫字母、小寫字母、數字和特殊字符）",
+				"uppercase":      "{field}只能包含大寫字母",
+				"lowercase":      "{field}只能包含小寫字母",
+				"alphanum_upper": "{field}只能包含大寫字母和數字",
+				"alphanum_lower": "{field}只能包含小寫字母和數字",
 		},
 	})
 }

@@ -261,3 +261,67 @@ func validateUUID(fl FieldLevel) bool {
 
 	return true
 }
+
+// validateUppercase 大写字母验证
+// 零分配：字节级检查，仅允许 A-Z
+func validateUppercase(fl FieldLevel) bool {
+	s := fl.Field().String()
+	if len(s) == 0 {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c < 'A' || c > 'Z' {
+			return false
+		}
+	}
+	return true
+}
+
+// validateLowercase 小写字母验证
+// 零分配：字节级检查，仅允许 a-z
+func validateLowercase(fl FieldLevel) bool {
+	s := fl.Field().String()
+	if len(s) == 0 {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c < 'a' || c > 'z' {
+			return false
+		}
+	}
+	return true
+}
+
+// validateAlphanumUpper 大写字母+数字验证
+// 零分配：字节级检查，仅允许 A-Z 和 0-9
+func validateAlphanumUpper(fl FieldLevel) bool {
+	s := fl.Field().String()
+	if len(s) == 0 {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if !((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+			return false
+		}
+	}
+	return true
+}
+
+// validateAlphanumLower 小写字母+数字验证
+// 零分配：字节级检查，仅允许 a-z 和 0-9
+func validateAlphanumLower(fl FieldLevel) bool {
+	s := fl.Field().String()
+	if len(s) == 0 {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if !((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
+			return false
+		}
+	}
+	return true
+}

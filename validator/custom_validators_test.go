@@ -373,3 +373,129 @@ func TestCustomValidatorsIndividually(t *testing.T) {
 		}
 	})
 }
+
+// TestUppercaseValidator tests the uppercase validator
+func TestUppercaseValidator(t *testing.T) {
+	v, err := New()
+	assert.NoError(t, err)
+
+	tests := []struct {
+		value    string
+		expected bool
+	}{
+		{"ABC", true},
+		{"HELLOWORLD", true},
+		{"A", true},
+		{"", false},
+		{"abc", false},
+		{"Hello", false},
+		{"ABC123", false},
+		{"ABC ", false},
+		{"ABC\ndef", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.value, func(t *testing.T) {
+			err := v.Var(tt.value, "uppercase")
+			if tt.expected {
+				assert.NoError(t, err, "expected %q to be valid uppercase", tt.value)
+			} else {
+				assert.Error(t, err, "expected %q to be invalid uppercase", tt.value)
+			}
+		})
+	}
+}
+
+// TestLowercaseValidator tests the lowercase validator
+func TestLowercaseValidator(t *testing.T) {
+	v, err := New()
+	assert.NoError(t, err)
+
+	tests := []struct {
+		value    string
+		expected bool
+	}{
+		{"abc", true},
+		{"helloworld", true},
+		{"a", true},
+		{"", false},
+		{"ABC", false},
+		{"Hello", false},
+		{"abc123", false},
+		{"abc ", false},
+		{"abc\nDEF", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.value, func(t *testing.T) {
+			err := v.Var(tt.value, "lowercase")
+			if tt.expected {
+				assert.NoError(t, err, "expected %q to be valid lowercase", tt.value)
+			} else {
+				assert.Error(t, err, "expected %q to be invalid lowercase", tt.value)
+			}
+		})
+	}
+}
+
+// TestAlphanumUpperValidator tests the uppercase + digits validator
+func TestAlphanumUpperValidator(t *testing.T) {
+	v, err := New()
+	assert.NoError(t, err)
+
+	tests := []struct {
+		value    string
+		expected bool
+	}{
+		{"ABC123", true},
+		{"ABC", true},
+		{"123", true},
+		{"A1B2C3", true},
+		{"", false},
+		{"abc123", false},
+		{"ABCabc", false},
+		{"ABC123!", false},
+		{"ABC ", false},
+		{"abc", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.value, func(t *testing.T) {
+			err := v.Var(tt.value, "alphanum_upper")
+			if tt.expected {
+				assert.NoError(t, err, "expected %q to be valid alphanum_upper", tt.value)
+			} else {
+				assert.Error(t, err, "expected %q to be invalid alphanum_upper", tt.value)
+			}
+		})
+	}
+}
+
+// TestAlphanumLowerValidator tests the lowercase + digits validator
+func TestAlphanumLowerValidator(t *testing.T) {
+	v, err := New()
+	assert.NoError(t, err)
+
+	tests := []struct {
+		value    string
+		expected bool
+	}{
+		{"abc123", true},
+		{"abc", true},
+		{"123", true},
+		{"a1b2c3", true},
+		{"", false},
+		{"ABC123", false},
+		{"ABCabc", false},
+		{"abc123!", false},
+		{"abc ", false},
+		{"ABC", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.value, func(t *testing.T) {
+			err := v.Var(tt.value, "alphanum_lower")
+			if tt.expected {
+				assert.NoError(t, err, "expected %q to be valid alphanum_lower", tt.value)
+			} else {
+				assert.Error(t, err, "expected %q to be invalid alphanum_lower", tt.value)
+			}
+		})
+	}
+}

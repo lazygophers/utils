@@ -103,6 +103,10 @@ func init() {
 
 			// 사용자 정의 검증 규칙
 			"strong_password": "{field}은(는) 강력한 비밀번호여야 합니다 (8자 이상, 대문자, 소문자, 숫자, 특수문자 포함)",
+				"uppercase":      "{field}은(는) 대문자만 포함해야 합니다",
+				"lowercase":      "{field}은(는) 소문자만 포함해야 합니다",
+				"alphanum_upper": "{field}은(는) 대문자와 숫자만 포함해야 합니다",
+				"alphanum_lower": "{field}은(는) 소문자와 숫자만 포함해야 합니다",
 		},
 	})
 }

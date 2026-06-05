@@ -101,6 +101,10 @@ func init() {
 
 			// Custom validation rules
 			"strong_password": "{field} must be a strong password (at least 8 characters with uppercase, lowercase, numbers, and special characters)",
+				"uppercase":      "{field} must contain only uppercase letters",
+				"lowercase":      "{field} must contain only lowercase letters",
+				"alphanum_upper": "{field} must contain only uppercase letters and numbers",
+				"alphanum_lower": "{field} must contain only lowercase letters and numbers",
 		},
 	})
 }

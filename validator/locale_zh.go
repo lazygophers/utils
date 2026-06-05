@@ -101,6 +101,10 @@ func init() {
 
 			// 自定义验证规则
 			"strong_password": "{field}必须是强密码（至少8位，包含大写字母、小写字母、数字和特殊字符）",
+				"uppercase":      "{field}只能包含大写字母",
+				"lowercase":      "{field}只能包含小写字母",
+				"alphanum_upper": "{field}只能包含大写字母和数字",
+				"alphanum_lower": "{field}只能包含小写字母和数字",
 		},
 	})
 
@@ -204,6 +208,10 @@ func init() {
 
 			// 自定义验证规则
 			"strong_password": "{field}必须是强密码（至少8位，包含大写字母、小写字母、数字和特殊字符）",
+				"uppercase":      "{field}只能包含大写字母",
+				"lowercase":      "{field}只能包含小写字母",
+				"alphanum_upper": "{field}只能包含大写字母和数字",
+				"alphanum_lower": "{field}只能包含小写字母和数字",
 		},
 	})
 }

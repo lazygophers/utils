@@ -103,6 +103,10 @@ func init() {
 
 			// カスタム検証ルール
 			"strong_password": "{field}は強力なパスワードである必要があります（8文字以上で大文字、小文字、数字、特殊文字を含む）",
+				"uppercase":      "{field}は大文字のみを含む必要があります",
+				"lowercase":      "{field}は小文字のみを含む必要があります",
+				"alphanum_upper": "{field}は大文字と数字のみを含む必要があります",
+				"alphanum_lower": "{field}は小文字と数字のみを含む必要があります",
 		},
 	})
 }

@@ -13,10 +13,19 @@ Rich set of built-in validation tags covering common scenarios.
 | `required` | Non-zero value | `validate:"required"` |
 | `email` | Email format | `validate:"email"` |
 | `url` | URL format | `validate:"url"` |
-| `alpha` | Letters only | `validate:"alpha"` |
+| `alpha` | Letters only (upper & lower) | `validate:"alpha"` |
 | `alphanum` | Letters + digits | `validate:"alphanum"` |
 | `json` | JSON format | `validate:"json"` |
 | `uuid` | UUID format | `validate:"uuid"` |
+
+## Letter / Digit Variants
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `uppercase` | Uppercase letters only | `validate:"uppercase"` |
+| `lowercase` | Lowercase letters only | `validate:"lowercase"` |
+| `alphanum_upper` | Uppercase letters + digits | `validate:"alphanum_upper"` |
+| `alphanum_lower` | Lowercase letters + digits | `validate:"alphanum_lower"` |
 
 ## Numeric / Length
 

@@ -103,6 +103,10 @@ func init() {
 
 			// Benutzerdefinierte Validierungsregeln
 			"strong_password": "{field} muss ein starkes Passwort sein (mindestens 8 Zeichen mit Groß-, Kleinbuchstaben, Zahlen und Sonderzeichen)",
+				"uppercase":      "{field} darf nur Großbuchstaben enthalten",
+				"lowercase":      "{field} darf nur Kleinbuchstaben enthalten",
+				"alphanum_upper": "{field} darf nur Großbuchstaben und Zahlen enthalten",
+				"alphanum_lower": "{field} darf nur Kleinbuchstaben und Zahlen enthalten",
 		},
 	})
 }

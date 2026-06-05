@@ -302,6 +302,22 @@ func (v *Validator) registerDefaultValidators() error {
 		return fmt.Errorf("failed to register uuid validator: %w", err)
 	}
 
+
+	if err := v.RegisterValidation("uppercase", validateUppercase); err != nil {
+		return fmt.Errorf("failed to register uppercase validator: %w", err)
+	}
+
+	if err := v.RegisterValidation("lowercase", validateLowercase); err != nil {
+		return fmt.Errorf("failed to register lowercase validator: %w", err)
+	}
+
+	if err := v.RegisterValidation("alphanum_upper", validateAlphanumUpper); err != nil {
+		return fmt.Errorf("failed to register alphanum_upper validator: %w", err)
+	}
+
+	if err := v.RegisterValidation("alphanum_lower", validateAlphanumLower); err != nil {
+		return fmt.Errorf("failed to register alphanum_lower validator: %w", err)
+	}
 	return nil
 }
 
