@@ -6,91 +6,43 @@ title: 模組概覽
 
 LazyGophers Utils 提供 20+ 個專業模組，涵蓋 Go 開發的各個方面。所有模組已按功能分類，方便您快速找到需要的工具。
 
-## 🔧 核心工具
+## 八個主題分組
 
-基礎工具模組，提供錯誤處理、數據庫操作和數據驗證功能。
+| 分組 | 什麼時候先看它 | 模組 |
+| --- | --- | --- |
+| [核心工具](/zh-TW/modules/core/) | 想減少初始化樣板代碼，或處理數據庫字段映射 | [must](/zh-TW/modules/core/must)、[orm](/zh-TW/modules/core/orm) |
+| [數據處理](/zh-TW/modules/data/) | 想做類型轉換、集合操作、字符串規範化、JSON 編解碼 | [candy](/zh-TW/modules/data/candy)、[json](/zh-TW/modules/data/json)、[stringx](/zh-TW/modules/data/stringx)、[anyx](/zh-TW/modules/data/anyx) |
+| [緩存策略](/zh-TW/modules/cache/) | 想在多種淘汰策略裡選一個更適合實際負載的緩存 | [緩存概覽](/zh-TW/modules/cache/)、[LRU](/zh-TW/modules/cache/lru)、[LFU](/zh-TW/modules/cache/lfu)、[TinyLFU](/zh-TW/modules/cache/tinylfu)、[SLRU](/zh-TW/modules/cache/slru)、[MRU](/zh-TW/modules/cache/mru)、[ALFU](/zh-TW/modules/cache/alfu)、[ARC](/zh-TW/modules/cache/arc)、[LRU-K](/zh-TW/modules/cache/lruk)、[W-TinyLFU](/zh-TW/modules/cache/wtinylfu)、[FBR](/zh-TW/modules/cache/fbr)、[Optimal](/zh-TW/modules/cache/optimal) |
+| [時間與調度](/zh-TW/modules/time/) | 想處理農曆、節氣、日曆或固定排班規則 | [xtime](/zh-TW/modules/time/xtime)、[xtime996](/zh-TW/modules/time/xtime996)、[xtime955](/zh-TW/modules/time/xtime955)、[xtime007](/zh-TW/modules/time/xtime007) |
+| [系統與配置](/zh-TW/modules/system/) | 想做配置加載、路徑定位、應用初始化與退出清理 | [config](/zh-TW/modules/system/config)、[runtime](/zh-TW/modules/system/runtime)、[osx](/zh-TW/modules/system/osx)、[app](/zh-TW/modules/system/app)、[atexit](/zh-TW/modules/system/atexit) |
+| [網絡與安全](/zh-TW/modules/network/) | 想處理網絡輔助、加密、簽名或 URL 規範化 | [network](/zh-TW/modules/network/network)、[cryptox](/zh-TW/modules/network/cryptox)、[pgp](/zh-TW/modules/network/pgp)、[urlx](/zh-TW/modules/network/urlx) |
+| [並發與控制流](/zh-TW/modules/concurrency/) | 想組織任務執行、等待條件、熔斷或去重 | [routine](/zh-TW/modules/concurrency/routine)、[wait](/zh-TW/modules/concurrency/wait)、[hystrix](/zh-TW/modules/concurrency/hystrix)、[singledo](/zh-TW/modules/concurrency/singledo)、[event](/zh-TW/modules/concurrency/event) |
+| [開發與測試](/zh-TW/modules/dev/) | 想補默認值、製造隨機/假數據或接入採樣工具 | [fake](/zh-TW/modules/dev/fake)、[randx](/zh-TW/modules/dev/randx)、[defaults](/zh-TW/modules/dev/defaults)、[pyroscope](/zh-TW/modules/dev/pyroscope) |
 
-- [must](./core/must.md) - 錯誤斷言工具
-- [orm](./core/orm.md) - 數據庫操作工具
-- [validator](./core/validator.md) - 數據驗證模組
+## 獨立模組
 
-## 🍭 數據處理
+| 模組 | 說明 |
+| --- | --- |
+| [Validator](/zh-TW/validator/) | 數據校驗——169 個內建驗證器，100% 覆蓋 go-playground/validator v10 全部規則 |
 
-提供類型轉換、JSON 處理、字符串操作等數據處理工具。
+## 選擇順序建議
 
-- [candy](./data/candy.md) - 類型轉換糖（零分配，快 3.2 倍）
-- [json](./data/json.md) - 增強的 JSON 處理
-- [stringx](./data/stringx.md) - 字符串工具
-- [anyx](./data/anyx.md) - Interface{} 輔助
+### 先判斷是「基礎設施問題」還是「業務輔助問題」
 
-## 📦 緩存
+- 如果你在做啟動、配置、校驗、數據庫字段映射：先看 **核心工具** 與 **系統與配置**。
+- 如果你在做集合處理、字符串規整、JSON、隨機數據：先看 **數據處理** 與 **開發與測試**。
+- 如果你在做緩存、並發、重試、定時規則：先看 **緩存策略**、**並發與控制流**、**時間與調度**。
 
-提供多種緩存實現，具有不同的淘汰策略，適用於各種使用場景。
+### 再判斷是否存在局部規則
 
-- [LRU](./cache/lru.md) - 最常用的緩存策略（85% 命中率）
-- [LFU](./cache/lfu.md) - 淘汰最少使用的項目（75% 命中率）
-- [TinyLFU](./cache/tinylfu.md) - 結合 LRU 和 LFU 的高性能緩存（92% 命中率）
-- [SLRU](./cache/slru.md) - 分段 LRU，適合高並發環境（90% 命中率）
-- [更多緩存實現](./cache/) - 查看所有 10+ 種緩存實現
+以下主題在選型前最好先讀頁面說明，而不是直接猜 API：
 
-## ⏰ 時間與調度
+- **緩存**：每種策略的淘汰邏輯不同，默認線程安全語義也要單獨看。
+- **xtime**：不僅有時間幫助函數，還包含農曆、節氣與排班規則。
+- **atexit**：不同平台退出行為並不完全一樣。
 
-高級時間處理、工作時間計算和調度工具。
+## 推薦閱讀路徑
 
-- [xtime](./time/xtime.md) - 高級時間處理（🌙 農曆、🐲 生肖、🌾 節氣）
-- [xtime996](./time/xtime996.md) - 996 工作時間
-- [xtime955](./time/xtime955.md) - 955 工作時間
-- [xtime007](./time/xtime007.md) - 24/7 操作
-
-## 🔧 系統與配置
-
-配置管理、運行時信息、操作系統操作等系統級工具。
-
-- [config](./system/config.md) - 配置管理（JSON、YAML、TOML、INI、HCL）
-- [runtime](./system/runtime.md) - 運行時信息
-- [osx](./system/osx.md) - 操作系統操作
-- [app](./system/app.md) - 應用框架
-- [atexit](./system/atexit.md) - 優雅關閉
-
-## 🌐 網絡與安全
-
-HTTP 工具、加密函數、PGP 操作等網絡和安全工具。
-
-- [network](./network/network.md) - HTTP 工具（連接池、重試邏輯）
-- [cryptox](./network/cryptox.md) - 加密函數（哈希、加密、安全隨機）
-- [pgp](./network/pgp.md) - PGP 操作
-- [urlx](./network/urlx.md) - URL 操作
-
-## 🚀 並發與控制流
-
-Goroutine 管理、流程控制、熔斷器等並發和流程控制工具。
-
-- [routine](./concurrency/routine.md) - Goroutine 管理（工作池、任務調度）
-- [wait](./concurrency/wait.md) - 流程控制（超時、重試、速率限制）
-- [hystrix](./concurrency/hystrix.md) - 熔斷器（容錯、優雅降級）
-- [singledo](./concurrency/singledo.md) - 單例執行
-- [event](./concurrency/event.md) - 事件系統（發布/訂閱）
-
-## 🧪 開發與測試
-
-測試數據生成、隨機工具、默認值設置等開發和測試輔助工具。
-
-- [fake](./dev/fake.md) - 測試數據生成
-- [randx](./dev/randx.md) - 隨機工具（加密安全）
-- [defaults](./dev/defaults.md) - 默認值
-- [pyroscope](./dev/pyroscope.md) - 性能分析
-
-## 📊 性能亮點
-
-| 操作 | 時間 | 內存 | vs 標準庫 |
-|-----------|------|--------|-------------------|
-| `candy.ToInt()` | 12.3 ns/op | 0 B/op | **快 3.2 倍** |
-| `json.Marshal()` | 156 ns/op | 64 B/op | **快 1.8 倍** |
-| `xtime.Now()` | 45.2 ns/op | 0 B/op | **快 2.1 倍** |
-| `utils.Must()` | 2.1 ns/op | 0 B/op | **零開銷** |
-
-## 下一步
-
-- 查看 [API 文檔](/zh-TW/api/overview) 獲取詳細的 API 信息
-- 查看 [快速開始](/zh-TW/guide/getting-started) 開始使用
-- 訪問 [GitHub 倉庫](https://github.com/lazygophers/utils) 查看更多示例
+1. 新項目接入：`must` → `config` → `validator` → 對應業務主題模組。
+2. 已有項目補能力：從對應分類頁進入，再看單模組頁的適用場景。
+3. 需要精確簽名：模組頁讀完後轉到 [pkg.go.dev](https://pkg.go.dev/github.com/lazygophers/utils)。

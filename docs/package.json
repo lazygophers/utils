@@ -19,5 +19,10 @@
   "devDependencies": {
     "@rspress/core": "^2.0.13"
   },
-  "type": "module"
+  "type": "module",
+  "pnpm": {
+    "overrides": {
+      "style-to-object": "0.4.4"
+    }
+  }
 }

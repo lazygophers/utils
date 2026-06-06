@@ -158,35 +158,37 @@ function withLocale(locale: string, path: string) {
   return locale === 'zh-CN' ? path : `/${locale}${path}`;
 }
 
-function buildSidebar(locale: 'zh-CN' | 'en' | 'zh-TW', labels: {
+function buildSidebars(locale: 'zh-CN' | 'en' | 'zh-TW', labels: {
   guide: string;
   gettingStarted: string;
-  modules: string;
   overview: string;
-  api: string;
-  apiOverview: string;
-}) {
-  return [
-    {
-      text: labels.guide,
-      items: [{ text: labels.gettingStarted, link: withLocale(locale, '/guide/getting-started') }],
-    },
-    {
-      text: labels.modules,
-      items: [
-        { text: labels.overview, link: withLocale(locale, '/modules/overview') },
-        ...moduleGroups.map((group) => ({
-          text: group.text[locale],
-          link: withLocale(locale, group.link),
-          items: group.items.map((item) => ({ text: item.text, link: withLocale(locale, item.link) })),
-        })),
-      ],
-    },
-    {
-      text: labels.api,
-      items: [{ text: labels.apiOverview, link: withLocale(locale, '/api/overview') }],
-    },
+}): Record<string, SidebarItem[]> {
+  const result: Record<string, SidebarItem[]> = {};
+
+  // Guide
+  result[withLocale(locale, '/guide/')] = [
+    { text: labels.guide, items: [{ text: labels.gettingStarted, link: withLocale(locale, '/guide/getting-started') }] },
   ];
+
+  // Module overview
+  result[withLocale(locale, '/modules/overview')] = [
+    { text: labels.overview, items: [{ text: labels.overview, link: withLocale(locale, '/modules/overview') }] },
+  ];
+
+  // Per-group sidebars
+  for (const group of moduleGroups) {
+    result[withLocale(locale, group.link)] = [
+      {
+        text: group.text[locale],
+        items: group.items.map((item) => ({ text: item.text, link: withLocale(locale, item.link) })),
+      },
+    ];
+  }
+
+  // Validator
+  result[withLocale(locale, '/validator/')] = [validatorLabels[locale]];
+
+  return result;
 }
 
 function buildNav(locale: 'zh-CN' | 'en' | 'zh-TW') {
@@ -196,6 +198,8 @@ function buildNav(locale: 'zh-CN' | 'en' | 'zh-TW') {
     'zh-TW': { start: '開始', modules: '模組', overview: '模組總覽' },
   };
   const l = navLabels[locale];
+  // Groups with multiple sub-packages: show as single entry linking to group overview
+  const groupKeys = new Set(['cache', 'time']);
 
   return [
     { text: l.start, link: withLocale(locale, '/guide/getting-started') },
@@ -203,15 +207,19 @@ function buildNav(locale: 'zh-CN' | 'en' | 'zh-TW') {
       text: l.modules,
       items: [
         { text: l.overview, link: withLocale(locale, '/modules/overview') },
-        ...moduleGroups.flatMap((group) =>
-          group.items.map((item) => ({
+        ...moduleGroups.flatMap((group) => {
+          if (groupKeys.has(group.key)) {
+            // Single link to group page; sidebar shows sub-items
+            return [{ text: group.text[locale], link: withLocale(locale, group.link) }];
+          }
+          return group.items.map((item) => ({
             text: item.text,
             link: withLocale(locale, item.link),
-          })),
-        ),
+          }));
+        }),
+        { text: 'Validator', link: withLocale(locale, '/validator/') },
       ],
     },
-    { text: 'Validator', link: withLocale(locale, '/validator/') },
     { text: 'GitHub', link: 'https://github.com/lazygophers/utils' },
   ];
 }
@@ -279,50 +287,21 @@ export default defineConfig({
       { lang: 'zh-TW', nav: buildNav('zh-TW') },
     ],
     sidebar: {
-      '/': [
-        ...buildSidebar('zh-CN', {
-          guide: '指南',
-          gettingStarted: '快速开始',
-          modules: '模块',
-          overview: '模块总览',
-          api: 'API',
-          apiOverview: 'API 概览',
-        }),
-        validatorLabels['zh-CN'],
-      ],
-      '/zh-CN/': [
-        ...buildSidebar('zh-CN', {
-          guide: '指南',
-          gettingStarted: '快速开始',
-          modules: '模块',
-          overview: '模块总览',
-          api: 'API',
-          apiOverview: 'API 概览',
-        }),
-        validatorLabels['zh-CN'],
-      ],
-      '/en/': [
-        ...buildSidebar('en', {
-          guide: 'Guide',
-          gettingStarted: 'Getting Started',
-          modules: 'Modules',
-          overview: 'Module Overview',
-          api: 'API',
-          apiOverview: 'API Overview',
-        }),
-        validatorLabels['en'],
-      ],
-      '/zh-TW/': [
-        ...buildSidebar('zh-TW', {
-          guide: '指南',
-          gettingStarted: '快速開始',
-          modules: '模組',
-          overview: '模組總覽',
-          api: 'API',
-          apiOverview: 'API 概覽',
-        }),
-        validatorLabels['zh-TW'],
-      ],
+      ...buildSidebars('zh-CN', {
+        guide: '指南',
+        gettingStarted: '快速开始',
+        overview: '模块总览',
+      }),
+      ...buildSidebars('en', {
+        guide: 'Guide',
+        gettingStarted: 'Getting Started',
+        overview: 'Overview',
+      }),
+      ...buildSidebars('zh-TW', {
+        guide: '指南',
+        gettingStarted: '快速開始',
+        overview: '模組總覽',
+      }),
     },
     socialLinks: [
       {
