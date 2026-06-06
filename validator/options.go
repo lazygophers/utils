@@ -1,14 +1,14 @@
 package validator
 
 import (
-	"golang.org/x/text/language"
+	xlanguage "golang.org/x/text/language"
 )
 
 // Option 配置选项
 type Option func(*Validator)
 
 // WithLocale 设置语言地区
-func WithLocale(tag language.Tag) Option {
+func WithLocale(tag xlanguage.Tag) Option {
 	return func(v *Validator) {
 		v.locale = tag
 	}
@@ -41,7 +41,7 @@ func WithCustomValidator(tag string, fn func(interface{}) bool) Option {
 
 // Config 验证器配置（用于批量设置）
 type Config struct {
-	Locale       language.Tag     // 语言地区
+	Locale       xlanguage.Tag     // 语言地区
 	UseJSON      bool              // 是否优先使用 JSON 字段名
 	Translations map[string]string // 自定义翻译
 }
@@ -49,7 +49,7 @@ type Config struct {
 // WithConfig 使用配置对象设置验证器
 func WithConfig(config Config) Option {
 	return func(v *Validator) {
-		if config.Locale != (language.Tag{}) {
+		if config.Locale != (xlanguage.Tag{}) {
 			v.locale = config.Locale
 		}
 		v.useJSON = config.UseJSON

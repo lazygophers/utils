@@ -6,7 +6,9 @@ import (
 	"strings"
 	"sync"
 
-	"golang.org/x/text/language"
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/language"
 )
 
 var (
@@ -17,7 +19,7 @@ var (
 // Validator 自定义验证器
 type Validator struct {
 	engine   *Engine
-	locale   language.Tag
+	locale   xlanguage.Tag
 	useJSON  bool
 	mu       sync.RWMutex
 	messages map[string]string
@@ -27,7 +29,7 @@ type Validator struct {
 func New(opts ...Option) (*Validator, error) {
 	v := &Validator{
 		engine:   NewEngine(),
-		locale:   language.Make("en"),
+		locale:   xlanguage.Tag{},
 		useJSON:  true,
 		messages: make(map[string]string),
 	}
@@ -56,7 +58,7 @@ func Default() *Validator {
 			// 如果创建默认验证器失败，创建一个基础版本
 			defaultValidator = &Validator{
 				engine:   NewEngine(),
-				locale:   language.Make("en"),
+				locale:   xlanguage.Tag{},
 				useJSON:  true,
 				messages: make(map[string]string),
 			}
@@ -68,17 +70,15 @@ func Default() *Validator {
 }
 
 // SetLocale 设置语言地区
-func (v *Validator) SetLocale(tag language.Tag) {
+func (v *Validator) SetLocale(tag xlanguage.Tag) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	v.locale = tag
 }
 
 // GetLocale 获取当前语言地区
-func (v *Validator) GetLocale() language.Tag {
-	v.mu.RLock()
-	defer v.mu.RUnlock()
-	return v.locale
+func (v *Validator) GetLocale() xlanguage.Tag {
+	return v.effectiveLocale()
 }
 
 // SetUseJSON 设置是否优先使用 JSON 字段名
@@ -125,7 +125,7 @@ func (v *Validator) RegisterStructValidation(fn StructValidatorFunc, typeName st
 	return v.engine.RegisterStructValidation(fn, typeName)
 }
 // RegisterTranslation 注册翻译
-func (v *Validator) RegisterTranslation(locale language.Tag, tag, translation string) {
+func (v *Validator) RegisterTranslation(locale xlanguage.Tag, tag, translation string) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	key := fmt.Sprintf("%s.%s", locale.String(), tag)
@@ -140,11 +140,25 @@ func (v *Validator) translateValidationErrors(validationErrors ValidationErrors)
 	return validationErrors
 }
 
-// translateFieldError 翻译字段错误
-func (v *Validator) translateFieldError(err *FieldError) string {
+// effectiveLocale 返回有效语言标签。
+// 优先级：显式设置 > 协程本地语言 > 英文默认。
+func (v *Validator) effectiveLocale() xlanguage.Tag {
 	v.mu.RLock()
 	locale := v.locale
 	v.mu.RUnlock()
+
+	if locale != (xlanguage.Tag{}) {
+		return locale
+	}
+	if tag := language.Get(); tag != nil {
+		return tag.Tag()
+	}
+	return xlanguage.Make("en")
+}
+
+// translateFieldError 翻译字段错误
+func (v *Validator) translateFieldError(err *FieldError) string {
+	locale := v.effectiveLocale()
 
 	localeStr := locale.String()
 
@@ -455,7 +469,7 @@ func (v *Validator) registerDefaultValidators() error {
 // 全局便捷函数
 
 // SetLocale 设置默认验证器的语言地区
-func SetLocale(tag language.Tag) {
+func SetLocale(tag xlanguage.Tag) {
 	Default().SetLocale(tag)
 }
 
@@ -480,7 +494,7 @@ func RegisterValidation(tag string, fn ValidatorFunc) error {
 }
 
 // RegisterTranslation 在默认验证器上注册翻译
-func RegisterTranslation(locale language.Tag, tag, translation string) {
+func RegisterTranslation(locale xlanguage.Tag, tag, translation string) {
 	Default().RegisterTranslation(locale, tag, translation)
 }
 
