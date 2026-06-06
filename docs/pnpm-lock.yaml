@@ -4,13 +4,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@rspress/core@2.0.13': b7f60d521790f523e36545961fd44383f5031066c7a2b2035a0d47e5cfc0b4b4
+
 importers:
 
   .:
     devDependencies:
       '@rspress/core':
         specifier: ^2.0.13
-        version: 2.0.13(@rspack/core@2.0.6(@swc/helpers@0.5.23))(@types/mdast@4.0.4)(@types/react@19.2.16)(micromark-util-types@2.0.0)(micromark@4.0.0)
+        version: 2.0.13(patch_hash=b7f60d521790f523e36545961fd44383f5031066c7a2b2035a0d47e5cfc0b4b4)(@rspack/core@2.0.6(@swc/helpers@0.5.23))(@types/mdast@4.0.4)(@types/react@19.2.16)(micromark-util-types@2.0.0)(micromark@4.0.0)
 
 packages:
 
@@ -971,7 +974,7 @@ snapshots:
     optionalDependencies:
       '@rspack/core': 2.0.6(@swc/helpers@0.5.23)
 
-  '@rspress/core@2.0.13(@rspack/core@2.0.6(@swc/helpers@0.5.23))(@types/mdast@4.0.4)(@types/react@19.2.16)(micromark-util-types@2.0.0)(micromark@4.0.0)':
+  '@rspress/core@2.0.13(patch_hash=b7f60d521790f523e36545961fd44383f5031066c7a2b2035a0d47e5cfc0b4b4)(@rspack/core@2.0.6(@swc/helpers@0.5.23))(@types/mdast@4.0.4)(@types/react@19.2.16)(micromark-util-types@2.0.0)(micromark@4.0.0)':
     dependencies:
       '@mdx-js/mdx': 3.1.1
       '@mdx-js/react': 3.1.1(@types/react@19.2.16)(react@19.2.7)

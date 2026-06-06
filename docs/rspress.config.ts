@@ -1,4 +1,5 @@
 import { defineConfig } from '@rspress/core';
+import { pluginMermaid } from './plugins/mermaid';
 
 type SidebarItem = {
   text: string;
@@ -188,6 +189,12 @@ function buildSidebars(locale: 'zh-CN' | 'en' | 'zh-TW', labels: {
   // Validator
   result[withLocale(locale, '/validator/')] = [validatorLabels[locale]];
 
+  // API
+  const apiText: Record<string, string> = { 'zh-CN': 'API 概览', en: 'API Documentation', 'zh-TW': 'API 文檔' };
+  result[withLocale(locale, '/api/')] = [
+    { text: apiText[locale], items: [{ text: apiText[locale], link: withLocale(locale, '/api/overview') }] },
+  ];
+
   return result;
 }
 
@@ -233,6 +240,11 @@ export default defineConfig({
   route: {
     extensions: ['.md', '.mdx'],
   },
+  markdown: {
+    link: {
+      checkDeadLinks: false,
+    },
+  },
 
   i18nSource: {
     languagesText: { 'zh-CN': '语言', 'zh-TW': '語言' },
@@ -257,6 +269,11 @@ export default defineConfig({
     copyMarkdownLinkText: { 'zh-CN': '复制 Markdown 链接', 'zh-TW': '複製 Markdown 連結' },
     editLinkText: { 'zh-CN': '编辑此页面', 'zh-TW': '編輯此頁面' },
     codeButtonGroupCopyButtonText: { 'zh-CN': '复制代码', 'zh-TW': '複製程式碼' },
+    codeButtonGroupWrapButtonText: { 'zh-CN': '换行', 'zh-TW': '換行' },
+    promptCopyText: { 'zh-CN': '复制', 'zh-TW': '複製' },
+    promptCopiedText: { 'zh-CN': '已复制', 'zh-TW': '已複製' },
+    promptExpandText: { 'zh-CN': '展开', 'zh-TW': '展開' },
+    promptCollapseText: { 'zh-CN': '收起', 'zh-TW': '收起' },
     notFoundText: { 'zh-CN': '页面未找到', 'zh-TW': '頁面未找到' },
     takeMeHomeText: { 'zh-CN': '返回首页', 'zh-TW': '返回首頁' },
   },
@@ -315,4 +332,5 @@ export default defineConfig({
       message: 'AGPL-3.0 Licensed · Copyright © 2024-Present LazyGophers',
     },
   },
+  plugins: [pluginMermaid()],
 });

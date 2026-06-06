@@ -1,0 +1,2 @@
+patchedDependencies:
+  '@rspress/core@2.0.13': patches/@rspress__core@2.0.13.patch

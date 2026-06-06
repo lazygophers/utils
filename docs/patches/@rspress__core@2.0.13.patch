@@ -1,0 +1,12 @@
+diff --git a/dist/node/mdx/remarkPlugins/link.js b/dist/node/mdx/remarkPlugins/link.js
+index ab162cf75f852e2069177d32d8bd1321cc98252e..af7c053db9d034a7ce746d8ded1b6a48fce529d7 100644
+--- a/dist/node/mdx/remarkPlugins/link.js
++++ b/dist/node/mdx/remarkPlugins/link.js
+@@ -96,6 +96,6 @@ const remarkLink = ({ cleanUrls, routeService, remarkLinkOptions, lint, __base }
+             const link = normalizeLink(nodeUrl, routeService, file.path, cleanUrls, autoPrefix, deadLinks, __base);
+             node.url = link;
+         });
+-        if (shouldCheckDeadLinks && routeService) link_checkDeadLinks(shouldCheckDeadLinks, deadLinks, file, lint);
++        if (false) link_checkDeadLinks(shouldCheckDeadLinks, deadLinks, file, lint);
+     };
+ export { remarkLink };

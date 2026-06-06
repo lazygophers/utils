@@ -22,6 +22,24 @@ title: 缓存策略
 
 ## 先怎么选
 
+```mermaid
+flowchart TD
+    Start["选择缓存策略"] --> Q1{"负载模式？"}
+    Q1 -- "没有明显模式" --> TinyLFU["TinyLFU"]
+    Q1 -- "偏近期性" --> Q2{"有扫描型负载？"}
+    Q2 -- "是" --> ARC["ARC"]
+    Q2 -- "否" --> Q3{"需要分层？"}
+    Q3 -- "是" --> SLRU["SLRU"]
+    Q3 -- "否" --> LRU["LRU"]
+    Q1 -- "偏频次" --> Q4{"模式稳定？"}
+    Q4 -- "稳定" --> LFU["LFU"]
+    Q4 -- "不稳定" --> ALFU["ALFU"]
+    Q1 -- "混合/不确定" --> Q5{"需要理论基线？"}
+    Q5 -- "是" --> Optimal["Optimal"]
+    Q5 -- "否" --> WTinyLFU["W-TinyLFU"]
+    Q1 -- "顺序扫描" --> MRU["MRU"]
+```
+
 | 场景 | 建议先看 |
 | --- | --- |
 | 完全没有明显模式，想先从稳妥方案开始 | [TinyLFU](/modules/cache/tinylfu) |
