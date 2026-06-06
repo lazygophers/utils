@@ -318,6 +318,65 @@ func (v *Validator) registerDefaultValidators() error {
 	if err := v.RegisterValidation("alphanum_lower", validateAlphanumLower); err != nil {
 		return fmt.Errorf("failed to register alphanum_lower validator: %w", err)
 	}
+
+	// 字符串验证器
+	if err := v.RegisterValidation("alphaspace", validateAlphaSpace); err != nil {
+		return fmt.Errorf("failed to register alphaspace validator: %w", err)
+	}
+	if err := v.RegisterValidation("alphanumspace", validateAlphanumSpace); err != nil {
+		return fmt.Errorf("failed to register alphanumspace validator: %w", err)
+	}
+	if err := v.RegisterValidation("alphaunicode", validateAlphaUnicode); err != nil {
+		return fmt.Errorf("failed to register alphaunicode validator: %w", err)
+	}
+	if err := v.RegisterValidation("alphanumunicode", validateAlphanumUnicode); err != nil {
+		return fmt.Errorf("failed to register alphanumunicode validator: %w", err)
+	}
+	if err := v.RegisterValidation("ascii", validateASCII); err != nil {
+		return fmt.Errorf("failed to register ascii validator: %w", err)
+	}
+	if err := v.RegisterValidation("printascii", validatePrintASCII); err != nil {
+		return fmt.Errorf("failed to register printascii validator: %w", err)
+	}
+	if err := v.RegisterValidation("boolean", validateBoolean); err != nil {
+		return fmt.Errorf("failed to register boolean validator: %w", err)
+	}
+	if err := v.RegisterValidation("number", validateNumber); err != nil {
+		return fmt.Errorf("failed to register number validator: %w", err)
+	}
+	if err := v.RegisterValidation("multibyte", validateMultibyte); err != nil {
+		return fmt.Errorf("failed to register multibyte validator: %w", err)
+	}
+	if err := v.RegisterValidation("contains", validateContains); err != nil {
+		return fmt.Errorf("failed to register contains validator: %w", err)
+	}
+	if err := v.RegisterValidation("containsany", validateContainsAny); err != nil {
+		return fmt.Errorf("failed to register containsany validator: %w", err)
+	}
+	if err := v.RegisterValidation("containsrune", validateContainsRune); err != nil {
+		return fmt.Errorf("failed to register containsrune validator: %w", err)
+	}
+	if err := v.RegisterValidation("startswith", validateStartsWith); err != nil {
+		return fmt.Errorf("failed to register startswith validator: %w", err)
+	}
+	if err := v.RegisterValidation("startsnotwith", validateStartsNotWith); err != nil {
+		return fmt.Errorf("failed to register startsnotwith validator: %w", err)
+	}
+	if err := v.RegisterValidation("endswith", validateEndsWith); err != nil {
+		return fmt.Errorf("failed to register endswith validator: %w", err)
+	}
+	if err := v.RegisterValidation("endsnotwith", validateEndsNotWith); err != nil {
+		return fmt.Errorf("failed to register endsnotwith validator: %w", err)
+	}
+	if err := v.RegisterValidation("excludes", validateExcludes); err != nil {
+		return fmt.Errorf("failed to register excludes validator: %w", err)
+	}
+	if err := v.RegisterValidation("excludesall", validateExcludesAll); err != nil {
+		return fmt.Errorf("failed to register excludesall validator: %w", err)
+	}
+	if err := v.RegisterValidation("excludesrune", validateExcludesRune); err != nil {
+		return fmt.Errorf("failed to register excludesrune validator: %w", err)
+	}
 	return nil
 }
 
