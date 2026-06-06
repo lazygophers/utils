@@ -189,6 +189,31 @@ function buildSidebar(locale: 'zh-CN' | 'en' | 'zh-TW', labels: {
   ];
 }
 
+function buildNav(locale: 'zh-CN' | 'en' | 'zh-TW') {
+  const navLabels: Record<string, { start: string; modules: string; overview: string }> = {
+    'zh-CN': { start: '开始', modules: '模块', overview: '模块总览' },
+    en: { start: 'Getting Started', modules: 'Modules', overview: 'Overview' },
+    'zh-TW': { start: '開始', modules: '模組', overview: '模組總覽' },
+  };
+  const l = navLabels[locale];
+
+  return [
+    { text: l.start, link: withLocale(locale, '/guide/getting-started') },
+    {
+      text: l.modules,
+      items: [
+        { text: l.overview, link: withLocale(locale, '/modules/overview') },
+        ...moduleGroups.map((group) => ({
+          text: group.text[locale],
+          link: withLocale(locale, group.link),
+        })),
+      ],
+    },
+    { text: 'Validator', link: withLocale(locale, '/validator/') },
+    { text: 'GitHub', link: 'https://github.com/lazygophers/utils' },
+  ];
+}
+
 export default defineConfig({
   root: '.',
   lang: 'zh-CN',
@@ -246,12 +271,10 @@ export default defineConfig({
     },
   ],
   themeConfig: {
-    nav: [
-      { text: '开始', link: '/guide/getting-started' },
-      { text: '模块', link: '/modules/overview' },
-      { text: 'Validator', link: '/validator/' },
-      { text: 'API', link: '/api/overview' },
-      { text: 'GitHub', link: 'https://github.com/lazygophers/utils' },
+    nav: buildNav('zh-CN'),
+    locales: [
+      { lang: 'en', nav: buildNav('en') },
+      { lang: 'zh-TW', nav: buildNav('zh-TW') },
     ],
     sidebar: {
       '/': [
