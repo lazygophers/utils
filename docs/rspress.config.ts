@@ -23,6 +23,7 @@ const moduleGroups: GroupDef[] = [
       { text: 'must', link: '/modules/core/must' },
       { text: 'orm', link: '/modules/core/orm' },
       { text: 'xerror', link: '/modules/core/xerror' },
+      { text: 'i18n', link: '/modules/core/i18n' },
     ],
   },
   {
