@@ -106,7 +106,8 @@ func (v *Validator) Var(field interface{}, tag string) error {
 	err := v.engine.Var(field, tag)
 	if err != nil {
 		if fieldError, ok := err.(*FieldError); ok {
-			fieldError.Message = v.translateFieldError(fieldError)
+			locale := v.effectiveLocale()
+			fieldError.Message = v.translateFieldErrorWithLocale(locale.String(), fieldError)
 			return fieldError
 		}
 		return err
@@ -133,9 +134,12 @@ func (v *Validator) RegisterTranslation(locale xlanguage.Tag, tag, translation s
 }
 
 // translateValidationErrors 翻译验证错误
+// 优化：只计算一次 locale，避免每个 error 重复加锁
 func (v *Validator) translateValidationErrors(validationErrors ValidationErrors) error {
+	locale := v.effectiveLocale()
+	localeStr := locale.String()
 	for _, err := range validationErrors {
-		err.Message = v.translateFieldError(err)
+		err.Message = v.translateFieldErrorWithLocale(localeStr, err)
 	}
 	return validationErrors
 }
@@ -157,24 +161,21 @@ func (v *Validator) effectiveLocale() xlanguage.Tag {
 	return xlanguage.Make("en")
 }
 
-// translateFieldError 翻译字段错误
-func (v *Validator) translateFieldError(err *FieldError) string {
-	locale := v.effectiveLocale()
+// cachedEnConfig 缓存英文 locale 配置，避免重复查找
+var cachedEnConfig *LocaleConfig
 
-	localeStr := locale.String()
-
-	// 获取本地化配置
-	localeConfig, ok := GetLocaleConfig(localeStr)
-	if !ok {
-		if enConfig, enOk := GetLocaleConfig("en"); enOk {
-			localeConfig = enConfig
-		} else {
-			return fmt.Sprintf("%s failed validation for tag '%s'", err.Field, err.Tag)
-		}
+func init() {
+	// locale.go init 注册 en 配置后，缓存一份引用
+	// init 顺序由 Go 编译器按文件名排序保证（locale.go < validator.go）
+	if cfg, ok := GetLocaleConfig("en"); ok {
+		cachedEnConfig = cfg
 	}
+}
 
-	// 构建翻译键
-	key := fmt.Sprintf("%s.%s", localeStr, err.Tag)
+// translateFieldErrorWithLocale 翻译字段错误（接收预计算的 localeStr，避免重复加锁）
+func (v *Validator) translateFieldErrorWithLocale(localeStr string, err *FieldError) string {
+	// 优先查找用户自定义翻译
+	key := localeStr + "." + err.Tag
 
 	v.mu.RLock()
 	if msg, exists := v.messages[key]; exists {
@@ -183,22 +184,24 @@ func (v *Validator) translateFieldError(err *FieldError) string {
 	}
 	v.mu.RUnlock()
 
-	// 使用默认消息模板
-	if template, exists := localeConfig.Messages[err.Tag]; exists {
-		return v.formatMessage(template, err)
-	}
-
-	// 最后回退到英文默认消息
-	if localeStr != "en" {
-		if englishConfig, ok := GetLocaleConfig("en"); ok {
-			if template, exists := englishConfig.Messages[err.Tag]; exists {
-				return v.formatMessage(template, err)
-			}
+	// 查找 locale 配置中的消息模板
+	localeConfig, ok := GetLocaleConfig(localeStr)
+	if ok {
+		if template, exists := localeConfig.Messages[err.Tag]; exists {
+			return v.formatMessage(template, err)
 		}
 	}
 
-	return fmt.Sprintf("%s failed validation for tag '%s'", err.Field, err.Tag)
+	// 回退到英文消息（使用缓存，无锁查找）
+	if localeStr != "en" && cachedEnConfig != nil {
+		if template, exists := cachedEnConfig.Messages[err.Tag]; exists {
+			return v.formatMessage(template, err)
+		}
+	}
+
+	return err.Field + " failed validation for tag '" + err.Tag + "'"
 }
+
 
 // formatMessage 格式化错误消息（性能优化版本）
 // 使用快速路径 + 内联优化，显著提升性能
@@ -268,15 +271,15 @@ func (v *Validator) updateFieldNameFunc() {
 
 // jsonFieldNameFunc JSON字段名称解析函数（优先使用JSON标签）
 func (v *Validator) jsonFieldNameFunc(field reflect.StructField) string {
-	// 优先使用 json tag
 	if jsonTag := field.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
-		// 处理 json:"name,omitempty" 格式
-		if parts := strings.Split(jsonTag, ","); len(parts) > 0 && parts[0] != "" {
-			return parts[0]
+		if idx := strings.IndexByte(jsonTag, ','); idx != -1 {
+			if jsonTag[:idx] != "" {
+				return jsonTag[:idx]
+			}
+		} else {
+			return jsonTag
 		}
 	}
-
-	// 回退到字段名
 	return field.Name
 }
 

@@ -22,49 +22,49 @@ var defaultMessages = map[string]string{
 	"uuid":              "{field} 必须是有效的 UUID",
 }
 
-// formatMessage 格式化错误消息，支持模板替换
+// formatMessage 格式化错误消息，零分配快速路径。
+// 使用 byte slice builder 替代 O(n²) 字符串拼接。
 func formatMessage(template, field, tag, param string) string {
-	msg := template
-	msg = stringsReplaceAll(msg, "{field}", field)
-	msg = stringsReplaceAll(msg, "{tag}", tag)
-	msg = stringsReplaceAll(msg, "{param}", param)
-	return msg
-}
-
-// stringsReplaceAll 替换字符串（避免使用 strings 包导入问题）
-func stringsReplaceAll(s, old, new string) string {
-	result := ""
-	start := 0
-	for {
-		idx := indexOf(s, old, start)
-		if idx == -1 {
-			result += s[start:]
+	// 快速路径：手动扫描避免 strings.Contains 开销
+	hasPlaceholder := false
+	for i := 0; i < len(template); i++ {
+		if template[i] == '{' {
+			hasPlaceholder = true
 			break
 		}
-		result += s[start:idx] + new
-		start = idx + len(old)
 	}
-	return result
-}
+	if !hasPlaceholder {
+		return template
+	}
 
-// indexOf 查找子字符串位置
-func indexOf(s, substr string, start int) int {
-	if len(substr) == 0 {
-		return start
-	}
-	for i := start; i <= len(s)-len(substr); i++ {
-		match := true
-		for j := 0; j < len(substr); j++ {
-			if s[i+j] != substr[j] {
-				match = false
-				break
+	result := make([]byte, 0, len(template)+len(field)+len(tag)+len(param))
+
+	i := 0
+	for i < len(template) {
+		if i+7 <= len(template) {
+			if template[i:i+7] == "{field}" {
+				result = append(result, field...)
+				i += 7
+				continue
+			}
+			if template[i:i+7] == "{param}" {
+				result = append(result, param...)
+				i += 7
+				continue
 			}
 		}
-		if match {
-			return i
+		if i+5 <= len(template) {
+			if template[i:i+5] == "{tag}" {
+				result = append(result, tag...)
+				i += 5
+				continue
+			}
 		}
+		result = append(result, template[i])
+		i++
 	}
-	return -1
+
+	return string(result)
 }
 
 // getDefaultMessage 获取默认错误消息

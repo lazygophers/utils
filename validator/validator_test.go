@@ -543,10 +543,18 @@ func TestCustomRulesInAllLocales(t *testing.T) {
 	}
 }
 
-func TestIndexOfEmptySubstr(t *testing.T) {
-	// empty substr returns start immediately
-	assert.Equal(t, 0, indexOf("hello", "", 0))
-	assert.Equal(t, 3, indexOf("hello", "", 3))
+func TestFormatMessageNoPlaceholders(t *testing.T) {
+	assert.Equal(t, "plain text", formatMessage("plain text", "f", "t", "p"))
+}
+
+func TestFormatMessageWithPlaceholders(t *testing.T) {
+	result := formatMessage("{field} must be {tag}", "Name", "required", "5")
+	assert.Equal(t, "Name must be required", result)
+}
+
+func TestFormatMessageWithParam(t *testing.T) {
+	result := formatMessage("{field} min {param}", "Age", "min", "18")
+	assert.Equal(t, "Age min 18", result)
 }
 
 func TestGetLocaleConfigFallback(t *testing.T) {

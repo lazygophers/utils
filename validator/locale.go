@@ -1,8 +1,6 @@
 package validator
 
-import (
-	"sync"
-)
+import "sync"
 
 // LocaleConfig 语言地区配置
 type LocaleConfig struct {
@@ -11,40 +9,32 @@ type LocaleConfig struct {
 	Messages map[string]string // 验证错误消息模板
 }
 
-// 全局地区管理器
-var (
-	localeConfigs = make(map[string]*LocaleConfig)
-	localeMu      sync.RWMutex
-)
+// 全局地区管理器，使用 sync.Map 实现无锁读
+var localeConfigs sync.Map // map[string]*LocaleConfig
 
 // RegisterLocaleConfig 注册语言地区配置
 func RegisterLocaleConfig(name string, config *LocaleConfig) {
-	localeMu.Lock()
-	defer localeMu.Unlock()
-	localeConfigs[name] = config
+	localeConfigs.Store(name, config)
 }
 
 // GetLocaleConfig 获取语言地区配置
+// 查找链：完整匹配 > 语言前缀 > 英文兜底
 func GetLocaleConfig(name string) (*LocaleConfig, bool) {
-	localeMu.RLock()
-	defer localeMu.RUnlock()
-
 	// 尝试完整匹配
-	if config, ok := localeConfigs[name]; ok {
-		return config, true
+	if v, ok := localeConfigs.Load(name); ok {
+		return v.(*LocaleConfig), true
 	}
 
 	// 尝试语言匹配（忽略地区）
 	if len(name) > 2 && name[2] == '-' {
-		lang := name[:2]
-		if config, ok := localeConfigs[lang]; ok {
-			return config, true
+		if v, ok := localeConfigs.Load(name[:2]); ok {
+			return v.(*LocaleConfig), true
 		}
 	}
 
 	// 默认英文
-	if config, ok := localeConfigs["en"]; ok {
-		return config, true
+	if v, ok := localeConfigs.Load("en"); ok {
+		return v.(*LocaleConfig), true
 	}
 
 	return nil, false
@@ -52,13 +42,11 @@ func GetLocaleConfig(name string) (*LocaleConfig, bool) {
 
 // GetAvailableLocales 获取所有可用的语言地区
 func GetAvailableLocales() []string {
-	localeMu.RLock()
-	defer localeMu.RUnlock()
-
 	var locales []string
-	for name := range localeConfigs {
-		locales = append(locales, name)
-	}
+	localeConfigs.Range(func(key, _ interface{}) bool {
+		locales = append(locales, key.(string))
+		return true
+	})
 	return locales
 }
 

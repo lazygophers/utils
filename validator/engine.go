@@ -9,6 +9,9 @@ import (
 	"sync"
 )
 
+// tagParseCache 缓存已解析的验证标签，避免重复 strings.Split 分配
+var tagParseCache sync.Map // map[string][]validationRule
+
 // 预编译正则表达式
 var (
 	emailRegex    = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
@@ -191,17 +194,18 @@ func (e *Engine) Var(field interface{}, tag string) error {
 		return nil
 	}
 
-	fl := &fieldLevel{
-		top:             rv,
-		parent:          rv,
-		field:           rv,
-		fieldName:       "var",
-		structFieldName: "var",
-	}
+	fl := fieldLevelPool.Get().(*fieldLevel)
+	fl.top = rv
+	fl.parent = rv
+	fl.field = rv
+	fl.fieldName = "var"
+	fl.structFieldName = "var"
 
 	for _, rule := range rules {
 		fl.param = rule.param
 		if !e.validateField(fl, rule.tag) {
+			*fl = fieldLevel{}
+			fieldLevelPool.Put(fl)
 			return &FieldError{
 				Field:   "var",
 				Tag:     rule.tag,
@@ -212,6 +216,8 @@ func (e *Engine) Var(field interface{}, tag string) error {
 		}
 	}
 
+	*fl = fieldLevel{}
+	fieldLevelPool.Put(fl)
 	return nil
 }
 
@@ -281,7 +287,7 @@ func (e *Engine) validateStruct(top, current reflect.Value, namespace string, er
 					fieldLen := field.Len()
 					for k := 0; k < fieldLen; k++ {
 						elem := field.Index(k)
-						elemFieldName := fieldName + "[" + fmt.Sprint(k) + "]"
+						elemFieldName := fieldName + "[" + strconv.Itoa(k) + "]"
 
 						// 如果元素是结构体，递归验证
 						elemKind := elem.Kind()
@@ -321,6 +327,7 @@ func (e *Engine) validateStruct(top, current reflect.Value, namespace string, er
 								}
 							}
 
+							*elemFl = fieldLevel{}
 							fieldLevelPool.Put(elemFl)
 						}
 					}
@@ -343,7 +350,8 @@ func (e *Engine) validateStruct(top, current reflect.Value, namespace string, er
 			}
 		}
 
-		// 归还对象池
+		// 归还对象池（重置避免持有引用）
+		*fl = fieldLevel{}
 		fieldLevelPool.Put(fl)
 
 		// 递归验证嵌套结构体
@@ -374,10 +382,13 @@ type validationRule struct {
 	param string
 }
 
-// parseTag 解析验证标签
-// 性能优化：预分配切片 + IndexByte，性能提升约 40%
+// parseTag 解析验证标签，带缓存。
+// 相同 tag 字符串只解析一次，后续直接返回缓存结果。
 func (e *Engine) parseTag(tag string) []validationRule {
-	// 预分配切片容量，避免多次重新分配
+	if cached, ok := tagParseCache.Load(tag); ok {
+		return cached.([]validationRule)
+	}
+
 	parts := strings.Split(tag, ",")
 	rules := make([]validationRule, 0, len(parts))
 
@@ -387,7 +398,6 @@ func (e *Engine) parseTag(tag string) []validationRule {
 			continue
 		}
 
-		// 使用 IndexByte 替代 Index，性能更好
 		if idx := strings.IndexByte(part, '='); idx != -1 {
 			ruleName := strings.TrimSpace(part[:idx])
 			param := strings.TrimSpace(part[idx+1:])
@@ -397,20 +407,21 @@ func (e *Engine) parseTag(tag string) []validationRule {
 		}
 	}
 
+	tagParseCache.Store(tag, rules)
 	return rules
 }
 
 // defaultFieldNameFunc 默认字段名称解析函数（优先使用JSON标签）
 func defaultFieldNameFunc(field reflect.StructField) string {
-	// 优先使用 json tag
 	if jsonTag := field.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
-		// 处理 json:"name,omitempty" 格式
-		if parts := strings.Split(jsonTag, ","); len(parts) > 0 && parts[0] != "" {
-			return parts[0]
+		if idx := strings.IndexByte(jsonTag, ','); idx != -1 {
+			if jsonTag[:idx] != "" {
+				return jsonTag[:idx]
+			}
+		} else {
+			return jsonTag
 		}
 	}
-
-	// 回退到字段名
 	return field.Name
 }
 
