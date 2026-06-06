@@ -113,6 +113,14 @@ func init() {
 				"origin":        "{field} debe ser un origen web válido",
 				"urn_rfc2141":   "{field} debe ser un URN válido (RFC 2141)",
 				"uds_exists":    "{field} debe ser un socket de dominio Unix existente",
+				"alphaspace":      "{field} solo debe contener letras y espacios",
+				"alphanumspace":   "{field} solo debe contener letras, números y espacios",
+				"alphanumunicode": "{field} solo debe contener letras y números (unicode)",
+				"alphaunicode":    "{field} solo debe contener letras (unicode)",
+				"boolean":         "{field} debe ser un valor booleano válido",
+				"endsnotwith":     "{field} no debe terminar con '{param}'",
+				"startsnotwith":   "{field} no debe comenzar con '{param}'",
+				"containspecial": "{field} debe contener caracteres especiales",
 		},
 	})
 }

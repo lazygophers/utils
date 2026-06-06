@@ -13,17 +13,42 @@ Validator 內建豐富的驗證標籤，覆蓋常見校驗場景。
 | `required` | 非零值 | `validate:"required"` |
 | `email` | 郵箱格式 | `validate:"email"` |
 | `url` | URL 格式 | `validate:"url"` |
-| `alpha` | 純字母（大小寫） | `validate:"alpha"` |
-| `alphanum` | 字母 + 數字 | `validate:"alphanum"` |
 | `json` | JSON 格式 | `validate:"json"` |
 | `uuid` | UUID 格式 | `validate:"uuid"` |
+
+## 字符串
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `alpha` | 僅字母 | `validate:"alpha"` |
+| `alphaspace` | 僅字母 + 空格 | `validate:"alphaspace"` |
+| `alphanum` | 僅字母 + 數字 | `validate:"alphanum"` |
+| `alphanumspace` | 僅字母 + 數字 + 空格 | `validate:"alphanumspace"` |
+| `alphanumunicode` | 字母 + 數字（含 Unicode） | `validate:"alphanumunicode"` |
+| `alphaunicode` | 僅字母（含 Unicode） | `validate:"alphaunicode"` |
+| `ascii` | 僅 ASCII 字元 | `validate:"ascii"` |
+| `printascii` | 僅可列印 ASCII | `validate:"printascii"` |
+| `multibyte` | 多位元組字元 | `validate:"multibyte"` |
+| `boolean` | 布林值 | `validate:"boolean"` |
+| `number` | 數字 | `validate:"number"` |
+| `numeric` | 數值 | `validate:"numeric"` |
+| `uppercase` | 僅大寫字母 | `validate:"uppercase"` |
+| `lowercase` | 僅小寫字母 | `validate:"lowercase"` |
+| `contains` | 包含子串 | `validate:"contains=abc"` |
+| `containsany` | 包含任一字元 | `validate:"containsany=abc"` |
+| `containsrune` | 包含指定 rune | `validate:"containsrune=©"` |
+| `excludes` | 不包含子串 | `validate:"excludes=abc"` |
+| `excludesall` | 不包含任一字元 | `validate:"excludesall=abc"` |
+| `excludesrune` | 不包含指定 rune | `validate:"excludesrune=©"` |
+| `startswith` | 以指定字串開頭 | `validate:"startswith=Hello"` |
+| `startsnotwith` | 不以指定字串開頭 | `validate:"startsnotwith=Bad"` |
+| `endswith` | 以指定字串結尾 | `validate:"endswith=World"` |
+| `endsnotwith` | 不以指定字串結尾 | `validate:"endsnotwith=Bad"` |
 
 ## 字母/數字變體
 
 | 標籤 | 說明 | 範例 |
 |------|------|------|
-| `uppercase` | 僅大寫字母 | `validate:"uppercase"` |
-| `lowercase` | 僅小寫字母 | `validate:"lowercase"` |
 | `alphanum_upper` | 大寫字母 + 數字 | `validate:"alphanum_upper"` |
 | `alphanum_lower` | 小寫字母 + 數字 | `validate:"alphanum_lower"` |
 

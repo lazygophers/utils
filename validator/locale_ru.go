@@ -113,6 +113,14 @@ func init() {
 				"origin":        "{field} должно быть допустимым веб-источником",
 				"urn_rfc2141":   "{field} должно быть допустимым URN (RFC 2141)",
 				"uds_exists":    "{field} должно быть существующим Unix-сокетом",
+				"alphaspace":      "{field} должно содержать только буквы и пробелы",
+				"alphanumspace":   "{field} должно содержать только буквы, цифры и пробелы",
+				"alphanumunicode": "{field} должно содержать только буквы и цифры (unicode)",
+				"alphaunicode":    "{field} должно содержать только буквы (unicode)",
+				"boolean":         "{field} должно быть допустимым логическим значением",
+				"endsnotwith":     "{field} не должно заканчиваться на '{param}'",
+				"startsnotwith":   "{field} не должно начинаться с '{param}'",
+				"containspecial": "{field} должно содержать специальные символы",
 		},
 	})
 }

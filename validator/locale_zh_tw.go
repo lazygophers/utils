@@ -113,6 +113,14 @@ func init() {
 				"origin":        "{field}必須是有效的Web Origin",
 				"urn_rfc2141":   "{field}必須是有效的URN（RFC 2141）",
 				"uds_exists":    "{field}必須是已存在的Unix域套接字",
+				"alphaspace":      "{field}只能包含字母和空格",
+				"alphanumspace":   "{field}只能包含字母、數字和空格",
+				"alphanumunicode": "{field}只能包含字母和數字（含 Unicode）",
+				"alphaunicode":    "{field}只能包含字母（含 Unicode）",
+				"boolean":         "{field}必須是有效的布林值",
+				"endsnotwith":     "{field}不能以'{param}'結尾",
+				"startsnotwith":   "{field}不能以'{param}'開頭",
+				"containspecial": "{field}必須包含特殊字元",
 		},
 	})
 }

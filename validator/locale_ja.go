@@ -113,6 +113,14 @@ func init() {
 				"origin":        "{field}は有効なWeb Originである必要があります",
 				"urn_rfc2141":   "{field}は有効なURN（RFC 2141）である必要があります",
 				"uds_exists":    "{field}は既存のUnixドメインソケットである必要があります",
+				"alphaspace":      "{field}は文字とスペースのみを含む必要があります",
+				"alphanumspace":   "{field}は文字、数字、スペースのみを含む必要があります",
+				"alphanumunicode": "{field}は文字と数字のみを含む必要があります（Unicode対応）",
+				"alphaunicode":    "{field}は文字のみを含む必要があります（Unicode対応）",
+				"boolean":         "{field}は有効なブール値である必要があります",
+				"endsnotwith":     "{field}は'{param}'で終わってはいけません",
+				"startsnotwith":   "{field}は'{param}'で始まってはいけません",
+				"containspecial": "{field}は特殊文字を含む必要があります",
 		},
 	})
 }

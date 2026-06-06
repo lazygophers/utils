@@ -113,6 +113,14 @@ func init() {
 				"origin":        "{field} يجب أن يكون أصل ويب صالح",
 				"urn_rfc2141":   "{field} يجب أن يكون URN صالح (RFC 2141)",
 				"uds_exists":    "{field} يجب أن يكون مقبس نطاق Unix موجود",
+				"alphaspace":      "{field} يجب أن يحتوي فقط على أحرف ومسافات",
+				"alphanumspace":   "{field} يجب أن يحتوي فقط على أحرف وأرقام ومسافات",
+				"alphanumunicode": "{field} يجب أن يحتوي فقط على أحرف وأرقام (يونيكود)",
+				"alphaunicode":    "{field} يجب أن يحتوي فقط على أحرف (يونيكود)",
+				"boolean":         "{field} يجب أن يكون قيمة منطقية صالحة",
+				"endsnotwith":     "{field} يجب ألا ينتهي بـ '{param}'",
+				"startsnotwith":   "{field} يجب ألا يبدأ بـ '{param}'",
+				"containspecial": "{field} يجب أن يحتوي على أحرف خاصة",
 		},
 	})
 }

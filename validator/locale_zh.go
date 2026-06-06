@@ -111,6 +111,14 @@ func init() {
 				"origin":        "{field}必须是有效的Web Origin",
 				"urn_rfc2141":   "{field}必须是有效的URN（RFC 2141）",
 				"uds_exists":    "{field}必须是已存在的Unix域套接字",
+				"alphaspace":      "{field}只能包含字母和空格",
+				"alphanumspace":   "{field}只能包含字母、数字和空格",
+				"alphanumunicode": "{field}只能包含字母和数字（含 Unicode）",
+				"alphaunicode":    "{field}只能包含字母（含 Unicode）",
+				"boolean":         "{field}必须是有效的布尔值",
+				"endsnotwith":     "{field}不能以'{param}'结尾",
+				"startsnotwith":   "{field}不能以'{param}'开头",
+				"containspecial": "{field}必须包含特殊字符",
 		},
 	})
 
@@ -224,6 +232,14 @@ func init() {
 				"origin":        "{field}必须是有效的Web Origin",
 				"urn_rfc2141":   "{field}必须是有效的URN（RFC 2141）",
 				"uds_exists":    "{field}必须是已存在的Unix域套接字",
+				"alphaspace":      "{field}只能包含字母和空格",
+				"alphanumspace":   "{field}只能包含字母、数字和空格",
+				"alphanumunicode": "{field}只能包含字母和数字（含 Unicode）",
+				"alphaunicode":    "{field}只能包含字母（含 Unicode）",
+				"boolean":         "{field}必须是有效的布尔值",
+				"endsnotwith":     "{field}不能以'{param}'结尾",
+				"startsnotwith":   "{field}不能以'{param}'开头",
+				"containspecial": "{field}必须包含特殊字符",
 		},
 	})
 }

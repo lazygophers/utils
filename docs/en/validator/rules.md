@@ -13,17 +13,42 @@ Rich set of built-in validation tags covering common scenarios.
 | `required` | Non-zero value | `validate:"required"` |
 | `email` | Email format | `validate:"email"` |
 | `url` | URL format | `validate:"url"` |
-| `alpha` | Letters only (upper & lower) | `validate:"alpha"` |
-| `alphanum` | Letters + digits | `validate:"alphanum"` |
 | `json` | JSON format | `validate:"json"` |
 | `uuid` | UUID format | `validate:"uuid"` |
+
+## Strings
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `alpha` | Letters only | `validate:"alpha"` |
+| `alphaspace` | Letters + spaces | `validate:"alphaspace"` |
+| `alphanum` | Letters + digits | `validate:"alphanum"` |
+| `alphanumspace` | Letters + digits + spaces | `validate:"alphanumspace"` |
+| `alphanumunicode` | Letters + digits (unicode) | `validate:"alphanumunicode"` |
+| `alphaunicode` | Letters only (unicode) | `validate:"alphaunicode"` |
+| `ascii` | ASCII characters only | `validate:"ascii"` |
+| `printascii` | Printable ASCII only | `validate:"printascii"` |
+| `multibyte` | Multi-byte characters | `validate:"multibyte"` |
+| `boolean` | Boolean value | `validate:"boolean"` |
+| `number` | Number | `validate:"number"` |
+| `numeric` | Numeric | `validate:"numeric"` |
+| `uppercase` | Uppercase letters only | `validate:"uppercase"` |
+| `lowercase` | Lowercase letters only | `validate:"lowercase"` |
+| `contains` | Contains substring | `validate:"contains=abc"` |
+| `containsany` | Contains any character | `validate:"containsany=abc"` |
+| `containsrune` | Contains rune | `validate:"containsrune=©"` |
+| `excludes` | Excludes substring | `validate:"excludes=abc"` |
+| `excludesall` | Excludes all characters | `validate:"excludesall=abc"` |
+| `excludesrune` | Excludes rune | `validate:"excludesrune=©"` |
+| `startswith` | Starts with | `validate:"startswith=Hello"` |
+| `startsnotwith` | Does not start with | `validate:"startsnotwith=Bad"` |
+| `endswith` | Ends with | `validate:"endswith=World"` |
+| `endsnotwith` | Does not end with | `validate:"endsnotwith=Bad"` |
 
 ## Letter / Digit Variants
 
 | Tag | Description | Example |
 |-----|-------------|---------|
-| `uppercase` | Uppercase letters only | `validate:"uppercase"` |
-| `lowercase` | Lowercase letters only | `validate:"lowercase"` |
 | `alphanum_upper` | Uppercase letters + digits | `validate:"alphanum_upper"` |
 | `alphanum_lower` | Lowercase letters + digits | `validate:"alphanum_lower"` |
 

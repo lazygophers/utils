@@ -113,6 +113,14 @@ func init() {
 				"origin":        "{field}은(는) 유효한 웹 오리진이어야 합니다",
 				"urn_rfc2141":   "{field}은(는) 유효한 URN（RFC 2141）이어야 합니다",
 				"uds_exists":    "{field}은(는) 기존 Unix 도메인 소켓이어야 합니다",
+				"alphaspace":      "{field}은(는) 문자와 공백만 포함해야 합니다",
+				"alphanumspace":   "{field}은(는) 문자, 숫자, 공백만 포함해야 합니다",
+				"alphanumunicode": "{field}은(는) 문자와 숫자만 포함해야 합니다 (유니코드)",
+				"alphaunicode":    "{field}은(는) 문자만 포함해야 합니다 (유니코드)",
+				"boolean":         "{field}은(는) 유효한 불리언 값이어야 합니다",
+				"endsnotwith":     "{field}은(는) '{param}'(으)로 끝나지 않아야 합니다",
+				"startsnotwith":   "{field}은(는) '{param}'(으)로 시작하지 않아야 합니다",
+				"containspecial": "{field}은(는) 특수 문자를 포함해야 합니다",
 		},
 	})
 }
