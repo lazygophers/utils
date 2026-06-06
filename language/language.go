@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	xlanguage "golang.org/x/text/language"
 )
@@ -15,15 +16,51 @@ type Tag struct {
 	weight     float64 // q value from Accept-Language header, 0 if not from header
 }
 
-// Make creates a Tag from a BCP 47 string.
+// tagCache interns weight-less Tag pointers keyed by canonical BCP 47 string.
+// Parent/FallbackChain hit this to skip per-call allocations.
+// ParseAcceptLanguage bypasses the cache because each entry carries a per-request weight.
+var tagCache sync.Map // map[string]*Tag
+
+// makeCache short-circuits Make/Parse on the raw input string before paying for xlanguage.Make.
+// Different input strings can canonicalize to the same Tag — both keys still point to the same pointer.
+var makeCache sync.Map // map[string]*Tag
+
+// intern returns the canonical *Tag for the given underlying tag.
+func intern(t xlanguage.Tag) *Tag {
+	key := t.String()
+	v, ok := tagCache.Load(key)
+	if ok {
+		return v.(*Tag)
+	}
+	actual, _ := tagCache.LoadOrStore(key, &Tag{underlying: t})
+	return actual.(*Tag)
+}
+
+// Make creates a Tag from a BCP 47 string. Repeated calls return the same pointer.
 func Make(s string) *Tag {
-	return &Tag{underlying: xlanguage.Make(s)}
+	v, ok := makeCache.Load(s)
+	if ok {
+		return v.(*Tag)
+	}
+	tag := intern(xlanguage.Make(s))
+	makeCache.Store(s, tag)
+	return tag
 }
 
 // Parse creates a Tag from a BCP 47 string. Returns an error if parsing fails.
+// Successful parses are interned and cached by input string.
 func Parse(s string) (*Tag, error) {
+	v, ok := makeCache.Load(s)
+	if ok {
+		return v.(*Tag), nil
+	}
 	t, err := xlanguage.Parse(s)
-	return &Tag{underlying: t}, err
+	if err != nil {
+		return intern(t), err
+	}
+	tag := intern(t)
+	makeCache.Store(s, tag)
+	return tag, nil
 }
 
 // Tag returns the underlying golang.org/x/text/language.Tag for use with standard library APIs.
@@ -63,25 +100,24 @@ func (t *Tag) Script() string {
 // Parent returns the parent tag in the BCP 47 inheritance chain.
 // For example: zh-CN → zh → und. Returns self if already root.
 func (t *Tag) Parent() *Tag {
-	p := t.underlying.Parent()
-	return &Tag{underlying: p}
+	return intern(t.underlying.Parent())
 }
 
 // FallbackChain returns the full inheritance chain from the tag to root (und).
 // The first element is always the tag itself.
 // Example: zh-CN → [zh-CN, zh, und]
 func (t *Tag) FallbackChain() []*Tag {
-	var chain []*Tag
-	cur := t
+	chain := make([]*Tag, 0, 4)
+	chain = append(chain, t)
+	cur := t.underlying
 	for {
-		chain = append(chain, cur)
-		p := cur.underlying.Parent()
-		if p == cur.underlying {
-			break
+		p := cur.Parent()
+		if p == cur {
+			return chain
 		}
-		cur = &Tag{underlying: p}
+		chain = append(chain, intern(p))
+		cur = p
 	}
-	return chain
 }
 
 // Match reports whether this tag or any of its parents equals the target.
@@ -127,12 +163,7 @@ func ParseAcceptLanguage(header string) []*Tag {
 		return nil
 	}
 
-	type weighted struct {
-		tag xlanguage.Tag
-		q   float64
-	}
-
-	var tags []weighted
+	tags := make([]*Tag, 0, strings.Count(header, ",")+1)
 	for _, part := range strings.Split(header, ",") {
 		part = strings.TrimSpace(part)
 		if part == "" {
@@ -142,21 +173,11 @@ func ParseAcceptLanguage(header string) []*Tag {
 		seg := strings.SplitN(part, ";", 2)
 		raw := strings.TrimSpace(seg[0])
 
-		q := 1.0
-		skip := false
+		q, ok := 1.0, true
 		if len(seg) == 2 {
-			param := strings.TrimSpace(seg[1])
-			if strings.HasPrefix(param, "q=") {
-				if v, err := strconv.ParseFloat(param[2:], 64); err == nil {
-					if v <= 0 {
-						skip = true
-					} else if v <= 1 {
-						q = v
-					}
-				}
-			}
+			q, ok = parseAcceptLanguageQ(seg[1])
 		}
-		if skip {
+		if !ok {
 			continue
 		}
 
@@ -164,18 +185,57 @@ func ParseAcceptLanguage(header string) []*Tag {
 		if err != nil {
 			continue
 		}
-		tags = append(tags, weighted{tag: tag, q: q})
+		tags = append(tags, &Tag{underlying: tag, weight: q})
 	}
 
 	sort.SliceStable(tags, func(i, j int) bool {
-		return tags[i].q > tags[j].q
+		return tags[i].weight > tags[j].weight
 	})
+	return tags
+}
 
-	result := make([]*Tag, len(tags))
-	for i, t := range tags {
-		result[i] = &Tag{underlying: t.tag, weight: t.q}
+// parseAcceptLanguageQ parses one ";q=X" param. Returns (q, true) for valid
+// q in (0, 1]; (1.0, true) when param is not a q directive (treated as default);
+// (0, false) when q is explicitly 0 or invalid such that caller must skip.
+func parseAcceptLanguageQ(param string) (float64, bool) {
+	param = strings.TrimSpace(param)
+	if !strings.HasPrefix(param, "q=") {
+		return 1.0, true
 	}
-	return result
+	v, err := strconv.ParseFloat(param[2:], 64)
+	if err != nil {
+		return 1.0, true
+	}
+	if v <= 0 {
+		return 0, false
+	}
+	if v > 1 {
+		return 1.0, true
+	}
+	return v, true
+}
+
+// matcherCache holds prebuilt xlanguage.Matcher instances keyed by the
+// canonical fingerprint of the supported tag list. NewMatcher is expensive
+// (µs-scale) so caching pays back after the first call per supported set.
+var matcherCache sync.Map // map[string]xlanguage.Matcher
+
+// matcherFor returns a Matcher for the given supported list, building once per fingerprint.
+func matcherFor(supported []*Tag) xlanguage.Matcher {
+	var sb strings.Builder
+	sb.Grow(len(supported) * 8)
+	for _, t := range supported {
+		sb.WriteString(t.underlying.String())
+		sb.WriteByte('|')
+	}
+	key := sb.String()
+	v, ok := matcherCache.Load(key)
+	if ok {
+		return v.(xlanguage.Matcher)
+	}
+	m := xlanguage.NewMatcher(toXTags(supported))
+	actual, _ := matcherCache.LoadOrStore(key, m)
+	return actual.(xlanguage.Matcher)
 }
 
 // Detect picks the best matching language from the Accept-Language header
@@ -191,10 +251,7 @@ func Detect(header string, supported []*Tag) (*Tag, int) {
 		return supported[0], 0
 	}
 
-	xtags := toXTags(supported)
-
-	matcher := xlanguage.NewMatcher(xtags)
-	_, idx, _ := matcher.Match(toXTags(parsed)...)
+	_, idx, _ := matcherFor(supported).Match(toXTags(parsed)...)
 	return supported[idx], idx
 }
 

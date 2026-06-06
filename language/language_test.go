@@ -197,6 +197,69 @@ func TestParseAcceptLanguage_Weight(t *testing.T) {
 	}
 }
 
+func TestParseAcceptLanguage_QEdgeCases(t *testing.T) {
+	// q value clamped above 1
+	tags := ParseAcceptLanguage("zh;q=2.5")
+	if len(tags) != 1 || tags[0].Weight() != 1.0 {
+		t.Errorf("q=2.5 should clamp to 1.0, got %+v", tags)
+	}
+
+	// invalid q value treated as default 1.0 (param not a real q directive)
+	tags = ParseAcceptLanguage("zh;q=abc")
+	if len(tags) != 1 || tags[0].Weight() != 1.0 {
+		t.Errorf("q=abc should fall back to 1.0, got %+v", tags)
+	}
+
+	// non-q param: ";level=1" — kept with default weight
+	tags = ParseAcceptLanguage("zh;level=1")
+	if len(tags) != 1 || tags[0].Weight() != 1.0 {
+		t.Errorf("non-q param should fall back to 1.0, got %+v", tags)
+	}
+
+	// q=0 explicitly excludes
+	tags = ParseAcceptLanguage("zh;q=0, en")
+	if len(tags) != 1 || tags[0].String() != "en" {
+		t.Errorf("q=0 should exclude tag, got %+v", tags)
+	}
+
+	// negative q same as 0
+	tags = ParseAcceptLanguage("zh;q=-0.1, en")
+	if len(tags) != 1 || tags[0].String() != "en" {
+		t.Errorf("negative q should exclude tag, got %+v", tags)
+	}
+}
+
+func TestMake_Interning(t *testing.T) {
+	a := Make("zh-CN")
+	b := Make("zh-CN")
+	if a != b {
+		t.Error("Make(zh-CN) should return same pointer (interned)")
+	}
+	// Parent also interned
+	if a.Parent() != Make("zh") {
+		t.Error("Parent should return interned tag")
+	}
+}
+
+func TestParse_Cached(t *testing.T) {
+	a, err := Parse("ja-JP")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := Parse("ja-JP")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a != b {
+		t.Error("Parse should cache same input")
+	}
+	// Parse error path
+	_, err = Parse("!!!invalid!!!")
+	if err == nil {
+		t.Error("expected parse error")
+	}
+}
+
 func TestDetect(t *testing.T) {
 	supported := []*Tag{
 		Make("en"),
