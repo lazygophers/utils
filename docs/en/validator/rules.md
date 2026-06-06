@@ -98,6 +98,105 @@ Rich set of built-in validation tags covering common scenarios.
 | `maxlen=N` | Max length | `validate:"maxlen=20"` |
 | `range=min,max` | Numeric range | `validate:"range=0.0,5.0"` |
 
+## Hash / Encoding
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `md4` | MD4 hash | `validate:"md4"` |
+| `md5` | MD5 hash | `validate:"md5"` |
+| `sha256` | SHA256 hash | `validate:"sha256"` |
+| `sha384` | SHA384 hash | `validate:"sha384"` |
+| `sha512` | SHA512 hash | `validate:"sha512"` |
+| `ripemd128` | RIPEMD-128 hash | `validate:"ripemd128"` |
+| `ripemd160` | RIPEMD-160 hash | `validate:"ripemd160"` |
+| `tiger128` | TIGER128 hash | `validate:"tiger128"` |
+| `tiger160` | TIGER160 hash | `validate:"tiger160"` |
+| `tiger192` | TIGER192 hash | `validate:"tiger192"` |
+| `hexadecimal` | Hexadecimal string | `validate:"hexadecimal"` |
+| `base64` | Base64 string | `validate:"base64"` |
+| `base64url` | Base64URL string | `validate:"base64url"` |
+| `base64rawurl` | Base64RawURL string | `validate:"base64rawurl"` |
+
+## UUID Variants
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `uuid_rfc4122` | UUID (RFC 4122) | `validate:"uuid_rfc4122"` |
+| `uuid3` | UUID v3 | `validate:"uuid3"` |
+| `uuid3_rfc4122` | UUID v3 (RFC 4122) | `validate:"uuid3_rfc4122"` |
+| `uuid4` | UUID v4 | `validate:"uuid4"` |
+| `uuid4_rfc4122` | UUID v4 (RFC 4122) | `validate:"uuid4_rfc4122"` |
+| `uuid5` | UUID v5 | `validate:"uuid5"` |
+| `uuid5_rfc4122` | UUID v5 (RFC 4122) | `validate:"uuid5_rfc4122"` |
+
+## Colors
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `hexcolor` | Hex color | `validate:"hexcolor"` |
+| `rgb` | RGB color | `validate:"rgb"` |
+| `rgba` | RGBA color | `validate:"rgba"` |
+| `hsl` | HSL color | `validate:"hsl"` |
+| `hsla` | HSLA color | `validate:"hsla"` |
+| `cmyk` | CMYK color | `validate:"cmyk"` |
+
+## Identification
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `isbn` | ISBN number (10 or 13 digit) | `validate:"isbn"` |
+| `isbn10` | ISBN-10 | `validate:"isbn10"` |
+| `isbn13` | ISBN-13 | `validate:"isbn13"` |
+| `issn` | ISSN number | `validate:"issn"` |
+| `credit_card` | Credit card number (Luhn check) | `validate:"credit_card"` |
+| `luhn_checksum` | Luhn checksum | `validate:"luhn_checksum"` |
+| `ein` | U.S. Employer Identification Number | `validate:"ein"` |
+| `ssn` | Social Security Number | `validate:"ssn"` |
+
+## Address / Crypto
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `btc_addr` | Bitcoin address | `validate:"btc_addr"` |
+| `btc_addr_bech32` | Bitcoin Bech32 address | `validate:"btc_addr_bech32"` |
+| `eth_addr` | Ethereum address | `validate:"eth_addr"` |
+
+## Geographic / ISO
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `latitude` | Latitude (-90 to 90) | `validate:"latitude"` |
+| `longitude` | Longitude (-180 to 180) | `validate:"longitude"` |
+| `timezone` | IANA timezone | `validate:"timezone"` |
+| `iso3166_1_alpha2` | ISO 3166-1 alpha-2 country code | `validate:"iso3166_1_alpha2"` |
+| `iso3166_1_alpha3` | ISO 3166-1 alpha-3 country code | `validate:"iso3166_1_alpha3"` |
+| `iso3166_1_alpha_numeric` | ISO 3166-1 numeric country code | `validate:"iso3166_1_alpha_numeric"` |
+| `iso3166_2` | ISO 3166-2 subdivision code | `validate:"iso3166_2"` |
+| `iso4217` | ISO 4217 currency code | `validate:"iso4217"` |
+| `postcode_iso3166_alpha2` | Postcode | `validate:"postcode_iso3166_alpha2"` |
+| `postcode_iso3166_alpha2_field` | Postcode (cross-field) | `validate:"postcode_iso3166_alpha2_field=Country"` |
+
+## Other Formats
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `semver` | Semantic version | `validate:"semver"` |
+| `ulid` | ULID | `validate:"ulid"` |
+| `cve` | CVE identifier | `validate:"cve"` |
+| `jwt` | JSON Web Token | `validate:"jwt"` |
+| `html` | Contains HTML tags | `validate:"html"` |
+| `html_encoded` | HTML encoded | `validate:"html_encoded"` |
+| `mongodb` | MongoDB ObjectID | `validate:"mongodb"` |
+| `mongodb_connection_string` | MongoDB connection string | `validate:"mongodb_connection_string"` |
+| `cron` | Cron expression | `validate:"cron"` |
+| `spicedb` | SpiceDb reference | `validate:"spicedb"` |
+| `datetime` | Datetime | `validate:"datetime=2006-01-02"` |
+| `e164` | E.164 phone number | `validate:"e164"` |
+| `bic` | BIC (ISO 9362) | `validate:"bic"` |
+| `bic_iso_9362_2014` | BIC (ISO 9362:2014) | `validate:"bic_iso_9362_2014"` |
+| `bcp47_language_tag` | BCP 47 language tag | `validate:"bcp47_language_tag"` |
+| `bcp47_strict_language_tag` | BCP 47 language tag (strict) | `validate:"bcp47_strict_language_tag"` |
+
 ## Collection / Pattern
 
 | Tag | Description | Example |

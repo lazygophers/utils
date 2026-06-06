@@ -98,6 +98,105 @@ Validator 内置丰富的验证标签，覆盖常见校验场景。
 | `maxlen=N` | 最大长度 | `validate:"maxlen=20"` |
 | `range=min,max` | 数值范围 | `validate:"range=0.0,5.0"` |
 
+## 哈希/编码
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `md4` | MD4 哈希 | `validate:"md4"` |
+| `md5` | MD5 哈希 | `validate:"md5"` |
+| `sha256` | SHA256 哈希 | `validate:"sha256"` |
+| `sha384` | SHA384 哈希 | `validate:"sha384"` |
+| `sha512` | SHA512 哈希 | `validate:"sha512"` |
+| `ripemd128` | RIPEMD-128 哈希 | `validate:"ripemd128"` |
+| `ripemd160` | RIPEMD-160 哈希 | `validate:"ripemd160"` |
+| `tiger128` | TIGER128 哈希 | `validate:"tiger128"` |
+| `tiger160` | TIGER160 哈希 | `validate:"tiger160"` |
+| `tiger192` | TIGER192 哈希 | `validate:"tiger192"` |
+| `hexadecimal` | 十六进制字符串 | `validate:"hexadecimal"` |
+| `base64` | Base64 字符串 | `validate:"base64"` |
+| `base64url` | Base64URL 字符串 | `validate:"base64url"` |
+| `base64rawurl` | Base64RawURL 字符串 | `validate:"base64rawurl"` |
+
+## UUID 变体
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `uuid_rfc4122` | UUID（RFC 4122） | `validate:"uuid_rfc4122"` |
+| `uuid3` | UUID v3 | `validate:"uuid3"` |
+| `uuid3_rfc4122` | UUID v3（RFC 4122） | `validate:"uuid3_rfc4122"` |
+| `uuid4` | UUID v4 | `validate:"uuid4"` |
+| `uuid4_rfc4122` | UUID v4（RFC 4122） | `validate:"uuid4_rfc4122"` |
+| `uuid5` | UUID v5 | `validate:"uuid5"` |
+| `uuid5_rfc4122` | UUID v5（RFC 4122） | `validate:"uuid5_rfc4122"` |
+
+## 颜色
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `hexcolor` | 十六进制颜色 | `validate:"hexcolor"` |
+| `rgb` | RGB 颜色 | `validate:"rgb"` |
+| `rgba` | RGBA 颜色 | `validate:"rgba"` |
+| `hsl` | HSL 颜色 | `validate:"hsl"` |
+| `hsla` | HSLA 颜色 | `validate:"hsla"` |
+| `cmyk` | CMYK 颜色 | `validate:"cmyk"` |
+
+## 证件/编号
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `isbn` | ISBN 编号（10 或 13 位） | `validate:"isbn"` |
+| `isbn10` | ISBN-10 | `validate:"isbn10"` |
+| `isbn13` | ISBN-13 | `validate:"isbn13"` |
+| `issn` | ISSN 编号 | `validate:"issn"` |
+| `credit_card` | 信用卡号（Luhn 校验） | `validate:"credit_card"` |
+| `luhn_checksum` | Luhn 校验和 | `validate:"luhn_checksum"` |
+| `ein` | 美国雇主识别号 | `validate:"ein"` |
+| `ssn` | 美国社会安全号 | `validate:"ssn"` |
+
+## 地址/加密
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `btc_addr` | 比特币地址 | `validate:"btc_addr"` |
+| `btc_addr_bech32` | 比特币 Bech32 地址 | `validate:"btc_addr_bech32"` |
+| `eth_addr` | 以太坊地址 | `validate:"eth_addr"` |
+
+## 地理/ISO
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `latitude` | 纬度（-90 ~ 90） | `validate:"latitude"` |
+| `longitude` | 经度（-180 ~ 180） | `validate:"longitude"` |
+| `timezone` | IANA 时区 | `validate:"timezone"` |
+| `iso3166_1_alpha2` | ISO 3166-1 二字母国家代码 | `validate:"iso3166_1_alpha2"` |
+| `iso3166_1_alpha3` | ISO 3166-1 三字母国家代码 | `validate:"iso3166_1_alpha3"` |
+| `iso3166_1_alpha_numeric` | ISO 3166-1 数字国家代码 | `validate:"iso3166_1_alpha_numeric"` |
+| `iso3166_2` | ISO 3166-2 地区代码 | `validate:"iso3166_2"` |
+| `iso4217` | ISO 4217 货币代码 | `validate:"iso4217"` |
+| `postcode_iso3166_alpha2` | 邮政编码 | `validate:"postcode_iso3166_alpha2"` |
+| `postcode_iso3166_alpha2_field` | 邮政编码（跨字段） | `validate:"postcode_iso3166_alpha2_field=Country"` |
+
+## 其他格式
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `semver` | 语义化版本号 | `validate:"semver"` |
+| `ulid` | ULID | `validate:"ulid"` |
+| `cve` | CVE 编号 | `validate:"cve"` |
+| `jwt` | JSON Web Token | `validate:"jwt"` |
+| `html` | 包含 HTML 标签 | `validate:"html"` |
+| `html_encoded` | HTML 编码 | `validate:"html_encoded"` |
+| `mongodb` | MongoDB ObjectID | `validate:"mongodb"` |
+| `mongodb_connection_string` | MongoDB 连接字符串 | `validate:"mongodb_connection_string"` |
+| `cron` | Cron 表达式 | `validate:"cron"` |
+| `spicedb` | SpiceDb 引用 | `validate:"spicedb"` |
+| `datetime` | 日期时间 | `validate:"datetime=2006-01-02"` |
+| `e164` | E.164 电话号码 | `validate:"e164"` |
+| `bic` | BIC 代码（ISO 9362） | `validate:"bic"` |
+| `bic_iso_9362_2014` | BIC 代码（ISO 9362:2014） | `validate:"bic_iso_9362_2014"` |
+| `bcp47_language_tag` | BCP 47 语言标签 | `validate:"bcp47_language_tag"` |
+| `bcp47_strict_language_tag` | BCP 47 语言标签（严格） | `validate:"bcp47_strict_language_tag"` |
+
 ## 集合/模式
 
 | 标签 | 说明 | 示例 |

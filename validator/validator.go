@@ -377,6 +377,14 @@ func (v *Validator) registerDefaultValidators() error {
 	if err := v.RegisterValidation("excludesrune", validateExcludesRune); err != nil {
 		return fmt.Errorf("failed to register excludesrune validator: %w", err)
 	}
+
+	// 格式验证器
+	for tag, fn := range FormatValidators() {
+		if err := v.RegisterValidation(tag, fn); err != nil {
+			return fmt.Errorf("failed to register %s validator: %w", tag, err)
+		}
+	}
+
 	return nil
 }
 

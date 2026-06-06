@@ -98,6 +98,105 @@ Validator 內建豐富的驗證標籤，覆蓋常見校驗場景。
 | `maxlen=N` | 最大長度 | `validate:"maxlen=20"` |
 | `range=min,max` | 數值範圍 | `validate:"range=0.0,5.0"` |
 
+## 雜湊/編碼
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `md4` | MD4 雜湊 | `validate:"md4"` |
+| `md5` | MD5 雜湊 | `validate:"md5"` |
+| `sha256` | SHA256 雜湊 | `validate:"sha256"` |
+| `sha384` | SHA384 雜湊 | `validate:"sha384"` |
+| `sha512` | SHA512 雜湊 | `validate:"sha512"` |
+| `ripemd128` | RIPEMD-128 雜湊 | `validate:"ripemd128"` |
+| `ripemd160` | RIPEMD-160 雜湊 | `validate:"ripemd160"` |
+| `tiger128` | TIGER128 雜湊 | `validate:"tiger128"` |
+| `tiger160` | TIGER160 雜湊 | `validate:"tiger160"` |
+| `tiger192` | TIGER192 雜湊 | `validate:"tiger192"` |
+| `hexadecimal` | 十六進位字串 | `validate:"hexadecimal"` |
+| `base64` | Base64 字串 | `validate:"base64"` |
+| `base64url` | Base64URL 字串 | `validate:"base64url"` |
+| `base64rawurl` | Base64RawURL 字串 | `validate:"base64rawurl"` |
+
+## UUID 變體
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `uuid_rfc4122` | UUID（RFC 4122） | `validate:"uuid_rfc4122"` |
+| `uuid3` | UUID v3 | `validate:"uuid3"` |
+| `uuid3_rfc4122` | UUID v3（RFC 4122） | `validate:"uuid3_rfc4122"` |
+| `uuid4` | UUID v4 | `validate:"uuid4"` |
+| `uuid4_rfc4122` | UUID v4（RFC 4122） | `validate:"uuid4_rfc4122"` |
+| `uuid5` | UUID v5 | `validate:"uuid5"` |
+| `uuid5_rfc4122` | UUID v5（RFC 4122） | `validate:"uuid5_rfc4122"` |
+
+## 顏色
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `hexcolor` | 十六進位顏色 | `validate:"hexcolor"` |
+| `rgb` | RGB 顏色 | `validate:"rgb"` |
+| `rgba` | RGBA 顏色 | `validate:"rgba"` |
+| `hsl` | HSL 顏色 | `validate:"hsl"` |
+| `hsla` | HSLA 顏色 | `validate:"hsla"` |
+| `cmyk` | CMYK 顏色 | `validate:"cmyk"` |
+
+## 證件/編號
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `isbn` | ISBN 編號（10 或 13 位） | `validate:"isbn"` |
+| `isbn10` | ISBN-10 | `validate:"isbn10"` |
+| `isbn13` | ISBN-13 | `validate:"isbn13"` |
+| `issn` | ISSN 編號 | `validate:"issn"` |
+| `credit_card` | 信用卡號（Luhn 校驗） | `validate:"credit_card"` |
+| `luhn_checksum` | Luhn 校驗和 | `validate:"luhn_checksum"` |
+| `ein` | 美國雇主識別號 | `validate:"ein"` |
+| `ssn` | 美國社會安全號 | `validate:"ssn"` |
+
+## 地址/加密
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `btc_addr` | 比特幣地址 | `validate:"btc_addr"` |
+| `btc_addr_bech32` | 比特幣 Bech32 地址 | `validate:"btc_addr_bech32"` |
+| `eth_addr` | 以太坊地址 | `validate:"eth_addr"` |
+
+## 地理/ISO
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `latitude` | 緯度（-90 ~ 90） | `validate:"latitude"` |
+| `longitude` | 經度（-180 ~ 180） | `validate:"longitude"` |
+| `timezone` | IANA 時區 | `validate:"timezone"` |
+| `iso3166_1_alpha2` | ISO 3166-1 二字母國家代碼 | `validate:"iso3166_1_alpha2"` |
+| `iso3166_1_alpha3` | ISO 3166-1 三字母國家代碼 | `validate:"iso3166_1_alpha3"` |
+| `iso3166_1_alpha_numeric` | ISO 3166-1 數字國家代碼 | `validate:"iso3166_1_alpha_numeric"` |
+| `iso3166_2` | ISO 3166-2 地區代碼 | `validate:"iso3166_2"` |
+| `iso4217` | ISO 4217 貨幣代碼 | `validate:"iso4217"` |
+| `postcode_iso3166_alpha2` | 郵遞區號 | `validate:"postcode_iso3166_alpha2"` |
+| `postcode_iso3166_alpha2_field` | 郵遞區號（跨欄位） | `validate:"postcode_iso3166_alpha2_field=Country"` |
+
+## 其他格式
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `semver` | 語義化版本號 | `validate:"semver"` |
+| `ulid` | ULID | `validate:"ulid"` |
+| `cve` | CVE 編號 | `validate:"cve"` |
+| `jwt` | JSON Web Token | `validate:"jwt"` |
+| `html` | 包含 HTML 標籤 | `validate:"html"` |
+| `html_encoded` | HTML 編碼 | `validate:"html_encoded"` |
+| `mongodb` | MongoDB ObjectID | `validate:"mongodb"` |
+| `mongodb_connection_string` | MongoDB 連接字串 | `validate:"mongodb_connection_string"` |
+| `cron` | Cron 運算式 | `validate:"cron"` |
+| `spicedb` | SpiceDb 參照 | `validate:"spicedb"` |
+| `datetime` | 日期時間 | `validate:"datetime=2006-01-02"` |
+| `e164` | E.164 電話號碼 | `validate:"e164"` |
+| `bic` | BIC 代碼（ISO 9362） | `validate:"bic"` |
+| `bic_iso_9362_2014` | BIC 代碼（ISO 9362:2014） | `validate:"bic_iso_9362_2014"` |
+| `bcp47_language_tag` | BCP 47 語言標籤 | `validate:"bcp47_language_tag"` |
+| `bcp47_strict_language_tag` | BCP 47 語言標籤（嚴格） | `validate:"bcp47_strict_language_tag"` |
+
 ## 集合/模式
 
 | 標籤 | 說明 | 範例 |
