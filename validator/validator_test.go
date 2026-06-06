@@ -542,3 +542,23 @@ func TestCustomRulesInAllLocales(t *testing.T) {
 		})
 	}
 }
+
+func TestIndexOfEmptySubstr(t *testing.T) {
+	// empty substr returns start immediately
+	assert.Equal(t, 0, indexOf("hello", "", 0))
+	assert.Equal(t, 3, indexOf("hello", "", 3))
+}
+
+func TestGetLocaleConfigFallback(t *testing.T) {
+	// Test language-only fallback (name with '-' but no exact match)
+	RegisterLocaleConfig("xx", &LocaleConfig{Language: "xx", Messages: map[string]string{}})
+	config, ok := GetLocaleConfig("xx-YY")
+	assert.True(t, ok)
+	assert.Equal(t, "xx", config.Language)
+
+	// Test fallback to "en" when no match
+	config, ok = GetLocaleConfig("zz-ZZ")
+	// "zz" not registered, falls back to "en"
+	assert.True(t, ok)
+	assert.Equal(t, "en", config.Language)
+}
