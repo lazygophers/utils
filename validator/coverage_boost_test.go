@@ -7,6 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/lazygophers/utils/language"
 	xlanguage "golang.org/x/text/language"
 )
 
@@ -402,8 +404,12 @@ func TestValidateStructPtrStructDive(t *testing.T) {
 
 // ===== validator.go: effectiveLocale goroutine-local path (line 156) =====
 
-func TestEffectiveLocaleGoroutineLocal(t *testing.T) {
+func TestEffectiveLocaleNoOverride(t *testing.T) {
 	// Validator with no explicit locale, no goroutine-local -> defaults to "en"
+	origDefault := language.Default()
+	language.SetDefault(language.Make("en"))
+	defer language.SetDefault(origDefault)
+
 	v, err := New()
 	require.NoError(t, err)
 	assert.Equal(t, xlanguage.Make("en"), v.GetLocale())

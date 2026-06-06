@@ -141,7 +141,8 @@ func (v *Validator) translateValidationErrors(validationErrors ValidationErrors)
 }
 
 // effectiveLocale 返回有效语言标签。
-// 优先级：显式设置 > 协程本地语言 > 英文默认。
+// 优先级：显式设置 > 协程本地语言 > 全局默认语言。
+// 委托给 language.Get()，由其决定 goroutine-local 优先还是全局默认。
 func (v *Validator) effectiveLocale() xlanguage.Tag {
 	v.mu.RLock()
 	locale := v.locale
