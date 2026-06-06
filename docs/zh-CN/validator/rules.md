@@ -225,3 +225,66 @@ either := validator.Or(
 // Not — 取反
 negated := validator.Not(validator.In("a", "b"))
 ```
+
+## 比较运算
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `gt=N` | 严格大于（值/长度） | `validate:"gt=5"` |
+| `gte=N` | 大于等于（同 `min`） | `validate:"gte=5"` |
+| `lt=N` | 严格小于（值/长度） | `validate:"lt=100"` |
+| `lte=N` | 小于等于（同 `max`） | `validate:"lte=100"` |
+| `eq_ignore_case=V` | 忽略大小写相等 | `validate:"eq_ignore_case=hello"` |
+| `ne_ignore_case=V` | 忽略大小写不等 | `validate:"ne_ignore_case=hello"` |
+
+## 文件系统
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `dir` | 已存在的目录 | `validate:"dir"` |
+| `dirpath` | 合法的目录路径 | `validate:"dirpath"` |
+| `file` | 已存在的文件 | `validate:"file"` |
+| `filepath` | 合法的文件路径 | `validate:"filepath"` |
+| `image` | 图片文件扩展名 | `validate:"image"` |
+
+## 条件必填/排除
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `required_unless=F=V` | 除非指定字段等于某值，否则必填 | `validate:"required_unless=Role=admin"` |
+| `required_with_all=F1,F2` | 所有指定字段有值时必填 | `validate:"required_with_all=FirstName,LastName"` |
+| `required_without_all=F1,F2` | 所有指定字段无值时必填 | `validate:"required_without_all=Email,Phone"` |
+| `excluded_if=F=V` | 条件满足时必须为空 | `validate:"excluded_if=Type=none"` |
+| `excluded_unless=F=V` | 除非条件满足，否则必须为空 | `validate:"excluded_unless=Active=true"` |
+| `excluded_with=F` | 任一指定字段有值时必须为空 | `validate:"excluded_with=Other"` |
+| `excluded_with_all=F1,F2` | 所有指定字段有值时必须为空 | `validate:"excluded_with_all=A,B"` |
+| `excluded_without=F` | 任一指定字段无值时必须为空 | `validate:"excluded_without=Email"` |
+| `excluded_without_all=F1,F2` | 所有指定字段无值时必须为空 | `validate:"excluded_without_all=A,B"` |
+
+## 跨字段比较
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `gtfield=F` | 大于指定字段 | `validate:"gtfield=Min"` |
+| `gtefield=F` | 大于等于指定字段 | `validate:"gtefield=Min"` |
+| `ltfield=F` | 小于指定字段 | `validate:"ltfield=Max"` |
+| `ltefield=F` | 小于等于指定字段 | `validate:"ltefield=Max"` |
+| `eqcsfield=S.F` | 等于跨结构体字段（点分路径） | `validate:"eqcsfield=Inner.Val"` |
+| `necsfield=S.F` | 不等于跨结构体字段 | `validate:"necsfield=Inner.Val"` |
+| `gtcsfield=S.F` | 大于跨结构体字段 | `validate:"gtcsfield=Inner.Val"` |
+| `gtecsfield=S.F` | 大于等于跨结构体字段 | `validate:"gtecsfield=Inner.Val"` |
+| `ltcsfield=S.F` | 小于跨结构体字段 | `validate:"ltcsfield=Inner.Val"` |
+| `ltecsfield=S.F` | 小于等于跨结构体字段 | `validate:"ltecsfield=Inner.Val"` |
+| `fieldcontains=C` | 字段值包含指定字符 | `validate:"fieldcontains=@"` |
+| `fieldexcludes=C` | 字段值不含指定字符 | `validate:"fieldexcludes=@"` |
+
+## 杂项
+
+| 标签 | 说明 | 示例 |
+|------|------|------|
+| `oneof=A,B,C` | 枚举值之一 | `validate:"oneof=red,green,blue"` |
+| `unique` | 切片/数组元素唯一 | `validate:"unique"` |
+| `isdefault` | 必须是零值 | `validate:"isdefault"` |
+| `validateFn` | 调用 Validate() error 方法 | `validate:"validateFn"` |
+| `iscolor` | 有效颜色（hex/rgb/rgba/hsl/hsla） | `validate:"iscolor"` |
+| `country_code` | 有效国家代码（ISO 3166-1） | `validate:"country_code"` |

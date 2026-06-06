@@ -385,6 +385,68 @@ func (v *Validator) registerDefaultValidators() error {
 		}
 	}
 
+	// 比较运算验证器
+	for tag, fn := range ComparisonValidators() {
+		if err := v.RegisterValidation(tag, fn); err != nil {
+			return fmt.Errorf("failed to register %s validator: %w", tag, err)
+		}
+	}
+
+	// 网络验证器
+	for tag, fn := range NetValidators() {
+		if err := v.RegisterValidation(tag, fn); err != nil {
+			return fmt.Errorf("failed to register %s validator: %w", tag, err)
+		}
+	}
+
+	// 文件系统验证器
+	for tag, fn := range FSValidators() {
+		if err := v.RegisterValidation(tag, fn); err != nil {
+			return fmt.Errorf("failed to register %s validator: %w", tag, err)
+		}
+	}
+
+	// 杂项验证器
+	for tag, fn := range MiscValidators() {
+		if err := v.RegisterValidation(tag, fn); err != nil {
+			return fmt.Errorf("failed to register %s validator: %w", tag, err)
+		}
+	}
+
+	// 条件验证器
+	for tag, fn := range ConditionalValidators() {
+		if err := v.RegisterValidation(tag, fn); err != nil {
+			return fmt.Errorf("failed to register %s validator: %w", tag, err)
+		}
+	}
+
+	// 跨字段验证器
+	for tag, fn := range FieldValidators() {
+		if err := v.RegisterValidation(tag, fn); err != nil {
+			return fmt.Errorf("failed to register %s validator: %w", tag, err)
+		}
+	}
+
+	// 别名验证器
+	v.RegisterValidation("iscolor", func(fl FieldLevel) bool {
+		s := fl.Field().String()
+		for _, fn := range []ValidatorFunc{validateHexColor, validateRGB, validateRGBA, validateHSL, validateHSLA} {
+			if fn(fl) {
+				_ = s
+				return true
+			}
+		}
+		return false
+	})
+	v.RegisterValidation("country_code", func(fl FieldLevel) bool {
+		for _, tag := range []string{"iso3166_1_alpha2", "iso3166_1_alpha3", "iso3166_1_alpha_numeric"} {
+			if fn, ok := v.engine.validators[tag]; ok && fn(fl) {
+				return true
+			}
+		}
+		return false
+	})
+
 	return nil
 }
 

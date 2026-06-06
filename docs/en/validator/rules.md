@@ -225,3 +225,66 @@ either := validator.Or(
 // Not — negate
 negated := validator.Not(validator.In("a", "b"))
 ```
+
+## Comparisons
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `gt=N` | Strictly greater than (value/length) | `validate:"gt=5"` |
+| `gte=N` | Greater than or equal (same as `min`) | `validate:"gte=5"` |
+| `lt=N` | Strictly less than (value/length) | `validate:"lt=100"` |
+| `lte=N` | Less than or equal (same as `max`) | `validate:"lte=100"` |
+| `eq_ignore_case=V` | Equals ignoring case | `validate:"eq_ignore_case=hello"` |
+| `ne_ignore_case=V` | Not equal ignoring case | `validate:"ne_ignore_case=hello"` |
+
+## File System
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `dir` | Existing directory | `validate:"dir"` |
+| `dirpath` | Valid directory path | `validate:"dirpath"` |
+| `file` | Existing file | `validate:"file"` |
+| `filepath` | Valid file path | `validate:"filepath"` |
+| `image` | Image file extension | `validate:"image"` |
+
+## Conditional Required / Excluded
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `required_unless=F=V` | Required unless field equals value | `validate:"required_unless=Role=admin"` |
+| `required_with_all=F1,F2` | Required when all fields have values | `validate:"required_with_all=FirstName,LastName"` |
+| `required_without_all=F1,F2` | Required when all fields are empty | `validate:"required_without_all=Email,Phone"` |
+| `excluded_if=F=V` | Must be empty when condition met | `validate:"excluded_if=Type=none"` |
+| `excluded_unless=F=V` | Must be empty unless condition met | `validate:"excluded_unless=Active=true"` |
+| `excluded_with=F` | Must be empty when any field has value | `validate:"excluded_with=Other"` |
+| `excluded_with_all=F1,F2` | Must be empty when all fields have values | `validate:"excluded_with_all=A,B"` |
+| `excluded_without=F` | Must be empty when any field is empty | `validate:"excluded_without=Email"` |
+| `excluded_without_all=F1,F2` | Must be empty when all fields are empty | `validate:"excluded_without_all=A,B"` |
+
+## Cross-Field Comparison
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `gtfield=F` | Greater than another field | `validate:"gtfield=Min"` |
+| `gtefield=F` | Greater than or equal to another field | `validate:"gtefield=Min"` |
+| `ltfield=F` | Less than another field | `validate:"ltfield=Max"` |
+| `ltefield=F` | Less than or equal to another field | `validate:"ltefield=Max"` |
+| `eqcsfield=S.F` | Equals cross-struct field (dotted path) | `validate:"eqcsfield=Inner.Val"` |
+| `necsfield=S.F` | Not equal cross-struct field | `validate:"necsfield=Inner.Val"` |
+| `gtcsfield=S.F` | Greater than cross-struct field | `validate:"gtcsfield=Inner.Val"` |
+| `gtecsfield=S.F` | Greater than or equal cross-struct field | `validate:"gtecsfield=Inner.Val"` |
+| `ltcsfield=S.F` | Less than cross-struct field | `validate:"ltcsfield=Inner.Val"` |
+| `ltecsfield=S.F` | Less than or equal cross-struct field | `validate:"ltecsfield=Inner.Val"` |
+| `fieldcontains=C` | Field value contains specified chars | `validate:"fieldcontains=@"` |
+| `fieldexcludes=C` | Field value excludes specified chars | `validate:"fieldexcludes=@"` |
+
+## Miscellaneous
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `oneof=A,B,C` | One of enumerated values | `validate:"oneof=red,green,blue"` |
+| `unique` | Slice/array elements are unique | `validate:"unique"` |
+| `isdefault` | Must be the zero value | `validate:"isdefault"` |
+| `validateFn` | Calls Validate() error method | `validate:"validateFn"` |
+| `iscolor` | Valid color (hex/rgb/rgba/hsl/hsla) | `validate:"iscolor"` |
+| `country_code` | Valid country code (ISO 3166-1) | `validate:"country_code"` |

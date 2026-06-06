@@ -225,3 +225,66 @@ either := validator.Or(
 // Not — 取反
 negated := validator.Not(validator.In("a", "b"))
 ```
+
+## 比較運算
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `gt=N` | 嚴格大於（值/長度） | `validate:"gt=5"` |
+| `gte=N` | 大於等於（同 `min`） | `validate:"gte=5"` |
+| `lt=N` | 嚴格小於（值/長度） | `validate:"lt=100"` |
+| `lte=N` | 小於等於（同 `max`） | `validate:"lte=100"` |
+| `eq_ignore_case=V` | 忽略大小寫相等 | `validate:"eq_ignore_case=hello"` |
+| `ne_ignore_case=V` | 忽略大小寫不等 | `validate:"ne_ignore_case=hello"` |
+
+## 檔案系統
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `dir` | 已存在的目錄 | `validate:"dir"` |
+| `dirpath` | 合法的目錄路徑 | `validate:"dirpath"` |
+| `file` | 已存在的檔案 | `validate:"file"` |
+| `filepath` | 合法的檔案路徑 | `validate:"filepath"` |
+| `image` | 圖片副檔名 | `validate:"image"` |
+
+## 條件必填/排除
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `required_unless=F=V` | 除非指定欄位等於某值，否則必填 | `validate:"required_unless=Role=admin"` |
+| `required_with_all=F1,F2` | 所有指定欄位有值時必填 | `validate:"required_with_all=FirstName,LastName"` |
+| `required_without_all=F1,F2` | 所有指定欄位無值時必填 | `validate:"required_without_all=Email,Phone"` |
+| `excluded_if=F=V` | 條件滿足時必須為空 | `validate:"excluded_if=Type=none"` |
+| `excluded_unless=F=V` | 除非條件滿足，否則必須為空 | `validate:"excluded_unless=Active=true"` |
+| `excluded_with=F` | 任一指定欄位有值時必須為空 | `validate:"excluded_with=Other"` |
+| `excluded_with_all=F1,F2` | 所有指定欄位有值時必須為空 | `validate:"excluded_with_all=A,B"` |
+| `excluded_without=F` | 任一指定欄位無值時必須為空 | `validate:"excluded_without=Email"` |
+| `excluded_without_all=F1,F2` | 所有指定欄位無值時必須為空 | `validate:"excluded_without_all=A,B"` |
+
+## 跨欄位比較
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `gtfield=F` | 大於指定欄位 | `validate:"gtfield=Min"` |
+| `gtefield=F` | 大於等於指定欄位 | `validate:"gtefield=Min"` |
+| `ltfield=F` | 小於指定欄位 | `validate:"ltfield=Max"` |
+| `ltefield=F` | 小於等於指定欄位 | `validate:"ltefield=Max"` |
+| `eqcsfield=S.F` | 等於跨結構體欄位（點分路徑） | `validate:"eqcsfield=Inner.Val"` |
+| `necsfield=S.F` | 不等於跨結構體欄位 | `validate:"necsfield=Inner.Val"` |
+| `gtcsfield=S.F` | 大於跨結構體欄位 | `validate:"gtcsfield=Inner.Val"` |
+| `gtecsfield=S.F` | 大於等於跨結構體欄位 | `validate:"gtecsfield=Inner.Val"` |
+| `ltcsfield=S.F` | 小於跨結構體欄位 | `validate:"ltcsfield=Inner.Val"` |
+| `ltecsfield=S.F` | 小於等於跨結構體欄位 | `validate:"ltecsfield=Inner.Val"` |
+| `fieldcontains=C` | 欄位值包含指定字元 | `validate:"fieldcontains=@"` |
+| `fieldexcludes=C` | 欄位值不含指定字元 | `validate:"fieldexcludes=@"` |
+
+## 雜項
+
+| 標籤 | 說明 | 範例 |
+|------|------|------|
+| `oneof=A,B,C` | 列舉值之一 | `validate:"oneof=red,green,blue"` |
+| `unique` | 切片/陣列元素唯一 | `validate:"unique"` |
+| `isdefault` | 必須是零值 | `validate:"isdefault"` |
+| `validateFn` | 呼叫 Validate() error 方法 | `validate:"validateFn"` |
+| `iscolor` | 有效顏色（hex/rgb/rgba/hsl/hsla） | `validate:"iscolor"` |
+| `country_code` | 有效國家代碼（ISO 3166-1） | `validate:"country_code"` |
