@@ -79,7 +79,7 @@ func loadData() (string, error) {
 |--------|---------|---------------|
 | **[must.go](must.go)** | Error assertion | `Must()`, `MustSuccess()`, `MustOk()` |
 | **[orm.go](orm.go)** | Database operations | `Scan()`, `Value()` |
-| **[validator/](validator/)** | Data validation | Email, mobile, bankcard |
+| **[validator/](validator/)** | Data validation | Email, URL, strong password, IPv4, UUID, MAC |
 
 ### 🍭 Data Processing
 
