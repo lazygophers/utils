@@ -51,33 +51,33 @@ func Parse(version string) (*SemVer, error) {
 	}
 
 	// 解析主版本号
-	major, err := strconv.ParseUint(parts[0], 10, 64)
-	if err != nil {
+	major, err := strconv.Atoi(parts[0])
+	if err != nil || major < 0 {
 		return nil, fmt.Errorf("invalid major version: %s", parts[0])
 	}
-	v.Major = int(major)
+	v.Major = major
 
 	// 解析次版本号
-	minor, err := strconv.ParseUint(parts[1], 10, 64)
-	if err != nil {
+	minor, err := strconv.Atoi(parts[1])
+	if err != nil || minor < 0 {
 		return nil, fmt.Errorf("invalid minor version: %s", parts[1])
 	}
-	v.Minor = int(minor)
+	v.Minor = minor
 
 	// 解析修订号
-	patch, err := strconv.ParseUint(parts[2], 10, 64)
-	if err != nil {
+	patch, err := strconv.Atoi(parts[2])
+	if err != nil || patch < 0 {
 		return nil, fmt.Errorf("invalid patch version: %s", parts[2])
 	}
-	v.Patch = int(patch)
+	v.Patch = patch
 
 	// 解析构建号（可选）
 	if len(parts) >= 4 {
-		build, err := strconv.ParseUint(parts[3], 10, 64)
-		if err != nil {
+		build, err := strconv.Atoi(parts[3])
+		if err != nil || build < 0 {
 			return nil, fmt.Errorf("invalid build version: %s", parts[3])
 		}
-		v.Build = int(build)
+		v.Build = build
 	}
 
 	return v, nil
