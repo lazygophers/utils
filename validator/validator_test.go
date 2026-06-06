@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/text/language"
 )
 
 // Test Types
@@ -53,7 +54,7 @@ func TestValidatorErrors(t *testing.T) {
 
 func TestValidatorLocale(t *testing.T) {
 	// 测试英文（默认情况下只有英文可用）
-	enValidator, err := New(WithLocale("en"))
+	enValidator, err := New(WithLocale(language.Make("en")))
 	require.NoError(t, err)
 
 	user := TestUser{Name: ""}
@@ -62,7 +63,7 @@ func TestValidatorLocale(t *testing.T) {
 	assert.Contains(t, valErr.Error(), "required")
 
 	// 测试不存在的地区会回退到英文
-	unknownValidator, err2 := New(WithLocale("unknown"))
+	unknownValidator, err2 := New(WithLocale(language.Make("unknown")))
 	require.NoError(t, err2)
 
 	valErr2 := unknownValidator.Struct(user)
@@ -203,7 +204,7 @@ func TestErrorManipulation(t *testing.T) {
 // Global Functions Tests
 
 func TestGlobalFunctions(t *testing.T) {
-	SetLocale("zh")
+	SetLocale(language.Make("zh"))
 	SetUseJSON(true)
 
 	user := TestUser{Name: ""}
@@ -225,7 +226,7 @@ func TestGlobalFunctionsExtra(t *testing.T) {
 	assert.NoError(t, err)
 
 	// 测试全局 RegisterTranslation
-	RegisterTranslation("en", "test_global", "test message")
+	RegisterTranslation(language.Make("en"), "test_global", "test message")
 }
 
 func TestDefaultValidator(t *testing.T) {
@@ -278,7 +279,7 @@ func TestCustomValidatorEdgeCases(t *testing.T) {
 
 func TestConfigOptions(t *testing.T) {
 	config := Config{
-		Locale:  "zh",
+		Locale:  language.Make("zh"),
 		UseJSON: true,
 		Translations: map[string]string{
 			"zh.test": "测试消息",
@@ -287,7 +288,7 @@ func TestConfigOptions(t *testing.T) {
 
 	v, err := New(WithConfig(config))
 	require.NoError(t, err)
-	assert.Equal(t, "zh", v.GetLocale())
+	assert.Equal(t, language.Make("zh"), v.GetLocale())
 }
 
 func TestWithTranslations(t *testing.T) {
@@ -323,7 +324,7 @@ func TestRegisterTranslation(t *testing.T) {
 	v, err := New()
 	require.NoError(t, err)
 
-	v.RegisterTranslation("en", "test", "test message")
+	v.RegisterTranslation(language.Make("en"), "test", "test message")
 	// 无法直接测试翻译，但确保不会panic
 }
 
@@ -395,7 +396,7 @@ func TestDefaultValidatorFallback(t *testing.T) {
 }
 
 func TestNonExistentLocale(t *testing.T) {
-	v, err := New(WithLocale("nonexistent"))
+	v, err := New(WithLocale(language.Make("nonexistent")))
 	require.NoError(t, err)
 
 	user := TestUser{Name: ""}
@@ -427,14 +428,14 @@ func TestValidatorFields(t *testing.T) {
 	require.NoError(t, err)
 
 	// 测试设置和获取
-	v.SetLocale("zh")
-	assert.Equal(t, "zh", v.GetLocale())
+	v.SetLocale(language.Make("zh"))
+	assert.Equal(t, language.Make("zh"), v.GetLocale())
 
 	v.SetUseJSON(false)
 	// 我们无法直接测试 useJSON 字段，但可以通过行为验证
 
 	// 测试注册翻译
-	v.RegisterTranslation("en", "test", "test message")
+	v.RegisterTranslation(language.Make("en"), "test", "test message")
 }
 
 func TestMessageFormattingEdgeCases(t *testing.T) {

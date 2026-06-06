@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+
+	"golang.org/x/text/language"
 )
 
 var (
@@ -15,7 +17,7 @@ var (
 // Validator 自定义验证器
 type Validator struct {
 	engine   *Engine
-	locale   string
+	locale   language.Tag
 	useJSON  bool
 	mu       sync.RWMutex
 	messages map[string]string
@@ -25,7 +27,7 @@ type Validator struct {
 func New(opts ...Option) (*Validator, error) {
 	v := &Validator{
 		engine:   NewEngine(),
-		locale:   "en",
+		locale:   language.Make("en"),
 		useJSON:  true,
 		messages: make(map[string]string),
 	}
@@ -54,7 +56,7 @@ func Default() *Validator {
 			// 如果创建默认验证器失败，创建一个基础版本
 			defaultValidator = &Validator{
 				engine:   NewEngine(),
-				locale:   "en",
+				locale:   language.Make("en"),
 				useJSON:  true,
 				messages: make(map[string]string),
 			}
@@ -66,14 +68,14 @@ func Default() *Validator {
 }
 
 // SetLocale 设置语言地区
-func (v *Validator) SetLocale(locale string) {
+func (v *Validator) SetLocale(tag language.Tag) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
-	v.locale = locale
+	v.locale = tag
 }
 
 // GetLocale 获取当前语言地区
-func (v *Validator) GetLocale() string {
+func (v *Validator) GetLocale() language.Tag {
 	v.mu.RLock()
 	defer v.mu.RUnlock()
 	return v.locale
@@ -123,10 +125,10 @@ func (v *Validator) RegisterStructValidation(fn StructValidatorFunc, typeName st
 	return v.engine.RegisterStructValidation(fn, typeName)
 }
 // RegisterTranslation 注册翻译
-func (v *Validator) RegisterTranslation(locale, tag, translation string) {
+func (v *Validator) RegisterTranslation(locale language.Tag, tag, translation string) {
 	v.mu.Lock()
 	defer v.mu.Unlock()
-	key := fmt.Sprintf("%s.%s", locale, tag)
+	key := fmt.Sprintf("%s.%s", locale.String(), tag)
 	v.messages[key] = translation
 }
 
@@ -144,19 +146,20 @@ func (v *Validator) translateFieldError(err *FieldError) string {
 	locale := v.locale
 	v.mu.RUnlock()
 
+	localeStr := locale.String()
+
 	// 获取本地化配置
-	localeConfig, ok := GetLocaleConfig(locale)
+	localeConfig, ok := GetLocaleConfig(localeStr)
 	if !ok {
 		if enConfig, enOk := GetLocaleConfig("en"); enOk {
 			localeConfig = enConfig
 		} else {
-			// 如果连英文配置都没有，返回默认格式
 			return fmt.Sprintf("%s failed validation for tag '%s'", err.Field, err.Tag)
 		}
 	}
 
 	// 构建翻译键
-	key := fmt.Sprintf("%s.%s", locale, err.Tag)
+	key := fmt.Sprintf("%s.%s", localeStr, err.Tag)
 
 	v.mu.RLock()
 	if msg, exists := v.messages[key]; exists {
@@ -171,7 +174,7 @@ func (v *Validator) translateFieldError(err *FieldError) string {
 	}
 
 	// 最后回退到英文默认消息
-	if locale != "en" {
+	if localeStr != "en" {
 		if englishConfig, ok := GetLocaleConfig("en"); ok {
 			if template, exists := englishConfig.Messages[err.Tag]; exists {
 				return v.formatMessage(template, err)
@@ -179,7 +182,6 @@ func (v *Validator) translateFieldError(err *FieldError) string {
 		}
 	}
 
-	// 如果没有找到翻译，返回默认格式
 	return fmt.Sprintf("%s failed validation for tag '%s'", err.Field, err.Tag)
 }
 
@@ -453,8 +455,8 @@ func (v *Validator) registerDefaultValidators() error {
 // 全局便捷函数
 
 // SetLocale 设置默认验证器的语言地区
-func SetLocale(locale string) {
-	Default().SetLocale(locale)
+func SetLocale(tag language.Tag) {
+	Default().SetLocale(tag)
 }
 
 // SetUseJSON 设置默认验证器是否优先使用 JSON 字段名
@@ -478,7 +480,7 @@ func RegisterValidation(tag string, fn ValidatorFunc) error {
 }
 
 // RegisterTranslation 在默认验证器上注册翻译
-func RegisterTranslation(locale, tag, translation string) {
+func RegisterTranslation(locale language.Tag, tag, translation string) {
 	Default().RegisterTranslation(locale, tag, translation)
 }
 

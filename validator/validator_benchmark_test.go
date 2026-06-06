@@ -5,6 +5,8 @@ import (
 	"strings"
 	"sync"
 	"testing"
+
+	"golang.org/x/text/language"
 )
 
 // BenchmarkValidate_SingleField 单字段验证性能测试
@@ -267,7 +269,7 @@ func BenchmarkValidate_Batch(b *testing.B) {
 
 // BenchmarkValidate_ChineseMessage 中文错误消息性能测试
 func BenchmarkValidate_ChineseMessage(b *testing.B) {
-	v, err := New(WithLocale("zh"))
+	v, err := New(WithLocale(language.Make("zh")))
 	if err != nil {
 		b.Fatalf("Failed to create validator: %v", err)
 	}
