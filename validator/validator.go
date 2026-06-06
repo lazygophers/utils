@@ -239,12 +239,12 @@ func (v *Validator) formatMessage(template string, err *FieldError) string {
 			}
 		}
 
-		if i+6 <= len(template) {
-			if template[i:i+6] == "{value}" {
+		if i+7 <= len(template) {
+			if template[i:i+7] == "{value}" {
 				if err.Value != nil {
 					result = append(result, fmt.Sprintf("%v", err.Value)...)
 				}
-				i += 6
+				i += 7
 				continue
 			}
 		}

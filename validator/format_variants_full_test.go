@@ -20,16 +20,21 @@ func TestFmtOrigAll(t *testing.T) {
 }
 
 func TestFmtBuilderAll(t *testing.T) {
-	assert.Contains(t, formatMessageBuilder(allPH, withVal), "Name")
+	r := formatMessageBuilder(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42", "{value} must be replaced")
 	assert.Contains(t, formatMessageBuilder(allPH, noVal), "Name")
 	assert.Contains(t, formatMessageBuilder("{field}", noVal), "Name")
 	assert.Contains(t, formatMessageBuilder("{param}", noVal), "5")
 	assert.Contains(t, formatMessageBuilder("{tag}", noVal), "required")
+	assert.Contains(t, formatMessageBuilder("{value}", withVal), "42")
 	assert.Equal(t, "x", formatMessageBuilder("x", withVal))
 }
 
 func TestFmtByteSliceAll(t *testing.T) {
-	assert.Contains(t, formatMessageByteSlice(allPH, withVal), "Name")
+	r := formatMessageByteSlice(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42", "{value} must be replaced")
 	assert.Contains(t, formatMessageByteSlice(allPH, noVal), "Name")
 	assert.Equal(t, "x", formatMessageByteSlice("x", withVal))
 }
@@ -45,49 +50,65 @@ func TestFmtValueFastAll(t *testing.T) {
 }
 
 func TestFmtNoFmtAll(t *testing.T) {
-	assert.Contains(t, formatMessageNoFmt(allPH, withVal), "Name")
+	r := formatMessageNoFmt(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42", "{value} must be replaced")
 	assert.Contains(t, formatMessageNoFmt(allPH, noVal), "Name")
 	assert.Equal(t, "x", formatMessageNoFmt("x", withVal))
 }
 
 func TestFmtSingleReplaceAll(t *testing.T) {
-	assert.Contains(t, formatMessageSingleReplace(allPH, withVal), "Name")
+	r := formatMessageSingleReplace(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42", "{value} must be replaced")
 	assert.Contains(t, formatMessageSingleReplace(allPH, noVal), "Name")
 	assert.Equal(t, "x", formatMessageSingleReplace("x", withVal))
 }
 
 func TestFmtHashtableAll(t *testing.T) {
-	assert.Contains(t, formatMessageHashtable(allPH, withVal), "Name")
+	r := formatMessageHashtable(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42", "{value} must be replaced")
 	assert.Contains(t, formatMessageHashtable(allPH, noVal), "Name")
 	assert.Equal(t, "x", formatMessageHashtable("x", withVal))
 }
 
 func TestFmtInlineCheckAll(t *testing.T) {
-	assert.Contains(t, formatMessageInlineCheck(allPH, withVal), "Name")
+	r := formatMessageInlineCheck(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42", "{value} must be replaced")
 	assert.Contains(t, formatMessageInlineCheck(allPH, noVal), "Name")
 	assert.Equal(t, "x", formatMessageInlineCheck("x", withVal))
 }
 
 func TestFmtPrecomputeAll(t *testing.T) {
-	assert.Contains(t, formatMessagePrecompute(allPH, withVal), "Name")
+	r := formatMessagePrecompute(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42", "{value} must be replaced")
 	assert.Contains(t, formatMessagePrecompute(allPH, noVal), "Name")
 	assert.Equal(t, "x", formatMessagePrecompute("x", withVal))
 }
 
 func TestFmtBytesBufferAll(t *testing.T) {
-	assert.Contains(t, formatMessageBytesBuffer(allPH, withVal), "Name")
+	r := formatMessageBytesBuffer(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42", "{value} must be replaced")
 	assert.Contains(t, formatMessageBytesBuffer(allPH, noVal), "Name")
 	assert.Equal(t, "x", formatMessageBytesBuffer("x", withVal))
 }
 
 func TestFmtOptimizedCurrentAll(t *testing.T) {
-	assert.Contains(t, formatMessageOptimizedCurrent(allPH, withVal), "Name")
+	r := formatMessageOptimizedCurrent(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42", "{value} must be replaced")
 	assert.Contains(t, formatMessageOptimizedCurrent(allPH, noVal), "Name")
 	assert.Equal(t, "x", formatMessageOptimizedCurrent("x", withVal))
 }
 
 func TestFmtFastPathAll(t *testing.T) {
-	assert.Contains(t, formatMessageFastPath(allPH, withVal), "Name")
+	r := formatMessageFastPath(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42", "{value} must be replaced")
 	assert.Contains(t, formatMessageFastPath(allPH, noVal), "Name")
 	assert.Contains(t, formatMessageFastPath("{field} {param} {tag}", noVal), "Name")
 	assert.Equal(t, "x", formatMessageFastPath("x", withVal))
@@ -99,6 +120,35 @@ func TestCompileTemplateDirect(t *testing.T) {
 	assert.True(t, len(ct.parts) >= 3)
 }
 
+func TestCompileTemplateWithValue(t *testing.T) {
+	ct := compileTemplate("{field}={value}")
+	found := false
+	for _, p := range ct.parts {
+		if p.isPlaceholder && p.value == "value" {
+			found = true
+		}
+	}
+	assert.True(t, found, "compileTemplate must recognize {value} placeholder")
+}
+
 func TestFormatCompiledNoPH(t *testing.T) {
 	assert.Equal(t, "abc", formatMessageCompiled("abc", &FieldError{Field: "x"}))
+}
+
+func TestFormatCompiledWithValue(t *testing.T) {
+	r := formatMessageCompiled("{value}", withVal)
+	assert.Equal(t, "42", r)
+}
+
+func TestFormatCompiledAllPH(t *testing.T) {
+	r := formatMessageCompiled(allPH, withVal)
+	assert.Contains(t, r, "Name")
+	assert.Contains(t, r, "42")
+	assert.Contains(t, r, "10")
+	assert.Contains(t, r, "min")
+}
+
+func TestFormatCompiledNilValue(t *testing.T) {
+	r := formatMessageCompiled("val={value}", noVal)
+	assert.Equal(t, "val=", r)
 }

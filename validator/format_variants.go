@@ -46,11 +46,11 @@ func formatMessageBuilder(template string, err *FieldError) string {
 			i += 5
 			continue
 		}
-		if i+6 <= len(template) && template[i:i+6] == "{value}" {
+		if i+7 <= len(template) && template[i:i+7] == "{value}" {
 			if err.Value != nil {
 				builder.WriteString(fmt.Sprintf("%v", err.Value))
 			}
-			i += 6
+			i += 7
 			continue
 		}
 		builder.WriteByte(template[i])
@@ -121,9 +121,9 @@ func compileTemplate(template string) *compiledTemplate {
 			i += 5
 			continue
 		}
-		if i+6 <= len(template) && template[i:i+6] == "{value}" {
+		if i+7 <= len(template) && template[i:i+7] == "{value}" {
 			parts = append(parts, templatePart{isPlaceholder: true, value: "value"})
-			i += 6
+			i += 7
 			continue
 		}
 		start := i
@@ -163,11 +163,11 @@ func formatMessageByteSlice(template string, err *FieldError) string {
 			i += 5
 			continue
 		}
-		if i+6 <= len(template) && template[i:i+6] == "{value}" {
+		if i+7 <= len(template) && template[i:i+7] == "{value}" {
 			if err.Value != nil {
 				result = append(result, fmt.Sprintf("%v", err.Value)...)
 			}
-			i += 6
+			i += 7
 			continue
 		}
 		result = append(result, template[i])
@@ -225,12 +225,12 @@ func formatMessageNoFmt(template string, err *FieldError) string {
 			i += 5
 			continue
 		}
-		if i+6 <= len(template) && template[i:i+6] == "{value}" {
+		if i+7 <= len(template) && template[i:i+7] == "{value}" {
 			if err.Value != nil {
 				valStr := formatValueFast(err.Value)
 				result = append(result, valStr...)
 			}
-			i += 6
+			i += 7
 			continue
 		}
 		result = append(result, template[i])
@@ -321,11 +321,11 @@ func formatMessageInlineCheck(template string, err *FieldError) string {
 			i += 5
 			continue
 		}
-		if i+6 <= len(template) && template[i:i+6] == "{value}" {
+		if i+7 <= len(template) && template[i:i+7] == "{value}" {
 			if err.Value != nil {
 				result = append(result, fmt.Sprintf("%v", err.Value)...)
 			}
-			i += 6
+			i += 7
 			continue
 		}
 		result = append(result, template[i])
@@ -387,11 +387,11 @@ func formatMessageBytesBuffer(template string, err *FieldError) string {
 			i += 5
 			continue
 		}
-		if i+6 <= len(template) && template[i:i+6] == "{value}" {
+		if i+7 <= len(template) && template[i:i+7] == "{value}" {
 			if err.Value != nil {
 				buf.WriteString(fmt.Sprintf("%v", err.Value))
 			}
-			i += 6
+			i += 7
 			continue
 		}
 		buf.WriteByte(template[i])
@@ -428,11 +428,11 @@ func formatMessageOptimizedCurrent(template string, err *FieldError) string {
 		}
 
 		// 检查 6 字节占位符
-		if i+6 <= templateLen && template[i:i+6] == "{value}" {
+		if i+7 <= templateLen && template[i:i+7] == "{value}" {
 			if err.Value != nil {
 				result = append(result, fmt.Sprintf("%v", err.Value)...)
 			}
-			i += 6
+			i += 7
 			continue
 		}
 
@@ -485,11 +485,11 @@ func formatMessageFastPath(template string, err *FieldError) string {
 			}
 		}
 
-		if i+6 <= templateLen && template[i:i+6] == "{value}" {
+		if i+7 <= templateLen && template[i:i+7] == "{value}" {
 			if err.Value != nil {
 				result = append(result, fmt.Sprintf("%v", err.Value)...)
 			}
-			i += 6
+			i += 7
 			continue
 		}
 

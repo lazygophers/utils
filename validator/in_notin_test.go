@@ -34,9 +34,9 @@ func TestInFloatUnified(t *testing.T) {
 }
 
 func TestInMixedTypes(t *testing.T) {
-	fn := In("a", "b")
-	// mixed type → linear compareFields with strings
-	assert.True(t, fn(paramFL{field: reflect.ValueOf("a")}))
+	// Truly mixed types: int + string → allSameType=false → linear compareFields
+	fn := In(1, "b")
+	assert.True(t, fn(paramFL{field: reflect.ValueOf(1)}))
 	assert.False(t, fn(paramFL{field: reflect.ValueOf("z")}))
 }
 
@@ -67,7 +67,8 @@ func TestNotInFloatUnified(t *testing.T) {
 }
 
 func TestNotInMixedTypes(t *testing.T) {
-	fn := NotIn("a", "b")
-	assert.False(t, fn(paramFL{field: reflect.ValueOf("a")}))
+	// Truly mixed types: int + string → allSameType=false → linear compareFields
+	fn := NotIn(1, "b")
+	assert.False(t, fn(paramFL{field: reflect.ValueOf(1)}))
 	assert.True(t, fn(paramFL{field: reflect.ValueOf("z")}))
 }
