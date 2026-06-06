@@ -22,6 +22,7 @@ const moduleGroups: GroupDef[] = [
     items: [
       { text: 'must', link: '/modules/core/must' },
       { text: 'orm', link: '/modules/core/orm' },
+      { text: 'xerror', link: '/modules/core/xerror' },
     ],
   },
   {
