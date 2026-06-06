@@ -7,6 +7,7 @@ Go 工具库，模块路径 `github.com/lazygophers/utils`，Go 1.26.2。
 - 根包 `utils`：`Must()`, `MustSuccess()`, `MustOk()`, `Value()`, `Scan()`
 - 每个子目录 = 独立 Go package（如 `candy/`, `xtime/`, `cache/lru/`）
 - `cache/` 下有 10 个子算法包（alfu, arc, fbr, lfu, lru, lruk, mru, slru, tinylfu, wtinylfu）
+- `language/` 提供语言标签解析 + goroutine-local 语言存储（`SetDefault`/`Default`/`Set`/`Get`）
 - `docs/` 是 Rspress 多语言文档站（zh-CN 默认 + zh-TW + en）
 
 ## 常用命令
@@ -29,6 +30,9 @@ make all           # clean + fmt + lint + test + build
 - **测试文件命名**：`xxx.go` 的测试在 `xxx_test.go`，性能测试在 `xxx_benchmark_test.go`（禁止 `_coverage_test.go`、`_perf_test.go` 等变体后缀）
 - **禁止 `cmd/` 目录和 `package main`**：这是纯库项目，不包含可执行文件
 - **build tag 策略**：`en`（英文）和 `zh`（中文）的 locale 文件不加 `//go:build` tag，始终注册；其他语言（ja/ko/ar/es/fr/ru/zh-tw）保留 `//go:build lang_xx || lang_all`
+- **命名约定**：缩写词用首字母大写其余小写（`Id` 而非 `ID`，`Http` 而非 `HTTP`）
+- **禁止 `context.Context`**：不在本库中引入 context 依赖，协程级存储用 goroutine-local 方案
+- **禁止防御性编程**：内部代码不做 nil-check / try-catch，只在系统边界校验
 
 ## 文档维护
 
