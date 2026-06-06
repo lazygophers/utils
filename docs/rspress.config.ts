@@ -203,10 +203,12 @@ function buildNav(locale: 'zh-CN' | 'en' | 'zh-TW') {
       text: l.modules,
       items: [
         { text: l.overview, link: withLocale(locale, '/modules/overview') },
-        ...moduleGroups.map((group) => ({
-          text: group.text[locale],
-          link: withLocale(locale, group.link),
-        })),
+        ...moduleGroups.flatMap((group) =>
+          group.items.map((item) => ({
+            text: item.text,
+            link: withLocale(locale, item.link),
+          })),
+        ),
       ],
     },
     { text: 'Validator', link: withLocale(locale, '/validator/') },
