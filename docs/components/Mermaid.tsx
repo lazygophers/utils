@@ -16,13 +16,15 @@ export default function Mermaid() {
       const m = window.mermaid;
       if (!m) return;
 
-      document.querySelectorAll('pre code.language-mermaid').forEach((block) => {
-        const pre = block.parentElement;
-        if (!pre || pre.getAttribute('data-mermaid')) return;
+      // Rspress/Shiki renders: <pre class="shiki" data-lang="mermaid"><code>...</code></pre>
+      document.querySelectorAll('pre[data-lang="mermaid"]').forEach((pre) => {
+        if (pre.getAttribute('data-mermaid')) return;
         pre.setAttribute('data-mermaid', '1');
+        const code = pre.querySelector('code');
+        if (!code) return;
         try {
           const id = `m${Date.now()}${Math.random().toString(36).slice(2, 6)}`;
-          m.render(id, (block.textContent || '').trim()).then(({ svg }: { svg: string }) => {
+          m.render(id, (code.textContent || '').trim()).then(({ svg }: { svg: string }) => {
             const div = document.createElement('div');
             div.style.textAlign = 'center';
             div.style.margin = '1.5rem 0';
