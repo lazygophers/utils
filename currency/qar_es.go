@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Qar.RegisterName(xlanguage.Spanish, "Rial catarí")
+	QAR.RegisterName(xlanguage.Spanish, "Rial catarí")
 }

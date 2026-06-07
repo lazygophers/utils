@@ -2,7 +2,7 @@
 
 package currency
 
-// Mnt — ISO 4217 MNT.
-var Mnt = New("MNT", "₮", 496).
+// MNT — ISO 4217 MNT.
+var MNT = New("MNT", "₮", 496).
 	WithDecimals(2).
 	WithBanknotes(10, 20, 50, 100, 500, 1000, 5000, 10000, 20000)

@@ -2,8 +2,8 @@
 
 package currency
 
-// Pyg — ISO 4217 PYG.
-var Pyg = New("PYG", "₲", 600).
+// PYG — ISO 4217 PYG.
+var PYG = New("PYG", "₲", 600).
 	WithDecimals(0).
 	WithBanknotes(2000, 5000, 10000, 20000, 50000, 100000).
 	WithCoins(50, 100, 500, 1000)

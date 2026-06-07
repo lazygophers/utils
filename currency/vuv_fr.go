@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Vuv.RegisterName(xlanguage.French, "Vatu")
+	VUV.RegisterName(xlanguage.French, "Vatu")
 }

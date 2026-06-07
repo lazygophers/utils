@@ -2,7 +2,7 @@
 
 package currency
 
-// Khr — ISO 4217 KHR.
-var Khr = New("KHR", "៛", 116).
+// KHR — ISO 4217 KHR.
+var KHR = New("KHR", "៛", 116).
 	WithDecimals(2).
 	WithBanknotes(100, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000)

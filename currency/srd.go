@@ -2,8 +2,8 @@
 
 package currency
 
-// Srd — ISO 4217 SRD.
-var Srd = New("SRD", "$", 968).
+// SRD — ISO 4217 SRD.
+var SRD = New("SRD", "$", 968).
 	WithDecimals(2).
 	WithBanknotes(5, 10, 20, 50, 100).
 	WithCoins(0.01, 0.05, 0.1, 0.25, 1, 5, 10, 25, 50, 100, 250)

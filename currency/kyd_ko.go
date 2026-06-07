@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Kyd.RegisterName(xlanguage.Korean, "케이맨 제도 달러")
+	KYD.RegisterName(xlanguage.Korean, "케이맨 제도 달러")
 }

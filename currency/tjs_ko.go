@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Tjs.RegisterName(xlanguage.Korean, "타지키스탄 소모니")
+	TJS.RegisterName(xlanguage.Korean, "타지키스탄 소모니")
 }

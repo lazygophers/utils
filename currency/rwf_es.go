@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Rwf.RegisterName(xlanguage.Spanish, "Franco ruandés")
+	RWF.RegisterName(xlanguage.Spanish, "Franco ruandés")
 }

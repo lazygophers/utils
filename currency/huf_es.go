@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Huf.RegisterName(xlanguage.Spanish, "Forinto húngaro")
+	HUF.RegisterName(xlanguage.Spanish, "Forinto húngaro")
 }

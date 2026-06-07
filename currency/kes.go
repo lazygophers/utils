@@ -2,8 +2,8 @@
 
 package currency
 
-// Kes — ISO 4217 KES.
-var Kes = New("KES", "KSh", 404).
+// KES — ISO 4217 KES.
+var KES = New("KES", "KSh", 404).
 	WithDecimals(2).
 	WithBanknotes(50, 100, 200, 500, 1000).
 	WithCoins(1, 5, 10, 20)

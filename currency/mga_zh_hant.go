@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Mga.RegisterName(xlanguage.MustParse("zh-Hant"), "馬達加斯加阿里亞里")
+	MGA.RegisterName(xlanguage.MustParse("zh-Hant"), "馬達加斯加阿里亞里")
 }

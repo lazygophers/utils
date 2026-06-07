@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Djf.RegisterName(xlanguage.Spanish, "Franco yibutiano")
+	DJF.RegisterName(xlanguage.Spanish, "Franco yibutiano")
 }

@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Aud.RegisterName(xlanguage.Japanese, "オーストラリア・ドル")
+	AUD.RegisterName(xlanguage.Japanese, "オーストラリア・ドル")
 }

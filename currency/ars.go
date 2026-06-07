@@ -2,8 +2,8 @@
 
 package currency
 
-// Ars — ISO 4217 ARS.
-var Ars = New("ARS", "$", 32).
+// ARS — ISO 4217 ARS.
+var ARS = New("ARS", "$", 32).
 	WithDecimals(2).
 	WithBanknotes(10, 20, 50, 100, 200, 500, 1000, 2000).
 	WithCoins(0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10)

@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Uyu.RegisterName(xlanguage.Arabic, "بيزو أوروغواي")
+	UYU.RegisterName(xlanguage.Arabic, "بيزو أوروغواي")
 }

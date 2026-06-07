@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Lak.RegisterName(xlanguage.French, "Kip")
+	LAK.RegisterName(xlanguage.French, "Kip")
 }

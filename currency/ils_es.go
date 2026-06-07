@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Ils.RegisterName(xlanguage.Spanish, "Nuevo séquel israelí")
+	ILS.RegisterName(xlanguage.Spanish, "Nuevo séquel israelí")
 }

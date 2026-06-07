@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Mwk.RegisterName(xlanguage.Japanese, "マラウイ・クワチャ")
+	MWK.RegisterName(xlanguage.Japanese, "マラウイ・クワチャ")
 }

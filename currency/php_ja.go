@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Php.RegisterName(xlanguage.Japanese, "フィリピン・ペソ")
+	PHP.RegisterName(xlanguage.Japanese, "フィリピン・ペソ")
 }

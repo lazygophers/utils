@@ -2,7 +2,7 @@
 
 package currency
 
-// Cdf — ISO 4217 CDF.
-var Cdf = New("CDF", "FC", 976).
+// CDF — ISO 4217 CDF.
+var CDF = New("CDF", "FC", 976).
 	WithDecimals(2).
 	WithBanknotes(50, 100, 200, 500, 1000, 5000, 10000, 20000)

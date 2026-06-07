@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Omr.RegisterName(xlanguage.English, "Rial Omani")
+	OMR.RegisterName(xlanguage.English, "Rial Omani")
 }

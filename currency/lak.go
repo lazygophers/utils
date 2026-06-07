@@ -2,7 +2,7 @@
 
 package currency
 
-// Lak — ISO 4217 LAK.
-var Lak = New("LAK", "₭", 418).
+// LAK — ISO 4217 LAK.
+var LAK = New("LAK", "₭", 418).
 	WithDecimals(2).
 	WithBanknotes(500, 1000, 2000, 5000, 10000, 20000, 50000, 100000)

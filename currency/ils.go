@@ -2,8 +2,8 @@
 
 package currency
 
-// Ils — ISO 4217 ILS.
-var Ils = New("ILS", "₪", 376).
+// ILS — ISO 4217 ILS.
+var ILS = New("ILS", "₪", 376).
 	WithDecimals(2).
 	WithBanknotes(20, 50, 100, 200).
 	WithCoins(0.1, 0.5, 1, 2, 5, 10)

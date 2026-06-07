@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Bam.RegisterName(xlanguage.Russian, "Конвертируемая марка")
+	BAM.RegisterName(xlanguage.Russian, "Конвертируемая марка")
 }

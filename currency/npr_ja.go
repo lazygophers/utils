@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Npr.RegisterName(xlanguage.Japanese, "ネパール・ルピー")
+	NPR.RegisterName(xlanguage.Japanese, "ネパール・ルピー")
 }

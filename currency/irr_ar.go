@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Irr.RegisterName(xlanguage.Arabic, "ريال إيراني")
+	IRR.RegisterName(xlanguage.Arabic, "ريال إيراني")
 }

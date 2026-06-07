@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Wst.RegisterName(xlanguage.English, "Tala")
+	WST.RegisterName(xlanguage.English, "Tala")
 }

@@ -2,8 +2,8 @@
 
 package currency
 
-// Cad — ISO 4217 CAD.
-var Cad = New("CAD", "C$", 124).
+// CAD — ISO 4217 CAD.
+var CAD = New("CAD", "C$", 124).
 	WithDecimals(2).
 	WithBanknotes(5, 10, 20, 50, 100).
 	WithCoins(0.05, 0.1, 0.25, 1, 2).

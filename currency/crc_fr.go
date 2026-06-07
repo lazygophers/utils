@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Crc.RegisterName(xlanguage.French, "Colón costaricien")
+	CRC.RegisterName(xlanguage.French, "Colón costaricien")
 }

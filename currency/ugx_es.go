@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Ugx.RegisterName(xlanguage.Spanish, "Chelín ugandés")
+	UGX.RegisterName(xlanguage.Spanish, "Chelín ugandés")
 }

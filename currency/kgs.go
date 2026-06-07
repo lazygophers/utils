@@ -2,8 +2,8 @@
 
 package currency
 
-// Kgs — ISO 4217 KGS.
-var Kgs = New("KGS", "сом", 417).
+// KGS — ISO 4217 KGS.
+var KGS = New("KGS", "сом", 417).
 	WithDecimals(2).
 	WithBanknotes(20, 50, 100, 200, 500, 1000, 5000).
 	WithCoins(1, 3, 5, 10)

@@ -2,8 +2,8 @@
 
 package currency
 
-// Nzd — ISO 4217 NZD.
-var Nzd = New("NZD", "$", 554).
+// NZD — ISO 4217 NZD.
+var NZD = New("NZD", "$", 554).
 	WithDecimals(2).
 	WithBanknotes(5, 10, 20, 50, 100).
 	WithCoins(0.1, 0.2, 0.5, 1, 2)

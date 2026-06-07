@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Thb.RegisterName(xlanguage.MustParse("zh-Hant"), "泰銖")
+	THB.RegisterName(xlanguage.MustParse("zh-Hant"), "泰銖")
 }

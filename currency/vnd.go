@@ -2,7 +2,7 @@
 
 package currency
 
-// Vnd — ISO 4217 VND.
-var Vnd = New("VND", "₫", 704).
+// VND — ISO 4217 VND.
+var VND = New("VND", "₫", 704).
 	WithDecimals(0).
 	WithBanknotes(1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000)

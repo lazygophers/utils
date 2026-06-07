@@ -2,8 +2,8 @@
 
 package currency
 
-// Bdt — ISO 4217 BDT.
-var Bdt = New("BDT", "৳", 50).
+// BDT — ISO 4217 BDT.
+var BDT = New("BDT", "৳", 50).
 	WithDecimals(2).
 	WithBanknotes(2, 5, 10, 20, 50, 100, 200, 500, 1000).
 	WithCoins(1, 2, 5)

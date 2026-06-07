@@ -2,8 +2,8 @@
 
 package currency
 
-// Bam — ISO 4217 BAM.
-var Bam = New("BAM", "KM", 977).
+// BAM — ISO 4217 BAM.
+var BAM = New("BAM", "KM", 977).
 	WithDecimals(2).
 	WithBanknotes(10, 20, 50, 100, 200).
 	WithCoins(0.05, 0.1, 0.2, 0.5, 1, 2, 5)

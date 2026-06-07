@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Jmd.RegisterName(xlanguage.Spanish, "Dólar jamaicano")
+	JMD.RegisterName(xlanguage.Spanish, "Dólar jamaicano")
 }

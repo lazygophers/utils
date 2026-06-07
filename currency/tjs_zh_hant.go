@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Tjs.RegisterName(xlanguage.MustParse("zh-Hant"), "塔吉克索莫尼")
+	TJS.RegisterName(xlanguage.MustParse("zh-Hant"), "塔吉克索莫尼")
 }

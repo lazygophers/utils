@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Huf.RegisterName(xlanguage.Japanese, "フォリント")
+	HUF.RegisterName(xlanguage.Japanese, "フォリント")
 }

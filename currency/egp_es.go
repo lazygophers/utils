@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Egp.RegisterName(xlanguage.Spanish, "Libra egipcia")
+	EGP.RegisterName(xlanguage.Spanish, "Libra egipcia")
 }

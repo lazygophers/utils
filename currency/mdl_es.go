@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Mdl.RegisterName(xlanguage.Spanish, "Leu moldavo")
+	MDL.RegisterName(xlanguage.Spanish, "Leu moldavo")
 }

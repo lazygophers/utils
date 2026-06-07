@@ -2,8 +2,8 @@
 
 package currency
 
-// Irr — ISO 4217 IRR.
-var Irr = New("IRR", "﷼", 364).
+// IRR — ISO 4217 IRR.
+var IRR = New("IRR", "﷼", 364).
 	WithDecimals(2).
 	WithBanknotes(100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000).
 	WithCoins(50, 100, 250, 500, 1000)

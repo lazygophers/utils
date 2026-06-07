@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Mzn.RegisterName(xlanguage.French, "Metical")
+	MZN.RegisterName(xlanguage.French, "Metical")
 }

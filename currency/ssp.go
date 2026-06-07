@@ -2,7 +2,7 @@
 
 package currency
 
-// Ssp — ISO 4217 SSP.
-var Ssp = New("SSP", "£", 728).
+// SSP — ISO 4217 SSP.
+var SSP = New("SSP", "£", 728).
 	WithDecimals(2).
 	WithBanknotes(1, 5, 10, 20, 25, 50, 100)

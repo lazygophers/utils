@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Djf.RegisterName(xlanguage.Russian, "Джибутийский франк")
+	DJF.RegisterName(xlanguage.Russian, "Джибутийский франк")
 }

@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Cve.RegisterName(xlanguage.MustParse("zh-Hant"), "維德角埃斯庫多")
+	CVE.RegisterName(xlanguage.MustParse("zh-Hant"), "維德角埃斯庫多")
 }

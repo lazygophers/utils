@@ -2,8 +2,8 @@
 
 package currency
 
-// Gyd — ISO 4217 GYD.
-var Gyd = New("GYD", "$", 328).
+// GYD — ISO 4217 GYD.
+var GYD = New("GYD", "$", 328).
 	WithDecimals(2).
 	WithBanknotes(20, 50, 100, 500, 1000, 5000).
 	WithCoins(1, 5, 10)

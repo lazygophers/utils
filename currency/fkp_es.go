@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Fkp.RegisterName(xlanguage.Spanish, "Libra malvinense")
+	FKP.RegisterName(xlanguage.Spanish, "Libra malvinense")
 }

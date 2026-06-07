@@ -2,7 +2,7 @@
 
 package currency
 
-// Mmk — ISO 4217 MMK.
-var Mmk = New("MMK", "K", 104).
+// MMK — ISO 4217 MMK.
+var MMK = New("MMK", "K", 104).
 	WithDecimals(2).
 	WithBanknotes(50, 100, 200, 500, 1000, 5000, 10000)

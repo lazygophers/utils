@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Rub.RegisterName(xlanguage.Spanish, "Rublo ruso")
+	RUB.RegisterName(xlanguage.Spanish, "Rublo ruso")
 }

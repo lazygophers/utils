@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Gyd.RegisterName(xlanguage.Spanish, "Dólar guyanés")
+	GYD.RegisterName(xlanguage.Spanish, "Dólar guyanés")
 }

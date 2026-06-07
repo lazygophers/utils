@@ -18,8 +18,8 @@ type getCase struct {
 
 func TestGet(t *testing.T) {
 	cases := []getCase{
-		{"upper", "CNY", currency.Cny},
-		{"lower", "cny", currency.Cny},
+		{"upper", "CNY", currency.CNY},
+		{"lower", "cny", currency.CNY},
 		{"empty", "", nil},
 		{"too-short", "CN", nil},
 		{"too-long", "CNYY", nil},
@@ -36,11 +36,11 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetByNumeric(t *testing.T) {
-	if got := currency.GetByNumeric(156); got != currency.Cny {
-		t.Fatalf("GetByNumeric(156) = %v, want Cny", got)
+	if got := currency.GetByNumeric(156); got != currency.CNY {
+		t.Fatalf("GetByNumeric(156) = %v, want CNY", got)
 	}
-	if got := currency.GetByNumeric(840); got != currency.Usd {
-		t.Fatalf("GetByNumeric(840) = %v, want Usd", got)
+	if got := currency.GetByNumeric(840); got != currency.USD {
+		t.Fatalf("GetByNumeric(840) = %v, want USD", got)
 	}
 	if got := currency.GetByNumeric(0); got != nil {
 		t.Errorf("GetByNumeric(0) should be nil")
@@ -57,7 +57,7 @@ func TestListLength(t *testing.T) {
 }
 
 func TestFieldAccessors(t *testing.T) {
-	c := currency.Cny
+	c := currency.CNY
 	if c.Code() != "CNY" {
 		t.Errorf("Code: %q", c.Code())
 	}
@@ -71,33 +71,33 @@ func TestFieldAccessors(t *testing.T) {
 		t.Errorf("String: %q", c.String())
 	}
 	if c.Decimals() != 2 {
-		t.Errorf("Cny.Decimals: %d", c.Decimals())
+		t.Errorf("CNY.Decimals: %d", c.Decimals())
 	}
 	if !c.Reserve() {
-		t.Errorf("Cny.Reserve should be true")
+		t.Errorf("CNY.Reserve should be true")
 	}
 	if len(c.Banknotes()) == 0 {
-		t.Errorf("Cny.Banknotes empty")
+		t.Errorf("CNY.Banknotes empty")
 	}
 	if len(c.Coins()) == 0 {
-		t.Errorf("Cny.Coins empty")
+		t.Errorf("CNY.Coins empty")
 	}
 
-	jpy := currency.Jpy
+	jpy := currency.JPY
 	if jpy.Decimals() != 0 {
-		t.Errorf("Jpy.Decimals: %d", jpy.Decimals())
+		t.Errorf("JPY.Decimals: %d", jpy.Decimals())
 	}
 	if !jpy.Reserve() {
-		t.Errorf("Jpy.Reserve should be true")
+		t.Errorf("JPY.Reserve should be true")
 	}
 }
 
 func TestConstantsMatchLookup(t *testing.T) {
-	if currency.Cny != currency.Get("CNY") {
-		t.Error("Cny != Get(CNY)")
+	if currency.CNY != currency.Get("CNY") {
+		t.Error("CNY != Get(CNY)")
 	}
-	if currency.Usd != currency.Get("USD") {
-		t.Error("Usd != Get(USD)")
+	if currency.USD != currency.Get("USD") {
+		t.Error("USD != Get(USD)")
 	}
 }
 
@@ -117,14 +117,14 @@ func TestNoDuplicateCodes(t *testing.T) {
 }
 
 func TestNameInDirectHit(t *testing.T) {
-	cny := currency.Cny
+	cny := currency.CNY
 	if got := cny.NameIn(xlanguage.English); got != "Yuan Renminbi" {
 		t.Errorf("en: %q", got)
 	}
 }
 
 func TestNameInBaseFallback(t *testing.T) {
-	cny := currency.Cny
+	cny := currency.CNY
 	zhCN := xlanguage.MustParse("zh-CN")
 	// zh-CN base = zh. Whether zh registered depends on cny_zh.go contents.
 	got := cny.NameIn(zhCN)
@@ -135,7 +135,7 @@ func TestNameInBaseFallback(t *testing.T) {
 }
 
 func TestNameInUnknownLangFallsBackToEnglish(t *testing.T) {
-	cny := currency.Cny
+	cny := currency.CNY
 	zu := xlanguage.MustParse("zu")
 	if got := cny.NameIn(zu); got != "Yuan Renminbi" {
 		t.Errorf("zu fallback: %q", got)
@@ -156,7 +156,7 @@ func TestNameInFallsBackToCode(t *testing.T) {
 }
 
 func TestGoroutineLocalName(t *testing.T) {
-	cny := currency.Cny
+	cny := currency.CNY
 
 	language.Del()
 	if got := cny.Name(); got != "Yuan Renminbi" {
@@ -188,7 +188,7 @@ func TestRegisterNameAndLookup(t *testing.T) {
 }
 
 func TestConcurrentGoroutineLocalIsolation(t *testing.T) {
-	cny := currency.Cny
+	cny := currency.CNY
 	var wg sync.WaitGroup
 	errs := make(chan string, 32)
 	for i := 0; i < 16; i++ {

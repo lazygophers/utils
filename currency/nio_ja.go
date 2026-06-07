@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Nio.RegisterName(xlanguage.Japanese, "ニカラグア・コルドバ")
+	NIO.RegisterName(xlanguage.Japanese, "ニカラグア・コルドバ")
 }

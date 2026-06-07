@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Rub.RegisterName(xlanguage.MustParse("zh-Hant"), "俄羅斯盧布")
+	RUB.RegisterName(xlanguage.MustParse("zh-Hant"), "俄羅斯盧布")
 }

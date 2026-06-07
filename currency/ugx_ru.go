@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Ugx.RegisterName(xlanguage.Russian, "Угандийский шиллинг")
+	UGX.RegisterName(xlanguage.Russian, "Угандийский шиллинг")
 }

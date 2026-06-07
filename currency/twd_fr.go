@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Twd.RegisterName(xlanguage.French, "Nouveau dollar taïwanais")
+	TWD.RegisterName(xlanguage.French, "Nouveau dollar taïwanais")
 }

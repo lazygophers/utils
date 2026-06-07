@@ -2,8 +2,8 @@
 
 package currency
 
-// Azn — ISO 4217 AZN.
-var Azn = New("AZN", "₼", 944).
+// AZN — ISO 4217 AZN.
+var AZN = New("AZN", "₼", 944).
 	WithDecimals(2).
 	WithBanknotes(1, 5, 10, 20, 50, 100, 200).
 	WithCoins(0.01, 0.03, 0.05, 0.1, 0.2, 0.5)

@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Czk.RegisterName(xlanguage.Spanish, "Corona checa")
+	CZK.RegisterName(xlanguage.Spanish, "Corona checa")
 }

@@ -2,8 +2,8 @@
 
 package currency
 
-// Jmd — ISO 4217 JMD.
-var Jmd = New("JMD", "J$", 388).
+// JMD — ISO 4217 JMD.
+var JMD = New("JMD", "J$", 388).
 	WithDecimals(2).
 	WithBanknotes(50, 100, 500, 1000, 5000).
 	WithCoins(1, 5, 10, 20)

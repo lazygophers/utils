@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Isk.RegisterName(xlanguage.MustParse("zh-Hant"), "冰島克朗")
+	ISK.RegisterName(xlanguage.MustParse("zh-Hant"), "冰島克朗")
 }

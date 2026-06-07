@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Pkr.RegisterName(xlanguage.Japanese, "パキスタン・ルピー")
+	PKR.RegisterName(xlanguage.Japanese, "パキスタン・ルピー")
 }

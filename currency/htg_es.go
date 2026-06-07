@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Htg.RegisterName(xlanguage.Spanish, "Gourde")
+	HTG.RegisterName(xlanguage.Spanish, "Gourde")
 }

@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Kmf.RegisterName(xlanguage.French, "Franc comorien")
+	KMF.RegisterName(xlanguage.French, "Franc comorien")
 }

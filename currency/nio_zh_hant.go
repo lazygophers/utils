@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Nio.RegisterName(xlanguage.MustParse("zh-Hant"), "尼加拉瓜科多巴")
+	NIO.RegisterName(xlanguage.MustParse("zh-Hant"), "尼加拉瓜科多巴")
 }

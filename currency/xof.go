@@ -2,8 +2,8 @@
 
 package currency
 
-// Xof — ISO 4217 XOF.
-var Xof = New("XOF", "CFA", 952).
+// XOF — ISO 4217 XOF.
+var XOF = New("XOF", "CFA", 952).
 	WithDecimals(0).
 	WithBanknotes(500, 1000, 2000, 5000, 10000).
 	WithCoins(1, 2, 5, 10, 25, 50, 100, 200, 250, 500)

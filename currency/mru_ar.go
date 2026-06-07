@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Mru.RegisterName(xlanguage.Arabic, "أوقية موريتانية")
+	MRU.RegisterName(xlanguage.Arabic, "أوقية موريتانية")
 }

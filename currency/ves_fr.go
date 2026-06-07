@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Ves.RegisterName(xlanguage.French, "Bolívar souverain")
+	VES.RegisterName(xlanguage.French, "Bolívar souverain")
 }

@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Afn.RegisterName(xlanguage.Spanish, "Afgani")
+	AFN.RegisterName(xlanguage.Spanish, "Afgani")
 }

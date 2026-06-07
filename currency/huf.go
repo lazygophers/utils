@@ -2,8 +2,8 @@
 
 package currency
 
-// Huf — ISO 4217 HUF.
-var Huf = New("HUF", "Ft", 348).
+// HUF — ISO 4217 HUF.
+var HUF = New("HUF", "Ft", 348).
 	WithDecimals(0).
 	WithBanknotes(500, 1000, 2000, 5000, 10000, 20000).
 	WithCoins(5, 10, 20, 50, 100, 200)

@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Cdf.RegisterName(xlanguage.Korean, "콩고 프랑")
+	CDF.RegisterName(xlanguage.Korean, "콩고 프랑")
 }

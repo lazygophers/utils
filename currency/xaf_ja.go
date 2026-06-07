@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Xaf.RegisterName(xlanguage.Japanese, "中央アフリカCFAフラン")
+	XAF.RegisterName(xlanguage.Japanese, "中央アフリカCFAフラン")
 }

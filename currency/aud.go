@@ -2,8 +2,8 @@
 
 package currency
 
-// Aud — ISO 4217 AUD.
-var Aud = New("AUD", "A$", 36).
+// AUD — ISO 4217 AUD.
+var AUD = New("AUD", "A$", 36).
 	WithDecimals(2).
 	WithBanknotes(5, 10, 20, 50, 100).
 	WithCoins(0.05, 0.1, 0.2, 0.5, 1, 2).

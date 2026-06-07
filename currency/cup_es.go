@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Cup.RegisterName(xlanguage.Spanish, "Peso cubano")
+	CUP.RegisterName(xlanguage.Spanish, "Peso cubano")
 }

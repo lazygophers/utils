@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Zmw.RegisterName(xlanguage.Russian, "Замбийская квача")
+	ZMW.RegisterName(xlanguage.Russian, "Замбийская квача")
 }

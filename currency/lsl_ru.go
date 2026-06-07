@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Lsl.RegisterName(xlanguage.Russian, "Лоти")
+	LSL.RegisterName(xlanguage.Russian, "Лоти")
 }

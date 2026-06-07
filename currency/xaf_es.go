@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Xaf.RegisterName(xlanguage.Spanish, "Franco CFA de África Central")
+	XAF.RegisterName(xlanguage.Spanish, "Franco CFA de África Central")
 }

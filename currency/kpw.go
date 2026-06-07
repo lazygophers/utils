@@ -2,8 +2,8 @@
 
 package currency
 
-// Kpw — ISO 4217 KPW.
-var Kpw = New("KPW", "₩", 408).
+// KPW — ISO 4217 KPW.
+var KPW = New("KPW", "₩", 408).
 	WithDecimals(2).
 	WithBanknotes(5, 10, 50, 100, 200, 500, 1000, 2000, 5000).
 	WithCoins(1, 5, 10, 50)

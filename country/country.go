@@ -34,18 +34,17 @@ import (
 // [Country.RegisterName], [Country.RegisterOfficialName], and
 // [Country.RegisterCapital]; readers take an RLock at runtime.
 type Country struct {
-	alpha2       string
-	alpha3       string
-	numeric      int
-	callingCodes []string
-	timezones    []string
-	tlds         []string
-	languages    []xlanguage.Tag
-	currency     *currency.Currency
-	continent    string
-	region       string
-	subregion    string
-	flagEmoji    string
+	alpha2            string
+	alpha3            string
+	numeric           int
+	callingCodes      []string
+	timezones         []string
+	tlds              []string
+	officialLanguage xlanguage.Tag
+	spokenLanguages  []xlanguage.Tag
+	currency          *currency.Currency
+	region            *Region
+	flagEmoji         string
 
 	namesMu  sync.RWMutex
 	names    map[xlanguage.Tag]string
@@ -83,25 +82,54 @@ func (c *Country) Tlds() []string {
 	return out
 }
 
-// Languages returns a copy of the official language tags.
-func (c *Country) Languages() []xlanguage.Tag {
-	out := make([]xlanguage.Tag, len(c.languages))
-	copy(out, c.languages)
+// OfficialLanguage returns the country's primary official language — the
+// language used by the government for official documentation. Multi-official
+// countries pick the dominant working language (e.g. Canada → English,
+// Switzerland → German, India → Hindi).
+func (c *Country) OfficialLanguage() xlanguage.Tag { return c.officialLanguage }
+
+// SpokenLanguages returns a copy of all widely-spoken language tags
+// (official + minority + lingua-franca).
+func (c *Country) SpokenLanguages() []xlanguage.Tag {
+	out := make([]xlanguage.Tag, len(c.spokenLanguages))
+	copy(out, c.spokenLanguages)
 	return out
+}
+
+// LocalName returns the country's common name rendered in its official
+// language (the endonym). Falls back to English when no official language is
+// set or the translation is missing.
+func (c *Country) LocalName() string {
+	return c.NameIn(c.officialLanguage)
+}
+
+// LocalOfficialName returns the country's official name rendered in its
+// official language.
+func (c *Country) LocalOfficialName() string {
+	return c.OfficialNameIn(c.officialLanguage)
+}
+
+// LocalCapital returns the capital city rendered in the country's official
+// language.
+func (c *Country) LocalCapital() string {
+	return c.CapitalIn(c.officialLanguage)
 }
 
 // Currency returns the main ISO 4217 currency for this country.
 func (c *Country) Currency() *currency.Currency { return c.currency }
 
+// Region returns the UN M.49 region pointer (continent + region + sub-region
+// + multi-language label). Use [Region.Continent], [Region.RegionName],
+// [Region.Subregion], or [Region.NameIn] to read individual components.
+func (c *Country) Region() *Region { return c.region }
+
 // Continent returns the two-letter continent code ("AS", "EU", "AF", "NA",
-// "SA", "OC", "AN").
-func (c *Country) Continent() string { return c.continent }
+// "SA", "OC", "AN"); convenience for c.Region().Continent().
+func (c *Country) Continent() string { return c.region.Continent() }
 
-// Region returns the UN M.49 region (e.g. "Asia").
-func (c *Country) Region() string { return c.region }
-
-// Subregion returns the UN M.49 sub-region (e.g. "Eastern Asia").
-func (c *Country) Subregion() string { return c.subregion }
+// Subregion returns the English UN M.49 sub-region label; convenience for
+// c.Region().Subregion().
+func (c *Country) Subregion() string { return c.region.Subregion() }
 
 // FlagEmoji returns the Unicode flag emoji (regional indicator pair).
 func (c *Country) FlagEmoji() string { return c.flagEmoji }

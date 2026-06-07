@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Bam.RegisterName(xlanguage.Spanish, "Marco convertible")
+	BAM.RegisterName(xlanguage.Spanish, "Marco convertible")
 }

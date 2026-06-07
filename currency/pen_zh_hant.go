@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Pen.RegisterName(xlanguage.MustParse("zh-Hant"), "秘魯太陽幣")
+	PEN.RegisterName(xlanguage.MustParse("zh-Hant"), "秘魯太陽幣")
 }

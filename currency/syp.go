@@ -2,8 +2,8 @@
 
 package currency
 
-// Syp — ISO 4217 SYP.
-var Syp = New("SYP", "£S", 760).
+// SYP — ISO 4217 SYP.
+var SYP = New("SYP", "£S", 760).
 	WithDecimals(2).
 	WithBanknotes(50, 100, 200, 500, 1000, 2000, 5000).
 	WithCoins(1, 2, 5, 10, 25)

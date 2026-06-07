@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Kes.RegisterName(xlanguage.MustParse("zh-Hant"), "肯亞先令")
+	KES.RegisterName(xlanguage.MustParse("zh-Hant"), "肯亞先令")
 }

@@ -2,8 +2,8 @@
 
 package currency
 
-// Npr — ISO 4217 NPR.
-var Npr = New("NPR", "रू", 524).
+// NPR — ISO 4217 NPR.
+var NPR = New("NPR", "रू", 524).
 	WithDecimals(2).
 	WithBanknotes(5, 10, 20, 25, 50, 100, 500, 1000).
 	WithCoins(1, 2)

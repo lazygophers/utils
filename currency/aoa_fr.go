@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Aoa.RegisterName(xlanguage.French, "Kwanza")
+	AOA.RegisterName(xlanguage.French, "Kwanza")
 }

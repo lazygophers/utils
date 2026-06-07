@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Isk.RegisterName(xlanguage.Russian, "Исландская крона")
+	ISK.RegisterName(xlanguage.Russian, "Исландская крона")
 }

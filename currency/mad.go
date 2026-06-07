@@ -2,8 +2,8 @@
 
 package currency
 
-// Mad — ISO 4217 MAD.
-var Mad = New("MAD", "د.م.", 504).
+// MAD — ISO 4217 MAD.
+var MAD = New("MAD", "د.م.", 504).
 	WithDecimals(2).
 	WithBanknotes(20, 50, 100, 200).
 	WithCoins(0.1, 0.2, 0.5, 1, 2, 5, 10)

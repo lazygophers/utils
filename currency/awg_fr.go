@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Awg.RegisterName(xlanguage.French, "Florin arubais")
+	AWG.RegisterName(xlanguage.French, "Florin arubais")
 }

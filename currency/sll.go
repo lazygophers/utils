@@ -2,8 +2,8 @@
 
 package currency
 
-// Sll — ISO 4217 SLL.
-var Sll = New("SLL", "Le", 694).
+// SLL — ISO 4217 SLL.
+var SLL = New("SLL", "Le", 694).
 	WithDecimals(2).
 	WithBanknotes(1000, 2000, 5000, 10000).
 	WithCoins(10, 50, 100, 500)

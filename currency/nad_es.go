@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Nad.RegisterName(xlanguage.Spanish, "Dólar namibio")
+	NAD.RegisterName(xlanguage.Spanish, "Dólar namibio")
 }

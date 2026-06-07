@@ -1,6 +1,6 @@
 // Package currency provides ISO 4217 currency definitions with multi-language
 // names. Each currency is exposed both as a strongly-typed package-level
-// constant (e.g. [Cny], [Usd]) and via lookup by alphabetic/numeric code
+// constant (e.g. [CNY], [USD]) and via lookup by alphabetic/numeric code
 // ([Get], [GetByNumeric]).
 //
 // All public APIs that accept a language tag use the standard library type

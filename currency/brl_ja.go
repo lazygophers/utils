@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Brl.RegisterName(xlanguage.Japanese, "ブラジル・レアル")
+	BRL.RegisterName(xlanguage.Japanese, "ブラジル・レアル")
 }

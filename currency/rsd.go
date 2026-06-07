@@ -2,8 +2,8 @@
 
 package currency
 
-// Rsd — ISO 4217 RSD.
-var Rsd = New("RSD", "din", 941).
+// RSD — ISO 4217 RSD.
+var RSD = New("RSD", "din", 941).
 	WithDecimals(2).
 	WithBanknotes(10, 20, 50, 100, 200, 500, 1000, 2000, 5000).
 	WithCoins(1, 2, 5, 10, 20)

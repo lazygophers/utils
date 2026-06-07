@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Gtq.RegisterName(xlanguage.French, "Quetzal")
+	GTQ.RegisterName(xlanguage.French, "Quetzal")
 }

@@ -2,8 +2,8 @@
 
 package currency
 
-// Gmd — ISO 4217 GMD.
-var Gmd = New("GMD", "D", 270).
+// GMD — ISO 4217 GMD.
+var GMD = New("GMD", "D", 270).
 	WithDecimals(2).
 	WithBanknotes(5, 10, 20, 50, 100, 200).
 	WithCoins(1)

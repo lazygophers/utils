@@ -118,8 +118,8 @@ func TestFieldAccessors(t *testing.T) {
 	if cn.Continent() != "AS" {
 		t.Errorf("Continent: %q", cn.Continent())
 	}
-	if cn.Region() != "Asia" {
-		t.Errorf("Region: %q", cn.Region())
+	if cn.Region().RegionName() != "Asia" {
+		t.Errorf("Region: %q", cn.Region().RegionName())
 	}
 	if cn.Subregion() != "Eastern Asia" {
 		t.Errorf("Subregion: %q", cn.Subregion())
@@ -127,7 +127,7 @@ func TestFieldAccessors(t *testing.T) {
 	if cn.FlagEmoji() != "\U0001F1E8\U0001F1F3" {
 		t.Errorf("FlagEmoji: %q", cn.FlagEmoji())
 	}
-	if cn.Currency() != currency.Cny {
+	if cn.Currency() != currency.CNY {
 		t.Errorf("Currency: %v", cn.Currency())
 	}
 	if cn.String() != cn.Alpha2() {
@@ -142,8 +142,11 @@ func TestFieldAccessors(t *testing.T) {
 	if len(cn.Tlds()) == 0 {
 		t.Errorf("Tlds empty")
 	}
-	if len(cn.Languages()) == 0 {
-		t.Errorf("Languages empty")
+	if cn.OfficialLanguage() == (xlanguage.Tag{}) {
+		t.Errorf("OfficialLanguage empty")
+	}
+	if len(cn.SpokenLanguages()) == 0 {
+		t.Errorf("SpokenLanguages empty")
 	}
 }
 
@@ -174,12 +177,12 @@ func TestSliceFieldsReturnCopies(t *testing.T) {
 		t.Errorf("Tlds leak")
 	}
 
-	langs := cn.Languages()
+	langs := cn.SpokenLanguages()
 	if len(langs) > 0 {
 		langs[0] = xlanguage.Make("xx")
 	}
-	if country.China.Languages()[0] == xlanguage.Make("xx") {
-		t.Errorf("Languages leak")
+	if country.China.SpokenLanguages()[0] == xlanguage.Make("xx") {
+		t.Errorf("SpokenLanguages leak")
 	}
 }
 

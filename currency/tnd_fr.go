@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Tnd.RegisterName(xlanguage.French, "Dinar tunisien")
+	TND.RegisterName(xlanguage.French, "Dinar tunisien")
 }

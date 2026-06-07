@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Ghs.RegisterName(xlanguage.French, "Cedi ghanéen")
+	GHS.RegisterName(xlanguage.French, "Cedi ghanéen")
 }

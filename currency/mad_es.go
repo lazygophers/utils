@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Mad.RegisterName(xlanguage.Spanish, "Dírham marroquí")
+	MAD.RegisterName(xlanguage.Spanish, "Dírham marroquí")
 }

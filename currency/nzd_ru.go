@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Nzd.RegisterName(xlanguage.Russian, "Новозеландский доллар")
+	NZD.RegisterName(xlanguage.Russian, "Новозеландский доллар")
 }

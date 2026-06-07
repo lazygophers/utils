@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Npr.RegisterName(xlanguage.MustParse("zh-Hant"), "尼泊爾盧比")
+	NPR.RegisterName(xlanguage.MustParse("zh-Hant"), "尼泊爾盧比")
 }

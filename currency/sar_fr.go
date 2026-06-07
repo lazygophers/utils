@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Sar.RegisterName(xlanguage.French, "Riyal saoudien")
+	SAR.RegisterName(xlanguage.French, "Riyal saoudien")
 }

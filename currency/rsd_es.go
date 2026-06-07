@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Rsd.RegisterName(xlanguage.Spanish, "Dinar serbio")
+	RSD.RegisterName(xlanguage.Spanish, "Dinar serbio")
 }

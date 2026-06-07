@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Syp.RegisterName(xlanguage.Russian, "Сирийский фунт")
+	SYP.RegisterName(xlanguage.Russian, "Сирийский фунт")
 }

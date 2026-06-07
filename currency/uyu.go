@@ -2,8 +2,8 @@
 
 package currency
 
-// Uyu — ISO 4217 UYU.
-var Uyu = New("UYU", "$U", 858).
+// UYU — ISO 4217 UYU.
+var UYU = New("UYU", "$U", 858).
 	WithDecimals(2).
 	WithBanknotes(20, 50, 100, 200, 500, 1000, 2000).
 	WithCoins(1, 2, 5, 10, 50)

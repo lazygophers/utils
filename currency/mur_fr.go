@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Mur.RegisterName(xlanguage.French, "Roupie mauricienne")
+	MUR.RegisterName(xlanguage.French, "Roupie mauricienne")
 }

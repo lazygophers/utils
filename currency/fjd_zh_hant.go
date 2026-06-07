@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Fjd.RegisterName(xlanguage.MustParse("zh-Hant"), "斐濟元")
+	FJD.RegisterName(xlanguage.MustParse("zh-Hant"), "斐濟元")
 }

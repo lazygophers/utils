@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Xpf.RegisterName(xlanguage.French, "Franc CFP")
+	XPF.RegisterName(xlanguage.French, "Franc CFP")
 }

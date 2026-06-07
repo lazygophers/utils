@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Cve.RegisterName(xlanguage.Japanese, "カーボベルデ・エスクード")
+	CVE.RegisterName(xlanguage.Japanese, "カーボベルデ・エスクード")
 }

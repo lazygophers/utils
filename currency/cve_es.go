@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Cve.RegisterName(xlanguage.Spanish, "Escudo caboverdiano")
+	CVE.RegisterName(xlanguage.Spanish, "Escudo caboverdiano")
 }

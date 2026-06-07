@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Try.RegisterName(xlanguage.Spanish, "Lira turca")
+	TRY.RegisterName(xlanguage.Spanish, "Lira turca")
 }

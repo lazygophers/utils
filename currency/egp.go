@@ -2,8 +2,8 @@
 
 package currency
 
-// Egp — ISO 4217 EGP.
-var Egp = New("EGP", "£", 818).
+// EGP — ISO 4217 EGP.
+var EGP = New("EGP", "£", 818).
 	WithDecimals(2).
 	WithBanknotes(5, 10, 20, 50, 100, 200).
 	WithCoins(0.25, 0.5, 1)

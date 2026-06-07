@@ -5,5 +5,5 @@ package currency
 import xlanguage "golang.org/x/text/language"
 
 func init() {
-	Awg.RegisterName(xlanguage.Russian, "Арубанский флорин")
+	AWG.RegisterName(xlanguage.Russian, "Арубанский флорин")
 }

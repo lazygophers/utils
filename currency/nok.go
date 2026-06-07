@@ -2,8 +2,8 @@
 
 package currency
 
-// Nok — ISO 4217 NOK.
-var Nok = New("NOK", "kr", 578).
+// NOK — ISO 4217 NOK.
+var NOK = New("NOK", "kr", 578).
 	WithDecimals(2).
 	WithBanknotes(50, 100, 200, 500, 1000).
 	WithCoins(1, 5, 10, 20)

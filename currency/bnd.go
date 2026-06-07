@@ -2,8 +2,8 @@
 
 package currency
 
-// Bnd — ISO 4217 BND.
-var Bnd = New("BND", "$", 96).
+// BND — ISO 4217 BND.
+var BND = New("BND", "$", 96).
 	WithDecimals(2).
 	WithBanknotes(1, 5, 10, 20, 50, 100, 500, 1000, 10000).
 	WithCoins(0.01, 0.05, 0.1, 0.2, 0.5, 1)
