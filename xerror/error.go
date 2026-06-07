@@ -1,17 +1,16 @@
 package xerror
 
 import (
-	"fmt"
-	"io"
+	"errors"
+
+	"github.com/lazygophers/utils/language"
 )
 
-// Error 是 xerror 的核心错误类型，组合错误码、消息、元数据、cause 链与堆栈。
+// Error 是 xerror 的核心错误类型，组合错误码、消息与 cause 链。
 type Error struct {
-	code  int64
+	code  int
 	msg   string
-	meta  map[string]string
 	cause error
-	stack *stack
 }
 
 // Error 返回错误消息；无消息时回退 cause 的消息。
@@ -25,58 +24,79 @@ func (e *Error) Error() string {
 	return ""
 }
 
+// Msg 返回构造时的原始消息字段（不回退 cause），用于调试或日志区分。
+func (e *Error) Msg() string {
+	return e.msg
+}
+
 // Unwrap 返回包装的下层 error，供标准库 errors.Is/As 遍历。
 func (e *Error) Unwrap() error {
 	return e.cause
 }
 
-// Is 在 code 非 0 时按 code 比较是否同类错误。
-func (e *Error) Is(target error) bool {
-	if e.code == 0 {
-		return false
-	}
-	t, ok := target.(*Error)
-	return ok && t.code == e.code
-}
-
-// Code 返回业务错误码，0 表示无码。
-func (e *Error) Code() int64 {
+// Code 返回业务错误码。CodeSuccess(0) 表示成功；CodeSystem(-1) 表示未指定。
+func (e *Error) Code() int {
 	return e.code
 }
 
-// WithMetadata 附加一对元数据并返回自身，meta 懒分配。
-func (e *Error) WithMetadata(key, val string) *Error {
-	if e.meta == nil {
-		e.meta = make(map[string]string, 1)
-	}
-	e.meta[key] = val
+// Wrap 流式设置 cause 并返回自身；多次调用覆盖前次 cause。
+//
+//	e := xerror.New(1001, "biz fail").Wrap(rootErr)
+func (e *Error) Wrap(cause error) *Error {
+	e.cause = cause
 	return e
 }
 
-// Format 实现 fmt.Formatter：%v/%s 仅消息，%+v 附加 cause 链与堆栈。
-func (e *Error) Format(f fmt.State, verb rune) {
-	switch verb {
-	case 'v':
-		if f.Flag('+') {
-			_, _ = io.WriteString(f, e.Error())
-			for cause := e.cause; cause != nil; {
-				_, _ = io.WriteString(f, "\n")
-				_, _ = io.WriteString(f, cause.Error())
-				c, ok := cause.(*Error)
-				if !ok {
-					break
-				}
-				cause = c.cause
-			}
-			if e.stack != nil {
-				e.stack.format(f)
-			}
-			return
+// New 创建带错误码的 *Error，按当前 goroutine 语言走 Localizer 翻译。
+// args 注入翻译模板（命名 "k", v 或位置 {0}）。未注入 Localizer 或未命中翻译时 msg 为空字符串。
+// 解析在构造时完成，*Error 绑定到构造时的 goroutine 语言。
+func New(code int, args ...any) *Error {
+	return &Error{code: code, msg: resolveMsg(code, "", args)}
+}
+
+// NewWithMsg 创建带 fallback 消息的 *Error。
+// 若 Localizer 命中翻译用翻译结果（args 注入模板）；未命中则用 msg。
+func NewWithMsg(code int, msg string, args ...any) *Error {
+	return &Error{code: code, msg: resolveMsg(code, msg, args)}
+}
+
+// NewWithLanguage 创建带错误码的 *Error，按指定语言走 Localizer 翻译；不读 goroutine-local 语言。
+// args 注入翻译模板。未命中时 msg 为空。
+func NewWithLanguage(tag *language.Tag, code int, args ...any) *Error {
+	return &Error{code: code, msg: resolveMsgWithLang(tag, code, "", args)}
+}
+
+// Wrap 用 msg 包装 err；err 为 nil 时透传 nil（避免 stdlib (*nil, false) 陷阱）。
+// 默认 code = CodeSystem；msg + args 与 New 同语义（翻译命中则用翻译模板）。
+// 返回类型显式为 error，避免 *Error nil 接口非 nil 的坑；
+// 包装后 errors.Is/As/Unwrap 全链可穿透到原 err。
+func Wrap(err error, msg string, args ...any) error {
+	if err == nil {
+		return nil
+	}
+	return &Error{code: CodeSystem, msg: resolveMsg(CodeSystem, msg, args), cause: err}
+}
+
+// Wraps 把多个 error 合并作为 cause 包装；全 nil 返 nil。
+// cause 通过 Join 合并（语义对齐 stdlib errors.Join），
+// errors.Is/As 沿 *Error.Unwrap → multiError.Unwrap() []error 可遍历任一子 error。
+func Wraps(errs ...error) error {
+	cause := Join(errs...)
+	if cause == nil {
+		return nil
+	}
+	return &Error{code: CodeSystem, cause: cause}
+}
+
+// Cause 沿 cause 链解到最底层根错误。
+// 兼容任何实现 Unwrap() error 的类型（含 *Error / fmt.Errorf("%w") 等），
+// 遇到 Unwrap() []error 的聚合错误时停在该层（多 cause 无单一根）。
+func Cause(err error) error {
+	for {
+		next := errors.Unwrap(err)
+		if next == nil {
+			return err
 		}
-		fallthrough
-	case 's':
-		_, _ = io.WriteString(f, e.Error())
-	case 'q':
-		fmt.Fprintf(f, "%q", e.Error())
+		err = next
 	}
 }

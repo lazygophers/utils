@@ -1,13 +1,13 @@
 package xerror
 
 import (
-	"errors"
 	"fmt"
+	"errors"
 	"testing"
 )
 
 func TestErrorMessage(t *testing.T) {
-	e := New(0, "hello")
+	e := NewWithMsg(0, "hello")
 	if e.Error() != "hello" {
 		t.Fatalf("Error() = %q", e.Error())
 	}
@@ -34,59 +34,96 @@ func TestErrorUnwrap(t *testing.T) {
 	}
 }
 
-func TestErrorIs(t *testing.T) {
-	a := New(100, "a")
-	b := New(100, "b different msg")
-	c := New(200, "c")
-
-	if !errors.Is(a, b) {
-		t.Fatal("same code should be Is-equal")
-	}
-	if errors.Is(a, c) {
-		t.Fatal("different code should not match")
-	}
-
-	zero := New(0, "no code")
-	if errors.Is(zero, New(0, "other")) {
-		t.Fatal("code 0 should never Is-match")
-	}
-	if a.Is(errors.New("plain")) {
-		t.Fatal("non-*Error target should not match")
-	}
-}
-
 func TestErrorCode(t *testing.T) {
-	if New(42, "x").Code() != 42 {
+	if NewWithMsg(42, "x").Code() != 42 {
 		t.Fatal("Code mismatch")
 	}
-	if New(0, "x").Code() != 0 {
+	if NewWithMsg(0, "x").Code() != 0 {
 		t.Fatal("zero code mismatch")
 	}
 }
 
-func TestErrorWithMetadata(t *testing.T) {
-	e := New(1, "m")
-	if e.meta != nil {
-		t.Fatal("meta should be nil before WithMetadata")
+func TestErrorMsg(t *testing.T) {
+	if NewWithMsg(1, "hello").Msg() != "hello" {
+		t.Fatal("Msg should return raw msg")
 	}
-	ret := e.WithMetadata("k1", "v1").WithMetadata("k2", "v2")
-	if ret != e {
-		t.Fatal("WithMetadata should return self")
-	}
-	if e.meta["k1"] != "v1" || e.meta["k2"] != "v2" {
-		t.Fatalf("meta = %v", e.meta)
+	bare := &Error{cause: errors.New("c")}
+	if bare.Msg() != "" {
+		t.Fatal("Msg should not fall back to cause")
 	}
 }
 
-func TestErrorFormat(t *testing.T) {
-	e := New(1, "msg")
-	if got := fmt.Sprintf("%v", e); got != "msg" {
-		t.Fatalf("%%v = %q", got)
+func TestErrorWrapMethod(t *testing.T) {
+	e := NewWithMsg(1, "a")
+	root := errors.New("root")
+	ret := e.Wrap(root)
+	if ret != e {
+		t.Fatal("Wrap should return self")
 	}
-	if got := fmt.Sprintf("%s", e); got != "msg" {
-		t.Fatalf("%%s = %q", got)
+	if e.Unwrap() != root {
+		t.Fatal("Wrap should set cause")
 	}
-	if got := fmt.Sprintf("%q", e); got != `"msg"` {
-		t.Fatalf("%%q = %q", got)
+	// 覆盖前次 cause
+	root2 := errors.New("root2")
+	e.Wrap(root2)
+	if e.Unwrap() != root2 {
+		t.Fatal("Wrap should overwrite cause")
+	}
+}
+
+func TestWrapsMultiple(t *testing.T) {
+	a := errors.New("a")
+	b := errors.New("b")
+	err := Wraps(a, nil, b)
+	if err == nil {
+		t.Fatal("expected non-nil")
+	}
+	if !errors.Is(err, a) || !errors.Is(err, b) {
+		t.Fatal("Wraps should chain both")
+	}
+	if Wraps(nil, nil) != nil {
+		t.Fatal("Wraps(nil...) should return nil")
+	}
+}
+
+
+func TestCauseStdlibCompat(t *testing.T) {
+	// 兼容 stdlib %w 包装
+	root := errors.New("root")
+	wrapped := fmt.Errorf("layer: %w", root)
+	xWrap := Wrap(wrapped, "outer")
+	if Cause(xWrap) != root {
+		t.Fatalf("Cause should unwind through fmt.Errorf %%w, got %v", Cause(xWrap))
+	}
+}
+
+func TestWrapStdlibIsAs(t *testing.T) {
+	root := errors.New("root")
+	wrapped := Wrap(root, "outer")
+	if !errors.Is(wrapped, root) {
+		t.Fatal("errors.Is should穿透 Wrap")
+	}
+	var target *Error
+	if !errors.As(wrapped, &target) {
+		t.Fatal("errors.As should hit *Error")
+	}
+}
+
+func TestWrapsStdlibIs(t *testing.T) {
+	a := errors.New("a")
+	b := errors.New("b")
+	wrapped := Wraps(a, b)
+	if !errors.Is(wrapped, a) || !errors.Is(wrapped, b) {
+		t.Fatal("errors.Is should穿透 Wraps 任一子 error")
+	}
+}
+
+func TestWrapNilReturnsNilInterface(t *testing.T) {
+	// 防止 *Error nil 接口非 nil 的经典坑
+	if Wrap(nil, "x") != nil {
+		t.Fatal("Wrap(nil) must return untyped nil")
+	}
+	if Wraps(nil, nil, nil) != nil {
+		t.Fatal("Wraps all nil must return untyped nil")
 	}
 }
