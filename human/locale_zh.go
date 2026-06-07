@@ -33,6 +33,19 @@ func init() {
 			Years:   "年",
 		},
 
+		TimeFormats: TimeFormats{
+			Date:       "2006年1月2日",
+			Time:       "15:04:05",
+			DateTime:   "2006年1月2日 15:04:05",
+			Year:       "2006年",
+			YearMonth:  "2006年1月",
+			MonthDay:   "1月2日",
+			Short:      "06/1/2",
+			Long:       "2006年1月2日 Monday",
+			Weekday:    "Monday",
+			WeekdayMin: "Mon",
+		},
+
 		RelativeTime: RelativeTimeStrings{
 			JustNow:    "刚刚",
 			SecondsAgo: "%d秒前",
@@ -92,6 +105,19 @@ func init() {
 			Weeks:   "周",
 			Months:  "个月",
 			Years:   "年",
+		},
+
+		TimeFormats: TimeFormats{
+			Date:       "2006年1月2日",
+			Time:       "15:04:05",
+			DateTime:   "2006年1月2日 15:04:05",
+			Year:       "2006年",
+			YearMonth:  "2006年1月",
+			MonthDay:   "1月2日",
+			Short:      "06/1/2",
+			Long:       "2006年1月2日 Monday",
+			Weekday:    "Monday",
+			WeekdayMin: "Mon",
 		},
 
 		RelativeTime: RelativeTimeStrings{

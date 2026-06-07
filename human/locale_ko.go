@@ -35,6 +35,19 @@ func init() {
 			Years:   "년",
 		},
 
+				TimeFormats: TimeFormats{
+			Date:       "2006년 1월 2일",
+			Time:       "15:04:05",
+			DateTime:   "2006년 1월 2일 15:04:05",
+			Year:       "2006년",
+			YearMonth:  "2006년 1월",
+			MonthDay:   "1월 2일",
+			Short:      "06/1/2",
+			Long:       "2006년 1월 2일 Monday",
+			Weekday:    "Monday",
+			WeekdayMin: "Mon",
+		},
+
 		RelativeTime: RelativeTimeStrings{
 			JustNow:    "방금",
 			SecondsAgo: "%d초 전",

@@ -32,6 +32,19 @@ func init() {
 			Years:   "years",
 		},
 
+		TimeFormats: TimeFormats{
+			Date:       "2006-01-02",
+			Time:       "15:04:05",
+			DateTime:   "2006-01-02 15:04:05",
+			Year:       "2006",
+			YearMonth:  "2006-01",
+			MonthDay:   "01-02",
+			Short:      "1/2/06",
+			Long:       "Monday, January 2, 2006",
+			Weekday:    "Monday",
+			WeekdayMin: "Mon",
+		},
+
 		RelativeTime: RelativeTimeStrings{
 			JustNow:    "just now",
 			SecondsAgo: "%d seconds ago",

@@ -16,6 +16,7 @@ type Locale struct {
 	BitSpeedUnits []string // 比特速度单位
 
 	TimeUnits    TimeUnits           // 时间单位
+	TimeFormats  TimeFormats         // 日期 / 时间 / 日期时间 layout（多语言）
 	RelativeTime RelativeTimeStrings // 相对时间表达
 	NumberFormat NumberFormat        // 数字格式
 	Common       CommonStrings       // 常用词汇
