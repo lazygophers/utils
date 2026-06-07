@@ -5,6 +5,12 @@ import (
 	"sync"
 )
 
+// 编译期接口契约校验：*multiError 满足 error + MultiUnwrapper（errors.Is/As 多 cause 遍历）。
+var (
+	_ error          = (*multiError)(nil)
+	_ MultiUnwrapper = (*multiError)(nil)
+)
+
 // multiError 聚合多个 error，实现标准库多错误语义。
 type multiError struct {
 	errs []error
@@ -87,10 +93,17 @@ func (c *Collector) Add(err error) {
 }
 
 // ErrorOrNil 返回聚合错误，无错时返 nil。
+// 锁内只做切片快照，Join 在锁外执行减少持有时间。
 func (c *Collector) ErrorOrNil() error {
 	c.mu.Lock()
-	defer c.mu.Unlock()
-	return Join(c.errs...)
+	if len(c.errs) == 0 {
+		c.mu.Unlock()
+		return nil
+	}
+	snap := make([]error, len(c.errs))
+	copy(snap, c.errs)
+	c.mu.Unlock()
+	return Join(snap...)
 }
 
 // Len 返回已收集的错误数量。

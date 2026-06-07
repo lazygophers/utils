@@ -53,10 +53,10 @@ func TestErrorMsg(t *testing.T) {
 	}
 }
 
-func TestErrorWrapMethod(t *testing.T) {
+func TestErrorWithCauseMethod(t *testing.T) {
 	e := NewWithMsg(1, "a")
 	root := errors.New("root")
-	ret := e.Wrap(root)
+	ret := e.WithCause(root)
 	if ret != e {
 		t.Fatal("Wrap should return self")
 	}
@@ -65,7 +65,7 @@ func TestErrorWrapMethod(t *testing.T) {
 	}
 	// 覆盖前次 cause
 	root2 := errors.New("root2")
-	e.Wrap(root2)
+	e.WithCause(root2)
 	if e.Unwrap() != root2 {
 		t.Fatal("Wrap should overwrite cause")
 	}

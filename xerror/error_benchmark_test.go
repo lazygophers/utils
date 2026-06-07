@@ -15,6 +15,6 @@ func BenchmarkErrorWrap(b *testing.B) {
 	root := NewWithMsg(2, "root")
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		_ = e.Wrap(root)
+		_ = e.WithCause(root)
 	}
 }

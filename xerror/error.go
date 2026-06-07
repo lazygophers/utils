@@ -6,6 +6,23 @@ import (
 	"github.com/lazygophers/utils/language"
 )
 
+// Unwrapper 等价 stdlib errors 包内部匿名的 Unwrap 单错误契约。
+// stdlib 未导出命名版本（errors/wrap.go 全部匿名）；本包导出以便 var _ 编译期校验与外部 mock。
+type Unwrapper interface {
+	Unwrap() error
+}
+
+// MultiUnwrapper 等价 stdlib errors 包内部匿名的 Unwrap 多错误契约（Go 1.20+）。
+type MultiUnwrapper interface {
+	Unwrap() []error
+}
+
+// 编译期接口契约校验：*Error 必须满足 error + Unwrapper。
+var (
+	_ error     = (*Error)(nil)
+	_ Unwrapper = (*Error)(nil)
+)
+
 // Error 是 xerror 的核心错误类型，组合错误码、消息与 cause 链。
 type Error struct {
 	code  int
@@ -39,10 +56,11 @@ func (e *Error) Code() int {
 	return e.code
 }
 
-// Wrap 流式设置 cause 并返回自身；多次调用覆盖前次 cause。
+// WithCause 流式设置 cause 并返回自身；多次调用覆盖前次 cause。
+// 区别于包级 Wrap：方法版仅挂载，不创建新实例；包级 Wrap 创建新 *Error 包装。
 //
-//	e := xerror.New(1001, "biz fail").Wrap(rootErr)
-func (e *Error) Wrap(cause error) *Error {
+//	e := xerror.New(1001, "biz fail").WithCause(rootErr)
+func (e *Error) WithCause(cause error) *Error {
 	e.cause = cause
 	return e
 }

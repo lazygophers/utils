@@ -20,7 +20,6 @@ const (
 // 应用启动期调用 xerror.SetLocalizer(i18n.Default) 接入；
 // 未注入时所有 New/Wrap 直接用传入的 msg 作为最终文本，不做翻译。
 type Localizer interface {
-	Localize(key string, args ...any) string
 	LocalizeWithLang(tag *language.Tag, key string, args ...any) string
 	Register(tag *language.Tag, key, value string)
 	RegisterBatch(tag *language.Tag, data map[string]any)
@@ -65,9 +64,13 @@ func KeyPrefix() string {
 	return *keyPrefixRef.Load()
 }
 
-// errorKey 拼装翻译键 = prefix + code。
+// errorKey 拼装翻译键 = prefix + code。预算 buf 减 1 次 alloc。
 func errorKey(code int) string {
-	return KeyPrefix() + strconv.Itoa(code)
+	prefix := KeyPrefix()
+	buf := make([]byte, 0, len(prefix)+11)
+	buf = append(buf, prefix...)
+	buf = strconv.AppendInt(buf, int64(code), 10)
+	return string(buf)
 }
 
 // Code 提取错误码：nil → CodeSuccess，*Error → 其 code，其他 error → CodeSystem。
@@ -106,7 +109,11 @@ func RegisterMessage(tag *language.Tag, code int, msg string) {
 }
 
 // resolveMsg 按当前 goroutine 语言解析最终消息。
+// 无 Localizer + 无 msg + 无 args 的最热路径短路，避免 language.Get 调用。
 func resolveMsg(code int, msg string, args []any) string {
+	if msg == "" && len(args) == 0 {
+		return ""
+	}
 	return resolveMsgWithLang(language.Get(), code, msg, args)
 }
 
