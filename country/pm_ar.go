@@ -1,4 +1,4 @@
-//go:build lang_ar || lang_all
+//go:build (lang_ar || lang_all) && (country_all || country_americas || country_northern_america || country_pm)
 
 package country
 

@@ -1,3 +1,5 @@
+//go:build country_ai || country_all || country_americas || country_caribbean
+
 package country
 
 import (
@@ -26,3 +28,5 @@ var dataAnguilla = &Country{
 }
 
 func init() { register(dataAnguilla) }
+
+var Anguilla = dataAnguilla

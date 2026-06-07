@@ -1,3 +1,5 @@
+//go:build country_all || country_mh || country_micronesia || country_oceania
+
 package country
 
 import xlanguage "golang.org/x/text/language"

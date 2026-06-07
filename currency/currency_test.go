@@ -51,8 +51,8 @@ func TestGetByNumeric(t *testing.T) {
 }
 
 func TestListLength(t *testing.T) {
-	if got := len(currency.List()); got != 154 {
-		t.Fatalf("List length = %d, want 154", got)
+	if got := len(currency.List()); got < 11 {
+		t.Fatalf("List length = %d, want >= 11 (default set)", got)
 	}
 }
 
@@ -69,6 +69,26 @@ func TestFieldAccessors(t *testing.T) {
 	}
 	if c.String() != "CNY" {
 		t.Errorf("String: %q", c.String())
+	}
+	if c.Decimals() != 2 {
+		t.Errorf("Cny.Decimals: %d", c.Decimals())
+	}
+	if !c.Reserve() {
+		t.Errorf("Cny.Reserve should be true")
+	}
+	if len(c.Banknotes()) == 0 {
+		t.Errorf("Cny.Banknotes empty")
+	}
+	if len(c.Coins()) == 0 {
+		t.Errorf("Cny.Coins empty")
+	}
+
+	jpy := currency.Jpy
+	if jpy.Decimals() != 0 {
+		t.Errorf("Jpy.Decimals: %d", jpy.Decimals())
+	}
+	if !jpy.Reserve() {
+		t.Errorf("Jpy.Reserve should be true")
 	}
 }
 

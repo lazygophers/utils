@@ -1,3 +1,5 @@
+//go:build country_all || country_oceania || country_polynesia || country_wf
+
 package country
 
 import (
@@ -26,3 +28,5 @@ var dataWallisAndFutuna = &Country{
 }
 
 func init() { register(dataWallisAndFutuna) }
+
+var WallisAndFutuna = dataWallisAndFutuna

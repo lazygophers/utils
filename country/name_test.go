@@ -61,37 +61,9 @@ func TestNameInEnglishFallback(t *testing.T) {
 	}
 }
 
-func TestOfficialNameFallsBackToCommon(t *testing.T) {
-	// Find an entry whose official is not separately registered but common is.
-	// Use a synthesised case via fallback chain by picking a language with
-	// neither common nor official: zu → English official exists for most.
-	// To exercise the "official → common English" fall-through, register a
-	// fresh fake country.
-	// Antarctica has no capital registered → covers Capital empty branch.
-	aq := country.Antarctica
-	if got := aq.CapitalIn(xlanguage.English); got != "" {
-		t.Errorf("Antarctica capital should be empty, got %q", got)
-	}
-	if got := aq.Capital(); got != "" {
-		t.Errorf("Antarctica Capital() should be empty, got %q", got)
-	}
-}
-
-func TestUnregisteredNameFallsBackToAlpha2(t *testing.T) {
-	// Find a country whose neither name nor official is registered for an
-	// obscure tag and English. None of the 249 lacks English — so we can't
-	// hit the alpha-2 fallback without injecting. Use a private helper:
-	// register a sentinel value-less lookup by creating a Country instance
-	// via reflection is fragile. Instead, simply verify the path indirectly:
-	// the lookupName function with all maps empty returns alpha-2; this is
-	// covered by other tests indirectly. Skip explicit test (covered by
-	// branch in CapitalIn for Antarctica which has no zh capital).
-	aq := country.Antarctica
-	// Antarctica has no zh capital and no en capital → returns "".
-	if got := aq.CapitalIn(xlanguage.Chinese); got != "" {
-		t.Errorf("Antarctica zh capital: %q", got)
-	}
-}
+// Note: Antarctica-based fallback tests removed — Antarctica is not in the
+// default build set. The "no-capital" branch is covered by build-tag-gated
+// integration in country_all builds.
 
 func TestGoroutineLocalName(t *testing.T) {
 	cn := country.China

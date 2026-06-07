@@ -1,3 +1,5 @@
+//go:build country_all || country_nu || country_oceania || country_polynesia
+
 package country
 
 import (
@@ -26,3 +28,5 @@ var dataNiue = &Country{
 }
 
 func init() { register(dataNiue) }
+
+var Niue = dataNiue

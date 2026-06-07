@@ -33,3 +33,5 @@ var dataUnitedStates = &Country{
 }
 
 func init() { register(dataUnitedStates) }
+
+var UnitedStates = dataUnitedStates

@@ -1,3 +1,5 @@
+//go:build country_all || country_antarctic || country_bv
+
 package country
 
 import (
@@ -26,3 +28,5 @@ var dataBouvetIsland = &Country{
 }
 
 func init() { register(dataBouvetIsland) }
+
+var BouvetIsland = dataBouvetIsland

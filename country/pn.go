@@ -1,3 +1,5 @@
+//go:build country_all || country_oceania || country_pn || country_polynesia
+
 package country
 
 import (
@@ -26,3 +28,5 @@ var dataPitcairn = &Country{
 }
 
 func init() { register(dataPitcairn) }
+
+var Pitcairn = dataPitcairn

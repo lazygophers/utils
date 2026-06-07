@@ -1,3 +1,5 @@
+//go:build country_all || country_americas || country_northern_america || country_pm
+
 package country
 
 import (
@@ -26,3 +28,5 @@ var dataSaintPierreAndMiquelon = &Country{
 }
 
 func init() { register(dataSaintPierreAndMiquelon) }
+
+var SaintPierreAndMiquelon = dataSaintPierreAndMiquelon

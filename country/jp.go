@@ -29,3 +29,5 @@ var dataJapan = &Country{
 }
 
 func init() { register(dataJapan) }
+
+var Japan = dataJapan

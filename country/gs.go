@@ -1,3 +1,5 @@
+//go:build country_all || country_antarctic || country_gs
+
 package country
 
 import (
@@ -26,3 +28,5 @@ var dataSouthGeorgiaAndSouthSandwich = &Country{
 }
 
 func init() { register(dataSouthGeorgiaAndSouthSandwich) }
+
+var SouthGeorgiaAndSouthSandwich = dataSouthGeorgiaAndSouthSandwich

@@ -26,3 +26,5 @@ var dataChina = &Country{
 }
 
 func init() { register(dataChina) }
+
+var China = dataChina

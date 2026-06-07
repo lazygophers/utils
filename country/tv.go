@@ -1,3 +1,5 @@
+//go:build country_all || country_oceania || country_polynesia || country_tv
+
 package country
 
 import (
@@ -26,3 +28,5 @@ var dataTuvalu = &Country{
 }
 
 func init() { register(dataTuvalu) }
+
+var Tuvalu = dataTuvalu

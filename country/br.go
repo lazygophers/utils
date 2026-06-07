@@ -1,3 +1,5 @@
+//go:build country_all || country_americas || country_br || country_south_america
+
 package country
 
 import (
@@ -40,3 +42,5 @@ var dataBrazil = &Country{
 }
 
 func init() { register(dataBrazil) }
+
+var Brazil = dataBrazil

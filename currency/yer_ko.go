@@ -1,4 +1,4 @@
-//go:build lang_ko || lang_all
+//go:build (lang_ko || lang_all) && (country_all || country_asia || country_western_asia || country_ye || currency_all || currency_yer)
 
 package currency
 

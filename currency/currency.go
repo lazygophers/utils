@@ -23,9 +23,13 @@ import (
 // mutated only during package init via [Currency.RegisterName]; readers take
 // an RLock at runtime.
 type Currency struct {
-	code    string
-	symbol  string
-	numeric int
+	code      string
+	symbol    string
+	numeric   int
+	decimals  int
+	banknotes []float64
+	coins     []float64
+	reserve   bool
 
 	namesMu sync.RWMutex
 	names   map[xlanguage.Tag]string
@@ -39,6 +43,57 @@ func (c *Currency) Symbol() string { return c.symbol }
 
 // Numeric returns the ISO 4217 numeric code (e.g. 156).
 func (c *Currency) Numeric() int { return c.numeric }
+
+// Decimals returns the ISO 4217 minor unit exponent — the number of decimal
+// places the currency supports (e.g. 0 for JPY, 2 for CNY/USD/EUR, 3 for
+// BHD/JOD/KWD/OMR/TND).
+func (c *Currency) Decimals() int { return c.decimals }
+
+// Banknotes returns a copy of the banknote denominations actually circulated,
+// in major units (e.g. CNY = [1, 5, 10, 20, 50, 100]).
+func (c *Currency) Banknotes() []float64 {
+	out := make([]float64, len(c.banknotes))
+	copy(out, c.banknotes)
+	return out
+}
+
+// Coins returns a copy of the coin denominations actually circulated, in major
+// units (e.g. CNY = [0.1, 0.5, 1]).
+func (c *Currency) Coins() []float64 {
+	out := make([]float64, len(c.coins))
+	copy(out, c.coins)
+	return out
+}
+
+// WithDecimals sets the minor unit exponent and returns the receiver for
+// chaining. Intended for per-currency data files.
+func (c *Currency) WithDecimals(d int) *Currency {
+	c.decimals = d
+	return c
+}
+
+// WithBanknotes sets the banknote denominations (variadic, major units).
+func (c *Currency) WithBanknotes(values ...float64) *Currency {
+	c.banknotes = append(c.banknotes[:0], values...)
+	return c
+}
+
+// WithCoins sets the coin denominations (variadic, major units).
+func (c *Currency) WithCoins(values ...float64) *Currency {
+	c.coins = append(c.coins[:0], values...)
+	return c
+}
+
+// Reserve reports whether this currency is classified as a global reserve
+// currency by the IMF (held in significant volume by central banks; the IMF
+// COFER report and SDR basket are the de-facto standard).
+func (c *Currency) Reserve() bool { return c.reserve }
+
+// WithReserve marks the currency as a global reserve currency.
+func (c *Currency) WithReserve() *Currency {
+	c.reserve = true
+	return c
+}
 
 // New constructs a Currency and initialises its name map. Intended for use
 // in per-currency data files (e.g. currency/cny.go).
