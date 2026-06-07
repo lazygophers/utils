@@ -53,23 +53,12 @@ func defaultLocaleName() string {
 	return base.String()
 }
 
-// formatWithUnit composes a value and unit string subject to compact mode and
-// precision settings.
-func formatWithUnit(value float64, unitIndex int, unitType string) string {
-	locale, _ := GetLocaleConfig(currentLocaleName())
-
-	var units []string
-	switch unitType {
-	case "byte":
-		units = locale.ByteUnits
-	case "speed":
-		units = locale.SpeedUnits
-	case "bitspeed":
-		units = locale.BitSpeedUnits
-	default:
+// formatValueWithUnit composes a numeric value and the unit at unitIndex
+// inside units, honoring compact mode and the current precision setting.
+func formatValueWithUnit(value float64, units []string, unitIndex int) string {
+	if len(units) == 0 {
 		return "-"
 	}
-
 	if unitIndex >= len(units) {
 		unitIndex = len(units) - 1
 	}

@@ -7,18 +7,18 @@ import "math"
 func ByteSize(bytes int64) string { return formatByteSize(bytes) }
 
 func formatByteSize(bytes int64) string {
+	locale, _ := GetLocaleConfig(currentLocaleName())
+	units := locale.ByteUnits
+
 	if bytes == 0 {
-		return formatWithUnit(0, 0, "byte")
+		return formatByteUnit(0, 0, units)
 	}
 
 	absBytes := abs(bytes)
 	const unit = 1024
 
-	locale, _ := GetLocaleConfig(currentLocaleName())
-	units := locale.ByteUnits
-
 	if absBytes < unit {
-		return formatWithUnit(float64(bytes), 0, "byte")
+		return formatByteUnit(float64(bytes), 0, units)
 	}
 
 	exp := int(math.Floor(math.Log(float64(absBytes)) / math.Log(unit)))
@@ -27,5 +27,10 @@ func formatByteSize(bytes int64) string {
 	}
 
 	value := float64(bytes) / math.Pow(unit, float64(exp))
-	return formatWithUnit(value, exp, "byte")
+	return formatByteUnit(value, exp, units)
+}
+
+// formatByteUnit renders a byte value with the byte unit at unitIndex.
+func formatByteUnit(value float64, unitIndex int, units []string) string {
+	return formatValueWithUnit(value, units, unitIndex)
 }

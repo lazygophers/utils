@@ -7,6 +7,22 @@ import (
 	"github.com/lazygophers/utils/language"
 )
 
+// helperUnits returns the units slice for a unit category, used by tests
+// previously calling the removed formatWithUnit(value, idx, name) form.
+func helperUnits(name string) []string {
+    loc, _ := GetLocaleConfig("en")
+    switch name {
+    case "byte":
+        return loc.ByteUnits
+    case "speed":
+        return loc.SpeedUnits
+    case "bitspeed":
+        return loc.BitSpeedUnits
+    }
+    return nil
+}
+
+
 // resetState 将包级 flag 恢复默认，避免测试间互相污染。
 func resetState() {
 	defaultPrecision = 1
@@ -161,7 +177,7 @@ func TestInvalidInputs(t *testing.T) {
 	resetState()
 	defer resetState()
 
-	result := formatWithUnit(1.0, 0, "invalid")
+	result := formatValueWithUnit(1.0, helperUnits("invalid"), 0)
 	if result != "-" {
 		t.Errorf("Invalid input should return \"-\", got %s", result)
 	}
@@ -356,10 +372,10 @@ func TestCompleteCodeCoverage(t *testing.T) {
 		_ = formatDuration(time.Minute)
 		_ = formatRelativeTime(time.Now())
 
-		_ = formatWithUnit(1.5, 1, "byte")
-		_ = formatWithUnit(1.5, 1, "speed")
-		_ = formatWithUnit(1.5, 1, "bitspeed")
-		_ = formatWithUnit(1.5, 1, "invalid")
+		_ = formatValueWithUnit(1.5, helperUnits("byte"), 1)
+		_ = formatValueWithUnit(1.5, helperUnits("speed"), 1)
+		_ = formatValueWithUnit(1.5, helperUnits("bitspeed"), 1)
+		_ = formatValueWithUnit(1.5, helperUnits("invalid"), 1)
 
 		_ = formatFloat(1.5, 2)
 		_ = formatFloat(1.0, 2)
@@ -401,7 +417,7 @@ func TestCompleteCodeCoverage(t *testing.T) {
 		_ = formatDuration(time.Microsecond)
 		_ = formatDuration(time.Millisecond)
 
-		_ = formatWithUnit(1.0, 999, "byte")
+		_ = formatValueWithUnit(1.0, helperUnits("byte"), 999)
 
 		now := time.Now()
 		past := []time.Duration{
@@ -846,7 +862,7 @@ func TestFormatWithUnitLargeIndex(t *testing.T) {
 	resetState()
 	defer resetState()
 
-	result := formatWithUnit(1.0, 999, "byte")
+	result := formatValueWithUnit(1.0, helperUnits("byte"), 999)
 	if result == "" {
 		t.Error("formatWithUnit with large index should not return empty string")
 	}
@@ -997,12 +1013,12 @@ func TestFormatWithUnitIntegerValue(t *testing.T) {
 	resetState()
 	defer resetState()
 
-	result := formatWithUnit(1.0, 1, "byte")
+	result := formatValueWithUnit(1.0, helperUnits("byte"), 1)
 	if result != "1 KB" {
 		t.Errorf("formatWithUnit(1.0, 1, byte) = %s, want 1 KB", result)
 	}
 
-	result = formatWithUnit(1.5, 1, "byte")
+	result = formatValueWithUnit(1.5, helperUnits("byte"), 1)
 	if result != "1.5 KB" {
 		t.Errorf("formatWithUnit(1.5, 1, byte) = %s, want 1.5 KB", result)
 	}
@@ -1015,9 +1031,9 @@ func TestAllUnitTypes(t *testing.T) {
 
 	unitTypes := []string{"byte", "speed", "bitspeed"}
 	for _, unitType := range unitTypes {
-		result := formatWithUnit(1.5, 1, unitType)
+		result := formatValueWithUnit(1.5, helperUnits(unitType), 1)
 		if result == "" {
-			t.Errorf("formatWithUnit with unitType %s should not return empty string", unitType)
+			t.Errorf("formatValueWithUnit with unitType %s should not return empty string", unitType)
 		}
 	}
 }
