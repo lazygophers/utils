@@ -1,10 +1,14 @@
 package validator
 
-import "sync"
+import (
+	"sync"
+
+	"golang.org/x/text/language"
+)
 
 // LocaleConfig 语言地区配置
 type LocaleConfig struct {
-	Language string            // 语言代码，如 "en", "zh"
+	Language language.Tag      // 语言标签（golang.org/x/text/language；用 language.Make("en") 等构造）
 	Region   string            // 地区代码，如 "US", "CN"
 	Messages map[string]string // 验证错误消息模板
 }
@@ -53,7 +57,7 @@ func GetAvailableLocales() []string {
 // 注册默认的英文语言配置
 func init() {
 	RegisterLocaleConfig("en", &LocaleConfig{
-		Language: "en",
+		Language: language.Make("en"),
 		Region:   "US",
 		Messages: map[string]string{
 			// 内置验证规则

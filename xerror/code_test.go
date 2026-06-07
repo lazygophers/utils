@@ -7,24 +7,21 @@ import (
 	"testing"
 
 	"github.com/lazygophers/utils/language"
+	xlanguage "golang.org/x/text/language"
 )
 
-// stubLocalizer 是测试用 Localizer，最小实现：按 *language.Tag + key 存翻译，
+// stubLocalizer 是测试用 Localizer，最小实现：按 xlanguage.Tag + key 存翻译，
 // 支持命名 args ("name", value) 的 {name} 替换。
 type stubLocalizer struct {
 	mu      sync.RWMutex
-	buckets map[*language.Tag]map[string]string
+	buckets map[xlanguage.Tag]map[string]string
 }
 
 func newStubLocalizer() *stubLocalizer {
-	return &stubLocalizer{buckets: map[*language.Tag]map[string]string{}}
+	return &stubLocalizer{buckets: map[xlanguage.Tag]map[string]string{}}
 }
 
-func (s *stubLocalizer) Localize(key string, args ...any) string {
-	return s.LocalizeWithLang(language.Get(), key, args...)
-}
-
-func (s *stubLocalizer) LocalizeWithLang(tag *language.Tag, key string, args ...any) string {
+func (s *stubLocalizer) LocalizeWithLang(tag xlanguage.Tag, key string, args ...any) string {
 	s.mu.RLock()
 	value, ok := s.buckets[tag][key]
 	s.mu.RUnlock()
@@ -56,7 +53,7 @@ func (s *stubLocalizer) LocalizeWithLang(tag *language.Tag, key string, args ...
 	return value
 }
 
-func (s *stubLocalizer) Register(tag *language.Tag, key, value string) {
+func (s *stubLocalizer) Register(tag xlanguage.Tag, key, value string) {
 	s.mu.Lock()
 	bucket, ok := s.buckets[tag]
 	if !ok {
@@ -67,7 +64,7 @@ func (s *stubLocalizer) Register(tag *language.Tag, key, value string) {
 	s.mu.Unlock()
 }
 
-func (s *stubLocalizer) RegisterBatch(tag *language.Tag, data map[string]any) {
+func (s *stubLocalizer) RegisterBatch(tag xlanguage.Tag, data map[string]any) {
 	for k, v := range data {
 		if str, ok := v.(string); ok {
 			s.Register(tag, k, str)
@@ -122,7 +119,7 @@ func TestNewWithoutLocalizer(t *testing.T) {
 
 func TestNewWithLocalizerHit(t *testing.T) {
 	stub := newStubLocalizer()
-	stub.Register(language.Make("en"), "error.3001", "translated")
+	stub.Register(xlanguage.Make("en"), "error.3001", "translated")
 	SetLocalizer(stub)
 	defer SetLocalizer(nil)
 	language.Set(language.Make("en"))
@@ -147,7 +144,7 @@ func TestNewWithLocalizerMissFallback(t *testing.T) {
 
 func TestNewArgsInjected(t *testing.T) {
 	stub := newStubLocalizer()
-	stub.Register(language.Make("en"), "error.4001", "user %s denied")
+	stub.Register(xlanguage.Make("en"), "error.4001", "user %s denied")
 	SetLocalizer(stub)
 	defer SetLocalizer(nil)
 	language.Set(language.Make("en"))
@@ -177,8 +174,8 @@ func TestNewEmptyMsgNoArgs(t *testing.T) {
 
 func TestNewBoundToConstructionLang(t *testing.T) {
 	stub := newStubLocalizer()
-	stub.Register(language.Make("en"), "error.5001", "english")
-	stub.Register(language.Make("zh"), "error.5001", "中文")
+	stub.Register(xlanguage.Make("en"), "error.5001", "english")
+	stub.Register(xlanguage.Make("zh"), "error.5001", "中文")
 	SetLocalizer(stub)
 	defer SetLocalizer(nil)
 
@@ -196,7 +193,7 @@ func TestSetKeyPrefix(t *testing.T) {
 	defer SetKeyPrefix(original)
 
 	stub := newStubLocalizer()
-	stub.Register(language.Make("en"), "biz.6001", "biz msg")
+	stub.Register(xlanguage.Make("en"), "biz.6001", "biz msg")
 	SetLocalizer(stub)
 	defer SetLocalizer(nil)
 	language.Set(language.Make("en"))
@@ -217,9 +214,9 @@ func TestRegisterPackageDelegatesToLocalizer(t *testing.T) {
 	defer language.Del()
 
 	// 包级 Register / RegisterMessage 转发到当前 Localizer
-	Register(language.Make("en"), "error.7000", "via Register")
-	RegisterMessage(language.Make("en"), 7001, "via RegisterMessage")
-	RegisterBatch(language.Make("en"), map[string]any{"error.7002": "via RegisterBatch"})
+	Register(xlanguage.Make("en"), "error.7000", "via Register")
+	RegisterMessage(xlanguage.Make("en"), 7001, "via RegisterMessage")
+	RegisterBatch(xlanguage.Make("en"), map[string]any{"error.7002": "via RegisterBatch"})
 
 	if got := NewWithMsg(7000, "f").Error(); got != "via Register" {
 		t.Errorf("7000=%q", got)
@@ -235,9 +232,9 @@ func TestRegisterPackageDelegatesToLocalizer(t *testing.T) {
 func TestRegisterNoopWhenNoLocalizer(t *testing.T) {
 	SetLocalizer(nil)
 	// 不应 panic
-	Register(language.Make("en"), "error.0", "x")
-	RegisterMessage(language.Make("en"), 0, "x")
-	RegisterBatch(language.Make("en"), map[string]any{"error.0": "x"})
+	Register(xlanguage.Make("en"), "error.0", "x")
+	RegisterMessage(xlanguage.Make("en"), 0, "x")
+	RegisterBatch(xlanguage.Make("en"), map[string]any{"error.0": "x"})
 }
 
 func TestWrapDefaultsToUnknown(t *testing.T) {
@@ -261,7 +258,7 @@ func TestLocalizerConcurrent(t *testing.T) {
 		wg.Add(2)
 		go func(n int) {
 			defer wg.Done()
-			RegisterMessage(language.Make("en"), 10000+n, "msg")
+			RegisterMessage(xlanguage.Make("en"), 10000+n, "msg")
 		}(i)
 		go func(n int) {
 			defer wg.Done()

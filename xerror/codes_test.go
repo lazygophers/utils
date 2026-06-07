@@ -2,6 +2,10 @@ package xerror
 
 import (
 	"testing"
+
+	"github.com/lazygophers/utils/i18n"
+	"github.com/lazygophers/utils/language"
+	xlanguage "golang.org/x/text/language"
 )
 
 type codeShortcutCase struct {
@@ -48,4 +52,44 @@ func TestCodeConstantsUnique(t *testing.T) {
 		}
 		seen[c] = true
 	}
+}
+
+type builtinLangCase struct {
+	lang string
+	code int
+	want string
+}
+
+func TestBuiltinMessagesAutoRegistered(t *testing.T) {
+	// 内置翻译由 codes_en.go / codes_zh.go init() 注册到 i18n.Default；直接查 i18n.Default。
+	cases := []builtinLangCase{
+		{"en", CodeSystem, "system error"},
+		{"en", CodeInvalidParam, "invalid parameter"},
+		{"zh", CodeSystem, "系统错误"},
+		{"zh", CodeNoAuth, "未授权"},
+	}
+	for _, c := range cases {
+		got := i18n.Default.LocalizeWithLang(makeTag(c.lang), errorKey(c.code))
+		if got != c.want {
+			t.Errorf("%s/%d: got %q, want %q", c.lang, c.code, got, c.want)
+		}
+	}
+}
+
+func TestBuiltinMessagesNewIntegration(t *testing.T) {
+	// 通过 New 构造时按当前 goroutine 语言渲染，需保证默认 Localizer = i18n.Default。
+	SetLocalizer(i18n.Default)
+	language.Set(language.Make("zh"))
+	defer language.Del()
+	if got := NewInvalidParam().Error(); got != "参数无效" {
+		t.Errorf("zh InvalidParam: %q", got)
+	}
+	language.Set(language.Make("en"))
+	if got := NewInvalidParam().Error(); got != "invalid parameter" {
+		t.Errorf("en InvalidParam: %q", got)
+	}
+}
+
+func makeTag(s string) xlanguage.Tag {
+	return xlanguage.Make(s)
 }

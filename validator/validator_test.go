@@ -562,14 +562,14 @@ func TestFormatMessageWithParam(t *testing.T) {
 
 func TestGetLocaleConfigFallback(t *testing.T) {
 	// Test language-only fallback (name with '-' but no exact match)
-	RegisterLocaleConfig("xx", &LocaleConfig{Language: "xx", Messages: map[string]string{}})
-	config, ok := GetLocaleConfig("xx-YY")
+	RegisterLocaleConfig("yo", &LocaleConfig{Language: xlanguage.Make("yo"), Messages: map[string]string{}})
+	config, ok := GetLocaleConfig("yo-NG")
 	assert.True(t, ok)
-	assert.Equal(t, "xx", config.Language)
+	assert.Equal(t, "yo", config.Language.String())
 
 	// Test fallback to "en" when no match
 	config, ok = GetLocaleConfig("zz-ZZ")
 	// "zz" not registered, falls back to "en"
 	assert.True(t, ok)
-	assert.Equal(t, "en", config.Language)
+	assert.Equal(t, "en", config.Language.String())
 }

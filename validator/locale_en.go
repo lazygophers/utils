@@ -1,9 +1,11 @@
 package validator
 
+import "golang.org/x/text/language"
+
 // Register English language configuration
 func init() {
 	RegisterLocaleConfig("en", &LocaleConfig{
-		Language: "en",
+		Language: language.Make("en"),
 		Region:   "US",
 		Messages: map[string]string{
 			// Built-in validation rules

@@ -3,12 +3,12 @@ package i18n
 import (
 	"testing"
 
-	"github.com/lazygophers/utils/language"
+	xlanguage "golang.org/x/text/language"
 )
 
 func BenchmarkLocalizeHit(b *testing.B) {
 	p := New()
-	en := language.Make("en")
+	en := xlanguage.Make("en")
 	p.Register(en, "hello", "Hello")
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -19,7 +19,7 @@ func BenchmarkLocalizeHit(b *testing.B) {
 
 func BenchmarkLocalizeMiss(b *testing.B) {
 	p := New()
-	en := language.Make("en")
+	en := xlanguage.Make("en")
 	p.Register(en, "hello", "Hello")
 	b.ReportAllocs()
 	b.ResetTimer()
@@ -30,7 +30,7 @@ func BenchmarkLocalizeMiss(b *testing.B) {
 
 func BenchmarkLocalizeTemplate(b *testing.B) {
 	p := New()
-	en := language.Make("en")
+	en := xlanguage.Make("en")
 	p.Register(en, "greet", "Hello {{.Name}}, you have {{.Count}} msg")
 	data := map[string]any{"Name": "Alice", "Count": 3}
 	b.ReportAllocs()
@@ -41,9 +41,9 @@ func BenchmarkLocalizeTemplate(b *testing.B) {
 }
 
 func BenchmarkLocalizeFallback(b *testing.B) {
-	p := New(WithDefaultLang(language.Make("en")))
-	p.Register(language.Make("en"), "hello", "Hello")
-	zhCN := language.Make("zh-CN")
+	p := New(WithDefaultLang(xlanguage.Make("en")))
+	p.Register(xlanguage.Make("en"), "hello", "Hello")
+	zhCN := xlanguage.Make("zh-CN")
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

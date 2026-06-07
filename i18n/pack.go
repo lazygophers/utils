@@ -7,19 +7,19 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/lazygophers/utils/language"
+	xlanguage "golang.org/x/text/language"
 )
 
 // Pack 单语言文本包
 type Pack struct {
-	tag *language.Tag
+	tag xlanguage.Tag
 
 	mu     sync.RWMutex
 	corpus map[string]string
 }
 
 // NewPack 创建指定语言的空 Pack
-func NewPack(tag *language.Tag) *Pack {
+func NewPack(tag xlanguage.Tag) *Pack {
 	return &Pack{
 		tag:    tag,
 		corpus: map[string]string{},
@@ -27,7 +27,7 @@ func NewPack(tag *language.Tag) *Pack {
 }
 
 // Tag 返回语言标签
-func (p *Pack) Tag() *language.Tag {
+func (p *Pack) Tag() xlanguage.Tag {
 	return p.tag
 }
 

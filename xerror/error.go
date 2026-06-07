@@ -3,7 +3,7 @@ package xerror
 import (
 	"errors"
 
-	"github.com/lazygophers/utils/language"
+	xlanguage "golang.org/x/text/language"
 )
 
 // Unwrapper 等价 stdlib errors 包内部匿名的 Unwrap 单错误契约。
@@ -78,9 +78,9 @@ func NewWithMsg(code int, msg string, args ...any) *Error {
 	return &Error{code: code, msg: resolveMsg(code, msg, args)}
 }
 
-// NewWithLanguage 创建带错误码的 *Error，按指定语言走 Localizer 翻译；不读 goroutine-local 语言。
-// args 注入翻译模板。未命中时 msg 为空。
-func NewWithLanguage(tag *language.Tag, code int, args ...any) *Error {
+// NewWithLanguage 创建带错误码的 *Error，按指定语言（golang.org/x/text/language.Tag 标准库类型）
+// 走 Localizer 翻译；不读 goroutine-local 语言。args 注入翻译模板；未命中时 msg 为空。
+func NewWithLanguage(tag xlanguage.Tag, code int, args ...any) *Error {
 	return &Error{code: code, msg: resolveMsgWithLang(tag, code, "", args)}
 }
 

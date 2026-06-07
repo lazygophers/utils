@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/lazygophers/utils/language"
+	xlanguage "golang.org/x/text/language"
 )
 
 // BenchmarkCode 测量从 *Error 提取错误码的开销。
@@ -29,7 +30,7 @@ func BenchmarkNewNoLocalizer(b *testing.B) {
 // BenchmarkNewLocalizerHit 注入 Localizer 且命中翻译时 New 的开销。
 func BenchmarkNewLocalizerHit(b *testing.B) {
 	stub := newStubLocalizer()
-	stub.Register(language.Make("en"), "error.1001", "translated")
+	stub.Register(xlanguage.Make("en"), "error.1001", "translated")
 	SetLocalizer(stub)
 	defer SetLocalizer(nil)
 	language.Set(language.Make("en"))

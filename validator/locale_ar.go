@@ -2,10 +2,12 @@
 
 package validator
 
+import "golang.org/x/text/language"
+
 // تسجيل إعدادات اللغة العربية
 func init() {
 	RegisterLocaleConfig("ar", &LocaleConfig{
-		Language: "ar",
+		Language: language.Make("ar"),
 		Region:   "SA",
 		Messages: map[string]string{
 			// قواعد التحقق المدمجة

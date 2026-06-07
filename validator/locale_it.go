@@ -2,10 +2,12 @@
 
 package validator
 
+import "golang.org/x/text/language"
+
 // Registrare la configurazione della lingua italiana
 func init() {
 	RegisterLocaleConfig("it", &LocaleConfig{
-		Language: "it",
+		Language: language.Make("it"),
 		Region:   "IT",
 		Messages: map[string]string{
 			// Regole di validazione integrate

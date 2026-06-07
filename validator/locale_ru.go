@@ -2,10 +2,12 @@
 
 package validator
 
+import "golang.org/x/text/language"
+
 // Регистрация конфигурации русского языка
 func init() {
 	RegisterLocaleConfig("ru", &LocaleConfig{
-		Language: "ru",
+		Language: language.Make("ru"),
 		Region:   "RU",
 		Messages: map[string]string{
 			// Встроенные правила валидации

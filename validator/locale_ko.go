@@ -2,10 +2,12 @@
 
 package validator
 
+import "golang.org/x/text/language"
+
 // 한국어 언어 설정 등록
 func init() {
 	RegisterLocaleConfig("ko", &LocaleConfig{
-		Language: "ko",
+		Language: language.Make("ko"),
 		Region:   "KR",
 		Messages: map[string]string{
 			// 내장 검증 규칙

@@ -1,9 +1,11 @@
 package validator
 
+import "golang.org/x/text/language"
+
 // 注册中文语言配置
 func init() {
 	RegisterLocaleConfig("zh", &LocaleConfig{
-		Language: "zh",
+		Language: language.Make("zh"),
 		Region:   "CN",
 		Messages: map[string]string{
 			// 内置验证规则
@@ -172,7 +174,7 @@ func init() {
 
 	// 同时注册 zh-CN
 	RegisterLocaleConfig("zh-CN", &LocaleConfig{
-		Language: "zh",
+		Language: language.Make("zh"),
 		Region:   "CN",
 		Messages: map[string]string{
 			// 内置验证规则

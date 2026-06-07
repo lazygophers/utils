@@ -2,45 +2,36 @@ package xerror
 
 // 框架内置错误码段（1001-10000 预留给框架；业务码建议 ≥ 10001）。
 // 命名约定：Code<Concept>；构造器 New<Concept>(args ...any) *Error。
+// 内置翻译按语言拆 codes_<lang>.go 文件，在各自 init() 中注册到 i18n.Default。
 const (
 	// CodeInvalidParam 请求参数无效或缺失。
-	// 场景：参数校验失败 / 必填缺失 / 格式错误。
 	CodeInvalidParam = 1001
 
 	// CodeNoAuth 未授权或认证失败。
-	// 场景：token 无效 / 未登录 / 权限不足。
 	CodeNoAuth = 1002
 
 	// CodeNoData 请求的数据不存在。
-	// 场景:查询记录不存在 / 资源未找到。
 	CodeNoData = 1003
 
 	// CodeConflict 数据冲突。
-	// 场景：并发更新冲突 / 唯一键冲突 / 版本不匹配。
 	CodeConflict = 1004
 
 	// CodeNotLogin 登录状态异常。
-	// 场景：未获取到登录态 / 登录态过期。
 	CodeNotLogin = 1005
 
 	// CodeTimeout 操作超时。
-	// 场景：下游 RPC 超时 / 数据库慢查询 / 第三方接口未响应。
 	CodeTimeout = 1006
 
 	// CodeRateLimited 触发限流。
-	// 场景：请求过于频繁 / 配额耗尽。
 	CodeRateLimited = 1007
 
 	// CodeForbidden 操作被拒绝（已认证但无权限）。
-	// 场景：用户已登录但缺少特定权限位 / 资源访问被策略禁止。
 	CodeForbidden = 1008
 
 	// CodeUnavailable 服务暂不可用。
-	// 场景：依赖下游故障 / 维护中 / 熔断打开。
 	CodeUnavailable = 1009
 
 	// CodeDataCorrupted 数据损坏或不一致。
-	// 场景：反序列化失败 / 校验和不匹配 / 数据完整性错误。
 	CodeDataCorrupted = 1010
 )
 
@@ -97,4 +88,13 @@ func NewUnavailable(args ...any) *Error {
 // NewDataCorrupted 创建数据损坏错误（code = CodeDataCorrupted）。
 func NewDataCorrupted(args ...any) *Error {
 	return New(CodeDataCorrupted, args...)
+}
+
+// registerBuiltinLocale 把单语言内置错误码翻译表注册到 i18n.Default。
+// 各 codes_<lang>.go 在 init() 中调用此函数，复用 errorKey 拼装与 i18n.Default 写入逻辑。
+func registerBuiltinLocale(langStr string, codes map[int]string) {
+	tag := makeLangTag(langStr)
+	for code, msg := range codes {
+		defaultRegister(tag, code, msg)
+	}
 }

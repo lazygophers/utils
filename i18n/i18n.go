@@ -14,6 +14,7 @@ import (
 	"text/template"
 
 	"github.com/lazygophers/utils/language"
+	xlanguage "golang.org/x/text/language"
 )
 
 // ErrLocalizerNotFound 表示扩展名没有对应的 Localizer
@@ -25,15 +26,18 @@ type I18n struct {
 	packMap map[string]*Pack
 
 	templateFunc template.FuncMap
-	defaultLang  atomic.Pointer[language.Tag]
+	defaultLang  atomic.Pointer[xlanguage.Tag]
 }
 
 // Option 构造选项
 type Option func(*I18n)
 
 // WithDefaultLang 设置默认 fallback 语言
-func WithDefaultLang(tag *language.Tag) Option {
-	return func(p *I18n) { p.defaultLang.Store(tag) }
+func WithDefaultLang(tag xlanguage.Tag) Option {
+	return func(p *I18n) {
+		t := tag
+		p.defaultLang.Store(&t)
+	}
 }
 
 // WithTemplateFuncs 注入模板函数（与现有合并，同名覆盖）
@@ -43,13 +47,15 @@ func WithTemplateFuncs(funcs template.FuncMap) Option {
 	}
 }
 
-// New 创建空 I18n
+// New 创建 I18n，预装内置模板函数（见 builtinTemplateFuncs）。
+// WithTemplateFuncs 可在此基础上追加 / 覆盖；AddTemplateFunc 链式补充。
 func New(opts ...Option) *I18n {
 	p := &I18n{
 		packMap:      map[string]*Pack{},
-		templateFunc: template.FuncMap{},
+		templateFunc: maps.Clone(builtinTemplateFuncs),
 	}
-	p.defaultLang.Store(language.Default())
+	def := language.Default().Tag()
+	p.defaultLang.Store(&def)
 	for _, opt := range opts {
 		opt(p)
 	}
@@ -65,25 +71,27 @@ func (p *I18n) AddTemplateFunc(name string, fn any) *I18n {
 }
 
 // SetDefaultLang 设置默认 fallback 语言（链式）
-func (p *I18n) SetDefaultLang(tag *language.Tag) *I18n {
-	p.defaultLang.Store(tag)
+func (p *I18n) SetDefaultLang(tag xlanguage.Tag) *I18n {
+	t := tag
+	p.defaultLang.Store(&t)
 	return p
 }
 
 // DefaultLang 获取默认 fallback 语言
-func (p *I18n) DefaultLang() *language.Tag {
-	return p.defaultLang.Load()
+func (p *I18n) DefaultLang() xlanguage.Tag {
+	t := p.defaultLang.Load()
+	if t == nil {
+		return xlanguage.Und
+	}
+	return *t
 }
 
 // normalizeLang 统一 packMap key 规范化
-func normalizeLang(tag *language.Tag) string {
-	if tag == nil {
-		return ""
-	}
+func normalizeLang(tag xlanguage.Tag) string {
 	return strings.ToLower(tag.String())
 }
 
-func (p *I18n) getOrCreate(tag *language.Tag) *Pack {
+func (p *I18n) getOrCreate(tag xlanguage.Tag) *Pack {
 	key := normalizeLang(tag)
 
 	p.mu.RLock()
@@ -95,7 +103,8 @@ func (p *I18n) getOrCreate(tag *language.Tag) *Pack {
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if pack, ok = p.packMap[key]; ok {
+	pack, ok = p.packMap[key]
+	if ok {
 		return pack
 	}
 	pack = NewPack(tag)
@@ -104,38 +113,43 @@ func (p *I18n) getOrCreate(tag *language.Tag) *Pack {
 }
 
 // Register 注册指定语言的单条文本
-func (p *I18n) Register(tag *language.Tag, key, value string) {
+func (p *I18n) Register(tag xlanguage.Tag, key, value string) {
 	p.getOrCreate(tag).Register(key, value)
 }
 
 // RegisterBatch 批量注册（嵌套 map 自动扁平化）
-func (p *I18n) RegisterBatch(tag *language.Tag, data map[string]any) {
+func (p *I18n) RegisterBatch(tag xlanguage.Tag, data map[string]any) {
 	p.getOrCreate(tag).RegisterBatch(data)
 }
 
 // lookup fallback 链：tag → tag.base → defaultLang → defaultLang.base
-func (p *I18n) lookup(tag *language.Tag, key string) (string, bool) {
+func (p *I18n) lookup(tag xlanguage.Tag, key string) (string, bool) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
-	if tag != nil {
-		if v, ok := p.lookupOne(tag, key); ok {
+	v, ok := p.lookupOne(tag, key)
+	if ok {
+		return v, true
+	}
+	base, hasBase := baseLang(tag)
+	if hasBase {
+		v, ok = p.lookupOne(base, key)
+		if ok {
 			return v, true
-		}
-		if base := baseLang(tag); base != nil {
-			if v, ok := p.lookupOne(base, key); ok {
-				return v, true
-			}
 		}
 	}
 
-	def := p.defaultLang.Load()
-	if def != nil {
-		if v, ok := p.lookupOne(def, key); ok {
+	defPtr := p.defaultLang.Load()
+	if defPtr != nil {
+		def := *defPtr
+		v, ok = p.lookupOne(def, key)
+		if ok {
 			return v, true
 		}
-		if base := baseLang(def); base != nil {
-			if v, ok := p.lookupOne(base, key); ok {
+		base, hasBase = baseLang(def)
+		if hasBase {
+			v, ok = p.lookupOne(base, key)
+			if ok {
 				return v, true
 			}
 		}
@@ -144,7 +158,7 @@ func (p *I18n) lookup(tag *language.Tag, key string) (string, bool) {
 	return key, false
 }
 
-func (p *I18n) lookupOne(tag *language.Tag, key string) (string, bool) {
+func (p *I18n) lookupOne(tag xlanguage.Tag, key string) (string, bool) {
 	pack, ok := p.packMap[normalizeLang(tag)]
 	if !ok {
 		return "", false
@@ -152,18 +166,18 @@ func (p *I18n) lookupOne(tag *language.Tag, key string) (string, bool) {
 	return pack.Get(key)
 }
 
-// baseLang 截取 "zh-CN" 的主语言 "zh"。若无 "-" 则返回 nil
-func baseLang(tag *language.Tag) *language.Tag {
+// baseLang 截取 "zh-CN" 的主语言 "zh"。若无 "-" 则返回 (zero, false)
+func baseLang(tag xlanguage.Tag) (xlanguage.Tag, bool) {
 	s := tag.String()
 	i := strings.Index(s, "-")
 	if i <= 0 {
-		return nil
+		return xlanguage.Tag{}, false
 	}
-	return language.Make(s[:i])
+	return xlanguage.Make(s[:i]), true
 }
 
 // LocalizeWithLang 用指定语言查询并模板插值
-func (p *I18n) LocalizeWithLang(tag *language.Tag, key string, args ...any) string {
+func (p *I18n) LocalizeWithLang(tag xlanguage.Tag, key string, args ...any) string {
 	value, _ := p.lookup(tag, key)
 	if len(args) == 0 {
 		return value
@@ -178,7 +192,8 @@ func (p *I18n) LocalizeWithLang(tag *language.Tag, key string, args ...any) stri
 		return value
 	}
 	var buf bytes.Buffer
-	if err = tmpl.Execute(&buf, args[0]); err != nil {
+	err = tmpl.Execute(&buf, args[0])
+	if err != nil {
 		return value
 	}
 	return buf.String()
@@ -186,7 +201,7 @@ func (p *I18n) LocalizeWithLang(tag *language.Tag, key string, args ...any) stri
 
 // Localize 用 goroutine-local 当前语言查询
 func (p *I18n) Localize(key string, args ...any) string {
-	return p.LocalizeWithLang(language.Get(), key, args...)
+	return p.LocalizeWithLang(language.Get().Tag(), key, args...)
 }
 
 // LoadLocalizes 扫 "localize" 子目录
@@ -216,7 +231,8 @@ func (p *I18n) LoadLocalizesWithFs(dir string, fsys fs.FS) error {
 
 func (p *I18n) loadOne(dir, name string, fsys fs.FS) error {
 	ext := filepath.Ext(name)
-	if _, ok := GetLocalizer(ext); !ok {
+	_, ok := GetLocalizer(ext)
+	if !ok {
 		// 目录扫描场景：未识别扩展名静默跳过
 		return nil
 	}
@@ -224,26 +240,30 @@ func (p *I18n) loadOne(dir, name string, fsys fs.FS) error {
 	if err != nil {
 		return err
 	}
-	return p.loadBytes(nil, name, buf)
+	return p.loadBytes(xlanguage.Tag{}, true, name, buf)
 }
 
 // LoadFile 从磁盘单个文件加载，lang 从 basename 推断，format 从 ext 推断
 func (p *I18n) LoadFile(path string) error {
-	return p.LoadFileWithLang(nil, path)
+	return p.loadFileWith(xlanguage.Tag{}, true, path)
 }
 
-// LoadFileWithLang 从磁盘单个文件加载，显式指定 lang（nil 时从文件名推断）
-func (p *I18n) LoadFileWithLang(tag *language.Tag, path string) error {
+// LoadFileWithLang 从磁盘单个文件加载，显式指定 lang
+func (p *I18n) LoadFileWithLang(tag xlanguage.Tag, path string) error {
+	return p.loadFileWith(tag, false, path)
+}
+
+func (p *I18n) loadFileWith(tag xlanguage.Tag, inferFromName bool, path string) error {
 	buf, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	return p.loadBytes(tag, filepath.Base(path), buf)
+	return p.loadBytes(tag, inferFromName, filepath.Base(path), buf)
 }
 
 // LoadFs 从 fs.FS 单文件加载，lang/format 从 path 推断
 func (p *I18n) LoadFs(fsys fs.FS, path string) error {
-	return p.LoadFsWithLang(nil, fsys, path)
+	return p.loadFsWith(xlanguage.Tag{}, true, fsys, path)
 }
 
 // LoadDir 递归扫描磁盘目录下所有可识别扩展名的文件，按文件名推断 lang
@@ -262,7 +282,8 @@ func (p *I18n) LoadFsDir(fsys fs.FS, root string) error {
 		if d.IsDir() {
 			return nil
 		}
-		if _, ok := GetLocalizer(filepath.Ext(d.Name())); !ok {
+		_, ok := GetLocalizer(filepath.Ext(d.Name()))
+		if !ok {
 			return nil
 		}
 		buf, readErr := fs.ReadFile(fsys, path)
@@ -270,7 +291,7 @@ func (p *I18n) LoadFsDir(fsys fs.FS, root string) error {
 			errs = append(errs, readErr)
 			return nil
 		}
-		loadErr := p.loadBytes(nil, d.Name(), buf)
+		loadErr := p.loadBytes(xlanguage.Tag{}, true, d.Name(), buf)
 		if loadErr != nil {
 			errs = append(errs, loadErr)
 		}
@@ -282,25 +303,29 @@ func (p *I18n) LoadFsDir(fsys fs.FS, root string) error {
 	return errors.Join(errs...)
 }
 
-// LoadFsWithLang 从 fs.FS 单文件加载，显式指定 lang（nil 时从文件名推断）
-func (p *I18n) LoadFsWithLang(tag *language.Tag, fsys fs.FS, path string) error {
+// LoadFsWithLang 从 fs.FS 单文件加载，显式指定 lang
+func (p *I18n) LoadFsWithLang(tag xlanguage.Tag, fsys fs.FS, path string) error {
+	return p.loadFsWith(tag, false, fsys, path)
+}
+
+func (p *I18n) loadFsWith(tag xlanguage.Tag, inferFromName bool, fsys fs.FS, path string) error {
 	buf, err := fs.ReadFile(fsys, path)
 	if err != nil {
 		return err
 	}
-	return p.loadBytes(tag, filepath.Base(path), buf)
+	return p.loadBytes(tag, inferFromName, filepath.Base(path), buf)
 }
 
-// loadBytes 单文件解析共用路径。tag 为 nil 时从 name 推断
-func (p *I18n) loadBytes(tag *language.Tag, name string, buf []byte) error {
+// loadBytes 单文件解析共用路径。inferFromName=true 时从 name 推断 tag
+func (p *I18n) loadBytes(tag xlanguage.Tag, inferFromName bool, name string, buf []byte) error {
 	ext := filepath.Ext(name)
 	loc, ok := GetLocalizer(ext)
 	if !ok {
 		return fmt.Errorf("%w: %s", ErrLocalizerNotFound, ext)
 	}
 
-	if tag == nil {
-		tag = language.Make(strings.TrimSuffix(name, ext))
+	if inferFromName {
+		tag = xlanguage.Make(strings.TrimSuffix(name, ext))
 	}
 
 	var m map[string]any
@@ -322,21 +347,25 @@ func (p *I18n) loadBytes(tag *language.Tag, name string, buf []byte) error {
 var Default = New()
 
 // SetLanguage 设当前 goroutine 语言
-func SetLanguage(tag *language.Tag) { language.Set(tag) }
+func SetLanguage(tag xlanguage.Tag) {
+	language.Set(language.Make(tag.String()))
+}
 
 // GetLanguage 取当前 goroutine 语言
-func GetLanguage() *language.Tag { return language.Get() }
+func GetLanguage() xlanguage.Tag {
+	return language.Get().Tag()
+}
 
 // DelLanguage 清当前 goroutine 语言绑定
 func DelLanguage() { language.Del() }
 
 // Register 在 Default I18n 注册单条文本
-func Register(tag *language.Tag, key, value string) {
+func Register(tag xlanguage.Tag, key, value string) {
 	Default.Register(tag, key, value)
 }
 
 // RegisterBatch 在 Default I18n 批量注册
-func RegisterBatch(tag *language.Tag, data map[string]any) {
+func RegisterBatch(tag xlanguage.Tag, data map[string]any) {
 	Default.RegisterBatch(tag, data)
 }
 
@@ -346,7 +375,7 @@ func Localize(key string, args ...any) string {
 }
 
 // LocalizeWithLang 在 Default I18n 上用指定语言查询
-func LocalizeWithLang(tag *language.Tag, key string, args ...any) string {
+func LocalizeWithLang(tag xlanguage.Tag, key string, args ...any) string {
 	return Default.LocalizeWithLang(tag, key, args...)
 }
 

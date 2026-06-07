@@ -7,7 +7,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/lazygophers/utils/language"
+	xlanguage "golang.org/x/text/language"
 )
 
 // sampleFs 提供三种格式与三种 locale 的样例数据，模拟 embed.FS 行为
@@ -18,27 +18,30 @@ var sampleFs = fstest.MapFS{
 }
 
 func TestLoadLocalizesMultiFormat(t *testing.T) {
-	p := New(WithDefaultLang(language.Make("en")))
+	p := New(WithDefaultLang(xlanguage.Make("en")))
 	err := p.LoadLocalizes(sampleFs)
 	if err != nil {
 		t.Fatalf("LoadLocalizes err: %v", err)
 	}
-	if got := p.LocalizeWithLang(language.Make("en"), "hello"); got != "Hello" {
+	got := p.LocalizeWithLang(xlanguage.Make("en"), "hello")
+	if got != "Hello" {
 		t.Errorf("en hello=%q", got)
 	}
-	if got := p.LocalizeWithLang(language.Make("zh-CN"), "hello"); got != "你好" {
+	got = p.LocalizeWithLang(xlanguage.Make("zh-CN"), "hello")
+	if got != "你好" {
 		t.Errorf("zh-CN hello=%q", got)
 	}
-	if got := p.LocalizeWithLang(language.Make("ja"), "hello"); got != "こんにちは" {
+	got = p.LocalizeWithLang(xlanguage.Make("ja"), "hello")
+	if got != "こんにちは" {
 		t.Errorf("ja hello=%q", got)
 	}
 }
 
 func TestLoadLocalizesMapFs(t *testing.T) {
 	fsys := fstest.MapFS{
-		"localize/en.json": {Data: []byte(`{"k":"V","nested":{"a":"A"}}`)},
-		"localize/zh.yaml": {Data: []byte("k: 中\nnested:\n  a: 嵌套\n")},
-		"localize/fr.toml": {Data: []byte("k = \"FR\"\n")},
+		"localize/en.json":  {Data: []byte(`{"k":"V","nested":{"a":"A"}}`)},
+		"localize/zh.yaml":  {Data: []byte("k: 中\nnested:\n  a: 嵌套\n")},
+		"localize/fr.toml":  {Data: []byte("k = \"FR\"\n")},
 		"localize/skip.xml": {Data: []byte("<x/>")},
 		"localize/subdir":   {Mode: 0o755 | 1<<31 /* placeholder, IsDir set by MapFS */},
 	}
@@ -50,16 +53,20 @@ func TestLoadLocalizesMapFs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if v := p.LocalizeWithLang(language.Make("en"), "k"); v != "V" {
+	v := p.LocalizeWithLang(xlanguage.Make("en"), "k")
+	if v != "V" {
 		t.Errorf("en.k=%q", v)
 	}
-	if v := p.LocalizeWithLang(language.Make("en"), "nested.a"); v != "A" {
+	v = p.LocalizeWithLang(xlanguage.Make("en"), "nested.a")
+	if v != "A" {
 		t.Errorf("en.nested.a=%q", v)
 	}
-	if v := p.LocalizeWithLang(language.Make("zh"), "k"); v != "中" {
+	v = p.LocalizeWithLang(xlanguage.Make("zh"), "k")
+	if v != "中" {
 		t.Errorf("zh.k=%q", v)
 	}
-	if v := p.LocalizeWithLang(language.Make("fr"), "k"); v != "FR" {
+	v = p.LocalizeWithLang(xlanguage.Make("fr"), "k")
+	if v != "FR" {
 		t.Errorf("fr.k=%q", v)
 	}
 }
@@ -89,18 +96,20 @@ func TestLoadLocalizesAggregateErrors(t *testing.T) {
 	if !errors.As(err, &unwrapper) {
 		t.Fatalf("err should be errors.Join: %T", err)
 	}
-	if n := len(unwrapper.Unwrap()); n != 2 {
+	n := len(unwrapper.Unwrap())
+	if n != 2 {
 		t.Errorf("got %d errs want 2", n)
 	}
 	// good 文件应已加载
-	if v := p.LocalizeWithLang(language.Make("good"), "k"); v != "v" {
+	v := p.LocalizeWithLang(xlanguage.Make("good"), "k")
+	if v != "v" {
 		t.Errorf("good.k=%q", v)
 	}
 }
 
 func TestLoadLocalizesUnknownExtSkipped(t *testing.T) {
 	fsys := fstest.MapFS{
-		"localize/en.xyz": {Data: []byte("???")},
+		"localize/en.xyz":  {Data: []byte("???")},
 		"localize/en.json": {Data: []byte(`{"k":"v"}`)},
 	}
 	p := New()
@@ -108,7 +117,8 @@ func TestLoadLocalizesUnknownExtSkipped(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	if v := p.LocalizeWithLang(language.Make("en"), "k"); v != "v" {
+	v := p.LocalizeWithLang(xlanguage.Make("en"), "k")
+	if v != "v" {
 		t.Errorf("en.k=%q", v)
 	}
 }
@@ -141,10 +151,12 @@ func TestLoadFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadFile: %v", err)
 	}
-	if v := p.LocalizeWithLang(language.Make("en"), "hi"); v != "Hello" {
+	v := p.LocalizeWithLang(xlanguage.Make("en"), "hi")
+	if v != "Hello" {
 		t.Errorf("hi=%q", v)
 	}
-	if v := p.LocalizeWithLang(language.Make("en"), "n.a"); v != "A" {
+	v = p.LocalizeWithLang(xlanguage.Make("en"), "n.a")
+	if v != "A" {
 		t.Errorf("n.a=%q", v)
 	}
 }
@@ -158,12 +170,13 @@ func TestLoadFileWithLang(t *testing.T) {
 		t.Fatal(err)
 	}
 	p := New()
-	zh := language.Make("zh")
+	zh := xlanguage.Make("zh")
 	err = p.LoadFileWithLang(zh, path)
 	if err != nil {
 		t.Fatalf("LoadFileWithLang: %v", err)
 	}
-	if v := p.LocalizeWithLang(zh, "hi"); v != "你好" {
+	v := p.LocalizeWithLang(zh, "hi")
+	if v != "你好" {
 		t.Errorf("hi=%q", v)
 	}
 }
@@ -216,7 +229,8 @@ func TestLoadFs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadFs: %v", err)
 	}
-	if v := p.LocalizeWithLang(language.Make("en"), "hi"); v != "Hello" {
+	v := p.LocalizeWithLang(xlanguage.Make("en"), "hi")
+	if v != "Hello" {
 		t.Errorf("hi=%q", v)
 	}
 }
@@ -226,12 +240,13 @@ func TestLoadFsWithLang(t *testing.T) {
 		"messages.toml": {Data: []byte(`hi = "嗨"`)},
 	}
 	p := New()
-	zh := language.Make("zh")
+	zh := xlanguage.Make("zh")
 	err := p.LoadFsWithLang(zh, fsys, "messages.toml")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v := p.LocalizeWithLang(zh, "hi"); v != "嗨" {
+	v := p.LocalizeWithLang(zh, "hi")
+	if v != "嗨" {
 		t.Errorf("hi=%q", v)
 	}
 }
@@ -269,7 +284,8 @@ func TestLoadFilePackageDefault(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v := LocalizeWithLang(language.Make("en"), "k"); v != "v" {
+	v := LocalizeWithLang(xlanguage.Make("en"), "k")
+	if v != "v" {
 		t.Errorf("k=%q", v)
 	}
 }
@@ -284,7 +300,8 @@ func TestLoadFsPackageDefault(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v := LocalizeWithLang(language.Make("en"), "k"); v != "v" {
+	v := LocalizeWithLang(xlanguage.Make("en"), "k")
+	if v != "v" {
 		t.Errorf("k=%q", v)
 	}
 }
@@ -301,7 +318,8 @@ func TestLoadLocalizesPackageDefault(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v := LocalizeWithLang(language.Make("en"), "hi"); v != "Hello" {
+	v := LocalizeWithLang(xlanguage.Make("en"), "hi")
+	if v != "Hello" {
 		t.Errorf("v=%q", v)
 	}
 }
@@ -334,29 +352,33 @@ func TestLoadDirRecursive(t *testing.T) {
 		t.Fatalf("LoadDir err: %v", err)
 	}
 	// 注意：web/en.json 与 api/en.json 若同名会后者覆盖前者；此例仅一份 en
-	if got := p.LocalizeWithLang(language.Make("en"), "k"); got != "web-en" {
+	got := p.LocalizeWithLang(xlanguage.Make("en"), "k")
+	if got != "web-en" {
 		t.Errorf("en k=%q", got)
 	}
-	if got := p.LocalizeWithLang(language.Make("zh-CN"), "k"); got != "api-zh" {
+	got = p.LocalizeWithLang(xlanguage.Make("zh-CN"), "k")
+	if got != "api-zh" {
 		t.Errorf("zh-CN k=%q", got)
 	}
 }
 
 func TestLoadFsDirRecursive(t *testing.T) {
 	fsys := fstest.MapFS{
-		"i18n/en.json":         &fstest.MapFile{Data: []byte(`{"k":"v1"}`)},
-		"i18n/sub/zh-CN.yaml":  &fstest.MapFile{Data: []byte("k: v2")},
-		"i18n/skip.txt":        &fstest.MapFile{Data: []byte("ignored")},
+		"i18n/en.json":        &fstest.MapFile{Data: []byte(`{"k":"v1"}`)},
+		"i18n/sub/zh-CN.yaml": &fstest.MapFile{Data: []byte("k: v2")},
+		"i18n/skip.txt":       &fstest.MapFile{Data: []byte("ignored")},
 	}
 	p := New()
 	err := p.LoadFsDir(fsys, "i18n")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := p.LocalizeWithLang(language.Make("en"), "k"); got != "v1" {
+	got := p.LocalizeWithLang(xlanguage.Make("en"), "k")
+	if got != "v1" {
 		t.Errorf("en k=%q", got)
 	}
-	if got := p.LocalizeWithLang(language.Make("zh-CN"), "k"); got != "v2" {
+	got = p.LocalizeWithLang(xlanguage.Make("zh-CN"), "k")
+	if got != "v2" {
 		t.Errorf("zh-CN k=%q", got)
 	}
 }
@@ -382,7 +404,8 @@ func TestLoadDirPackageDefault(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v := LocalizeWithLang(language.Make("en"), "k"); v != "v" {
+	v := LocalizeWithLang(xlanguage.Make("en"), "k")
+	if v != "v" {
 		t.Errorf("k=%q", v)
 	}
 }
@@ -397,7 +420,8 @@ func TestLoadFsDirPackageDefault(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if v := LocalizeWithLang(language.Make("en"), "k"); v != "v" {
+	v := LocalizeWithLang(xlanguage.Make("en"), "k")
+	if v != "v" {
 		t.Errorf("k=%q", v)
 	}
 }
@@ -413,7 +437,8 @@ func TestLoadFsDirAggregateErrors(t *testing.T) {
 		t.Fatal("expected err")
 	}
 	// good 应已加载
-	if v := p.LocalizeWithLang(language.Make("good"), "k"); v != "v" {
+	v := p.LocalizeWithLang(xlanguage.Make("good"), "k")
+	if v != "v" {
 		t.Errorf("good.k=%q", v)
 	}
 }
@@ -425,4 +450,3 @@ func TestLoadFsDirRootMissing(t *testing.T) {
 		t.Fatal("expected err for missing root")
 	}
 }
-

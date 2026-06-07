@@ -3,33 +3,37 @@ package i18n
 import (
 	"testing"
 
-	"github.com/lazygophers/utils/language"
+	xlanguage "golang.org/x/text/language"
 )
 
 func TestPackRegister(t *testing.T) {
-	p := NewPack(language.Make("en"))
-	if got := p.Tag().String(); got != "en" {
+	p := NewPack(xlanguage.Make("en"))
+	got := p.Tag().String()
+	if got != "en" {
 		t.Fatalf("Tag()=%q want en", got)
 	}
 
 	p.Register("hello", "world")
-	if v, ok := p.Get("hello"); !ok || v != "world" {
+	v, ok := p.Get("hello")
+	if !ok || v != "world" {
 		t.Fatalf("Get(hello)=%q,%v want world,true", v, ok)
 	}
 
 	// 覆盖
 	p.Register("hello", "earth")
-	if v, _ := p.Get("hello"); v != "earth" {
+	v, _ = p.Get("hello")
+	if v != "earth" {
 		t.Fatalf("override fail v=%q", v)
 	}
 
-	if _, ok := p.Get("missing"); ok {
+	_, ok = p.Get("missing")
+	if ok {
 		t.Fatalf("missing should return false")
 	}
 }
 
 func TestPackRegisterBatchFlat(t *testing.T) {
-	p := NewPack(language.Make("en"))
+	p := NewPack(xlanguage.Make("en"))
 	p.RegisterBatch(map[string]any{
 		"a": "A",
 		"b": 42,
@@ -47,19 +51,20 @@ func TestPackRegisterBatchFlat(t *testing.T) {
 		"f": "",
 	}
 	for k, want := range cases {
-		if v, _ := p.Get(k); v != want {
+		v, _ := p.Get(k)
+		if v != want {
 			t.Errorf("Get(%q)=%q want %q", k, v, want)
 		}
 	}
 }
 
 func TestPackRegisterBatchNested(t *testing.T) {
-	p := NewPack(language.Make("en"))
+	p := NewPack(xlanguage.Make("en"))
 	p.RegisterBatch(map[string]any{
 		"user": map[string]any{
-			"name":  "Alice",
-			"age":   30,
-			"addr":  map[string]any{"city": "Beijing"},
+			"name": "Alice",
+			"age":  30,
+			"addr": map[string]any{"city": "Beijing"},
 		},
 		"any_keyed": map[any]any{
 			"k1": "v1",
@@ -79,23 +84,25 @@ func TestPackRegisterBatchNested(t *testing.T) {
 		"any_keyed.true": "v4",
 	}
 	for k, want := range checks {
-		if v, ok := p.Get(k); !ok || v != want {
+		v, ok := p.Get(k)
+		if !ok || v != want {
 			t.Errorf("Get(%q)=%q,%v want %q", k, v, ok, want)
 		}
 	}
 }
 
 func TestPackRegisterBatchOverride(t *testing.T) {
-	p := NewPack(language.Make("en"))
+	p := NewPack(xlanguage.Make("en"))
 	p.RegisterBatch(map[string]any{"k": "v1"})
 	p.RegisterBatch(map[string]any{"k": "v2"})
-	if v, _ := p.Get("k"); v != "v2" {
+	v, _ := p.Get("k")
+	if v != "v2" {
 		t.Fatalf("override fail v=%q", v)
 	}
 }
 
 func TestPackAll(t *testing.T) {
-	p := NewPack(language.Make("en"))
+	p := NewPack(xlanguage.Make("en"))
 	p.Register("a", "1")
 	p.Register("b", "2")
 
@@ -119,7 +126,7 @@ func TestPackAll(t *testing.T) {
 }
 
 func TestPackAllEarlyStop(t *testing.T) {
-	p := NewPack(language.Make("en"))
+	p := NewPack(xlanguage.Make("en"))
 	p.Register("a", "1")
 	p.Register("b", "2")
 	p.Register("c", "3")
@@ -151,9 +158,9 @@ func TestScalarToString(t *testing.T) {
 		{[]int{1, 2}, "[1 2]"}, // fmt.Sprint fallback
 	}
 	for _, c := range cases {
-		if got := scalarToString(c.in); got != c.want {
+		got := scalarToString(c.in)
+		if got != c.want {
 			t.Errorf("scalarToString(%v)=%q want %q", c.in, got, c.want)
 		}
 	}
 }
-

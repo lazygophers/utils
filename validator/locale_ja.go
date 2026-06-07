@@ -2,10 +2,12 @@
 
 package validator
 
+import "golang.org/x/text/language"
+
 // 日本語言語設定の登録
 func init() {
 	RegisterLocaleConfig("ja", &LocaleConfig{
-		Language: "ja",
+		Language: language.Make("ja"),
 		Region:   "JP",
 		Messages: map[string]string{
 			// 組み込み検証ルール
