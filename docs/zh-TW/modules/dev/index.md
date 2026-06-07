@@ -9,5 +9,6 @@ title: 開發與測試
 ## 模組列表
 
 - [randx](./randx.md) - 隨機工具
+- [fake](./fake.md) - 按國家維度生成假數據
 - [defaults](./defaults.md) - 默認值
 - [pyroscope](./pyroscope.md) - 性能分析

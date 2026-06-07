@@ -108,6 +108,7 @@ const moduleGroups: GroupDef[] = [
     link: '/modules/dev/',
     items: [
       { text: 'randx', link: '/modules/dev/randx' },
+      { text: 'fake', link: '/modules/dev/fake' },
       { text: 'defaults', link: '/modules/dev/defaults' },
       { text: 'pyroscope', link: '/modules/dev/pyroscope' },
     ],

@@ -31,7 +31,7 @@ flowchart TD
 | [系统与配置](/modules/system/) | 想做配置加载、路径定位、应用初始化与退出清理 | [config](/modules/system/config)、[runtime](/modules/system/runtime)、[osx](/modules/system/osx)、[app](/modules/system/app)、[atexit](/modules/system/atexit) |
 | [网络与安全](/modules/network/) | 想处理网络辅助、加密、签名或 URL 规范化 | [network](/modules/network/network)、[cryptox](/modules/network/cryptox)、[pgp](/modules/network/pgp)、[urlx](/modules/network/urlx) |
 | [并发与控制流](/modules/concurrency/) | 想组织任务执行、等待条件、熔断或去重 | [routine](/modules/concurrency/routine)、[wait](/modules/concurrency/wait)、[hystrix](/modules/concurrency/hystrix)、[singledo](/modules/concurrency/singledo)、[event](/modules/concurrency/event) |
-| [开发与测试](/modules/dev/) | 想补默认值、制造随机/假数据或接入采样工具 | [randx](/modules/dev/randx)、[defaults](/modules/dev/defaults)、[pyroscope](/modules/dev/pyroscope) |
+| [开发与测试](/modules/dev/) | 想补默认值、制造随机/假数据或接入采样工具 | [randx](/modules/dev/randx)、[fake](/modules/dev/fake)、[defaults](/modules/dev/defaults)、[pyroscope](/modules/dev/pyroscope) |
 
 ## 独立模块
 

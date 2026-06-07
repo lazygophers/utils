@@ -9,5 +9,6 @@ title: 开发与测试
 ## 模块列表
 
 - [randx](./randx.md) - 随机工具
+- [fake](./fake.md) - 按国家维度生成假数据
 - [defaults](./defaults.md) - 默认值
 - [pyroscope](./pyroscope.md) - 性能分析
