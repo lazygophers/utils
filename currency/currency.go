@@ -125,8 +125,8 @@ func (c *Currency) Name() string {
 	return c.NameIn(currentTag())
 }
 
-// NameIn returns the currency name in the given language with the same
-// fallback chain as [Currency.Name].
+// NameIn returns the currency name in the given language. Falls back to
+// language base, then [language.Default], then English, then the ISO 4217 code.
 func (c *Currency) NameIn(tag xlanguage.Tag) string {
 	c.namesMu.RLock()
 	defer c.namesMu.RUnlock()
@@ -136,6 +136,9 @@ func (c *Currency) NameIn(tag xlanguage.Tag) string {
 	base, _ := tag.Base()
 	baseTag := xlanguage.Make(base.String())
 	if v, ok := c.names[baseTag]; ok {
+		return v
+	}
+	if v, ok := c.names[defaultTag()]; ok {
 		return v
 	}
 	if v, ok := c.names[xlanguage.English]; ok {
@@ -148,8 +151,19 @@ func (c *Currency) NameIn(tag xlanguage.Tag) string {
 func (c *Currency) String() string { return c.code }
 
 // currentTag returns the stdlib language.Tag for the current goroutine.
+// Resolution order: goroutine-local override > global default.
 func currentTag() xlanguage.Tag {
 	t := language.Get()
+	if t == nil {
+		return defaultTag()
+	}
+	return t.Tag()
+}
+
+// defaultTag returns the global default language tag set via
+// language.SetDefault. Falls back to English when unset.
+func defaultTag() xlanguage.Tag {
+	t := language.Default()
 	if t == nil {
 		return xlanguage.English
 	}

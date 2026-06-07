@@ -52,7 +52,8 @@ func (r *Region) Name() string {
 }
 
 // NameIn returns the localized sub-region name in the given language, falling
-// back to language base, then English (the canonical [Region.Subregion] label).
+// back to language base, then [language.Default], then English (the canonical
+// [Region.Subregion] label).
 func (r *Region) NameIn(tag xlanguage.Tag) string {
 	if r == nil {
 		return ""
@@ -65,6 +66,9 @@ func (r *Region) NameIn(tag xlanguage.Tag) string {
 	base, _ := tag.Base()
 	baseTag := xlanguage.Make(base.String())
 	if v, ok := r.names[baseTag]; ok {
+		return v
+	}
+	if v, ok := r.names[defaultTag()]; ok {
 		return v
 	}
 	if v, ok := r.names[xlanguage.English]; ok {

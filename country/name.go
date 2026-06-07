@@ -7,9 +7,20 @@ import (
 )
 
 // currentTag returns the stdlib language.Tag for the current goroutine.
-// Resolution order: goroutine-local override > global default.
+// Resolution order: goroutine-local override > global default (via
+// github.com/lazygophers/utils/language).
 func currentTag() xlanguage.Tag {
 	t := language.Get()
+	if t == nil {
+		return defaultTag()
+	}
+	return t.Tag()
+}
+
+// defaultTag returns the global default language tag set via
+// language.SetDefault. Falls back to English when unset.
+func defaultTag() xlanguage.Tag {
+	t := language.Default()
 	if t == nil {
 		return xlanguage.English
 	}
@@ -55,8 +66,8 @@ func (c *Country) Capital() string {
 }
 
 // CapitalIn returns the capital city in the given language. Falls back to
-// language base, then English. Returns "" if no capital is registered (e.g.
-// uninhabited territories).
+// language base, then the global default ([language.Default]), then English.
+// Returns "" if no capital is registered (e.g. uninhabited territories).
 func (c *Country) CapitalIn(tag xlanguage.Tag) string {
 	c.namesMu.RLock()
 	defer c.namesMu.RUnlock()
@@ -66,6 +77,9 @@ func (c *Country) CapitalIn(tag xlanguage.Tag) string {
 	base, _ := tag.Base()
 	baseTag := xlanguage.Make(base.String())
 	if v, ok := c.capital[baseTag]; ok {
+		return v
+	}
+	if v, ok := c.capital[defaultTag()]; ok {
 		return v
 	}
 	if v, ok := c.capital[xlanguage.English]; ok {
@@ -113,10 +127,17 @@ func lookupName(c *Country, tag xlanguage.Tag, official bool) string {
 	if v, ok := m[baseTag]; ok {
 		return v
 	}
+	def := defaultTag()
+	if v, ok := m[def]; ok {
+		return v
+	}
 	if v, ok := m[xlanguage.English]; ok {
 		return v
 	}
 	if official {
+		if v, ok := c.names[def]; ok {
+			return v
+		}
 		if v, ok := c.names[xlanguage.English]; ok {
 			return v
 		}
