@@ -23,6 +23,7 @@ import (
 	"sync"
 
 	xlanguage "golang.org/x/text/language"
+	xdisplay "golang.org/x/text/language/display"
 
 	"github.com/lazygophers/utils/currency"
 )
@@ -87,6 +88,30 @@ func (c *Country) Tlds() []string {
 // countries pick the dominant working language (e.g. Canada → English,
 // Switzerland → German, India → Hindi).
 func (c *Country) OfficialLanguage() xlanguage.Tag { return c.officialLanguage }
+
+// OfficialLanguageCode returns the BCP47 short code of the official language
+// (e.g. "zh", "en", "ja").
+func (c *Country) OfficialLanguageCode() string { return c.officialLanguage.String() }
+
+// OfficialLanguageBase returns the ISO 639 base subtag of the official language
+// (e.g. "zh" for "zh-Hant", "pt" for "pt-BR").
+func (c *Country) OfficialLanguageBase() string {
+	base, _ := c.officialLanguage.Base()
+	return base.String()
+}
+
+// OfficialLanguageName returns the display name of the official language,
+// rendered in the current goroutine's language (e.g. "Chinese" in an English
+// context, "中文" in a Chinese context).
+func (c *Country) OfficialLanguageName() string {
+	return c.OfficialLanguageNameIn(currentTag())
+}
+
+// OfficialLanguageNameIn returns the display name of the official language
+// rendered in the given language.
+func (c *Country) OfficialLanguageNameIn(tag xlanguage.Tag) string {
+	return xdisplay.Tags(tag).Name(c.officialLanguage)
+}
 
 // SpokenLanguages returns a copy of all widely-spoken language tags
 // (official + minority + lingua-franca).
