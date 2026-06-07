@@ -132,6 +132,7 @@ func loadData() (string, error) {
 
 | Module | Purpose | Development Stage |
 |--------|---------|-------------------|
+| **[fake/](fake/)** | Locale-aware fake data | 249-country faker, seedable, GB-11643 / My-Number checksums |
 | **[randx/](randx/)** | Random utilities | Cryptographically secure random |
 | **[defaults/](defaults/)** | Default values | Struct initialization |
 | **[pyroscope/](pyroscope/)** | Performance profiling | Production monitoring |

@@ -12,6 +12,8 @@ Go 工具库，模块路径 `github.com/lazygophers/utils`，Go 1.26.2。
 - `xerror/` 错误码 + 堆栈 + 多 error 聚合 + panic/recover 辅助（`New`/`Wrap`/`Join`/`Try`/`Recover`）
 - `country/`：ISO 3166-1 国家/地区数据（249 区，1 区 1 文件）+ 多语言名/官方名/首都 + 时区/区号/TLD/官方语言（双形态 API：`Get(code)` 或常量 `country.China`）
 - `currency/`：ISO 4217 货币数据（154 种，1 币 1 文件）+ 多语言名（en/zh 默认 + 7 扩展 build tag），双形态 API：`Get(code)` 或常量 `currency.Cny`
+- `fake/`：假数据生成器（faker 风格）。`New(country.Code, ...Option)` 实例 + 全局函数（`fake.Name()` 等）；249 国全骨架 + CN/US/JP 真数据（身份证含 GB 11643 校验、My Number NTA 算法、SSN 保留段排除）；`math/rand/v2` 可 seed 复现；强耦合 `country.Code`，goroutine-local 语言走 `language` 包
+- **`fake/<code>.go` 必须镜像 `country/<code>.go` 的 build tag**：12 常驻国（cn/de/fr/gb/hk/in/jp/kr/ru/sg/tw/us）无 tag，其余 237 国走 `//go:build country_<xx> || country_all || country_<region>`；否则默认 build 下 `country.Get(code)` 返回 nil 触发 register panic
 - `docs/` 是 Rspress 多语言文档站（zh-CN 默认 + zh-TW + en）
 
 ## 常用命令
