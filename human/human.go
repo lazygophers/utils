@@ -6,24 +6,39 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/lazygophers/utils/language"
 )
 
 // 全局默认配置变量
 var (
-	// defaultLocale 默认语言地区代码，用于格式化输出
-	defaultLocale = "en"
 	// defaultPrecision 默认精度，表示小数点后保留的位数
 	defaultPrecision = 1
+	// defaultCompact 是否启用紧凑模式（不带空格）
+	defaultCompact = false
+	// defaultClockFormat 是否启用时钟格式（HH:MM:SS）
+	defaultClockFormat = false
 )
 
-// SetLocale 设置默认语言地区
-func SetLocale(locale string) {
-	defaultLocale = locale
+// currentLocaleName 返回当前 goroutine 的 locale 名称（小写 base 语言代码）
+// 解析顺序：goroutine-local → 全局默认 → "en"
+func currentLocaleName() string {
+	t := language.Get()
+	if t == nil {
+		return defaultLocaleName()
+	}
+	base, _ := t.Tag().Base()
+	return base.String()
 }
 
-// GetLocale 获取当前语言地区
-func GetLocale() string {
-	return defaultLocale
+// defaultLocaleName 返回全局默认 locale 名称
+func defaultLocaleName() string {
+	t := language.Default()
+	if t == nil {
+		return "en"
+	}
+	base, _ := t.Tag().Base()
+	return base.String()
 }
 
 // SetDefaultPrecision 设置默认精度
@@ -31,125 +46,62 @@ func SetDefaultPrecision(precision int) {
 	defaultPrecision = precision
 }
 
+// SetCompact 设置紧凑模式开关
+func SetCompact(compact bool) {
+	defaultCompact = compact
+}
+
+// SetClockFormat 设置时钟格式开关
+func SetClockFormat(clock bool) {
+	defaultClockFormat = clock
+}
+
 // ByteSize 格式化字节大小为人类友好形式
-func ByteSize(bytes int64, opts ...Option) string {
-	config := applyOptions(opts...)
-	return formatByteSize(bytes, config)
+func ByteSize(bytes int64) string {
+	return formatByteSize(bytes)
 }
 
 // Speed 格式化字节速度为人类友好形式
-func Speed(bytesPerSecond int64, opts ...Option) string {
-	config := applyOptions(opts...)
-	return formatSpeed(bytesPerSecond, config)
+func Speed(bytesPerSecond int64) string {
+	return formatSpeed(bytesPerSecond)
 }
 
 // BitSpeed 格式化比特速度为人类友好形式，使用十进制换算
-func BitSpeed(bitsPerSecond int64, opts ...Option) string {
-	config := applyOptions(opts...)
-	return formatBitSpeed(bitsPerSecond, config)
+func BitSpeed(bitsPerSecond int64) string {
+	return formatBitSpeed(bitsPerSecond)
 }
 
 // Duration 格式化时间间隔为人类友好形式
-func Duration(d time.Duration, opts ...Option) string {
-	config := applyOptions(opts...)
-	return formatDuration(d, config)
+func Duration(d time.Duration) string {
+	return formatDuration(d)
 }
 
 // RelativeTime 格式化相对时间为人类友好形式
-func RelativeTime(t time.Time, opts ...Option) string {
-	config := applyOptions(opts...)
-	return formatRelativeTime(t, config)
+func RelativeTime(t time.Time) string {
+	return formatRelativeTime(t)
 }
 
-// configToOptions 配置结构转换，用于向后兼容
-func configToOptions(config Config) Options {
-	return Options{
-		Precision:  config.Precision,
-		Locale:     config.Locale,
-		Compact:    config.Compact,
-		TimeFormat: config.TimeFormat,
-	}
-}
-
-// Options 格式化选项，向后兼容用
-type Options struct {
-	Precision  int    // 精度
-	Locale     string // 语言地区
-	Unit       string // 强制单位
-	Compact    bool   // 紧凑模式
-	TimeFormat string // 时间格式
-}
-
-// DefaultOptions 返回默认选项
-func DefaultOptions() Options {
-	return Options{
-		Precision: 1,
-		Locale:    defaultLocale,
-		Compact:   false,
-	}
-}
-
-// Formatter 格式化器接口
-type Formatter interface {
-	Format(value interface{}) string
-	FormatWithOptions(value interface{}, options Options) string
-}
-
-// 兼容性函数
-
-// BitSpeedWithOptions 格式化比特速度，兼容旧版本
-func BitSpeedWithOptions(bitsPerSecond int64, opts Options) string {
-	config := Config{
-		Precision:  opts.Precision,
-		Locale:     opts.Locale,
-		Compact:    opts.Compact,
-		TimeFormat: opts.TimeFormat,
-	}
-	return formatBitSpeed(bitsPerSecond, config)
-}
-
-// ClockDuration 格式化时间为时钟格式
+// ClockDuration 格式化时间为时钟格式 (HH:MM:SS / M:SS)
 func ClockDuration(d time.Duration) string {
-	return Duration(d, WithClockFormat())
-}
-
-// DurationWithOptions 格式化时间，兼容旧版本
-func DurationWithOptions(d time.Duration, opts Options) string {
-	config := Config{
-		Precision:  opts.Precision,
-		Locale:     opts.Locale,
-		Compact:    opts.Compact,
-		TimeFormat: opts.TimeFormat,
-	}
-	return formatDuration(d, config)
-}
-
-// ByteSizeWithOptions 格式化字节大小，兼容旧版本
-func ByteSizeWithOptions(bytes int64, opts Options) string {
-	config := Config{
-		Precision: opts.Precision,
-		Locale:    opts.Locale,
-		Compact:   opts.Compact,
-	}
-	return formatByteSize(bytes, config)
+	return formatClockTime(d)
 }
 
 // 内部格式化函数
 
 // formatByteSize 格式化字节大小，使用二进制换算 (1024)
-func formatByteSize(bytes int64, config Config) string {
+func formatByteSize(bytes int64) string {
 	if bytes == 0 {
-		return formatWithUnit(0, 0, config, "byte")
+		return formatWithUnit(0, 0, "byte")
 	}
 
 	absBytes := abs(bytes)
 	const unit = 1024
 
-	locale, _ := GetLocaleConfig(config.Locale)
+	locale, _ := GetLocaleConfig(currentLocaleName())
 	units := locale.ByteUnits
 
 	if absBytes < unit {
-		return formatWithUnit(float64(bytes), 0, config, "byte")
+		return formatWithUnit(float64(bytes), 0, "byte")
 	}
 
 	// 计算合适的单位级别
@@ -161,23 +113,23 @@ func formatByteSize(bytes int64, config Config) string {
 	// 计算数值
 	value := float64(bytes) / math.Pow(unit, float64(exp))
 
-	return formatWithUnit(value, exp, config, "byte")
+	return formatWithUnit(value, exp, "byte")
 }
 
 // formatSpeed 格式化字节速度，使用二进制换算 (1024)
-func formatSpeed(bytesPerSecond int64, config Config) string {
+func formatSpeed(bytesPerSecond int64) string {
 	if bytesPerSecond == 0 {
-		return formatWithUnit(0, 0, config, "speed")
+		return formatWithUnit(0, 0, "speed")
 	}
 
 	absBytes := abs(bytesPerSecond)
 	const unit = 1024
 
-	locale, _ := GetLocaleConfig(config.Locale)
+	locale, _ := GetLocaleConfig(currentLocaleName())
 	units := locale.SpeedUnits
 
 	if absBytes < unit {
-		return formatWithUnit(float64(bytesPerSecond), 0, config, "speed")
+		return formatWithUnit(float64(bytesPerSecond), 0, "speed")
 	}
 
 	// 计算合适的单位级别
@@ -189,23 +141,23 @@ func formatSpeed(bytesPerSecond int64, config Config) string {
 	// 计算数值
 	value := float64(bytesPerSecond) / math.Pow(unit, float64(exp))
 
-	return formatWithUnit(value, exp, config, "speed")
+	return formatWithUnit(value, exp, "speed")
 }
 
 // formatBitSpeed 格式化比特速度，使用十进制换算 (1000)
-func formatBitSpeed(bitsPerSecond int64, config Config) string {
+func formatBitSpeed(bitsPerSecond int64) string {
 	if bitsPerSecond == 0 {
-		return formatWithUnit(0, 0, config, "bitspeed")
+		return formatWithUnit(0, 0, "bitspeed")
 	}
 
 	absBits := abs(bitsPerSecond)
 	const unit = 1000 // 网络速度通常使用十进制
 
-	locale, _ := GetLocaleConfig(config.Locale)
+	locale, _ := GetLocaleConfig(currentLocaleName())
 	units := locale.BitSpeedUnits
 
 	if absBits < unit {
-		return formatWithUnit(float64(bitsPerSecond), 0, config, "bitspeed")
+		return formatWithUnit(float64(bitsPerSecond), 0, "bitspeed")
 	}
 
 	// 计算合适的单位级别
@@ -217,12 +169,12 @@ func formatBitSpeed(bitsPerSecond int64, config Config) string {
 	// 计算数值
 	value := float64(bitsPerSecond) / math.Pow(unit, float64(exp))
 
-	return formatWithUnit(value, exp, config, "bitspeed")
+	return formatWithUnit(value, exp, "bitspeed")
 }
 
 // formatWithUnit 格式化数值和单位
-func formatWithUnit(value float64, unitIndex int, config Config, unitType string) string {
-	locale, _ := GetLocaleConfig(config.Locale)
+func formatWithUnit(value float64, unitIndex int, unitType string) string {
+	locale, _ := GetLocaleConfig(currentLocaleName())
 
 	var units []string
 	switch unitType {
@@ -247,15 +199,15 @@ func formatWithUnit(value float64, unitIndex int, config Config, unitType string
 	if value == math.Trunc(value) {
 		formattedValue = strconv.FormatFloat(value, 'f', 0, 64)
 	} else {
-		precision := config.Precision
+		precision := defaultPrecision
 		if precision < 0 {
-			precision = defaultPrecision
+			precision = 1
 		}
 		formattedValue = formatFloat(value, precision)
 	}
 
 	// 紧凑模式不加空格
-	if config.Compact {
+	if defaultCompact {
 		return formattedValue + unit
 	}
 
@@ -282,21 +234,21 @@ func formatFloat(f float64, precision int) string {
 }
 
 // formatDuration 格式化时间间隔
-func formatDuration(d time.Duration, config Config) string {
+func formatDuration(d time.Duration) string {
 	if d == 0 {
-		if config.TimeFormat == "clock" {
+		if defaultClockFormat {
 			return "0:00"
 		}
-		locale, _ := GetLocaleConfig(config.Locale)
+		locale, _ := GetLocaleConfig(currentLocaleName())
 		return "0 " + locale.TimeUnits.Second
 	}
 
 	// 时钟格式
-	if config.TimeFormat == "clock" {
+	if defaultClockFormat {
 		return formatClockTime(d)
 	}
 
-	locale, _ := GetLocaleConfig(config.Locale)
+	locale, _ := GetLocaleConfig(currentLocaleName())
 
 	// 处理负数
 	negative := d < 0
@@ -380,11 +332,11 @@ func formatClockTime(d time.Duration) string {
 }
 
 // formatRelativeTime 格式化相对时间
-func formatRelativeTime(t time.Time, config Config) string {
+func formatRelativeTime(t time.Time) string {
 	now := time.Now()
 	diff := now.Sub(t)
 
-	locale, _ := GetLocaleConfig(config.Locale)
+	locale, _ := GetLocaleConfig(currentLocaleName())
 
 	// 处理未来时间
 	if diff < 0 {

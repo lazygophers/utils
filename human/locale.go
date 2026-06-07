@@ -21,63 +21,6 @@ type Locale struct {
 	Common       CommonStrings       // 常用词汇
 }
 
-// TimeUnits 时间单位
-type TimeUnits struct {
-	Nanosecond  string
-	Microsecond string
-	Millisecond string
-	Second      string
-	Minute      string
-	Hour        string
-	Day         string
-	Week        string
-	Month       string
-	Year        string
-
-	// 复数形式
-	Seconds string
-	Minutes string
-	Hours   string
-	Days    string
-	Weeks   string
-	Months  string
-	Years   string
-}
-
-// RelativeTimeStrings 相对时间表达
-type RelativeTimeStrings struct {
-	JustNow    string
-	SecondsAgo string
-	MinutesAgo string
-	HoursAgo   string
-	DaysAgo    string
-	WeeksAgo   string
-	MonthsAgo  string
-	YearsAgo   string
-
-	In           string
-	SecondsLater string
-	MinutesLater string
-	HoursLater   string
-	DaysLater    string
-	WeeksLater   string
-	MonthsLater  string
-	YearsLater   string
-}
-
-// NumberFormat 数字格式
-type NumberFormat struct {
-	DecimalSeparator  string   // 小数分隔符
-	ThousandSeparator string   // 千位分隔符
-	LargeNumberUnits  []string // 大数字单位
-}
-
-// CommonStrings 常用字符串
-type CommonStrings struct {
-	And string
-	Or  string
-}
-
 var (
 	locales = make(map[string]*Locale)
 	mu      sync.RWMutex
@@ -113,7 +56,6 @@ func GetLocaleConfig(name string) (*Locale, bool) {
 
 	return nil, false
 }
-
 
 // formatWithLocale 使用地区配置格式化字符串
 func formatWithLocale(locale *Locale, format string, args ...interface{}) string {

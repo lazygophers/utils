@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/lazygophers/utils/language"
 )
 
 // TestAllNewLocales 测试所有新增的语言地区
@@ -15,15 +17,13 @@ func TestAllNewLocales(t *testing.T) {
 		region   string
 	}
 	testCases := []localeCase{
-		// Note: These tests only work if the corresponding language files are built
-		// Currently falling back to English due to build tag restrictions
 		{"en", "English", "en", "US"},
-		{"zh", "Chinese", "zh", "CN"},               // May fallback to en/US
-		{"zh-CN", "Simplified Chinese", "zh", "CN"}, // May fallback to en/US
+		{"zh", "Chinese", "zh", "CN"},
+		{"zh-CN", "Simplified Chinese", "zh", "CN"},
 	}
 
-	// Test zh-TW separately if available (build-tag dependent)
-	if locale, ok := GetLocaleConfig("zh-TW"); ok && locale.Language == "zh" && locale.Region == "TW" {
+	locale, ok := GetLocaleConfig("zh-TW")
+	if ok && locale.Language == "zh" && locale.Region == "TW" {
 		testCases = append(testCases, localeCase{"zh-TW", "Traditional Chinese", "zh", "TW"})
 	}
 
@@ -35,81 +35,48 @@ func TestAllNewLocales(t *testing.T) {
 				return
 			}
 
-			// Check if locale matches expected values or handle fallback behavior
 			if locale.Language != tc.language {
-				if locale.Language == "en" && locale.Region == "US" {
-					t.Logf("Locale %s fell back to en/US (this is acceptable due to build tags)", tc.locale)
-				} else {
-					t.Logf("Locale %s: Expected language %s, got %s (accepting due to build constraints)", tc.locale, tc.language, locale.Language)
-				}
-			} else {
-				t.Logf("Locale %s: Language matches expected %s", tc.locale, tc.language)
+				t.Logf("Locale %s: Expected language %s, got %s (accepting due to build constraints)", tc.locale, tc.language, locale.Language)
 			}
-
 			if locale.Region != tc.region {
-				if locale.Language == "en" && locale.Region == "US" {
-					t.Logf("Locale %s fell back to en/US (this is acceptable due to build tags)", tc.locale)
-				} else {
-					t.Logf("Locale %s: Expected region %s, got %s (accepting due to build constraints)", tc.locale, tc.region, locale.Region)
-				}
-			} else {
-				t.Logf("Locale %s: Region matches expected %s", tc.locale, tc.region)
+				t.Logf("Locale %s: Expected region %s, got %s (accepting due to build constraints)", tc.locale, tc.region, locale.Region)
 			}
 
-			// 测试基本功能
-			testBasicLocaleFeatures(t, tc.locale, locale)
+			testBasicLocaleFeatures(t, tc.locale)
 		})
 	}
 }
 
 // testBasicLocaleFeatures 测试locale的基本功能
-func testBasicLocaleFeatures(t *testing.T, localeCode string, locale *Locale) {
-	// 保存原始设置
-	originalLocale := GetLocale()
-	defer SetLocale(originalLocale)
+func testBasicLocaleFeatures(t *testing.T, localeCode string) {
+	defer resetState()
 
-	// 设置测试locale
-	SetLocale(localeCode)
+	language.Set(language.Make(localeCode))
 
-	// 测试字节大小格式化
-	result := ByteSize(1024)
-	if result == "" {
+	if result := ByteSize(1024); result == "" {
 		t.Errorf("ByteSize formatting failed for locale %s", localeCode)
 	}
-
-	// 测试速度格式化
-	result = Speed(1024)
-	if result == "" {
+	if result := Speed(1024); result == "" {
 		t.Errorf("Speed formatting failed for locale %s", localeCode)
 	}
-
-	// 测试位速度格式化
-	result = BitSpeed(1000)
-	if result == "" {
+	if result := BitSpeed(1000); result == "" {
 		t.Errorf("BitSpeed formatting failed for locale %s", localeCode)
 	}
-
-	// 测试时间格式化
-	result = Duration(90 * time.Second)
-	if result == "" {
+	if result := Duration(90 * time.Second); result == "" {
 		t.Errorf("Duration formatting failed for locale %s", localeCode)
 	}
-
-	// 测试相对时间格式化
-	result = RelativeTime(time.Now().Add(-30 * time.Second))
-	if result == "" {
+	if result := RelativeTime(time.Now().Add(-30 * time.Second)); result == "" {
 		t.Errorf("RelativeTime formatting failed for locale %s", localeCode)
 	}
 }
 
 // TestTraditionalChineseSpecifics 测试繁体中文特定功能
 func TestTraditionalChineseSpecifics(t *testing.T) {
-	originalLocale := GetLocale()
-	defer SetLocale(originalLocale)
+	resetState()
+	defer resetState()
 
-	SetLocale("zh-TW")
+	language.Set(language.Make("zh-TW"))
 
-	// 测试特定繁体字
 	result := Duration(60 * time.Second)
 	if !containsTraditionalCharacters(result) {
 		t.Logf("Duration result: %s (expected traditional Chinese characters)", result)
@@ -123,19 +90,17 @@ func TestTraditionalChineseSpecifics(t *testing.T) {
 
 // TestFrenchSpecifics 测试法语特定功能
 func TestFrenchSpecifics(t *testing.T) {
-	originalLocale := GetLocale()
-	defer SetLocale(originalLocale)
+	resetState()
+	defer resetState()
 
-	SetLocale("fr")
+	language.Set(language.Make("fr"))
 
-	// 测试法语字节单位
 	result := ByteSize(1024)
 	t.Logf("French ByteSize: %s (should use Ko for kilobytes)", result)
 	if result == "" {
 		t.Error("ByteSize should not return empty string for French locale")
 	}
 
-	// 测试法语相对时间
 	result = RelativeTime(time.Now().Add(-120 * time.Second))
 	t.Logf("French RelativeTime: %s", result)
 	if result == "" {
@@ -145,19 +110,17 @@ func TestFrenchSpecifics(t *testing.T) {
 
 // TestRussianSpecifics 测试俄语特定功能
 func TestRussianSpecifics(t *testing.T) {
-	originalLocale := GetLocale()
-	defer SetLocale(originalLocale)
+	resetState()
+	defer resetState()
 
-	SetLocale("ru")
+	language.Set(language.Make("ru"))
 
-	// 测试俄语字节单位
 	result := ByteSize(1024)
 	t.Logf("Russian ByteSize: %s (should use КБ for kilobytes)", result)
 	if result == "" {
 		t.Error("ByteSize should not return empty string for Russian locale")
 	}
 
-	// 测试俄语位速度单位
 	result = BitSpeed(1000)
 	t.Logf("Russian BitSpeed: %s (should use Cyrillic characters)", result)
 	if result == "" {
@@ -167,57 +130,57 @@ func TestRussianSpecifics(t *testing.T) {
 
 // TestArabicSpecifics 测试阿拉伯语特定功能
 func TestArabicSpecifics(t *testing.T) {
-	originalLocale := GetLocale()
-	defer SetLocale(originalLocale)
+	resetState()
+	defer resetState()
 
-	SetLocale("ar")
+	language.Set(language.Make("ar"))
 
-	// 测试阿拉伯语字节单位
 	result := ByteSize(1024)
 	t.Logf("Arabic ByteSize: %s", result)
 
-	// 测试阿拉伯语相对时间
 	result = RelativeTime(time.Now().Add(-60 * time.Second))
 	t.Logf("Arabic RelativeTime: %s", result)
 }
 
 // TestSpanishSpecifics 测试西班牙语特定功能
 func TestSpanishSpecifics(t *testing.T) {
-	originalLocale := GetLocale()
-	defer SetLocale(originalLocale)
+	resetState()
+	defer resetState()
 
-	SetLocale("es")
+	language.Set(language.Make("es"))
 
-	// 测试西班牙语时间单位
 	result := Duration(90 * time.Second)
 	t.Logf("Spanish Duration: %s", result)
 
-	// 测试西班牙语相对时间
 	result = RelativeTime(time.Now().Add(-120 * time.Second))
 	t.Logf("Spanish RelativeTime: %s", result)
 }
 
-// TestAllLocalesWithOptions 测试所有语言的选项功能
-func TestAllLocalesWithOptions(t *testing.T) {
+// TestAllLocalesWithFlags 测试所有语言搭配各类 flag
+func TestAllLocalesWithFlags(t *testing.T) {
 	locales := []string{"zh-TW", "fr", "ru", "ar", "es"}
 
 	for _, locale := range locales {
 		t.Run(locale, func(t *testing.T) {
-			// 测试高精度选项
-			result := ByteSize(1536, WithLocale(locale), WithPrecision(2))
-			if result == "" {
-				t.Errorf("ByteSize with options failed for locale %s", locale)
+			resetState()
+			defer resetState()
+
+			language.Set(language.Make(locale))
+
+			SetDefaultPrecision(2)
+			if result := ByteSize(1536); result == "" {
+				t.Errorf("ByteSize with precision failed for locale %s", locale)
 			}
 
-			// 测试紧凑模式
-			result = ByteSize(1024, WithLocale(locale), WithCompact())
-			if result == "" {
+			SetDefaultPrecision(1)
+			SetCompact(true)
+			if result := ByteSize(1024); result == "" {
 				t.Errorf("Compact ByteSize failed for locale %s", locale)
 			}
 
-			// 测试时钟格式
-			result = Duration(90*time.Second, WithLocale(locale), WithClockFormat())
-			if result == "" {
+			SetCompact(false)
+			SetClockFormat(true)
+			if result := Duration(90 * time.Second); result == "" {
 				t.Errorf("Clock format Duration failed for locale %s", locale)
 			}
 		})
@@ -231,19 +194,17 @@ func TestPluralizationRules(t *testing.T) {
 		hasPluralization bool
 	}
 	testCases := []pluralCase{
-		{"en", true}, // 英语有复数
-		// Note: zh might fallback to en/US which has pluralization
-		// So we only test this if we actually get a Chinese locale
+		{"en", true},
 	}
 
-	// Test zh only if it's actually a Chinese locale (not falling back to English)
-	if locale, ok := GetLocaleConfig("zh"); ok && locale.Language == "zh" && locale.Region == "CN" {
-		testCases = append(testCases, pluralCase{"zh", false}) // 中文没有复数
+	locale, ok := GetLocaleConfig("zh")
+	if ok && locale.Language == "zh" && locale.Region == "CN" {
+		testCases = append(testCases, pluralCase{"zh", false})
 	}
 
-	// Test zh-TW separately if it's actually available (not falling back to English)
-	if locale, ok := GetLocaleConfig("zh-TW"); ok && locale.Language == "zh" && locale.Region == "TW" {
-		testCases = append(testCases, pluralCase{"zh-TW", false}) // 繁体中文没有复数
+	locale, ok = GetLocaleConfig("zh-TW")
+	if ok && locale.Language == "zh" && locale.Region == "TW" {
+		testCases = append(testCases, pluralCase{"zh-TW", false})
 	}
 
 	for _, tc := range testCases {
@@ -256,10 +217,8 @@ func TestPluralizationRules(t *testing.T) {
 			singular := locale.TimeUnits.Second
 			plural := locale.TimeUnits.Seconds
 
-			// Adjust expectation based on actual locale (in case of fallback)
 			actualHasPluralization := tc.hasPluralization
 			if locale.Language == "en" {
-				// If fallback to English, we expect pluralization
 				actualHasPluralization = true
 			}
 
