@@ -35,4 +35,3 @@ title: defaults
 
 - [validator](/modules/core/validator)
 - [config](/modules/system/config)
-- [fake](/modules/dev/fake)

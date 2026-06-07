@@ -17,7 +17,7 @@ LazyGophers Utils provides 20+ specialized modules covering all aspects of Go de
 | [System & Configuration](/en/modules/system/) | Config loading, path resolution, app init, exit cleanup | [config](/en/modules/system/config), [runtime](/en/modules/system/runtime), [osx](/en/modules/system/osx), [app](/en/modules/system/app), [atexit](/en/modules/system/atexit) |
 | [Network & Security](/en/modules/network/) | HTTP helpers, encryption, signing, URL normalization | [network](/en/modules/network/network), [cryptox](/en/modules/network/cryptox), [pgp](/en/modules/network/pgp), [urlx](/en/modules/network/urlx) |
 | [Concurrency & Control Flow](/en/modules/concurrency/) | Task execution, waiting, circuit breaking, dedup | [routine](/en/modules/concurrency/routine), [wait](/en/modules/concurrency/wait), [hystrix](/en/modules/concurrency/hystrix), [singledo](/en/modules/concurrency/singledo), [event](/en/modules/concurrency/event) |
-| [Development & Testing](/en/modules/dev/) | Default values, fake/random data, profiling | [fake](/en/modules/dev/fake), [randx](/en/modules/dev/randx), [defaults](/en/modules/dev/defaults), [pyroscope](/en/modules/dev/pyroscope) |
+| [Development & Testing](/en/modules/dev/) | Default values, random data, profiling | [randx](/en/modules/dev/randx), [defaults](/en/modules/dev/defaults), [pyroscope](/en/modules/dev/pyroscope) |
 
 ## Standalone Module
 

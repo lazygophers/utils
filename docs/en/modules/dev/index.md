@@ -8,7 +8,6 @@ Provides test data generation, random utilities, default values, and other devel
 
 ## Modules
 
-- [fake](./fake.md) - Test data generation
 - [randx](./randx.md) - Random utilities
 - [defaults](./defaults.md) - Default values
 - [pyroscope](./pyroscope.md) - Performance profiling

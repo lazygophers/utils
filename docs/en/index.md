@@ -150,7 +150,6 @@ func loadData() (string, error) {
 
 | Module | Purpose | Development Stage |
 |--------|---------|-------------------|
-| **[fake/](https://github.com/lazygophers/utils/tree/main/fake)** | Test data generation | Unit testing, integration testing |
 | **[randx/](https://github.com/lazygophers/utils/tree/main/randx)** | Random utilities | Cryptographically secure random |
 | **[defaults/](https://github.com/lazygophers/utils/tree/main/defaults)** | Default values | Struct initialization |
 | **[pyroscope/](https://github.com/lazygophers/utils/tree/main/pyroscope)** | Performance profiling | Production monitoring |

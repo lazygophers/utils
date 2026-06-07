@@ -8,7 +8,6 @@ title: 开发与测试
 
 ## 模块列表
 
-- [fake](./fake.md) - 测试数据生成
 - [randx](./randx.md) - 随机工具
 - [defaults](./defaults.md) - 默认值
 - [pyroscope](./pyroscope.md) - 性能分析

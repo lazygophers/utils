@@ -200,6 +200,5 @@ The randx module uses high-performance random number generation with optimized i
 
 ## Related Documentation
 
-- [fake](/en/modules/dev/fake) - Test data generation
 - [API Documentation](/en/api/overview)
 - [Module Overview](/en/modules/overview)

@@ -8,7 +8,6 @@ title: 開發與測試
 
 ## 模組列表
 
-- [fake](./fake.md) - 測試數據生成
 - [randx](./randx.md) - 隨機工具
 - [defaults](./defaults.md) - 默認值
 - [pyroscope](./pyroscope.md) - 性能分析

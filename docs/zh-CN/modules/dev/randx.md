@@ -15,11 +15,9 @@ title: randx
 ## 使用建议
 
 - 随机工具要先区分“测试辅助”与“安全随机”，不要把普通随机直接用于安全敏感场景。
-- 如果目标是构造更接近真实业务的数据，而不只是随机字符，请看 [fake](/modules/dev/fake)。
 - 涉及可重现测试时，要明确随机种子策略。
 
 ## 相关文档
 
-- [fake](/modules/dev/fake)
 - [defaults](/modules/dev/defaults)
 - [candy](/modules/data/candy)

@@ -107,7 +107,6 @@ const moduleGroups: GroupDef[] = [
     text: { 'zh-CN': '开发与测试', en: 'Development & Testing', 'zh-TW': '開發與測試' },
     link: '/modules/dev/',
     items: [
-      { text: 'fake', link: '/modules/dev/fake' },
       { text: 'randx', link: '/modules/dev/randx' },
       { text: 'defaults', link: '/modules/dev/defaults' },
       { text: 'pyroscope', link: '/modules/dev/pyroscope' },

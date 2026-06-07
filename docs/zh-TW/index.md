@@ -143,7 +143,6 @@ func loadData() (string, error) {
 ### 🧪 開發與測試
 | 模組 | 用途 | 開發階段 |
 |--------|---------|-------------------|
-| **[fake/](https://github.com/lazygophers/utils/tree/main/fake)** | 測試數據生成 | 單元測試, 集成測試 |
 | **[randx/](https://github.com/lazygophers/utils/tree/main/randx)** | 隨機工具 | 加密安全的隨機數 |
 | **[defaults/](https://github.com/lazygophers/utils/tree/main/defaults)** | 默認值 | 結構體初始化 |
 | **[pyroscope/](https://github.com/lazygophers/utils/tree/main/pyroscope)** | 性能分析 | 生產監控 |
