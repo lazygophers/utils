@@ -128,3 +128,58 @@ func equalStrSlice(a, b []string) bool {
 	}
 	return true
 }
+
+type cidrRangeCase struct {
+	name        string
+	cidr        string
+	wantStart   string
+	wantEnd     string
+	wantCountStr string
+}
+
+func TestCIDRRange(t *testing.T) {
+	cases := []cidrRangeCase{
+		{"v4 /24", "10.0.0.0/24", "10.0.0.0", "10.0.0.255", "256"},
+		{"v4 /32 single host", "10.0.0.5/32", "10.0.0.5", "10.0.0.5", "1"},
+		{"v4 /16", "192.168.0.0/16", "192.168.0.0", "192.168.255.255", "65536"},
+		{"v4 non-canonical input", "10.0.0.5/24", "10.0.0.0", "10.0.0.255", "256"},
+		{"v4 /0", "0.0.0.0/0", "0.0.0.0", "255.255.255.255", "4294967296"},
+		{"v6 /64", "2001:db8::/64", "2001:db8::", "2001:db8::ffff:ffff:ffff:ffff", "18446744073709551616"},
+		{"v6 /128", "::1/128", "::1", "::1", "1"},
+		{"v6 /127", "2001:db8::/127", "2001:db8::", "2001:db8::1", "2"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			p := netip.MustParsePrefix(c.cidr)
+			start := CIDRStart(p)
+			end := CIDREnd(p)
+			if start.String() != c.wantStart {
+				t.Errorf("start=%q want %q", start, c.wantStart)
+			}
+			if end.String() != c.wantEnd {
+				t.Errorf("end=%q want %q", end, c.wantEnd)
+			}
+			count := CIDRCount(p)
+			if count.String() != c.wantCountStr {
+				t.Errorf("count=%s want %s", count.String(), c.wantCountStr)
+			}
+			s2, e2 := CIDRStartEnd(p)
+			if s2 != start || e2 != end {
+				t.Errorf("StartEndIP mismatch")
+			}
+		})
+	}
+}
+
+func TestCIDRRangeInvalid(t *testing.T) {
+	var p netip.Prefix
+	if CIDRStart(p).IsValid() {
+		t.Error("invalid start should be zero")
+	}
+	if CIDREnd(p).IsValid() {
+		t.Error("invalid end should be zero")
+	}
+	if CIDRCount(p) != nil {
+		t.Error("invalid count should be nil")
+	}
+}

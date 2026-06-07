@@ -1,6 +1,7 @@
 package network
 
 import (
+	"math/big"
 	"net/netip"
 	"sort"
 )
@@ -121,4 +122,66 @@ func areSiblings(a, b netip.Prefix) bool {
 	}
 	parentBits := a.Bits() - 1
 	return netip.PrefixFrom(a.Addr(), parentBits).Masked() == netip.PrefixFrom(b.Addr(), parentBits).Masked()
+}
+
+// CIDRStart 返回 CIDR 前缀的起始地址（网络地址）；invalid 输入返回零值 Addr。
+func CIDRStart(p netip.Prefix) netip.Addr {
+	if !p.IsValid() {
+		return netip.Addr{}
+	}
+	return p.Masked().Addr()
+}
+
+// CIDREnd 返回 CIDR 前缀的结束地址（主机位全 1）；invalid 输入返回零值 Addr。
+// IPv4 即广播地址；IPv6 即区间末址。
+func CIDREnd(p netip.Prefix) netip.Addr {
+	if !p.IsValid() {
+		return netip.Addr{}
+	}
+	canon := p.Masked()
+	addr := canon.Addr()
+	bits := canon.Bits()
+
+	if addr.Is4() {
+		b := addr.As4()
+		setHostBits(b[:], bits)
+		return netip.AddrFrom4(b)
+	}
+	b := addr.As16()
+	setHostBits(b[:], bits)
+	return netip.AddrFrom16(b)
+}
+
+// CIDRStartEnd 同时返回 CIDR 前缀的起止地址。
+func CIDRStartEnd(p netip.Prefix) (start, end netip.Addr) {
+	return CIDRStart(p), CIDREnd(p)
+}
+
+// CIDRCount 返回前缀覆盖的地址总数；用 *big.Int 兼容 IPv6（/0 时 2^128）。
+// invalid 输入返回 nil。
+func CIDRCount(p netip.Prefix) *big.Int {
+	if !p.IsValid() {
+		return nil
+	}
+	hostBits := p.Addr().BitLen() - p.Bits()
+	return new(big.Int).Lsh(big.NewInt(1), uint(hostBits))
+}
+
+// setHostBits 把 b 中第 prefix 位起的所有位置 1。
+func setHostBits(b []byte, prefix int) {
+	total := len(b) * 8
+	if prefix >= total {
+		return
+	}
+	// 前缀所在字节的低位部分
+	byteIdx := prefix / 8
+	bitInByte := prefix % 8
+	if bitInByte != 0 {
+		b[byteIdx] |= 0xFF >> uint(bitInByte)
+		byteIdx++
+	}
+	// 剩余字节整字节填 0xFF
+	for i := byteIdx; i < len(b); i++ {
+		b[i] = 0xFF
+	}
 }
