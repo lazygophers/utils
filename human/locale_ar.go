@@ -2,9 +2,11 @@
 
 package human
 
+import xlanguage "golang.org/x/text/language"
+
 // 注册阿拉伯语语言支持
 func init() {
-	RegisterLocale("ar", &Locale{
+	RegisterLocale(xlanguage.Arabic, &Locale{
 		Language:      "ar",
 		Region:        "SA",
 		ByteUnits:     []string{"ب", "كب", "مب", "جب", "تب", "بب"},

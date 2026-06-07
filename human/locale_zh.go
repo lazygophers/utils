@@ -1,8 +1,10 @@
 package human
 
+import xlanguage "golang.org/x/text/language"
+
 // 注册中文语言支持
 func init() {
-	RegisterLocale("zh", &Locale{
+	RegisterLocale(xlanguage.Chinese, &Locale{
 		Language:      "zh",
 		Region:        "CN",
 		ByteUnits:     []string{"B", "KB", "MB", "GB", "TB", "PB"},
@@ -64,7 +66,7 @@ func init() {
 	})
 
 	// 同时注册 zh-CN
-	RegisterLocale("zh-CN", &Locale{
+	RegisterLocale(xlanguage.MustParse("zh-CN"), &Locale{
 		Language:      "zh",
 		Region:        "CN",
 		ByteUnits:     []string{"B", "KB", "MB", "GB", "TB", "PB"},

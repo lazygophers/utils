@@ -2,9 +2,11 @@
 
 package human
 
+import xlanguage "golang.org/x/text/language"
+
 // 注册法语语言支持
 func init() {
-	RegisterLocale("fr", &Locale{
+	RegisterLocale(xlanguage.French, &Locale{
 		Language:      "fr",
 		Region:        "FR",
 		ByteUnits:     []string{"o", "Ko", "Mo", "Go", "To", "Po"},

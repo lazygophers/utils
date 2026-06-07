@@ -2,9 +2,11 @@
 
 package human
 
+import xlanguage "golang.org/x/text/language"
+
 // 注册繁体中文语言支持
 func init() {
-	RegisterLocale("zh-TW", &Locale{
+	RegisterLocale(xlanguage.MustParse("zh-TW"), &Locale{
 		Language:      "zh",
 		Region:        "TW",
 		ByteUnits:     []string{"B", "KB", "MB", "GB", "TB", "PB"},

@@ -1,8 +1,9 @@
 package human
 
 import (
-	"strings"
 	"sync"
+
+	xlanguage "golang.org/x/text/language"
 )
 
 // Locale 语言地区配置
@@ -21,34 +22,35 @@ type Locale struct {
 }
 
 var (
-	locales = make(map[string]*Locale)
+	locales = make(map[xlanguage.Tag]*Locale)
 	mu      sync.RWMutex
 )
 
-// RegisterLocale 注册语言地区
-func RegisterLocale(name string, locale *Locale) {
+// RegisterLocale 注册语言地区配置。tag 使用 stdlib
+// golang.org/x/text/language.Tag。
+func RegisterLocale(tag xlanguage.Tag, locale *Locale) {
 	mu.Lock()
 	defer mu.Unlock()
-	locales[name] = locale
+	locales[tag] = locale
 }
 
-// GetLocaleConfig 获取语言地区配置。匹配顺序：完整 name → 去地区后的 base
-// → "en"。返回 false 仅在 "en" 也未注册时发生。
-func GetLocaleConfig(name string) (*Locale, bool) {
+// GetLocaleConfig 获取语言地区配置。匹配顺序：完整 tag → base 语言（zh-CN → zh）
+// → English。仅当 English 也未注册时返回 false。
+func GetLocaleConfig(tag xlanguage.Tag) (*Locale, bool) {
 	mu.RLock()
 	defer mu.RUnlock()
 
-	if locale, ok := locales[name]; ok {
+	if locale, ok := locales[tag]; ok {
 		return locale, true
 	}
 
-	if i := strings.IndexByte(name, '-'); i > 0 {
-		if locale, ok := locales[name[:i]]; ok {
-			return locale, true
-		}
+	base, _ := tag.Base()
+	baseTag := xlanguage.Make(base.String())
+	if locale, ok := locales[baseTag]; ok {
+		return locale, true
 	}
 
-	if locale, ok := locales["en"]; ok {
+	if locale, ok := locales[xlanguage.English]; ok {
 		return locale, true
 	}
 
@@ -58,7 +60,7 @@ func GetLocaleConfig(name string) (*Locale, bool) {
 // getTimeUnit 获取时间单位的正确形式
 func getTimeUnit(locale *Locale, unit string, count int64) string {
 	if locale == nil {
-		locale, _ = GetLocaleConfig("en")
+		locale, _ = GetLocaleConfig(xlanguage.English)
 	}
 
 	// 对于英文，需要处理单复数

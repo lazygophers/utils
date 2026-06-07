@@ -13,7 +13,7 @@ func formatRelativeTime(t time.Time) string {
 	now := time.Now()
 	diff := now.Sub(t)
 
-	locale, _ := GetLocaleConfig(currentLocaleName())
+	locale, _ := GetLocaleConfig(currentTag())
 
 	if diff < 0 {
 		diff = -diff

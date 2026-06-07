@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 
+	xlanguage "golang.org/x/text/language"
+
 	"github.com/lazygophers/utils/language"
 )
 
@@ -32,18 +34,17 @@ func SetCompact(compact bool) { defaultCompact = compact }
 // SetClockFormat toggles the clock-style rendering for durations (HH:MM:SS).
 func SetClockFormat(clock bool) { defaultClockFormat = clock }
 
-// currentLocaleName returns the goroutine-effective locale base code
-// (e.g. "zh", "en"). Falls back to the global default, then "en".
-func currentLocaleName() string {
+// currentTag returns the goroutine-effective language tag. Resolution order:
+// goroutine-local override → global default → English.
+func currentTag() xlanguage.Tag {
 	t := language.Get()
 	if t == nil {
 		t = language.Default()
 	}
 	if t == nil {
-		return "en"
+		return xlanguage.English
 	}
-	base, _ := t.Tag().Base()
-	return base.String()
+	return t.Tag()
 }
 
 // formatScaled scales v down by base until it fits a unit slot, then composes

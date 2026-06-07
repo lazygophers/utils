@@ -10,11 +10,11 @@ func Speed(bytesPerSecond int64) string { return formatSpeed(bytesPerSecond) }
 func BitSpeed(bitsPerSecond int64) string { return formatBitSpeed(bitsPerSecond) }
 
 func formatSpeed(bytesPerSecond int64) string {
-	locale, _ := GetLocaleConfig(currentLocaleName())
+	locale, _ := GetLocaleConfig(currentTag())
 	return formatScaled(bytesPerSecond, 1024, locale.SpeedUnits)
 }
 
 func formatBitSpeed(bitsPerSecond int64) string {
-	locale, _ := GetLocaleConfig(currentLocaleName())
+	locale, _ := GetLocaleConfig(currentTag())
 	return formatScaled(bitsPerSecond, 1000, locale.BitSpeedUnits)
 }

@@ -1,6 +1,7 @@
 package human
 
 import (
+	xlanguage "golang.org/x/text/language"
 	"testing"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 // helperUnits returns the units slice for a unit category, used by tests
 // previously calling the removed formatWithUnit(value, idx, name) form.
 func helperUnits(name string) []string {
-    loc, _ := GetLocaleConfig("en")
+    loc, _ := GetLocaleConfig(xlanguage.English)
     switch name {
     case "byte":
         return loc.ByteUnits
@@ -431,7 +432,7 @@ func TestCompleteCodeCoverage(t *testing.T) {
 			_ = formatRelativeTime(now.Add(d))
 		}
 
-		locale, _ := GetLocaleConfig("en")
+		locale, _ := GetLocaleConfig(xlanguage.English)
 
 		_ = getTimeUnit(locale, locale.TimeUnits.Second, 1)
 		_ = getTimeUnit(locale, locale.TimeUnits.Second, 2)
@@ -455,21 +456,21 @@ func TestCompleteCodeCoverage(t *testing.T) {
 			SpeedUnits:    []string{"B/s", "KB/s", "MB/s"},
 			BitSpeedUnits: []string{"bps", "Kbps", "Mbps"},
 		}
-		RegisterLocale("test", testLocale)
+		RegisterLocale(xlanguage.MustParse("x-test"), testLocale)
 
-		_, ok := GetLocaleConfig("test")
+		_, ok := GetLocaleConfig(xlanguage.MustParse("x-test"))
 		if !ok {
 			t.Error("Should find registered locale")
 		}
-		_, ok = GetLocaleConfig("test-REGION")
+		_, ok = GetLocaleConfig(xlanguage.MustParse("x-test-REGION"))
 		if !ok {
 			t.Error("Should fallback to language")
 		}
-		_, ok = GetLocaleConfig("nonexistent")
+		_, ok = GetLocaleConfig(xlanguage.MustParse("x-nonexist"))
 		if !ok {
 			t.Error("Should fallback to English")
 		}
-		_, ok = GetLocaleConfig("")
+		_, ok = GetLocaleConfig(xlanguage.Tag{})
 		if !ok {
 			t.Error("Should fallback to English for empty string")
 		}
@@ -482,19 +483,19 @@ func TestSetCurrentLocale(t *testing.T) {
 	defer resetState()
 
 	language.Set(language.Make("zh-CN"))
-	if got := currentLocaleName(); got != "zh" {
-		t.Errorf("currentLocaleName after Set(zh-CN) = %s, want zh", got)
+	if got, _ := currentTag().Base(); got.String() != "zh" {
+		t.Errorf("currentTag after Set(zh-CN) = %s, want zh", got)
 	}
 
 	language.Set(language.Make("ja"))
-	if got := currentLocaleName(); got != "ja" {
-		t.Errorf("currentLocaleName after Set(ja) = %s, want ja", got)
+	if got, _ := currentTag().Base(); got.String() != "ja" {
+		t.Errorf("currentTag after Set(ja) = %s, want ja", got)
 	}
 
 	language.Del()
 	// 默认 fallback
-	if got := currentLocaleName(); got != "en" {
-		t.Errorf("currentLocaleName after Del = %s, want en", got)
+	if got, _ := currentTag().Base(); got.String() != "en" {
+		t.Errorf("currentTag after Del = %s, want en", got)
 	}
 }
 
@@ -724,9 +725,9 @@ func TestLocaleRegistration(t *testing.T) {
 		SpeedUnits:    []string{"B/s", "KB/s", "MB/s"},
 		BitSpeedUnits: []string{"bps", "Kbps", "Mbps"},
 	}
-	RegisterLocale("regtest", testLocale)
+	RegisterLocale(xlanguage.MustParse("x-regtest"), testLocale)
 
-	retrieved, ok := GetLocaleConfig("regtest")
+	retrieved, ok := GetLocaleConfig(xlanguage.MustParse("x-regtest"))
 	if !ok {
 		t.Error("Failed to retrieve registered locale")
 	}
@@ -734,12 +735,12 @@ func TestLocaleRegistration(t *testing.T) {
 		t.Errorf("Retrieved locale language = %s, want regtest", retrieved.Language)
 	}
 
-	_, ok = GetLocaleConfig("regtest-REGION")
+	_, ok = GetLocaleConfig(xlanguage.MustParse("x-regtest-REGION"))
 	if !ok {
 		t.Error("Failed to fallback to language locale")
 	}
 
-	_, ok = GetLocaleConfig("nonexistent")
+	_, ok = GetLocaleConfig(xlanguage.MustParse("x-nonexist"))
 	if !ok {
 		t.Error("Failed to fallback to English locale")
 	}
@@ -747,7 +748,7 @@ func TestLocaleRegistration(t *testing.T) {
 
 // TestGetTimeUnit 测试时间单位获取
 func TestGetTimeUnit(t *testing.T) {
-	locale, _ := GetLocaleConfig("en")
+	locale, _ := GetLocaleConfig(xlanguage.English)
 
 	result := getTimeUnit(locale, locale.TimeUnits.Second, 1)
 	if result != "second" {
@@ -899,7 +900,7 @@ func TestFormatRelativeTimeEdgeCases(t *testing.T) {
 
 // TestFormatPastTimeAllRanges 测试过去时间的所有时间范围
 func TestFormatPastTimeAllRanges(t *testing.T) {
-	locale, _ := GetLocaleConfig("en")
+	locale, _ := GetLocaleConfig(xlanguage.English)
 
 	durations := []time.Duration{
 		5 * time.Second,
@@ -922,7 +923,7 @@ func TestFormatPastTimeAllRanges(t *testing.T) {
 
 // TestFormatFutureTimeAllRanges 测试未来时间的所有时间范围
 func TestFormatFutureTimeAllRanges(t *testing.T) {
-	locale, _ := GetLocaleConfig("en")
+	locale, _ := GetLocaleConfig(xlanguage.English)
 
 	durations := []time.Duration{
 		30 * time.Second,
@@ -997,7 +998,7 @@ func TestAllUnitTypes(t *testing.T) {
 
 // TestGetTimeUnitEdgeCases 测试getTimeUnit的边界情况
 func TestGetTimeUnitEdgeCases(t *testing.T) {
-	locale, _ := GetLocaleConfig("en")
+	locale, _ := GetLocaleConfig(xlanguage.English)
 
 	// count != 1 triggers pluralization in en, so 0 → "seconds"
 	result := getTimeUnit(locale, locale.TimeUnits.Second, 0)

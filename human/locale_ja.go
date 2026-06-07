@@ -2,9 +2,11 @@
 
 package human
 
+import xlanguage "golang.org/x/text/language"
+
 // 注册日文语言支持
 func init() {
-	RegisterLocale("ja", &Locale{
+	RegisterLocale(xlanguage.Japanese, &Locale{
 		Language:      "ja",
 		Region:        "JP",
 		ByteUnits:     []string{"B", "KB", "MB", "GB", "TB", "PB"},

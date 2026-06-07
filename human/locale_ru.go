@@ -2,9 +2,11 @@
 
 package human
 
+import xlanguage "golang.org/x/text/language"
+
 // 注册俄语语言支持
 func init() {
-	RegisterLocale("ru", &Locale{
+	RegisterLocale(xlanguage.Russian, &Locale{
 		Language:      "ru",
 		Region:        "RU",
 		ByteUnits:     []string{"Б", "КБ", "МБ", "ГБ", "ТБ", "ПБ"},

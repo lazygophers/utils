@@ -1,8 +1,10 @@
 package human
 
+import xlanguage "golang.org/x/text/language"
+
 // Register English language configuration
 func init() {
-	RegisterLocale("en", &Locale{
+	RegisterLocale(xlanguage.English, &Locale{
 		Language:      "en",
 		Region:        "US",
 		ByteUnits:     []string{"B", "KB", "MB", "GB", "TB", "PB"},

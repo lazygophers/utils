@@ -20,7 +20,7 @@ func formatDuration(d time.Duration) string {
 		if defaultClockFormat {
 			return "0:00"
 		}
-		locale, _ := GetLocaleConfig(currentLocaleName())
+		locale, _ := GetLocaleConfig(currentTag())
 		return "0 " + locale.TimeUnits.Second
 	}
 
@@ -28,7 +28,7 @@ func formatDuration(d time.Duration) string {
 		return formatClockTime(d)
 	}
 
-	locale, _ := GetLocaleConfig(currentLocaleName())
+	locale, _ := GetLocaleConfig(currentTag())
 
 	negative := d < 0
 	if negative {

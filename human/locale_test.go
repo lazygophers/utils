@@ -1,6 +1,7 @@
 package human
 
 import (
+	xlanguage "golang.org/x/text/language"
 	"fmt"
 	"testing"
 	"time"
@@ -22,14 +23,14 @@ func TestAllNewLocales(t *testing.T) {
 		{"zh-CN", "Simplified Chinese", "zh", "CN"},
 	}
 
-	locale, ok := GetLocaleConfig("zh-TW")
+	locale, ok := GetLocaleConfig(xlanguage.MustParse("zh-TW"))
 	if ok && locale.Language == "zh" && locale.Region == "TW" {
 		testCases = append(testCases, localeCase{"zh-TW", "Traditional Chinese", "zh", "TW"})
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			locale, ok := GetLocaleConfig(tc.locale)
+			locale, ok := GetLocaleConfig(xlanguage.MustParse(tc.locale))
 			if !ok {
 				t.Errorf("Failed to get locale %s", tc.locale)
 				return
@@ -197,19 +198,19 @@ func TestPluralizationRules(t *testing.T) {
 		{"en", true},
 	}
 
-	locale, ok := GetLocaleConfig("zh")
+	locale, ok := GetLocaleConfig(xlanguage.Chinese)
 	if ok && locale.Language == "zh" && locale.Region == "CN" {
 		testCases = append(testCases, pluralCase{"zh", false})
 	}
 
-	locale, ok = GetLocaleConfig("zh-TW")
+	locale, ok = GetLocaleConfig(xlanguage.MustParse("zh-TW"))
 	if ok && locale.Language == "zh" && locale.Region == "TW" {
 		testCases = append(testCases, pluralCase{"zh-TW", false})
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.locale, func(t *testing.T) {
-			locale, ok := GetLocaleConfig(tc.locale)
+			locale, ok := GetLocaleConfig(xlanguage.MustParse(tc.locale))
 			if !ok {
 				t.Fatalf("Failed to get locale %s", tc.locale)
 			}
@@ -253,7 +254,7 @@ func TestDebugLocales(t *testing.T) {
 	testCases := []string{"zh-TW", "fr", "ru", "ar", "es"}
 
 	for _, locale := range testCases {
-		config, ok := GetLocaleConfig(locale)
+		config, ok := GetLocaleConfig(xlanguage.MustParse(locale))
 		if ok {
 			fmt.Printf("Locale %s: Language=%s, Region=%s\n", locale, config.Language, config.Region)
 		} else {

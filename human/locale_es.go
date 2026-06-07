@@ -2,9 +2,11 @@
 
 package human
 
+import xlanguage "golang.org/x/text/language"
+
 // 注册西班牙语语言支持
 func init() {
-	RegisterLocale("es", &Locale{
+	RegisterLocale(xlanguage.Spanish, &Locale{
 		Language:      "es",
 		Region:        "ES",
 		ByteUnits:     []string{"B", "KB", "MB", "GB", "TB", "PB"},

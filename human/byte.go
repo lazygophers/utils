@@ -5,6 +5,6 @@ package human
 func ByteSize(bytes int64) string { return formatByteSize(bytes) }
 
 func formatByteSize(bytes int64) string {
-	locale, _ := GetLocaleConfig(currentLocaleName())
+	locale, _ := GetLocaleConfig(currentTag())
 	return formatScaled(bytes, 1024, locale.ByteUnits)
 }
