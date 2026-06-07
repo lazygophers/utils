@@ -37,20 +37,37 @@ func SetClockFormat(clock bool) { defaultClockFormat = clock }
 func currentLocaleName() string {
 	t := language.Get()
 	if t == nil {
-		return defaultLocaleName()
+		t = language.Default()
 	}
-	base, _ := t.Tag().Base()
-	return base.String()
-}
-
-// defaultLocaleName returns the global default locale base code.
-func defaultLocaleName() string {
-	t := language.Default()
 	if t == nil {
 		return "en"
 	}
 	base, _ := t.Tag().Base()
 	return base.String()
+}
+
+// formatScaled scales v down by base until it fits a unit slot, then composes
+// the value + unit. Shared by ByteSize / Speed / BitSpeed.
+func formatScaled(v int64, base int64, units []string) string {
+	if v == 0 || len(units) == 0 {
+		return formatValueWithUnit(0, units, 0)
+	}
+
+	// Iterative integer division avoids math.Log + math.Pow per call.
+	absV := v
+	if absV < 0 {
+		absV = -absV
+	}
+	exp := 0
+	divisor := int64(1)
+	for absV >= base && exp < len(units)-1 {
+		absV /= base
+		divisor *= base
+		exp++
+	}
+
+	value := float64(v) / float64(divisor)
+	return formatValueWithUnit(value, units, exp)
 }
 
 // formatValueWithUnit composes a numeric value and the unit at unitIndex
@@ -97,12 +114,4 @@ func formatFloat(f float64, precision int) string {
 	}
 
 	return str
-}
-
-// abs returns the absolute value of an int64.
-func abs(n int64) int64 {
-	if n < 0 {
-		return -n
-	}
-	return n
 }

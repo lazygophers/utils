@@ -1,7 +1,6 @@
 package human
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 )
@@ -33,40 +32,27 @@ func RegisterLocale(name string, locale *Locale) {
 	locales[name] = locale
 }
 
-// GetLocaleConfig 获取语言地区配置
+// GetLocaleConfig 获取语言地区配置。匹配顺序：完整 name → 去地区后的 base
+// → "en"。返回 false 仅在 "en" 也未注册时发生。
 func GetLocaleConfig(name string) (*Locale, bool) {
 	mu.RLock()
 	defer mu.RUnlock()
 
-	// 尝试完整匹配
 	if locale, ok := locales[name]; ok {
 		return locale, true
 	}
 
-	// 尝试语言匹配（忽略地区）
-	lang := strings.Split(name, "-")[0]
-	if locale, ok := locales[lang]; ok {
-		return locale, true
+	if i := strings.IndexByte(name, '-'); i > 0 {
+		if locale, ok := locales[name[:i]]; ok {
+			return locale, true
+		}
 	}
 
-	// 默认英文
 	if locale, ok := locales["en"]; ok {
 		return locale, true
 	}
 
 	return nil, false
-}
-
-// formatWithLocale 使用地区配置格式化字符串
-func formatWithLocale(locale *Locale, format string, args ...interface{}) string {
-	if locale == nil {
-		locale, _ = GetLocaleConfig("en")
-	}
-
-	// 这里可以根据需要进行更复杂的本地化处理
-	// 比如处理复数形式、语序调整等
-
-	return fmt.Sprintf(format, args...)
 }
 
 // getTimeUnit 获取时间单位的正确形式

@@ -383,10 +383,6 @@ func TestCompleteCodeCoverage(t *testing.T) {
 
 		_ = formatClockTime(time.Hour + 30*time.Minute + 45*time.Second)
 		_ = formatClockTime(-time.Minute)
-
-		_ = abs(5)
-		_ = abs(-5)
-		_ = abs(0)
 	})
 
 	t.Run("Edge cases", func(t *testing.T) {
@@ -436,8 +432,6 @@ func TestCompleteCodeCoverage(t *testing.T) {
 		}
 
 		locale, _ := GetLocaleConfig("en")
-		_ = formatWithLocale(locale, "test %s", "value")
-		_ = formatWithLocale(nil, "test %s", "value")
 
 		_ = getTimeUnit(locale, locale.TimeUnits.Second, 1)
 		_ = getTimeUnit(locale, locale.TimeUnits.Second, 2)
@@ -648,28 +642,6 @@ func TestFormatFloat(t *testing.T) {
 	}
 }
 
-// TestAbsFunction 测试abs函数
-func TestAbsFunction(t *testing.T) {
-	type absCase struct {
-		input    int64
-		expected int64
-	}
-	tests := []absCase{
-		{0, 0},
-		{5, 5},
-		{-5, 5},
-		{1024, 1024},
-		{-1024, 1024},
-	}
-
-	for _, tt := range tests {
-		result := abs(tt.input)
-		if result != tt.expected {
-			t.Errorf("abs(%d) = %d, want %d", tt.input, result, tt.expected)
-		}
-	}
-}
-
 // TestRelativeTimeFuture 测试未来时间
 func TestRelativeTimeFuture(t *testing.T) {
 	resetState()
@@ -770,21 +742,6 @@ func TestLocaleRegistration(t *testing.T) {
 	_, ok = GetLocaleConfig("nonexistent")
 	if !ok {
 		t.Error("Failed to fallback to English locale")
-	}
-}
-
-// TestFormatWithLocale 测试locale格式化
-func TestFormatWithLocale(t *testing.T) {
-	locale, _ := GetLocaleConfig("en")
-	result := formatWithLocale(locale, "Test %s", "value")
-	expected := "Test value"
-	if result != expected {
-		t.Errorf("formatWithLocale failed: %s != %s", result, expected)
-	}
-
-	result = formatWithLocale(nil, "Test %s", "value")
-	if result != expected {
-		t.Errorf("formatWithLocale with nil locale failed: %s != %s", result, expected)
 	}
 }
 
