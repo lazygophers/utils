@@ -15,12 +15,19 @@ func (m *multiError) Error() string {
 	if len(m.errs) == 1 {
 		return m.errs[0].Error()
 	}
-	var b strings.Builder
+	msgs := make([]string, len(m.errs))
+	total := len(m.errs) - 1
 	for i, err := range m.errs {
+		msgs[i] = err.Error()
+		total += len(msgs[i])
+	}
+	var b strings.Builder
+	b.Grow(total)
+	for i, msg := range msgs {
 		if i > 0 {
 			b.WriteByte('\n')
 		}
-		b.WriteString(err.Error())
+		b.WriteString(msg)
 	}
 	return b.String()
 }
@@ -32,22 +39,16 @@ func (m *multiError) Unwrap() []error {
 
 // Join 合并多个 error：过滤 nil；全为 nil 返 nil；仅一个非 nil 直接返回该 error。
 func Join(errs ...error) error {
-	n := 0
-	for _, err := range errs {
-		if err != nil {
-			n++
-		}
-	}
-	if n == 0 {
-		return nil
-	}
-	merged := make([]error, 0, n)
+	merged := make([]error, 0, len(errs))
 	for _, err := range errs {
 		if err != nil {
 			merged = append(merged, err)
 		}
 	}
-	if len(merged) == 1 {
+	switch len(merged) {
+	case 0:
+		return nil
+	case 1:
 		return merged[0]
 	}
 	return &multiError{errs: merged}

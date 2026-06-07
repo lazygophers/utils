@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path"
 	"runtime"
-	"strconv"
 )
 
 // stack 保存调用栈的程序计数器，懒解析为 Frame。
@@ -21,11 +20,9 @@ type Frame struct {
 
 // callers 捕获当前调用栈，skip 为跳过的栈帧数（含 callers 自身）。
 func callers(skip int) *stack {
-	var pcs [32]uintptr
-	n := runtime.Callers(skip+1, pcs[:])
-	s := make([]uintptr, n)
-	copy(s, pcs[:n])
-	return &stack{pcs: s}
+	pcs := make([]uintptr, 32)
+	n := runtime.Callers(skip+1, pcs)
+	return &stack{pcs: pcs[:n:n]}
 }
 
 // frames 将程序计数器解析为可读的 Frame 列表。
@@ -45,7 +42,7 @@ func (s *stack) frames() []Frame {
 // format 将堆栈帧按 `\nfunc\n\tfile:line` 形式写入。
 func (s *stack) format(f fmt.State) {
 	for _, fr := range s.frames() {
-		fmt.Fprintf(f, "\n%s\n\t%s:%s", fr.Function, trimPath(fr.File), strconv.Itoa(fr.Line))
+		fmt.Fprintf(f, "\n%s\n\t%s:%d", fr.Function, trimPath(fr.File), fr.Line)
 	}
 }
 

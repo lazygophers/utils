@@ -60,7 +60,8 @@ func (e *Error) Format(f fmt.State, verb rune) {
 		if f.Flag('+') {
 			_, _ = io.WriteString(f, e.Error())
 			for cause := e.cause; cause != nil; {
-				fmt.Fprintf(f, "\n%s", cause.Error())
+				_, _ = io.WriteString(f, "\n")
+				_, _ = io.WriteString(f, cause.Error())
 				c, ok := cause.(*Error)
 				if !ok {
 					break
@@ -72,7 +73,7 @@ func (e *Error) Format(f fmt.State, verb rune) {
 			}
 			return
 		}
-		_, _ = io.WriteString(f, e.Error())
+		fallthrough
 	case 's':
 		_, _ = io.WriteString(f, e.Error())
 	case 'q':
