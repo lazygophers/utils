@@ -1,0 +1,31 @@
+package country
+
+import (
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/currency"
+)
+
+// NewZealand — New Zealand.
+var dataNewZealand = &Country{
+	alpha2:       "NZ",
+	alpha3:       "NZL",
+	numeric:      554,
+	callingCodes: []string{"+64"},
+	timezones:    []string{
+		"Pacific/Auckland",
+		"Pacific/Chatham",
+	},
+	tlds:         []string{".nz"},
+	languages:    []xlanguage.Tag{xlanguage.English},
+	currency:     currency.Nzd,
+	continent:    "OC",
+	region:       "Oceania",
+	subregion:    "Australia and New Zealand",
+	flagEmoji:    "🇳🇿",
+	names:        make(map[xlanguage.Tag]string),
+	official:     make(map[xlanguage.Tag]string),
+	capital:      make(map[xlanguage.Tag]string),
+}
+
+func init() { register(dataNewZealand) }

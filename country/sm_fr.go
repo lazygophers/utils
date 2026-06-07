@@ -1,0 +1,11 @@
+//go:build lang_fr || lang_all
+
+package country
+
+import xlanguage "golang.org/x/text/language"
+
+func init() {
+	dataSanMarino.RegisterName(xlanguage.French, "Saint-Marin")
+	dataSanMarino.RegisterOfficialName(xlanguage.French, "République de Saint-Marin")
+	dataSanMarino.RegisterCapital(xlanguage.French, "Saint-Marin")
+}

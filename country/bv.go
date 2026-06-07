@@ -1,0 +1,28 @@
+package country
+
+import (
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/currency"
+)
+
+// BouvetIsland — Bouvet Island — uninhabited Norwegian dependency.
+var dataBouvetIsland = &Country{
+	alpha2:       "BV",
+	alpha3:       "BVT",
+	numeric:      74,
+	callingCodes: []string{},
+	timezones:    []string{"Europe/Oslo"},
+	tlds:         []string{".bv"},
+	languages:    []xlanguage.Tag{xlanguage.Norwegian},
+	currency:     currency.Nok,
+	continent:    "AN",
+	region:       "Antarctic",
+	subregion:    "Antarctic",
+	flagEmoji:    "🇧🇻",
+	names:        make(map[xlanguage.Tag]string),
+	official:     make(map[xlanguage.Tag]string),
+	capital:      make(map[xlanguage.Tag]string),
+}
+
+func init() { register(dataBouvetIsland) }

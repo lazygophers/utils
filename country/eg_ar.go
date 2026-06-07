@@ -1,0 +1,9 @@
+package country
+
+import xlanguage "golang.org/x/text/language"
+
+func init() {
+	dataEgypt.RegisterName(xlanguage.Arabic, "مصر")
+	dataEgypt.RegisterOfficialName(xlanguage.Arabic, "جمهورية مصر العربية")
+	dataEgypt.RegisterCapital(xlanguage.Arabic, "القاهرة")
+}

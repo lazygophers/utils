@@ -1,0 +1,28 @@
+package country
+
+import (
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/currency"
+)
+
+// Brunei — Nation of Brunei, the Abode of Peace.
+var dataBrunei = &Country{
+	alpha2:       "BN",
+	alpha3:       "BRN",
+	numeric:      96,
+	callingCodes: []string{"+673"},
+	timezones:    []string{"Asia/Brunei"},
+	tlds:         []string{".bn"},
+	languages:    []xlanguage.Tag{xlanguage.Malay},
+	currency:     currency.Bnd,
+	continent:    "AS",
+	region:       "Asia",
+	subregion:    "South-eastern Asia",
+	flagEmoji:    "🇧🇳",
+	names:        make(map[xlanguage.Tag]string),
+	official:     make(map[xlanguage.Tag]string),
+	capital:      make(map[xlanguage.Tag]string),
+}
+
+func init() { register(dataBrunei) }

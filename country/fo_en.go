@@ -1,0 +1,9 @@
+package country
+
+import xlanguage "golang.org/x/text/language"
+
+func init() {
+	dataFaroeIslands.RegisterName(xlanguage.English, "Faroe Islands")
+	dataFaroeIslands.RegisterOfficialName(xlanguage.English, "Faroe Islands")
+	dataFaroeIslands.RegisterCapital(xlanguage.English, "Torshavn")
+}

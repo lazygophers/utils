@@ -1,0 +1,28 @@
+package country
+
+import (
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/currency"
+)
+
+// Mayotte — Mayotte — overseas region of France.
+var dataMayotte = &Country{
+	alpha2:       "YT",
+	alpha3:       "MYT",
+	numeric:      175,
+	callingCodes: []string{"+262"},
+	timezones:    []string{"Indian/Mayotte"},
+	tlds:         []string{".yt"},
+	languages:    []xlanguage.Tag{xlanguage.French},
+	currency:     currency.Eur,
+	continent:    "AF",
+	region:       "Africa",
+	subregion:    "Eastern Africa",
+	flagEmoji:    "🇾🇹",
+	names:        make(map[xlanguage.Tag]string),
+	official:     make(map[xlanguage.Tag]string),
+	capital:      make(map[xlanguage.Tag]string),
+}
+
+func init() { register(dataMayotte) }

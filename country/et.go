@@ -1,0 +1,28 @@
+package country
+
+import (
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/currency"
+)
+
+// Ethiopia — Federal Democratic Republic of Ethiopia.
+var dataEthiopia = &Country{
+	alpha2:       "ET",
+	alpha3:       "ETH",
+	numeric:      231,
+	callingCodes: []string{"+251"},
+	timezones:    []string{"Africa/Addis_Ababa"},
+	tlds:         []string{".et"},
+	languages:    []xlanguage.Tag{xlanguage.Amharic},
+	currency:     currency.Etb,
+	continent:    "AF",
+	region:       "Africa",
+	subregion:    "Eastern Africa",
+	flagEmoji:    "🇪🇹",
+	names:        make(map[xlanguage.Tag]string),
+	official:     make(map[xlanguage.Tag]string),
+	capital:      make(map[xlanguage.Tag]string),
+}
+
+func init() { register(dataEthiopia) }

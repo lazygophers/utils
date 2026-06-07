@@ -1,0 +1,28 @@
+package country
+
+import (
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/currency"
+)
+
+// Niue — Niue — self-governing in free association with New Zealand.
+var dataNiue = &Country{
+	alpha2:       "NU",
+	alpha3:       "NIU",
+	numeric:      570,
+	callingCodes: []string{"+683"},
+	timezones:    []string{"Pacific/Niue"},
+	tlds:         []string{".nu"},
+	languages:    []xlanguage.Tag{xlanguage.English},
+	currency:     currency.Nzd,
+	continent:    "OC",
+	region:       "Oceania",
+	subregion:    "Polynesia",
+	flagEmoji:    "🇳🇺",
+	names:        make(map[xlanguage.Tag]string),
+	official:     make(map[xlanguage.Tag]string),
+	capital:      make(map[xlanguage.Tag]string),
+}
+
+func init() { register(dataNiue) }

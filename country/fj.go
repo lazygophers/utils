@@ -1,0 +1,28 @@
+package country
+
+import (
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/currency"
+)
+
+// Fiji — Republic of Fiji.
+var dataFiji = &Country{
+	alpha2:       "FJ",
+	alpha3:       "FJI",
+	numeric:      242,
+	callingCodes: []string{"+679"},
+	timezones:    []string{"Pacific/Fiji"},
+	tlds:         []string{".fj"},
+	languages:    []xlanguage.Tag{xlanguage.English, xlanguage.MustParse("fj"), xlanguage.Hindi},
+	currency:     currency.Fjd,
+	continent:    "OC",
+	region:       "Oceania",
+	subregion:    "Melanesia",
+	flagEmoji:    "🇫🇯",
+	names:        make(map[xlanguage.Tag]string),
+	official:     make(map[xlanguage.Tag]string),
+	capital:      make(map[xlanguage.Tag]string),
+}
+
+func init() { register(dataFiji) }

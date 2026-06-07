@@ -1,0 +1,28 @@
+package country
+
+import (
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/currency"
+)
+
+// Yemen — Republic of Yemen.
+var dataYemen = &Country{
+	alpha2:       "YE",
+	alpha3:       "YEM",
+	numeric:      887,
+	callingCodes: []string{"+967"},
+	timezones:    []string{"Asia/Aden"},
+	tlds:         []string{".ye"},
+	languages:    []xlanguage.Tag{xlanguage.Arabic},
+	currency:     currency.Yer,
+	continent:    "AS",
+	region:       "Asia",
+	subregion:    "Western Asia",
+	flagEmoji:    "🇾🇪",
+	names:        make(map[xlanguage.Tag]string),
+	official:     make(map[xlanguage.Tag]string),
+	capital:      make(map[xlanguage.Tag]string),
+}
+
+func init() { register(dataYemen) }

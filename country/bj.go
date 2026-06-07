@@ -1,0 +1,28 @@
+package country
+
+import (
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/currency"
+)
+
+// Benin — Republic of Benin.
+var dataBenin = &Country{
+	alpha2:       "BJ",
+	alpha3:       "BEN",
+	numeric:      204,
+	callingCodes: []string{"+229"},
+	timezones:    []string{"Africa/Porto-Novo"},
+	tlds:         []string{".bj"},
+	languages:    []xlanguage.Tag{xlanguage.French},
+	currency:     currency.Xof,
+	continent:    "AF",
+	region:       "Africa",
+	subregion:    "Western Africa",
+	flagEmoji:    "🇧🇯",
+	names:        make(map[xlanguage.Tag]string),
+	official:     make(map[xlanguage.Tag]string),
+	capital:      make(map[xlanguage.Tag]string),
+}
+
+func init() { register(dataBenin) }

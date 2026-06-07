@@ -1,0 +1,28 @@
+package country
+
+import (
+	xlanguage "golang.org/x/text/language"
+
+	"github.com/lazygophers/utils/currency"
+)
+
+// Kyrgyzstan — Kyrgyz Republic.
+var dataKyrgyzstan = &Country{
+	alpha2:       "KG",
+	alpha3:       "KGZ",
+	numeric:      417,
+	callingCodes: []string{"+996"},
+	timezones:    []string{"Asia/Bishkek"},
+	tlds:         []string{".kg"},
+	languages:    []xlanguage.Tag{xlanguage.MustParse("ky"), xlanguage.Russian},
+	currency:     currency.Kgs,
+	continent:    "AS",
+	region:       "Asia",
+	subregion:    "Central Asia",
+	flagEmoji:    "🇰🇬",
+	names:        make(map[xlanguage.Tag]string),
+	official:     make(map[xlanguage.Tag]string),
+	capital:      make(map[xlanguage.Tag]string),
+}
+
+func init() { register(dataKyrgyzstan) }
