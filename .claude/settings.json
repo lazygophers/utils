@@ -69,5 +69,7 @@
       }
     ]
   },
-  "enabledPlugins": {}
+  "enabledPlugins": {
+    "llms@ccplugin-market": true
+  }
 }
