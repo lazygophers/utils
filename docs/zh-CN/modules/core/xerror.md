@@ -19,6 +19,23 @@ title: xerror
 - `CodeSystem int = -1` — 系统级错误，`Wrap` / `Wraps` 默认 / 非 *Error 提取时使用。
 - `Code(err) int` — `nil → 0`；`*Error → 其 code`；其他 error `→ -1`。
 
+### 内置框架错误码（1001-10000，业务码建议 ≥ 10001）
+
+| Code | 常量 | 构造器 | 默认翻译（en/zh） |
+|---|---|---|---|
+| 1001 | `CodeInvalidParam` | `NewInvalidParam(args...)` | invalid parameter / 参数无效 |
+| 1002 | `CodeNoAuth` | `NewNoAuth(args...)` | unauthorized / 未授权 |
+| 1003 | `CodeNoData` | `NewNoData(args...)` | not found / 数据不存在 |
+| 1004 | `CodeConflict` | `NewConflict(args...)` | conflict / 数据冲突 |
+| 1005 | `CodeNotLogin` | `NewNotLogin(args...)` | not logged in / 未登录 |
+| 1006 | `CodeTimeout` | `NewTimeout(args...)` | timeout / 请求超时 |
+| 1007 | `CodeRateLimited` | `NewRateLimited(args...)` | too many requests / 请求过于频繁 |
+| 1008 | `CodeForbidden` | `NewForbidden(args...)` | forbidden / 禁止访问 |
+| 1009 | `CodeUnavailable` | `NewUnavailable(args...)` | service unavailable / 服务不可用 |
+| 1010 | `CodeDataCorrupted` | `NewDataCorrupted(args...)` | data corrupted / 数据损坏 |
+
+en / zh 默认编译；其他语言（zh-Hant / ja / ko / es / fr / ru / ar）走 `//go:build lang_<xx> || lang_all`。
+
 ## 构造与方法
 
 ### 构造函数
@@ -30,8 +47,8 @@ New(code int, args ...any) *Error
 // 带 fallback 消息；msg 是 Sprintf 模板，args 注入；未命中 Localizer 用 msg 兜底
 NewWithMsg(code int, msg string, args ...any) *Error
 
-// 显式指定语言（不读 goroutine-local）
-NewWithLanguage(tag *language.Tag, code int, args ...any) *Error
+// 显式指定语言（不读 goroutine-local）；tag 用 golang.org/x/text/language.Tag 标准库类型
+NewWithLanguage(tag xlanguage.Tag, code int, args ...any) *Error
 
 // 包装 + 翻译；err 为 nil 透传 nil；默认 code = CodeSystem
 Wrap(err error, msg string, args ...any) error
@@ -58,28 +75,22 @@ Wraps(errs ...error) error
 ## 本地化（Localizer 接口）
 
 ```go
+import xlanguage "golang.org/x/text/language"
+
 type Localizer interface {
-    Localize(key string, args ...any) string
-    LocalizeWithLang(tag *language.Tag, key string, args ...any) string
-    Register(tag *language.Tag, key, value string)
-    RegisterBatch(tag *language.Tag, data map[string]any)
+    LocalizeWithLang(tag xlanguage.Tag, key string, args ...any) string
+    Register(tag xlanguage.Tag, key, value string)
+    RegisterBatch(tag xlanguage.Tag, data map[string]any)
 }
 ```
 
-- 未注入时 `New` / `NewWithMsg` / `Wrap` 直接用传入的 msg（Sprintf 风格 + args）。
-- 本包不内置 Localizer 实现，保持轻量。
-- `i18n.Default`（`*I18n`）天然满足接口，一行接入：
+所有 tag 参数使用 `golang.org/x/text/language.Tag` 标准库类型。
+默认 `init()` 已注入 `i18n.Default` 作为 Localizer，无需手动 SetLocalizer 即可工作。
 
-```go
-import (
-    "github.com/lazygophers/utils/i18n"
-    "github.com/lazygophers/utils/xerror"
-)
-
-func init() {
-    xerror.SetLocalizer(i18n.Default)
-}
-```
+- `init()` 自动注入 `i18n.Default` 作为 Localizer — 翻译开箱即用。
+- 各 `locale_<lang>.go`（en/zh 默认；其他语言走 `//go:build lang_xx`）在 init 中把内置错误码翻译注册到 `i18n.Default`。
+- 用 `SetLocalizer(other)` 替换为自定义实现（任何满足接口的类型）。
+- 完全卸载 Localizer（`SetLocalizer(nil)`）时，`New` / `NewWithMsg` / `Wrap` 直接用传入的 msg（Sprintf 风格 + args）。
 
 ### 翻译规则
 

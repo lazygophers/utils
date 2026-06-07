@@ -266,6 +266,24 @@ func selectInterfaceByPriority() (string, error) {
 
 ---
 
+## CIDR 工具（基於 `net/netip`）
+
+### 合併
+
+- `MergeCIDRs(prefixes ...netip.Prefix) []netip.Prefix` — 合併多個 CIDR 前綴為最小規範集合。
+- `MergeCIDRStrings(prefixes ...string) []netip.Prefix` — 字串入口，解析失敗跳過。
+
+合併語義：IPv4 / IPv6 各自獨立；包含吸收 + 相鄰同長度兄弟合併到父前綴；迭代直到穩定。
+
+### 起止地址 / 計數
+
+- `CIDRStart(p)` — 網路首址（== `p.Masked().Addr()`）
+- `CIDREnd(p)` — 末址（主機位全 1，v4 即廣播地址）
+- `CIDRStartEnd(p)` — 同時回傳
+- `CIDRCount(p) *big.Int` — 位址總數（IPv6 /0 = 2^128）
+
+---
+
 ## 相關文檔
 
 - [urlx](/zh-TW/modules/network/urlx) - URL 操作

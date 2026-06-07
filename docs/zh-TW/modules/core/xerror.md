@@ -26,7 +26,7 @@ title: xerror
 ```go
 New(code int, args ...any) *Error
 NewWithMsg(code int, msg string, args ...any) *Error
-NewWithLanguage(tag *language.Tag, code int, args ...any) *Error
+NewWithLanguage(tag xlanguage.Tag, code int, args ...any) *Error
 Wrap(err error, msg string, args ...any) error
 Wraps(errs ...error) error
 ```
@@ -50,10 +50,9 @@ Wraps(errs ...error) error
 
 ```go
 type Localizer interface {
-    Localize(key string, args ...any) string
-    LocalizeWithLang(tag *language.Tag, key string, args ...any) string
-    Register(tag *language.Tag, key, value string)
-    RegisterBatch(tag *language.Tag, data map[string]any)
+    LocalizeWithLang(tag xlanguage.Tag, key string, args ...any) string
+    Register(tag xlanguage.Tag, key, value string)
+    RegisterBatch(tag xlanguage.Tag, data map[string]any)
 }
 ```
 
@@ -82,9 +81,9 @@ func init() {
 ### 套件級 Register
 
 ```go
-Register(tag *language.Tag, key, value string)
-RegisterBatch(tag *language.Tag, data map[string]any)
-RegisterMessage(tag *language.Tag, code int, msg string)
+Register(tag xlanguage.Tag, key, value string)
+RegisterBatch(tag xlanguage.Tag, data map[string]any)
+RegisterMessage(tag xlanguage.Tag, code int, msg string)
 SetLocalizer(l Localizer)
 GetLocalizer() Localizer
 SetKeyPrefix(prefix string)

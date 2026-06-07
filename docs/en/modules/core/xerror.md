@@ -32,7 +32,7 @@ New(code int, args ...any) *Error
 NewWithMsg(code int, msg string, args ...any) *Error
 
 // Explicit language (ignores the goroutine-local language)
-NewWithLanguage(tag *language.Tag, code int, args ...any) *Error
+NewWithLanguage(tag xlanguage.Tag, code int, args ...any) *Error
 
 // Wrap + translate; err=nil passes through; default code = CodeSystem
 Wrap(err error, msg string, args ...any) error
@@ -60,10 +60,9 @@ Wraps(errs ...error) error
 
 ```go
 type Localizer interface {
-    Localize(key string, args ...any) string
-    LocalizeWithLang(tag *language.Tag, key string, args ...any) string
-    Register(tag *language.Tag, key, value string)
-    RegisterBatch(tag *language.Tag, data map[string]any)
+    LocalizeWithLang(tag xlanguage.Tag, key string, args ...any) string
+    Register(tag xlanguage.Tag, key, value string)
+    RegisterBatch(tag xlanguage.Tag, data map[string]any)
 }
 ```
 
@@ -92,9 +91,9 @@ func init() {
 ### Package-level registry
 
 ```go
-Register(tag *language.Tag, key, value string)
-RegisterBatch(tag *language.Tag, data map[string]any)
-RegisterMessage(tag *language.Tag, code int, msg string)  // shortcut for Register(tag, errorKey(code), msg)
+Register(tag xlanguage.Tag, key, value string)
+RegisterBatch(tag xlanguage.Tag, data map[string]any)
+RegisterMessage(tag xlanguage.Tag, code int, msg string)  // shortcut for Register(tag, errorKey(code), msg)
 SetLocalizer(l Localizer)
 GetLocalizer() Localizer
 SetKeyPrefix(prefix string)

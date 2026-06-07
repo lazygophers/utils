@@ -248,6 +248,24 @@ func startServer() {
 
 ---
 
+## CIDR Helpers (built on `net/netip`)
+
+### Merge
+
+- `MergeCIDRs(prefixes ...netip.Prefix) []netip.Prefix` — collapse multiple prefixes into a minimal canonical set.
+- `MergeCIDRStrings(prefixes ...string) []netip.Prefix` — string entry; invalid inputs are skipped.
+
+Merge semantics: IPv4 / IPv6 collapsed independently; containment absorption + sibling merge to parent prefix; iterated until stable.
+
+### Range / count
+
+- `CIDRStart(p)` — first address (== `p.Masked().Addr()`)
+- `CIDREnd(p)` — last address (all host bits set; v4 broadcast)
+- `CIDRStartEnd(p)` — both at once
+- `CIDRCount(p) *big.Int` — total addresses (IPv6 /0 = 2^128)
+
+---
+
 ## Related Documentation
 
 - [runtime](/en/modules/system/runtime) - Runtime information
