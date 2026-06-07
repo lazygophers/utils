@@ -149,10 +149,12 @@ func TestBooln(t *testing.T) {
 
 	t.Run("booln_edge_cases", func(t *testing.T) {
 		// 测试边界情况
-		edgeCases := []struct {
+		// boolnEdgeCase 描述 Booln 边界用例。
+		type boolnEdgeCase struct {
 			prob     float64
 			expected string // "true", "false", or "random"
-		}{
+		}
+		edgeCases := []boolnEdgeCase{
 			{0.1, "mostly_false"},
 			{1.0, "mostly_false"},
 			{99.9, "mostly_true"},

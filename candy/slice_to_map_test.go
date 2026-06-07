@@ -54,11 +54,12 @@ func assertPanics(t *testing.T, fn func()) {
 }
 
 func TestSlice2Map(t *testing.T) {
-	tests := []struct {
+	type testCase struct {
 		name string
 		got  any
 		want any
-	}{
+	}
+	tests := []testCase{
 		{
 			name: "string",
 			got:  Slice2Map([]string{"a", "b", "c"}),

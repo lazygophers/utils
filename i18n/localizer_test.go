@@ -17,10 +17,11 @@ func TestLocalizerBuiltins(t *testing.T) {
 }
 
 func TestLocalizerJsonYamlToml(t *testing.T) {
-	cases := []struct {
+	type localizerCase struct {
 		ext  string
 		body []byte
-	}{
+	}
+	cases := []localizerCase{
 		{"json", []byte(`{"k":"v","n":{"a":"b"}}`)},
 		{"yaml", []byte("k: v\nn:\n  a: b\n")},
 		{"toml", []byte("k = \"v\"\n[n]\na = \"b\"\n")},

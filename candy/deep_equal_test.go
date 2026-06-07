@@ -416,11 +416,12 @@ func TestDeepEqual_SpecialCases(t *testing.T) {
 
 func TestDeepValueEqual_AllKinds(t *testing.T) {
 	// 测试所有基本类型
-	tests := []struct {
+	type testCase struct {
 		name string
 		v1   interface{}
 		v2   interface{}
-	}{
+	}
+	tests := []testCase{
 		{"int", 1, 1},
 		{"int8", int8(1), int8(1)},
 		{"int16", int16(1), int16(1)},

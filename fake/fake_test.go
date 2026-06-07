@@ -176,10 +176,11 @@ func TestAllFeaturesWork(t *testing.T) {
 	faker := New()
 
 	// 基础数据生成
-	tests := []struct {
+	type fakerFnCase struct {
 		name string
 		fn   func() string
-	}{
+	}
+	tests := []fakerFnCase{
 		{"Name", faker.Name},
 		{"FirstName", faker.FirstName},
 		{"LastName", faker.LastName},
@@ -305,10 +306,11 @@ func TestBatchGeneration(t *testing.T) {
 
 // TestGlobalFunctionsSanity 验证全局函数的正常性
 func TestGlobalFunctionsSanity(t *testing.T) {
-	globalTests := []struct {
+	type globalFakeCase struct {
 		name  string
 		value string
-	}{
+	}
+	globalTests := []globalFakeCase{
 		{"Name", Name()},
 		{"Email", Email()},
 		{"PhoneNumber", PhoneNumber()},

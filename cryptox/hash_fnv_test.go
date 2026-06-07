@@ -5,13 +5,26 @@ import (
 	"testing"
 )
 
+type fnv32TestCase struct {
+	name     string
+	input    string
+	expected uint32
+}
+
+type fnv64TestCase struct {
+	name     string
+	input    string
+	expected uint64
+}
+
+type fnvDataTestCase struct {
+	name string
+	data []byte
+}
+
 // TestHash32 tests Hash32 function with various inputs
 func TestHash32(t *testing.T) {
-	testCases := []struct {
-		name     string
-		input    string
-		expected uint32
-	}{
+	testCases := []fnv32TestCase{
 		{"empty string", "", 2166136261},
 		{"single byte", "a", 84696446},
 		{"short string", "hello", 3069866343},
@@ -38,11 +51,7 @@ func TestHash32(t *testing.T) {
 
 // TestHash32a tests Hash32a function with various inputs
 func TestHash32a(t *testing.T) {
-	testCases := []struct {
-		name     string
-		input    string
-		expected uint32
-	}{
+	testCases := []fnv32TestCase{
 		{"empty string", "", 2166136261},
 		{"single byte", "a", 3826002220},
 		{"short string", "hello", 1335831723},
@@ -69,11 +78,7 @@ func TestHash32a(t *testing.T) {
 
 // TestHash64 tests Hash64 function with various inputs
 func TestHash64(t *testing.T) {
-	testCases := []struct {
-		name     string
-		input    string
-		expected uint64
-	}{
+	testCases := []fnv64TestCase{
 		{"empty string", "", 14695981039346656037},
 		{"single byte", "a", 12638153115695167422},
 		{"short string", "hello", 8883723591023973575},
@@ -100,11 +105,7 @@ func TestHash64(t *testing.T) {
 
 // TestHash64a tests Hash64a function with various inputs
 func TestHash64a(t *testing.T) {
-	testCases := []struct {
-		name     string
-		input    string
-		expected uint64
-	}{
+	testCases := []fnv64TestCase{
 		{"empty string", "", 14695981039346656037},
 		{"single byte", "a", 12638187200555641996},
 		{"short string", "hello", 11831194018420276491},
@@ -131,10 +132,7 @@ func TestHash64a(t *testing.T) {
 
 // TestFNVWithVariousDataTypes tests FNV functions with various data types
 func TestFNVWithVariousDataTypes(t *testing.T) {
-	testData := []struct {
-		name string
-		data []byte
-	}{
+	testData := []fnvDataTestCase{
 		{"binary zeros", []byte{0x00, 0x00, 0x00, 0x00}},
 		{"binary ones", []byte{0xFF, 0xFF, 0xFF, 0xFF}},
 		{"binary mixed", []byte{0x01, 0x02, 0x03, 0x04, 0x05}},

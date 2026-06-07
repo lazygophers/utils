@@ -3196,13 +3196,14 @@ func TestMapAny_Get_FullCoverage(t *testing.T) {
 
 // TestMapExistsWithSepCoverage 全面覆盖率测试
 func TestMapExistsWithSepCoverage(t *testing.T) {
-	tests := []struct {
+	type testCase1 struct {
 		name     string
 		m        map[string]any
 		key      string
 		sep      string
 		expected bool
-	}{
+	}
+	tests := []testCase1{
 		// 基础场景
 		{
 			name:     "简单存在key",
@@ -3784,11 +3785,12 @@ func TestMapExistsWithSepArrayTypes(t *testing.T) {
 
 // TestMapExistsWithSepNegativeIndexParsing 负索引解析测试
 func TestMapExistsWithSepNegativeIndexParsing(t *testing.T) {
-	tests := []struct {
+	type testCase2 struct {
 		name     string
 		indexStr string
 		valid    bool
-	}{
+	}
+	tests := []testCase2{
 		{"零", "[0]", true},
 		{"正数", "[1]", true},
 		{"负数", "[-1]", true},
@@ -4309,12 +4311,13 @@ func TestMapGetMust_AdditionalCoverage(t *testing.T) {
 // TestJoinPath_Integration 集成测试：通过实际使用场景验证 joinPath
 func TestJoinPath_Integration(t *testing.T) {
 	// 模拟 mapGetWithSeparator 中的使用场景
-	tests := []struct {
+	type testCase3 struct {
 		name     string
 		parts    []string
 		sep      string
 		expected string
-	}{
+	}
+	tests := []testCase3{
 		{
 			name:     "空路径",
 			parts:    []string{},
@@ -4423,11 +4426,12 @@ func TestGetInt64Simple(t *testing.T) {
 // ============================================================
 
 func TestParseIndex_Coverage_ValidNumbers(t *testing.T) {
-	tests := []struct {
+	type testCase4 struct {
 		name     string
 		input    string
 		expected int
-	}{
+	}
+	tests := []testCase4{
 		{
 			name:     "zero",
 			input:    "0",
@@ -4470,11 +4474,12 @@ func TestParseIndex_Coverage_ValidNumbers(t *testing.T) {
 }
 
 func TestParseIndex_Coverage_NegativeNumbers(t *testing.T) {
-	tests := []struct {
+	type testCase4 struct {
 		name     string
 		input    string
 		expected int
-	}{
+	}
+	tests := []testCase4{
 		{
 			name:     "negative single digit",
 			input:    "-1",
@@ -4507,11 +4512,12 @@ func TestParseIndex_Coverage_NegativeNumbers(t *testing.T) {
 }
 
 func TestParseIndex_Coverage_ErrorCases(t *testing.T) {
-	tests := []struct {
+	type testCase5 struct {
 		name        string
 		input       string
 		expectedErr error
-	}{
+	}
+	tests := []testCase5{
 		{
 			name:        "empty string",
 			input:       "",
@@ -4575,12 +4581,13 @@ func TestParseIndex_Coverage_ErrorCases(t *testing.T) {
 }
 
 func TestParseIndex_Coverage_BoundaryCases(t *testing.T) {
-	tests := []struct {
+	type testCase6 struct {
 		name     string
 		input    string
 		valid    bool
 		expected int
-	}{
+	}
+	tests := []testCase6{
 		{
 			name:     "single zero",
 			input:    "0",
@@ -4656,11 +4663,12 @@ func TestParseIndex_Coverage_AllDigits(t *testing.T) {
 }
 
 func TestParseIndex_Coverage_ErrorMessages(t *testing.T) {
-	tests := []struct {
+	type testCase7 struct {
 		name           string
 		input          string
 		expectedSubstr string
-	}{
+	}
+	tests := []testCase7{
 		{
 			name:           "empty error message",
 			input:          "",
@@ -4688,12 +4696,13 @@ func TestParseIndex_Coverage_ErrorMessages(t *testing.T) {
 }
 
 func TestParseIndex_Coverage_RealWorldScenarios(t *testing.T) {
-	tests := []struct {
+	type testCase6 struct {
 		name     string
 		input    string
 		valid    bool
 		expected int
-	}{
+	}
+	tests := []testCase6{
 		// Common array indices
 		{name: "first element", input: "0", valid: true, expected: 0},
 		{name: "second element", input: "1", valid: true, expected: 1},
@@ -4759,10 +4768,11 @@ func TestParseIndex_Coverage_EdgeCase_UnicodeDigits(t *testing.T) {
 }
 
 func TestParseIndex_Coverage_EdgeCase_TabAndNewline(t *testing.T) {
-	tests := []struct {
+	type testCase8 struct {
 		name  string
 		input string
-	}{
+	}
+	tests := []testCase8{
 		{name: "with tab", input: "12\t3"},
 		{name: "with newline", input: "12\n3"},
 		{name: "with carriage return", input: "12\r3"},
@@ -4809,10 +4819,11 @@ func TestGetStringOptimizationFinalVerification(t *testing.T) {
 		"nil":     nil,
 	})
 
-	tests := []struct {
+	type testCase9 struct {
 		key      string
 		expected string
-	}{
+	}
+	tests := []testCase9{
 		{"string", "hello"},
 		{"int", "42"},
 		{"float64", "3.140000"}, // 注意：candy.ToString 的精度
@@ -4861,7 +4872,7 @@ func TestGetStringOptimizationFinalVerification(t *testing.T) {
 
 // TestAccessMapKey_Coverage 全面测试 accessMapKey 函数覆盖率
 func TestAccessMapKey_Coverage(t *testing.T) {
-	tests := []struct {
+	type testCase10 struct {
 		name           string
 		current        any
 		key            string
@@ -4870,7 +4881,8 @@ func TestAccessMapKey_Coverage(t *testing.T) {
 		errType        error
 		description    string
 		skipValueCheck bool
-	}{
+	}
+	tests := []testCase10{
 		// ===== map[string]any 测试 =====
 		{
 			name:        "map[string]any 简单键命中",
@@ -5095,14 +5107,15 @@ func TestAccessMapKey_ConcurrentAccess(t *testing.T) {
 
 // TestAccessMapKey_NilMaps 测试 nil map 处理
 func TestAccessMapKey_NilMaps(t *testing.T) {
-	tests := []struct {
+	type testCase11 struct {
 		name        string
 		current     any
 		key         string
 		wantErr     bool
 		errType     error
 		description string
-	}{
+	}
+	tests := []testCase11{
 		{
 			name:        "nil map[string]any",
 			current:     (map[string]any)(nil),
@@ -5134,14 +5147,15 @@ func TestAccessMapKey_NilMaps(t *testing.T) {
 
 // TestAccessMapKey_SpecialKeys 测试特殊键值
 func TestAccessMapKey_SpecialKeys(t *testing.T) {
-	tests := []struct {
+	type testCase12 struct {
 		name        string
 		current     map[string]any
 		key         string
 		expected    any
 		wantErr     bool
 		description string
-	}{
+	}
+	tests := []testCase12{
 		{
 			name:        "带空格的键",
 			current:     map[string]any{"key with spaces": "value"},
@@ -5192,12 +5206,13 @@ func TestAccessMapKey_SpecialKeys(t *testing.T) {
 
 // TestAccessMapKey_TypePreservation 测试类型保持
 func TestAccessMapKey_TypePreservation(t *testing.T) {
-	testCases := []struct {
+	type testCase13 struct {
 		name     string
 		input    map[string]any
 		key      string
 		expected any
-	}{
+	}
+	testCases := []testCase13{
 		{"字符串值", map[string]any{"str": "hello"}, "str", "hello"},
 		{"整数值", map[string]any{"int": 42}, "int", 42},
 		{"浮点数值", map[string]any{"float": 3.14}, "float", 3.14},
@@ -5746,7 +5761,7 @@ func TestMapGetWithSep_Precedence(t *testing.T) {
 
 // TestNavigateToValue_Coverage 全面测试 navigateToValue 函数的覆盖率
 func TestNavigateToValue_Coverage(t *testing.T) {
-	tests := []struct {
+	type testCase14 struct {
 		name           string
 		data           any
 		part           string
@@ -5755,7 +5770,8 @@ func TestNavigateToValue_Coverage(t *testing.T) {
 		errType        error
 		description    string
 		skipValueCheck bool
-	}{
+	}
+	tests := []testCase14{
 		// ===== Map 键访问测试 =====
 		{
 			name:        "简单 map[string]any 键访问",
@@ -6158,12 +6174,13 @@ func TestNavigateToValue_Coverage(t *testing.T) {
 
 // TestNavigateToValue_PatternIntegrity 测试模式识别的完整性
 func TestNavigateToValue_PatternIntegrity(t *testing.T) {
-	tests := []struct {
+	type testCase15 struct {
 		name        string
 		part        string
 		isIndex     bool
 		description string
-	}{
+	}
+	tests := []testCase15{
 		{"标准数组索引", "[0]", true, "以 [ 开头，以 ] 结尾，长度 > 2"},
 		{"负数索引", "[-1]", true, "负数索引模式"},
 		{"多位数索引", "[123]", true, "多位数字索引"},
@@ -6275,7 +6292,7 @@ func TestNavigateToValue_ConcurrentAccess(t *testing.T) {
 
 // TestNavigateToValue_TypeSwitchCoverage 测试类型切换的覆盖率
 func TestNavigateToValue_TypeSwitchCoverage(t *testing.T) {
-	tests := []struct {
+	type testCase16 struct {
 		name           string
 		data           any
 		part           string
@@ -6283,7 +6300,8 @@ func TestNavigateToValue_TypeSwitchCoverage(t *testing.T) {
 		wantErr        bool
 		description    string
 		skipValueCheck bool
-	}{
+	}
+	tests := []testCase16{
 		// 覆盖 accessArrayIndex 中的所有类型分支
 		{"[]any 分支", []any{1, 2, 3}, "[0]", 1, false, "覆盖 []any 类型", false},
 		{"[]string 分支", []string{"a", "b"}, "[0]", "a", false, "覆盖 []string 类型", false},
@@ -6318,7 +6336,7 @@ func TestNavigateToValue_TypeSwitchCoverage(t *testing.T) {
 
 // TestParseIndex_Coverage 测试 parseIndex 函数的覆盖率
 func TestParseIndex_Coverage(t *testing.T) {
-	tests := []struct {
+	type testCase17 struct {
 		name           string
 		input          string
 		want           int
@@ -6326,7 +6344,8 @@ func TestParseIndex_Coverage(t *testing.T) {
 		errType        error
 		description    string
 		skipValueCheck bool
-	}{
+	}
+	tests := []testCase17{
 		{"简单正数", "123", 123, false, nil, "基本正数解析", false},
 		{"零", "0", 0, false, nil, "零值解析", false},
 		{"负数", "-456", -456, false, nil, "负数解析", false},
@@ -6366,14 +6385,15 @@ func TestParseIndex_Coverage(t *testing.T) {
 
 // TestAccessGenericSlice_Coverage 测试 accessGenericSlice 的覆盖率
 func TestAccessGenericSlice_Coverage(t *testing.T) {
-	tests := []struct {
+	type testCase18 struct {
 		name        string
 		slice       any
 		index       int
 		wantErr     bool
 		errType     error
 		description string
-	}{
+	}
+	tests := []testCase18{
 		{"[]uint", []uint{1, 2, 3}, 1, true, ErrInvalidSlice, "不支持的 []uint 类型"},
 		{"[]float32", []float32{1.1, 2.2}, 0, true, ErrInvalidSlice, "不支持的 []float32 类型"},
 		{"[]int32", []int32{1, 2}, 0, true, ErrInvalidSlice, "不支持的 []int32 类型"},
@@ -6594,14 +6614,15 @@ func TestMapAny_GetFloat64_Performance(t *testing.T) {
 
 // TestMapGetWithSeparator_Coverage 全面测试 mapGetWithSeparator 和优化版本
 func TestMapGetWithSeparator_Coverage(t *testing.T) {
-	tests := []struct {
+	type testCase19 struct {
 		name        string
 		mapData     map[string]any
 		key         string
 		sep         string
 		want        any
 		wantErrType error
-	}{
+	}
+	tests := []testCase19{
 		// 基础场景
 		{
 			name: "简单键访问",
@@ -6996,9 +7017,10 @@ func TestMapGetWithSeparator_EdgeCases(t *testing.T) {
 			"empty_object": map[string]any{},
 		}
 
-		tests := []struct {
+		type testCase20 struct {
 			key string
-		}{
+		}
+		tests := []testCase20{
 			{"zero_int"},
 			{"zero_float"},
 			{"zero_string"},
@@ -7410,14 +7432,15 @@ mixed:
 
 // TestAccessGenericSlice_FullCoverage 全面测试 accessGenericSlice 的覆盖率
 func TestAccessGenericSlice_FullCoverage(t *testing.T) {
-	tests := []struct {
+	type testCase18 struct {
 		name        string
 		slice       any
 		index       int
 		wantErr     bool
 		errType     error
 		description string
-	}{
+	}
+	tests := []testCase18{
 		// 当前实现测试（始终返回错误）
 		{"nil 切片", nil, 0, true, ErrInvalidSlice, "nil 值应返回错误"},
 		{"非切片类型", "string", 0, true, ErrInvalidSlice, "字符串类型应返回错误"},
@@ -7470,12 +7493,13 @@ func TestAccessGenericSlice_FullCoverage(t *testing.T) {
 
 // TestAccessGenericSlice_ErrorMessages 测试错误消息格式
 func TestAccessGenericSlice_ErrorMessages(t *testing.T) {
-	tests := []struct {
+	type testCase21 struct {
 		name     string
 		slice    any
 		index    int
 		contains string
-	}{
+	}
+	tests := []testCase21{
 		{"错误消息包含类型信息", []uint{1, 2}, 0, "[]uint"},
 		{"错误消息包含索引", []float32{1.1}, 1, "1"},
 		{"nil 错误消息", nil, 0, "nil"},
@@ -7495,7 +7519,7 @@ func TestAccessGenericSlice_ReflectImpl(t *testing.T) {
 	// 这些测试用于验证 reflect 实现的正确性
 	// 当实现改为 reflect 时，取消注释这些测试
 
-	tests := []struct {
+	type testCase22 struct {
 		name        string
 		slice       any
 		index       int
@@ -7503,7 +7527,8 @@ func TestAccessGenericSlice_ReflectImpl(t *testing.T) {
 		wantErr     bool
 		errType     error
 		description string
-	}{
+	}
+	tests := []testCase22{
 		{"[]uint 有效访问", []uint{10, 20, 30}, 1, uint(20), false, nil, "应返回第二个元素"},
 		{"[]float32 有效访问", []float32{1.1, 2.2, 3.3}, 2, float32(3.3), false, nil, "应返回第三个元素"},
 		{"[]int32 有效访问", []int32{-5, 0, 5}, 0, int32(-5), false, nil, "应返回第一个元素"},
@@ -7539,7 +7564,7 @@ func TestAccessGenericSlice_ReflectImpl(t *testing.T) {
 
 // TestAccessGenericSlice_TypeAssertFirst 测试类型断言优先实现
 func TestAccessGenericSlice_TypeAssertFirst(t *testing.T) {
-	tests := []struct {
+	type testCase22 struct {
 		name        string
 		slice       any
 		index       int
@@ -7547,7 +7572,8 @@ func TestAccessGenericSlice_TypeAssertFirst(t *testing.T) {
 		wantErr     bool
 		errType     error
 		description string
-	}{
+	}
+	tests := []testCase22{
 		{"[]uint fast path", []uint{1, 2, 3}, 1, uint(2), false, nil, "应命中 fast path"},
 		{"[]float32 fast path", []float32{1.1, 2.2}, 0, float32(1.1), false, nil, "应命中 fast path"},
 		{"[]int32 fast path", []int32{10, 20}, 1, int32(20), false, nil, "应命中 fast path"},
@@ -7577,7 +7603,7 @@ func TestAccessGenericSlice_TypeAssertFirst(t *testing.T) {
 
 // TestAccessGenericSlice_SimpleError 测试简化错误实现
 func TestAccessGenericSlice_SimpleError(t *testing.T) {
-	tests := []struct {
+	type testCase22 struct {
 		name        string
 		slice       any
 		index       int
@@ -7585,7 +7611,8 @@ func TestAccessGenericSlice_SimpleError(t *testing.T) {
 		wantErr     bool
 		errType     error
 		description string
-	}{
+	}
+	tests := []testCase22{
 		{"[]uint 有效访问", []uint{10, 20}, 0, uint(10), false, nil, "应返回第一个元素"},
 		{"[]float32 有效访问", []float32{1.1, 2.2}, 1, float32(2.2), false, nil, "应返回第二个元素"},
 
@@ -7655,14 +7682,15 @@ func TestAccessGenericSlice_CustomTypes(t *testing.T) {
 
 	type PointSlice []Point
 
-	tests := []struct {
+	type testCase23 struct {
 		name        string
 		slice       any
 		index       int
 		want        any
 		wantErr     bool
 		description string
-	}{
+	}
+	tests := []testCase23{
 		{"自定义结构体切片", []Point{{1, 2}, {3, 4}}, 0, Point{1, 2}, false, "应返回结构体"},
 		{"自定义类型切片", PointSlice{{5, 6}}, 0, Point{5, 6}, false, "应返回元素"},
 	}
@@ -7683,13 +7711,14 @@ func TestAccessGenericSlice_CustomTypes(t *testing.T) {
 
 // TestAccessGenericSlice_SliceElementTypes 切片元素类型覆盖测试
 func TestAccessGenericSlice_SliceElementTypes(t *testing.T) {
-	tests := []struct {
+	type testCase24 struct {
 		name        string
 		slice       any
 		index       int
 		want        any
 		description string
-	}{
+	}
+	tests := []testCase24{
 		{"[]int8", []int8{1, 2, 3}, 1, int8(2), "int8 元素"},
 		{"[]int16", []int16{100, 200}, 0, int16(100), "int16 元素"},
 		{"[]int32", []int32{1000, 2000}, 1, int32(2000), "int32 元素"},
@@ -7715,12 +7744,13 @@ func TestAccessGenericSlice_SliceElementTypes(t *testing.T) {
 
 // TestSplitKeyCoverage 全面覆盖率测试
 func TestSplitKeyCoverage(t *testing.T) {
-	tests := []struct {
+	type testCase25 struct {
 		name     string
 		key      string
 		sep      string
 		expected []string
-	}{
+	}
+	tests := []testCase25{
 		// 基础场景
 		{"单字符 key", "a", ".", []string{"a"}},
 		{"简单点分隔", "a.b.c", ".", []string{"a", "b", "c"}},
@@ -7828,12 +7858,13 @@ func TestSplitKeyEdgeCases(t *testing.T) {
 
 // TestSplitKeyBracketHandling 括号处理专项测试
 func TestSplitKeyBracketHandling(t *testing.T) {
-	tests := []struct {
+	type testCase25 struct {
 		name     string
 		key      string
 		sep      string
 		expected []string
-	}{
+	}
+	tests := []testCase25{
 		{
 			name:     "开括号前有内容",
 			key:      "items[0]",
@@ -7896,12 +7927,13 @@ func TestSplitKeyBracketHandling(t *testing.T) {
 
 // TestSplitKeySeparatorCases 分隔符专项测试
 func TestSplitKeySeparatorCases(t *testing.T) {
-	tests := []struct {
+	type testCase25 struct {
 		name     string
 		key      string
 		sep      string
 		expected []string
-	}{
+	}
+	tests := []testCase25{
 		{
 			name:     "单字符分隔符",
 			key:      "a.b.c",
@@ -7953,10 +7985,11 @@ func TestSplitKeySeparatorCases(t *testing.T) {
 // TestSplitKeyPerformanceCorrectness 性能优化后的正确性验证
 func TestSplitKeyPerformanceCorrectness(t *testing.T) {
 	// 验证所有变体实现的结果一致性
-	testCases := []struct {
+	type testCase26 struct {
 		key string
 		sep string
-	}{
+	}
+	testCases := []testCase26{
 		{"a.b.c", "."},
 		{"items[0].name", "."},
 		{"data.results[1].user.profile[2].settings", "."},
@@ -8011,12 +8044,13 @@ func TestSplitKeyCornerCases(t *testing.T) {
 
 // 简单性能对比测试
 func TestPerformanceComparison(t *testing.T) {
-	testCases := []struct {
+	type testCase27 struct {
 		name string
 		m    map[string]any
 		key  string
 		sep  string
-	}{
+	}
+	testCases := []testCase27{
 		{
 			name: "简单键",
 			m:    map[string]any{"name": "John"},
@@ -8112,12 +8146,13 @@ func Example_performanceComparison() {
 
 // TestMapGetWithSeparatorCompare 验证两个版本行为一致
 func TestMapGetWithSeparatorCompare(t *testing.T) {
-	testCases := []struct {
+	type testCase27 struct {
 		name string
 		m    map[string]any
 		key  string
 		sep  string
-	}{
+	}
+	testCases := []testCase27{
 		{
 			name: "简单键",
 			m: map[string]any{
@@ -8318,11 +8353,12 @@ func parseIndexOptimized(s string) (int, error) {
 
 // 正确性验证
 func TestParseIndexOptimized_Correctness(t *testing.T) {
-	tests := []struct {
+	type testCase28 struct {
 		input    string
 		expected int
 		wantErr  bool
-	}{
+	}
+	tests := []testCase28{
 		{"0", 0, false},
 		{"5", 5, false},
 		{"123", 123, false},
@@ -8492,11 +8528,12 @@ func TestMapExists_BasicFunctionality(t *testing.T) {
 		"age":  30,
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"存在的 key", "name", true},
 		{"不存在的 key", "missing", false},
 		{"空 key", "", false},
@@ -8523,11 +8560,12 @@ func TestMapExists_NestedKeys(t *testing.T) {
 		},
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"嵌套 key 存在", "user.name", true},
 		{"深度嵌套 key 存在", "user.address.city", true},
 		{"嵌套 key 不存在", "user.email", false},
@@ -8558,11 +8596,12 @@ func TestMapExists_ArrayIndices(t *testing.T) {
 		},
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"数组索引存在", "items[0]", true},
 		{"数组索引存在（中间）", "items[1]", true},
 		{"数组索引存在（末尾）", "items[2]", true},
@@ -8588,12 +8627,13 @@ func TestMapExists_ArrayIndices(t *testing.T) {
 
 // TestMapExists_EdgeCases 测试边界情况
 func TestMapExists_EdgeCases(t *testing.T) {
-	tests := []struct {
+	type testCase30 struct {
 		name     string
 		m        map[string]any
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase30{
 		{
 			name:     "空 map",
 			m:        map[string]any{},
@@ -8663,11 +8703,12 @@ func TestMapExists_TypeMismatch(t *testing.T) {
 		"slice":  []any{1, 2, 3},
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"字符串尝试嵌套访问", "string.field", false},
 		{"数字尝试嵌套访问", "number.field", false},
 		{"布尔尝试嵌套访问", "bool.field", false},
@@ -8714,11 +8755,12 @@ func TestMapExists_ComplexScenarios(t *testing.T) {
 		},
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"数组 + map 嵌套", "users[0].name", true},
 		{"数组 + 深度 map", "users[0].contacts.email", true},
 		{"数组索引 + 不存在的字段", "users[0].contacts.address", false},
@@ -8745,12 +8787,13 @@ func TestMapExistsWithSep_Basic(t *testing.T) {
 		},
 	}
 
-	tests := []struct {
+	type testCase31 struct {
 		name     string
 		key      string
 		sep      string
 		expected bool
-	}{
+	}
+	tests := []testCase31{
 		{"默认分隔符", "user.name", ".", true},
 		{"斜杠分隔符", "user/name", "/", true},
 		{"连字符分隔符", "user-name", "-", true},
@@ -8775,12 +8818,13 @@ func TestMapExistsWithSep_ArrayWithCustomSeparator(t *testing.T) {
 		"items": []any{1, 2, 3},
 	}
 
-	tests := []struct {
+	type testCase31 struct {
 		name     string
 		key      string
 		sep      string
 		expected bool
-	}{
+	}
+	tests := []testCase31{
 		{"点分隔符 + 数组", "items[0]", ".", true},
 		{"斜杠分隔符 + 数组", "items[0]", "/", true},
 	}
@@ -8807,11 +8851,12 @@ func TestMapExists_EmptyValues(t *testing.T) {
 		"emptySlice":  []any{},
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"空字符串存在", "emptyString", true},
 		{"零值存在", "zero", true},
 		{"假值存在", "false", true},
@@ -8848,11 +8893,12 @@ func TestMapExists_DeepNesting(t *testing.T) {
 		},
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"6 层嵌套存在", "a.b.c.d.e.f", true},
 		{"5 层嵌套存在", "a.b.c.d.e", true},
 		{"4 层嵌套存在", "a.b.c.d", true},
@@ -8877,11 +8923,12 @@ func TestMapExists_LargeMap(t *testing.T) {
 		m[fmt.Sprintf("key%d", i)] = fmt.Sprintf("value%d", i)
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"开头 key", "key0", true},
 		{"中间 key", "key500", true},
 		{"结尾 key", "key999", true},
@@ -8936,11 +8983,12 @@ func TestMapExists_SpecialCharacters(t *testing.T) {
 		"key$美元":              "value5",
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"带连字符", "key-with-dash", true},
 		{"带下划线", "key_with_underscore", true},
 		{"带点", "key.with.dots", false}, // 点会被当作分隔符，所以这是嵌套访问
@@ -8999,11 +9047,12 @@ func TestMapExists_BracketNotation(t *testing.T) {
 		},
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"简单数组索引", "items[0]", true},
 		{"数组索引 + 嵌套", "items[0].name", true},
 		{"嵌套 + 数组索引", "nested.array[1]", true},
@@ -9028,11 +9077,12 @@ func TestMapExists_ZeroIndexNegativeIndex(t *testing.T) {
 		"items": []any{"a", "b", "c"},
 	}
 
-	tests := []struct {
+	type testCase29 struct {
 		name     string
 		key      string
 		expected bool
-	}{
+	}
+	tests := []testCase29{
 		{"零索引", "items[0]", true},
 		{"负索引（不支持）", "items[-1]", false},
 		{"索引为 0 的字符串", "items[abc]", false},
@@ -9096,12 +9146,13 @@ func TestMapGetMust_PerformanceComparison(t *testing.T) {
 
 // MapGetIgnore 功能测试 - 确保优化后功能正确
 func TestMapGetIgnore(t *testing.T) {
-	tests := []struct {
+	type testCase32 struct {
 		name     string
 		data     map[string]any
 		key      string
 		expected any
-	}{
+	}
+	tests := []testCase32{
 		{
 			name:     "简单键-存在",
 			data:     map[string]any{"a": 1, "b": 2},

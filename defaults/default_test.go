@@ -1775,12 +1775,14 @@ func TestConditionalDefaultsCoverage(t *testing.T) {
 	})
 }
 func TestIsZeroOptimization(t *testing.T) {
-	// 正确性验证
-	testCases := []struct {
+	// isZeroCase 描述 isZero 单个用例。
+	type isZeroCase struct {
 		name     string
 		value    interface{}
 		expected bool
-	}{
+	}
+	// 正确性验证
+	testCases := []isZeroCase{
 		{"空字符串", "", true},
 		{"非空字符串", "hello", false},
 		{"零整数", 0, true},

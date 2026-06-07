@@ -24,13 +24,20 @@ var (
 	testLong   = strings.Repeat("a", 10000)
 )
 
+type hashStringTestCase struct {
+	name     string
+	input    string
+	expected string
+}
+
+type hashKnownValueCase struct {
+	input    string
+	expected string
+}
+
 // MD5 test vectors (from RFC 1321)
 func TestMd5(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
+	tests := []hashStringTestCase{
 		{"empty", testEmpty, "d41d8cd98f00b204e9800998ecf8427e"},
 		{"abc", testABC, "900150983cd24fb0d6963f7d28e17f72"},
 		{"quick fox", testQuick, "9e107d9d372bb6826bd81d3542a419d6"},
@@ -63,11 +70,7 @@ func TestMd5Bytes(t *testing.T) {
 
 // SHA1 test vectors (from FIPS 180-1)
 func TestSHA1(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
+	tests := []hashStringTestCase{
 		{"empty", testEmpty, "da39a3ee5e6b4b0d3255bfef95601890afd80709"},
 		{"abc", testABC, "a9993e364706816aba3e25717850c26c9cd0d89d"},
 		{"quick fox", testQuick, "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12"},
@@ -95,11 +98,7 @@ func TestSHA1Bytes(t *testing.T) {
 
 // SHA-224 test vectors (from FIPS 180-4)
 func TestSha224(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
+	tests := []hashStringTestCase{
 		{"empty", testEmpty, "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f"},
 		{"abc", testABC, "23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7"},
 		{"quick fox", testQuick, "730e109bd7a8a32b1cb9d9a09aa2325d2430587ddbc0c38bad911525"},
@@ -126,11 +125,7 @@ func TestSha224Bytes(t *testing.T) {
 
 // SHA-256 test vectors (from FIPS 180-4)
 func TestSha256(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
+	tests := []hashStringTestCase{
 		{"empty", testEmpty, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
 		{"abc", testABC, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"},
 		{"quick fox", testQuick, "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"},
@@ -157,11 +152,7 @@ func TestSha256Bytes(t *testing.T) {
 
 // SHA-384 test vectors (from FIPS 180-4)
 func TestSha384(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
+	tests := []hashStringTestCase{
 		{"empty", testEmpty, "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b"},
 		{"abc", testABC, "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7"},
 		{"quick fox", testQuick, "ca737f1014a48f4c0b6dd43cb177b0afd9e5169367544c494011e3317dbf9a509cb1e5dc1e85a941bbee3d7f2afbc9b1"},
@@ -188,11 +179,7 @@ func TestSha384Bytes(t *testing.T) {
 
 // SHA-512 test vectors (from FIPS 180-4)
 func TestSha512(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
+	tests := []hashStringTestCase{
 		{"empty", testEmpty, "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"},
 		{"abc", testABC, "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"},
 		{"quick fox", testQuick, "07e547d9586f6a73f73fbac0435ed76951218fb7d0c8d788a309d785436bbb642e93a252a954f23912547d1e8a3b5ed6e1bfd7097821233fa0538f3db854fee6"},
@@ -219,11 +206,7 @@ func TestSha512Bytes(t *testing.T) {
 
 // SHA-512/224 test vectors
 func TestSha512_224(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
+	tests := []hashStringTestCase{
 		{"empty", testEmpty, "6ed0dd02806fa89e25de060c19d3ac86cabb87d6a0ddd05c333b84f4"},
 		{"abc", testABC, "4634270f707b6a54daae7530460842e20e37ed265ceee9a43e8924aa"},
 		{"quick fox", testQuick, "944cd2847fb54558d4775db0485a50003111c8e5daa63fe722c6aa37"},
@@ -250,11 +233,7 @@ func TestSha512_224Bytes(t *testing.T) {
 
 // SHA-512/256 test vectors
 func TestSha512_256(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
+	tests := []hashStringTestCase{
 		{"empty", testEmpty, "c672b8d1ef56ed28ab87c3622c5114069bdd3ad7b8f9737498d0c01ecef0967a"},
 		{"abc", testABC, "53048e2681941ef99b2e29b76b4c7dabe4c2d0c634fc6d46e0e2f13107e7af23"},
 		{"quick fox", testQuick, "dd9d67b371519c339ed8dbd25af90e976a1eeefd4ad3d889005e532fc5bef04d"},
@@ -586,10 +565,7 @@ func TestMd5_Coverage_Concurrent(t *testing.T) {
 
 // TestMd5_Coverage_KnownValues 测试已知值
 func TestMd5_Coverage_KnownValues(t *testing.T) {
-	testCases := []struct {
-		input    string
-		expected string
-	}{
+	testCases := []hashKnownValueCase{
 		{"", "d41d8cd98f00b204e9800998ecf8427e"},
 		{"a", "0cc175b9c0f1b6a831c399e269772661"},
 		{"abc", "900150983cd24fb0d6963f7d28e17f72"},
@@ -1148,10 +1124,7 @@ func TestSHA1_Coverage_Concurrent(t *testing.T) {
 
 // TestSHA1_Coverage_KnownValues 测试已知值
 func TestSHA1_Coverage_KnownValues(t *testing.T) {
-	testCases := []struct {
-		input    string
-		expected string
-	}{
+	testCases := []hashKnownValueCase{
 		{"", "da39a3ee5e6b4b0d3255bfef95601890afd80709"},
 		{"a", "86f7e437faa5a7fce15d1ddcb9eaeaea377667b8"},
 		{"abc", "a9993e364706816aba3e25717850c26c9cd0d89d"},

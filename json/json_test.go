@@ -19,12 +19,13 @@ type testStruct struct {
 }
 
 func TestMarshal(t *testing.T) {
-	tests := []struct {
+	type marshalCase struct {
 		name     string
 		input    interface{}
 		expected string
 		wantErr  bool
-	}{
+	}
+	tests := []marshalCase{
 		{
 			name:     "simple struct",
 			input:    testStruct{Name: "John", Age: 30, Active: true, Numbers: []int{1, 2, 3}},
@@ -87,13 +88,14 @@ func TestMarshal(t *testing.T) {
 }
 
 func TestUnmarshal(t *testing.T) {
-	tests := []struct {
+	type unmarshalCase struct {
 		name     string
 		input    string
 		target   interface{}
 		expected interface{}
 		wantErr  bool
-	}{
+	}
+	tests := []unmarshalCase{
 		{
 			name:     "simple struct",
 			input:    `{"name":"John","age":30,"active":true,"numbers":[1,2,3]}`,
@@ -155,12 +157,13 @@ func TestUnmarshal(t *testing.T) {
 }
 
 func TestMarshalString(t *testing.T) {
-	tests := []struct {
+	type marshalStringCase struct {
 		name     string
 		input    interface{}
 		expected string
 		wantErr  bool
-	}{
+	}
+	tests := []marshalStringCase{
 		{
 			name:     "simple struct",
 			input:    testStruct{Name: "Alice", Age: 25},
@@ -199,13 +202,14 @@ func TestMarshalString(t *testing.T) {
 }
 
 func TestUnmarshalString(t *testing.T) {
-	tests := []struct {
+	type unmarshalStringCase struct {
 		name     string
 		input    string
 		target   interface{}
 		expected interface{}
 		wantErr  bool
-	}{
+	}
+	tests := []unmarshalStringCase{
 		{
 			name:     "simple struct",
 			input:    `{"name":"Bob","age":35}`,

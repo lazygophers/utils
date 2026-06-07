@@ -1473,10 +1473,11 @@ func getMethodImpl11(val interface{}) int {
 
 // BenchmarkGetInt_AllImplementations_Int - 测试所有实现的 int 类型性能
 func BenchmarkGetInt_AllImplementations_Int(b *testing.B) {
-	impls := []struct {
+	type implCase1 struct {
 		name string
 		fn   func(interface{}) int
-	}{
+	}
+	impls := []implCase1{
 		{"Impl1_Current", getMethodImpl1},
 		{"Impl2_FastPath", getMethodImpl2},
 		{"Impl3_Inlined", getMethodImpl3},
@@ -1504,10 +1505,11 @@ func BenchmarkGetInt_AllImplementations_Int(b *testing.B) {
 
 // BenchmarkGetInt_AllImplementations_String - 测试所有实现的 string 类型性能
 func BenchmarkGetInt_AllImplementations_String(b *testing.B) {
-	impls := []struct {
+	type implCase1 struct {
 		name string
 		fn   func(interface{}) int
-	}{
+	}
+	impls := []implCase1{
 		{"Impl1_Current", getMethodImpl1},
 		{"Impl2_FastPath", getMethodImpl2},
 		{"Impl3_Inlined", getMethodImpl3},
@@ -1535,10 +1537,11 @@ func BenchmarkGetInt_AllImplementations_String(b *testing.B) {
 
 // BenchmarkGetInt_AllImplementations_Float64 - 测试所有实现的 float64 类型性能
 func BenchmarkGetInt_AllImplementations_Float64(b *testing.B) {
-	impls := []struct {
+	type implCase1 struct {
 		name string
 		fn   func(interface{}) int
-	}{
+	}
+	impls := []implCase1{
 		{"Impl1_Current", getMethodImpl1},
 		{"Impl2_FastPath", getMethodImpl2},
 		{"Impl3_Inlined", getMethodImpl3},
@@ -1566,10 +1569,11 @@ func BenchmarkGetInt_AllImplementations_Float64(b *testing.B) {
 
 // BenchmarkGetInt_AllImplementations_Int64 - 测试所有实现的 int64 类型性能
 func BenchmarkGetInt_AllImplementations_Int64(b *testing.B) {
-	impls := []struct {
+	type implCase1 struct {
 		name string
 		fn   func(interface{}) int
-	}{
+	}
+	impls := []implCase1{
 		{"Impl1_Current", getMethodImpl1},
 		{"Impl2_FastPath", getMethodImpl2},
 		{"Impl3_Inlined", getMethodImpl3},
@@ -1597,10 +1601,11 @@ func BenchmarkGetInt_AllImplementations_Int64(b *testing.B) {
 
 // BenchmarkGetInt_AllImplementations_Nil - 测试所有实现的 nil 类型性能
 func BenchmarkGetInt_AllImplementations_Nil(b *testing.B) {
-	impls := []struct {
+	type implCase1 struct {
 		name string
 		fn   func(interface{}) int
-	}{
+	}
+	impls := []implCase1{
 		{"Impl1_Current", getMethodImpl1},
 		{"Impl2_FastPath", getMethodImpl2},
 		{"Impl3_Inlined", getMethodImpl3},
@@ -1628,10 +1633,11 @@ func BenchmarkGetInt_AllImplementations_Nil(b *testing.B) {
 
 // 内存分配对比测试
 func BenchmarkGetInt_Allocation_Int(b *testing.B) {
-	impls := []struct {
+	type implCase1 struct {
 		name string
 		fn   func(interface{}) int
-	}{
+	}
+	impls := []implCase1{
 		{"Impl1_Current", getMethodImpl1},
 		{"Impl3_Inlined", getMethodImpl3},
 		{"Impl5_ZeroCopy", getMethodImpl5},
@@ -1652,10 +1658,11 @@ func BenchmarkGetInt_Allocation_Int(b *testing.B) {
 }
 
 func BenchmarkGetInt_Allocation_String(b *testing.B) {
-	impls := []struct {
+	type implCase1 struct {
 		name string
 		fn   func(interface{}) int
-	}{
+	}
+	impls := []implCase1{
 		{"Impl1_Current", getMethodImpl1},
 		{"Impl3_Inlined", getMethodImpl3},
 		{"Impl5_ZeroCopy", getMethodImpl5},
@@ -2297,10 +2304,11 @@ func Benchmark_MapGetIgnore_Scenarios(b *testing.B) {
 		"complex_arr": map[string]any{"data": []map[string]any{{"x": []any{int(1), int(2), int(3)}}}},
 	}
 
-	scenarios := []struct {
+	type scenarioCase2 struct {
 		name string
 		key  string
-	}{
+	}
+	scenarios := []scenarioCase2{
 		{"SimpleKey", "a"},
 		{"NestedKey", "nested.x"},
 		{"DeepNest", "deep.a.b.c"},
@@ -4941,12 +4949,13 @@ func BenchmarkGetStringSlice_V8_Bool(b *testing.B) {
 }
 
 func BenchmarkOriginalVsOptimized(b *testing.B) {
-	testCases := []struct {
+	type testCase3 struct {
 		name string
 		m    map[string]any
 		key  string
 		sep  string
-	}{
+	}
+	testCases := []testCase3{
 		{
 			name: "简单键",
 			m:    map[string]any{"name": "John"},
@@ -5585,10 +5594,11 @@ func bench06(m map[string]any, key string) any {
 }
 
 func Benchmark_Simple(b *testing.B) {
-	benchmarks := []struct {
+	type benchmarkCase4 struct {
 		name string
 		fn   func(map[string]any, string) any
-	}{
+	}
+	benchmarks := []benchmarkCase4{
 		{"01_Original", bench01}, {"02_Optimized", bench02}, {"03_FastPath", bench03},
 		{"04_Recursive", bench04}, {"05_ByteLevel", bench05}, {"06_ZeroAlloc", bench06},
 	}
@@ -5603,10 +5613,11 @@ func Benchmark_Simple(b *testing.B) {
 }
 
 func Benchmark_Nested(b *testing.B) {
-	benchmarks := []struct {
+	type benchmarkCase4 struct {
 		name string
 		fn   func(map[string]any, string) any
-	}{
+	}
+	benchmarks := []benchmarkCase4{
 		{"01_Original", bench01}, {"02_Optimized", bench02}, {"03_FastPath", bench03},
 		{"04_Recursive", bench04}, {"05_ByteLevel", bench05}, {"06_ZeroAlloc", bench06},
 	}
@@ -5621,10 +5632,11 @@ func Benchmark_Nested(b *testing.B) {
 }
 
 func Benchmark_Deep(b *testing.B) {
-	benchmarks := []struct {
+	type benchmarkCase4 struct {
 		name string
 		fn   func(map[string]any, string) any
-	}{
+	}
+	benchmarks := []benchmarkCase4{
 		{"01_Original", bench01}, {"02_Optimized", bench02}, {"03_FastPath", bench03},
 		{"04_Recursive", bench04}, {"05_ByteLevel", bench05}, {"06_ZeroAlloc", bench06},
 	}
@@ -6417,10 +6429,11 @@ func BenchmarkAccessMapKey_LongKey_SimpleError(b *testing.B) {
 }
 
 func BenchmarkParseIndex_Compare(b *testing.B) {
-	cases := []struct {
+	type caseEntry5 struct {
 		name string
 		s    string
-	}{
+	}
+	cases := []caseEntry5{
 		{"SingleDigit", "5"},
 		{"TwoDigits", "42"},
 		{"ThreeDigits", "123"},

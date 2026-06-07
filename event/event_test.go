@@ -299,16 +299,22 @@ func TestEventHandlerTypes(t *testing.T) {
 	manager := NewManager()
 	defer close(manager.c)
 
-	// Test with different argument types
-	testCases := []struct {
+	// handlerTypeCase 描述事件处理器入参类型用例。
+	type handlerTypeCase struct {
 		name string
 		data any
-	}{
+	}
+	// namedPayload 用于 struct 用例的具名负载。
+	type namedPayload struct {
+		Name string
+	}
+	// Test with different argument types
+	testCases := []handlerTypeCase{
 		{"string", "test-string"},
 		{"int", 42},
 		{"slice", []int{1, 2, 3}},
 		{"map", map[string]int{"test": 123}},
-		{"struct", struct{ Name string }{"test"}},
+		{"struct", namedPayload{Name: "test"}},
 		{"nil", nil},
 	}
 

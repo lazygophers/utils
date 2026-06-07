@@ -936,10 +936,12 @@ func TestGoWithRecoverEmptyStackScenario(t *testing.T) {
 }
 
 func TestGoWithRecoverComplexPanicScenarios(t *testing.T) {
-	scenarios := []struct {
+	// panicScenario 描述单个 panic 恢复场景。
+	type panicScenario struct {
 		name      string
 		panicFunc func()
-	}{
+	}
+	scenarios := []panicScenario{
 		{
 			name:      "string_panic",
 			panicFunc: func() { panic("string panic") },

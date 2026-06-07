@@ -9,6 +9,38 @@ import (
 	"testing"
 )
 
+type aesPlaintextCase struct {
+	name      string
+	plaintext []byte
+}
+
+type aesPadCase struct {
+	name      string
+	data      []byte
+	blockSize int
+	expected  int
+}
+
+type aesOriginalCase struct {
+	name     string
+	original []byte
+}
+
+type aesDataCase struct {
+	name string
+	data []byte
+}
+
+type aesModeCase struct {
+	name    string
+	encrypt func([]byte, []byte) ([]byte, error)
+}
+
+type aesSha256VariantCase struct {
+	name string
+	fn   func(string) string
+}
+
 // generateValidKey generates a valid 32-byte AES-256 key for testing
 func generateValidKey() []byte {
 	return []byte("12345678901234567890123456789012") // 32 bytes
@@ -18,10 +50,7 @@ func generateValidKey() []byte {
 func TestEncryptDecryptGCM(t *testing.T) {
 	key := generateValidKey()
 
-	testCases := []struct {
-		name      string
-		plaintext []byte
-	}{
+	testCases := []aesPlaintextCase{
 		{"empty data", []byte("")},
 		{"single byte", []byte("A")},
 		{"short message", []byte("Hello, World!")},
@@ -132,10 +161,7 @@ func TestEncryptDecryptGCMErrors(t *testing.T) {
 func TestEncryptDecryptECB(t *testing.T) {
 	key := generateValidKey()
 
-	testCases := []struct {
-		name      string
-		plaintext []byte
-	}{
+	testCases := []aesPlaintextCase{
 		{"empty data", []byte("")},
 		{"single byte", []byte("A")},
 		{"short message", []byte("Hello, World!")},
@@ -207,10 +233,7 @@ func TestEncryptDecryptECBErrors(t *testing.T) {
 func TestEncryptDecryptCBC(t *testing.T) {
 	key := generateValidKey()
 
-	testCases := []struct {
-		name      string
-		plaintext []byte
-	}{
+	testCases := []aesPlaintextCase{
 		{"empty data", []byte("")},
 		{"single byte", []byte("A")},
 		{"short message", []byte("Hello, World!")},
@@ -291,10 +314,7 @@ func TestEncryptDecryptCBCErrors(t *testing.T) {
 func TestEncryptDecryptCFB(t *testing.T) {
 	key := generateValidKey()
 
-	testCases := []struct {
-		name      string
-		plaintext []byte
-	}{
+	testCases := []aesPlaintextCase{
 		{"empty data", []byte("")},
 		{"single byte", []byte("A")},
 		{"short message", []byte("Hello, World!")},
@@ -364,10 +384,7 @@ func TestEncryptDecryptCFBErrors(t *testing.T) {
 func TestEncryptDecryptCTR(t *testing.T) {
 	key := generateValidKey()
 
-	testCases := []struct {
-		name      string
-		plaintext []byte
-	}{
+	testCases := []aesPlaintextCase{
 		{"empty data", []byte("")},
 		{"single byte", []byte("A")},
 		{"short message", []byte("Hello, World!")},
@@ -437,10 +454,7 @@ func TestEncryptDecryptCTRErrors(t *testing.T) {
 func TestEncryptDecryptOFB(t *testing.T) {
 	key := generateValidKey()
 
-	testCases := []struct {
-		name      string
-		plaintext []byte
-	}{
+	testCases := []aesPlaintextCase{
 		{"empty data", []byte("")},
 		{"single byte", []byte("A")},
 		{"short message", []byte("Hello, World!")},
@@ -508,12 +522,7 @@ func TestEncryptDecryptOFBErrors(t *testing.T) {
 
 // TestPadPKCS7 tests PKCS#7 padding function
 func TestPadPKCS7(t *testing.T) {
-	testCases := []struct {
-		name      string
-		data      []byte
-		blockSize int
-		expected  int // expected length after padding
-	}{
+	testCases := []aesPadCase{
 		{"empty data", []byte{}, 16, 16},
 		{"single byte", []byte{0x01}, 16, 16},
 		{"15 bytes", bytes.Repeat([]byte{0x01}, 15), 16, 16},
@@ -550,10 +559,7 @@ func TestUnpadPKCS7(t *testing.T) {
 	blockSize := 16
 
 	t.Run("valid padding", func(t *testing.T) {
-		testCases := []struct {
-			name     string
-			original []byte
-		}{
+		testCases := []aesOriginalCase{
 			{"empty data", []byte{}},
 			{"single byte", []byte{0x01}},
 			{"15 bytes", bytes.Repeat([]byte{0x01}, 15)},
@@ -576,10 +582,7 @@ func TestUnpadPKCS7(t *testing.T) {
 	})
 
 	t.Run("invalid padding", func(t *testing.T) {
-		invalidCases := []struct {
-			name string
-			data []byte
-		}{
+		invalidCases := []aesDataCase{
 			{"empty data", []byte{}},
 			{"zero padding", []byte{0x01, 0x02, 0x03, 0x00}},
 			{"padding too large", []byte{0x01, 0x02, 0x03, 0x20}},
@@ -669,10 +672,7 @@ func TestAESWithDifferentKeys(t *testing.T) {
 	key2 := []byte("98765432109876543210987654321098") // different key
 	plaintext := []byte("test message")
 
-	modes := []struct {
-		name    string
-		encrypt func([]byte, []byte) ([]byte, error)
-	}{
+	modes := []aesModeCase{
 		{"GCM", Encrypt},
 		{"ECB", EncryptECB},
 		{"CBC", EncryptCBC},
@@ -1103,10 +1103,7 @@ func TestSha256Variants(t *testing.T) {
 	input := "Hello, World!"
 	expected := Sha256Original[string](input)
 
-	variants := []struct {
-		name string
-		fn   func(string) string
-	}{
+	variants := []aesSha256VariantCase{
 		{"Original", func(s string) string { return Sha256Original[string](s) }},
 		{"V1", func(s string) string { return Sha256V1[string](s) }},
 		{"V2", func(s string) string { return Sha256V2[string](s) }},

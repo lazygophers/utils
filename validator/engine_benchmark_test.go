@@ -11,6 +11,11 @@ import (
 	"testing"
 )
 
+// stringFieldHolder benchmark 中模拟单 string 字段的 struct
+type stringFieldHolder struct {
+	Field string
+}
+
 var testEmails = []string{
 	"test@example.com",
 	"user.name@example.com",
@@ -6275,9 +6280,7 @@ func BenchmarkIn_Original_15String(b *testing.B) {
 	validator := In(values...)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		stringFl := struct {
-			Field string
-		}{Field: "mango"}
+		stringFl := stringFieldHolder{Field: "mango"}
 		rv := reflect.ValueOf(stringFl.Field)
 		flWrapper := &fieldLevel{field: rv}
 		validator(flWrapper)
@@ -6289,9 +6292,7 @@ func BenchmarkIn_V1_15String(b *testing.B) {
 	validator := InV1(values...)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		stringFl := struct {
-			Field string
-		}{Field: "mango"}
+		stringFl := stringFieldHolder{Field: "mango"}
 		rv := reflect.ValueOf(stringFl.Field)
 		flWrapper := &fieldLevel{field: rv}
 		validator(flWrapper)
@@ -6303,9 +6304,7 @@ func BenchmarkIn_V3_15String(b *testing.B) {
 	validator := InV3(values...)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		stringFl := struct {
-			Field string
-		}{Field: "mango"}
+		stringFl := stringFieldHolder{Field: "mango"}
 		rv := reflect.ValueOf(stringFl.Field)
 		flWrapper := &fieldLevel{field: rv}
 		validator(flWrapper)
@@ -6317,9 +6316,7 @@ func BenchmarkIn_V4_15String(b *testing.B) {
 	validator := InV4(values...)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		stringFl := struct {
-			Field string
-		}{Field: "mango"}
+		stringFl := stringFieldHolder{Field: "mango"}
 		rv := reflect.ValueOf(stringFl.Field)
 		flWrapper := &fieldLevel{field: rv}
 		validator(flWrapper)
@@ -6331,9 +6328,7 @@ func BenchmarkIn_V11_15String(b *testing.B) {
 	validator := InV11(values...)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		stringFl := struct {
-			Field string
-		}{Field: "mango"}
+		stringFl := stringFieldHolder{Field: "mango"}
 		rv := reflect.ValueOf(stringFl.Field)
 		flWrapper := &fieldLevel{field: rv}
 		validator(flWrapper)

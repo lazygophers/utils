@@ -72,9 +72,10 @@ func TestInt(t *testing.T) {
 func TestIntnRange(t *testing.T) {
 	t.Run("intn_range_normal_cases", func(t *testing.T) {
 		// 测试正常范围
-		testCases := []struct {
+		type intRangeCase struct {
 			min, max int
-		}{
+		}
+		testCases := []intRangeCase{
 			{0, 10},
 			{5, 15},
 			{-5, 5},
@@ -168,9 +169,10 @@ func TestInt64(t *testing.T) {
 func TestInt64nRange(t *testing.T) {
 	t.Run("int64n_range_normal_cases", func(t *testing.T) {
 		// 测试正常范围
-		testCases := []struct {
+		type int64RangeCase struct {
 			min, max int64
-		}{
+		}
+		testCases := []int64RangeCase{
 			{0, 10},
 			{5, 15},
 			{-5, 5},
@@ -240,9 +242,10 @@ func TestFloat64(t *testing.T) {
 func TestFloat64Range(t *testing.T) {
 	t.Run("float64_range_normal_cases", func(t *testing.T) {
 		// 注意：代码中有bug，实际返回值会超过max
-		testCases := []struct {
+		type float64RangeCase struct {
 			min, max float64
-		}{
+		}
+		testCases := []float64RangeCase{
 			{0.0, 10.0},
 			{1.5, 3.7},
 			{-5.0, 5.0},
@@ -288,9 +291,10 @@ func TestFloat32(t *testing.T) {
 
 func TestFloat32Range(t *testing.T) {
 	t.Run("float32_range_normal_cases", func(t *testing.T) {
-		testCases := []struct {
+		type float32RangeCase struct {
 			min, max float32
-		}{
+		}
+		testCases := []float32RangeCase{
 			{0.0, 10.0},
 			{1.5, 3.7},
 			{-5.0, 5.0},
@@ -334,9 +338,10 @@ func TestUint32(t *testing.T) {
 
 func TestUint32Range(t *testing.T) {
 	t.Run("uint32_range_normal_cases", func(t *testing.T) {
-		testCases := []struct {
+		type uint32RangeCase struct {
 			min, max uint32
-		}{
+		}
+		testCases := []uint32RangeCase{
 			{0, 10},
 			{5, 15},
 			{100, 200},
@@ -379,9 +384,10 @@ func TestUint64(t *testing.T) {
 
 func TestUint64Range(t *testing.T) {
 	t.Run("uint64_range_normal_cases", func(t *testing.T) {
-		testCases := []struct {
+		type uint64RangeCase struct {
 			min, max uint64
-		}{
+		}
+		testCases := []uint64RangeCase{
 			{0, 10},
 			{5, 15},
 			{100, 200},

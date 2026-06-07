@@ -25,13 +25,14 @@ type ComplexStruct struct {
 }
 
 func TestScan(t *testing.T) {
-	tests := []struct {
+	type scanCase struct {
 		name        string
 		src         interface{}
 		dst         interface{}
 		expectError bool
 		validate    func(t *testing.T, dst interface{})
-	}{
+	}
+	tests := []scanCase{
 		{
 			name: "scan_valid_json_object",
 			src:  `{"name":"John","age":30}`,
@@ -189,12 +190,13 @@ func TestScan(t *testing.T) {
 }
 
 func TestValue(t *testing.T) {
-	tests := []struct {
+	type valueCase struct {
 		name        string
 		input       interface{}
 		expectError bool
 		validate    func(t *testing.T, value driver.Value)
-	}{
+	}
+	tests := []valueCase{
 		{
 			name:  "value_struct",
 			input: TestStruct{Name: "John", Age: 30},
@@ -310,12 +312,13 @@ func TestValue(t *testing.T) {
 
 // TestScanValue_RoundTrip tests that Value and Scan work together
 func TestScanValue_RoundTrip(t *testing.T) {
-	tests := []struct {
+	type roundTripCase struct {
 		name     string
 		original interface{}
 		target   interface{}
 		validate func(t *testing.T, original, target interface{})
-	}{
+	}
+	tests := []roundTripCase{
 		{
 			name:     "roundtrip_struct",
 			original: TestStruct{Name: "John", Age: 30},
@@ -470,18 +473,22 @@ func TestScan_SpecialCases(t *testing.T) {
 	})
 
 	t.Run("scan_large_number", func(t *testing.T) {
-		var target struct {
+		// bigIntTarget 承载大整数解析结果。
+		type bigIntTarget struct {
 			BigInt int64 `json:"big_int"`
 		}
+		var target bigIntTarget
 		err := Scan(`{"big_int":9223372036854775807}`, &target)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(9223372036854775807), target.BigInt)
 	})
 
 	t.Run("scan_unicode_characters", func(t *testing.T) {
-		var target struct {
+		// unicodeTarget 承载 Unicode 字符串解析结果。
+		type unicodeTarget struct {
 			Unicode string `json:"unicode"`
 		}
+		var target unicodeTarget
 		err := Scan(`{"unicode":"测试🚀"}`, &target)
 		assert.NoError(t, err)
 		assert.Equal(t, "测试🚀", target.Unicode)
@@ -491,7 +498,8 @@ func TestScan_SpecialCases(t *testing.T) {
 // TestValue_SpecialCases tests additional edge cases for Value function
 func TestValue_SpecialCases(t *testing.T) {
 	t.Run("value_empty_struct", func(t *testing.T) {
-		input := struct{}{}
+		type emptyStruct struct{}
+		input := emptyStruct{}
 		value, err := Value(input)
 		assert.NoError(t, err)
 		bytes, ok := value.([]byte)
@@ -500,10 +508,11 @@ func TestValue_SpecialCases(t *testing.T) {
 	})
 
 	t.Run("value_struct_with_tags", func(t *testing.T) {
-		input := struct {
+		type taggedStruct struct {
 			Name string `json:"custom_name"`
 			Age  int    `json:"-"`
-		}{
+		}
+		input := taggedStruct{
 			Name: "Test",
 			Age:  30,
 		}
@@ -517,9 +526,10 @@ func TestValue_SpecialCases(t *testing.T) {
 	})
 
 	t.Run("value_pointer_to_struct", func(t *testing.T) {
-		input := &struct {
+		type dataStruct struct {
 			Data string `json:"data"`
-		}{
+		}
+		input := &dataStruct{
 			Data: "pointer test",
 		}
 		value, err := Value(input)
@@ -547,10 +557,11 @@ func TestValue_SpecialCases(t *testing.T) {
 	})
 
 	t.Run("value_float_precision", func(t *testing.T) {
-		input := struct {
+		type floatStruct struct {
 			Float32 float32 `json:"float32"`
 			Float64 float64 `json:"float64"`
-		}{
+		}
+		input := floatStruct{
 			Float32: 3.14159,
 			Float64: 3.141592653589793,
 		}

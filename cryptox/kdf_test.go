@@ -7,15 +7,17 @@ import (
 	"testing"
 )
 
+type pbkdf2TestCase struct {
+	name       string
+	password   []byte
+	salt       []byte
+	iterations int
+	keyLen     int
+	wantNil    bool
+}
+
 func TestPBKDF2SHA256(t *testing.T) {
-	tests := []struct {
-		name       string
-		password   []byte
-		salt       []byte
-		iterations int
-		keyLen     int
-		wantNil    bool
-	}{
+	tests := []pbkdf2TestCase{
 		{
 			name:       "标准参数",
 			password:   []byte("password123"),
@@ -70,14 +72,7 @@ func TestPBKDF2SHA256(t *testing.T) {
 }
 
 func TestPBKDF2SHA512(t *testing.T) {
-	tests := []struct {
-		name       string
-		password   []byte
-		salt       []byte
-		iterations int
-		keyLen     int
-		wantNil    bool
-	}{
+	tests := []pbkdf2TestCase{
 		{
 			name:       "标准参数",
 			password:   []byte("password123"),

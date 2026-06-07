@@ -7,12 +7,13 @@ import (
 )
 
 func TestSecureRandBytes(t *testing.T) {
-	tests := []struct {
+	type secureRandBytesCase struct {
 		name    string
 		n       int
 		wantLen int
 		wantErr bool
-	}{
+	}
+	tests := []secureRandBytesCase{
 		{"正常情况", 16, 16, false},
 		{"零长度", 0, 0, false},
 		{"负数长度", -1, 0, false},
@@ -41,11 +42,12 @@ func TestSecureRandBytes(t *testing.T) {
 }
 
 func TestSecureRandString(t *testing.T) {
-	tests := []struct {
+	type secureRandStringCase struct {
 		name    string
 		n       int
 		wantErr bool
-	}{
+	}
+	tests := []secureRandStringCase{
 		{"正常情况", 16, false},
 		{"零长度", 0, false},
 		{"负数长度", -1, false},
@@ -81,11 +83,12 @@ func TestSecureRandString(t *testing.T) {
 }
 
 func TestSecureRandHex(t *testing.T) {
-	tests := []struct {
+	type secureRandHexCase struct {
 		name    string
 		n       int
 		wantErr bool
-	}{
+	}
+	tests := []secureRandHexCase{
 		{"正常情况", 16, false},
 		{"零长度", 0, false},
 		{"负数长度", -1, false},
@@ -122,11 +125,12 @@ func TestSecureRandHex(t *testing.T) {
 }
 
 func TestSecureRandLetters(t *testing.T) {
-	tests := []struct {
+	type secureRandLettersCase struct {
 		name    string
 		n       int
 		wantErr bool
-	}{
+	}
+	tests := []secureRandLettersCase{
 		{"正常情况", 16, false},
 		{"零长度", 0, false},
 		{"负数长度", -1, false},

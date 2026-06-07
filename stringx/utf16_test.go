@@ -6,11 +6,12 @@ import (
 )
 
 func TestUtf16Len(t *testing.T) {
-	testCases := []struct {
+	type utf16LenCase struct {
 		name     string
 		input    interface{} // Can be string, []rune, or []byte
 		expected int
-	}{
+	}
+	testCases := []utf16LenCase{
 		// String inputs
 		{"empty_string", "", 0},
 		{"ascii_string", "hello", 5},
@@ -148,10 +149,11 @@ func TestUtf16LenEdgeCases(t *testing.T) {
 
 	t.Run("single_rune", func(t *testing.T) {
 		// Test various single runes
-		testRunes := []struct {
+		type singleRuneCase struct {
 			r        rune
 			expected int
-		}{
+		}
+		testRunes := []singleRuneCase{
 			{'a', 1},      // ASCII
 			{'测', 1},      // CJK
 			{'😀', 2},      // Emoji (surrogate pair)
@@ -201,10 +203,11 @@ func TestUtf16LenPerformance(t *testing.T) {
 	}
 
 	// Test performance with various string types
-	testCases := []struct {
+	type utf16LenPerfCase struct {
 		name string
 		str  string
-	}{
+	}
+	testCases := []utf16LenPerfCase{
 		{"ascii_1000", generateString("abcdefghijklmnopqrstuvwxyz", 1000)},
 		{"unicode_1000", generateString("测试字符串", 1000)},
 		{"emoji_100", generateString("😀🎉🔥", 100)},
@@ -240,10 +243,11 @@ func generateString(pattern string, count int) string {
 
 // Benchmark tests
 func BenchmarkUtf16Len(b *testing.B) {
-	testCases := []struct {
+	type utf16LenBenchCase struct {
 		name string
 		str  string
-	}{
+	}
+	testCases := []utf16LenBenchCase{
 		{"ascii_short", "hello world"},
 		{"ascii_long", generateString("hello world", 100)},
 		{"unicode_short", "测试字符串"},
@@ -306,11 +310,12 @@ func BenchmarkUtf16LenTypes(b *testing.B) {
 // Comprehensive Unicode test
 func TestUtf16LenUnicodeCompliance(t *testing.T) {
 	// Test various Unicode categories and edge cases
-	testCases := []struct {
+	type utf16LenUnicodeCase struct {
 		name     string
 		input    string
 		expected int
-	}{
+	}
+	testCases := []utf16LenUnicodeCase{
 		// Basic Multilingual Plane (BMP)
 		{"latin_basic", "Hello", 5},
 		{"latin_extended", "Héllö", 5},

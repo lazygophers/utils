@@ -14,14 +14,27 @@ const (
 	hmacTestMessage = "The quick brown fox jumps over the lazy dog"
 )
 
+type hmacTestCase struct {
+	name     string
+	key      string
+	message  string
+	expected string
+}
+
+type hmacFuncCase struct {
+	name string
+	fn   func(string, string) string
+}
+
+type hmacKeyMsgCase struct {
+	name    string
+	key     string
+	message string
+}
+
 // TestHMACMd5 tests HMACMd5 function with various inputs
 func TestHMACMd5(t *testing.T) {
-	testCases := []struct {
-		name     string
-		key      string
-		message  string
-		expected string
-	}{
+	testCases := []hmacTestCase{
 		{
 			name:     "basic test",
 			key:      hmacTestKey,
@@ -83,12 +96,7 @@ func TestHMACMd5(t *testing.T) {
 
 // TestHMACSHA1 tests HMACSHA1 function with various inputs
 func TestHMACSHA1(t *testing.T) {
-	testCases := []struct {
-		name     string
-		key      string
-		message  string
-		expected string
-	}{
+	testCases := []hmacTestCase{
 		{
 			name:     "basic test",
 			key:      hmacTestKey,
@@ -150,12 +158,7 @@ func TestHMACSHA1(t *testing.T) {
 
 // TestHMACSHA256 tests HMACSHA256 function with various inputs
 func TestHMACSHA256(t *testing.T) {
-	testCases := []struct {
-		name     string
-		key      string
-		message  string
-		expected string
-	}{
+	testCases := []hmacTestCase{
 		{
 			name:     "basic test",
 			key:      hmacTestKey,
@@ -217,12 +220,7 @@ func TestHMACSHA256(t *testing.T) {
 
 // TestHMACSHA384 tests HMACSHA384 function with various inputs
 func TestHMACSHA384(t *testing.T) {
-	testCases := []struct {
-		name     string
-		key      string
-		message  string
-		expected string
-	}{
+	testCases := []hmacTestCase{
 		{
 			name:     "basic test",
 			key:      hmacTestKey,
@@ -284,12 +282,7 @@ func TestHMACSHA384(t *testing.T) {
 
 // TestHMACSHA512 tests HMACSHA512 function with various inputs
 func TestHMACSHA512(t *testing.T) {
-	testCases := []struct {
-		name     string
-		key      string
-		message  string
-		expected string
-	}{
+	testCases := []hmacTestCase{
 		{
 			name:     "basic test",
 			key:      hmacTestKey,
@@ -407,10 +400,7 @@ func TestHMACConsistency(t *testing.T) {
 	key := "test-key"
 	message := "test-message"
 
-	functions := []struct {
-		name string
-		fn   func(string, string) string
-	}{
+	functions := []hmacFuncCase{
 		{"HMACMd5", HMACMd5[string]},
 		{"HMACSHA1", HMACSHA1[string]},
 		{"HMACSHA256", HMACSHA256[string]},
@@ -463,10 +453,7 @@ func TestHMACKeyDifferences(t *testing.T) {
 	key1 := "key1"
 	key2 := "key2"
 
-	functions := []struct {
-		name string
-		fn   func(string, string) string
-	}{
+	functions := []hmacFuncCase{
 		{"HMACMd5", HMACMd5[string]},
 		{"HMACSHA1", HMACSHA1[string]},
 		{"HMACSHA256", HMACSHA256[string]},
@@ -492,10 +479,7 @@ func TestHMACMessageDifferences(t *testing.T) {
 	message1 := "message1"
 	message2 := "message2"
 
-	functions := []struct {
-		name string
-		fn   func(string, string) string
-	}{
+	functions := []hmacFuncCase{
 		{"HMACMd5", HMACMd5[string]},
 		{"HMACSHA1", HMACSHA1[string]},
 		{"HMACSHA256", HMACSHA256[string]},
@@ -559,11 +543,7 @@ func BenchmarkHMACSHA512(b *testing.B) {
 // TestHMACSHA256Optimization 验证优化后的 HMACSHA256 函数正确性
 func TestHMACSHA256Optimization(t *testing.T) {
 	// 使用标准库计算期望值
-	tests := []struct {
-		name    string
-		key     string
-		message string
-	}{
+	tests := []hmacKeyMsgCase{
 		{
 			name:    "基本测试",
 			key:     "key",

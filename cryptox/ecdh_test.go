@@ -13,12 +13,32 @@ import (
 	"testing"
 )
 
+type ecdhCurveCase struct {
+	name  string
+	curve elliptic.Curve
+}
+
+type ecdhGenExpectedCase struct {
+	name     string
+	genFunc  func() (*ECDHKeyPair, error)
+	expected elliptic.Curve
+}
+
+type ecdhKdfCase struct {
+	name      string
+	keyLength int
+	kdf       func() hash.Hash
+}
+
+type ecdhGenCurveCase struct {
+	name    string
+	genFunc func() (*ECDHKeyPair, error)
+	curve   elliptic.Curve
+}
+
 // TestGenerateECDHKey tests ECDH key generation with various curves
 func TestGenerateECDHKey(t *testing.T) {
-	curves := []struct {
-		name  string
-		curve elliptic.Curve
-	}{
+	curves := []ecdhCurveCase{
 		{"P-224", elliptic.P224()},
 		{"P-256", elliptic.P256()},
 		{"P-384", elliptic.P384()},
@@ -75,11 +95,7 @@ func TestGenerateECDHKeyErrors(t *testing.T) {
 
 // TestGenerateECDHPxxxKey tests specific curve key generation functions
 func TestGenerateECDHPxxxKey(t *testing.T) {
-	testCases := []struct {
-		name     string
-		genFunc  func() (*ECDHKeyPair, error)
-		expected elliptic.Curve
-	}{
+	testCases := []ecdhGenExpectedCase{
 		{"P-256", GenerateECDHP256Key, elliptic.P256()},
 		{"P-384", GenerateECDHP384Key, elliptic.P384()},
 		{"P-521", GenerateECDHP521Key, elliptic.P521()},
@@ -105,10 +121,7 @@ func TestGenerateECDHPxxxKey(t *testing.T) {
 
 // TestECDHComputeShared tests shared secret computation
 func TestECDHComputeShared(t *testing.T) {
-	curves := []struct {
-		name  string
-		curve elliptic.Curve
-	}{
+	curves := []ecdhCurveCase{
 		{"P-256", elliptic.P256()},
 		{"P-384", elliptic.P384()},
 		{"P-521", elliptic.P521()},
@@ -197,11 +210,7 @@ func TestECDHComputeSharedWithKDF(t *testing.T) {
 	alice, _ := GenerateECDHP256Key()
 	bob, _ := GenerateECDHP256Key()
 
-	testCases := []struct {
-		name      string
-		keyLength int
-		kdf       func() hash.Hash
-	}{
+	testCases := []ecdhKdfCase{
 		{"SHA256 - 16 bytes", 16, sha256.New},
 		{"SHA256 - 32 bytes", 32, sha256.New},
 		{"SHA256 - 64 bytes", 64, sha256.New},
@@ -637,11 +646,7 @@ func TestValidateECDHKeyPairWithModifiedY(t *testing.T) {
 
 // TestECDHAllCurvesComprehensive tests all curves with additional scenarios
 func TestECDHAllCurvesComprehensive(t *testing.T) {
-	curves := []struct {
-		name    string
-		genFunc func() (*ECDHKeyPair, error)
-		curve   elliptic.Curve
-	}{
+	curves := []ecdhGenCurveCase{
 		{"P-224", func() (*ECDHKeyPair, error) { return GenerateECDHKey(elliptic.P224()) }, elliptic.P224()},
 		{"P-256", GenerateECDHP256Key, elliptic.P256()},
 		{"P-384", GenerateECDHP384Key, elliptic.P384()},

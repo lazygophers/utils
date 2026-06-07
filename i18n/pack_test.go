@@ -137,10 +137,11 @@ func TestPackAllEarlyStop(t *testing.T) {
 }
 
 func TestScalarToString(t *testing.T) {
-	cases := []struct {
+	type scalarCase struct {
 		in   any
 		want string
-	}{
+	}
+	cases := []scalarCase{
 		{"s", "s"},
 		{42, "42"},
 		{int64(64), "64"},

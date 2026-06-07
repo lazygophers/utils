@@ -5,13 +5,26 @@ import (
 	"testing"
 )
 
+type crc32TestCase struct {
+	name     string
+	input    string
+	expected uint32
+}
+
+type crc64TestCase struct {
+	name     string
+	input    string
+	expected uint64
+}
+
+type crcDataTestCase struct {
+	name string
+	data []byte
+}
+
 // TestCRC32 tests CRC32 function with various inputs
 func TestCRC32(t *testing.T) {
-	testCases := []struct {
-		name     string
-		input    string
-		expected uint32
-	}{
+	testCases := []crc32TestCase{
 		{"empty string", "", 0},
 		{"single byte", "a", 0xe8b7be43},
 		{"short string", "hello", 0x3610a686},
@@ -39,11 +52,7 @@ func TestCRC32(t *testing.T) {
 
 // TestCRC64 tests CRC64 function with various inputs
 func TestCRC64(t *testing.T) {
-	testCases := []struct {
-		name     string
-		input    string
-		expected uint64
-	}{
+	testCases := []crc64TestCase{
 		{"empty string", "", 0},
 		{"single byte", "a", 0x330284772e652b05},
 		{"short string", "hello", 0x9b1edae5dbb937b1},
@@ -71,10 +80,7 @@ func TestCRC64(t *testing.T) {
 
 // TestCRCWithVariousDataTypes tests CRC functions with various data types
 func TestCRCWithVariousDataTypes(t *testing.T) {
-	testData := []struct {
-		name string
-		data []byte
-	}{
+	testData := []crcDataTestCase{
 		{"binary zeros", []byte{0x00, 0x00, 0x00, 0x00}},
 		{"binary ones", []byte{0xFF, 0xFF, 0xFF, 0xFF}},
 		{"binary mixed", []byte{0x01, 0x02, 0x03, 0x04, 0x05}},

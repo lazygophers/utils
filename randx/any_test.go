@@ -547,10 +547,12 @@ func TestWeightedChoose(t *testing.T) {
 
 	t.Run("weighted_choose_precision_edge_case", func(t *testing.T) {
 		// 使用多种权重组合，增加触发边界情况的可能性
-		testCases := []struct {
+		// weightedChooseCase 描述 WeightedChoose 精度用例。
+		type weightedChooseCase struct {
 			items   []string
 			weights []float64
-		}{
+		}
+		testCases := []weightedChooseCase{
 			// 浮点精度问题权重 - 这些权重相加可能不精确等于总和
 			{[]string{"a", "b", "c"}, []float64{0.1, 0.2, 0.7}},
 			{[]string{"x", "y", "z", "w"}, []float64{0.333333, 0.333333, 0.333333, 0.000001}},

@@ -9,11 +9,12 @@ import (
 
 func TestParse(t *testing.T) {
 	t.Run("valid_time_strings", func(t *testing.T) {
-		testCases := []struct {
+		type parseCase struct {
 			name     string
 			input    string
 			expected bool
-		}{
+		}
+		testCases := []parseCase{
 			{"iso_date", "2023-01-15", true},
 			{"iso_datetime", "2023-01-15 14:30:00", true},
 			{"iso_full", "2023-01-15T14:30:00Z", true},

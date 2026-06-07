@@ -9,13 +9,14 @@ import (
 )
 
 func TestMustOk(t *testing.T) {
-	tests := []struct {
+	type mustOkCase struct {
 		name     string
 		value    interface{}
 		ok       bool
 		expected interface{}
 		panics   bool
-	}{
+	}
+	tests := []mustOkCase{
 		{
 			name:     "ok_true_string",
 			value:    "test",
@@ -66,11 +67,12 @@ func TestMustOk(t *testing.T) {
 }
 
 func TestMustSuccess(t *testing.T) {
-	tests := []struct {
+	type mustSuccessCase struct {
 		name   string
 		err    error
 		panics bool
-	}{
+	}
+	tests := []mustSuccessCase{
 		{
 			name:   "nil_error",
 			err:    nil,
@@ -104,13 +106,17 @@ func TestMustSuccess(t *testing.T) {
 }
 
 func TestMust(t *testing.T) {
-	tests := []struct {
+	type namedValue struct {
+		Name string
+	}
+	type mustCase struct {
 		name     string
 		value    interface{}
 		err      error
 		expected interface{}
 		panics   bool
-	}{
+	}
+	tests := []mustCase{
 		{
 			name:     "success_string",
 			value:    "test",
@@ -134,9 +140,9 @@ func TestMust(t *testing.T) {
 		},
 		{
 			name:     "success_struct",
-			value:    struct{ Name string }{Name: "test"},
+			value:    namedValue{Name: "test"},
 			err:      nil,
-			expected: struct{ Name string }{Name: "test"},
+			expected: namedValue{Name: "test"},
 			panics:   false,
 		},
 		{
@@ -174,12 +180,16 @@ func TestMust(t *testing.T) {
 }
 
 func TestIgnore(t *testing.T) {
-	tests := []struct {
+	type namedValue struct {
+		Name string
+	}
+	type ignoreCase struct {
 		name     string
 		value    interface{}
 		ignored  interface{}
 		expected interface{}
-	}{
+	}
+	tests := []ignoreCase{
 		{
 			name:     "string_value_error_ignored",
 			value:    "test",
@@ -200,9 +210,9 @@ func TestIgnore(t *testing.T) {
 		},
 		{
 			name:     "struct_value_bool_ignored",
-			value:    struct{ Name string }{Name: "test"},
+			value:    namedValue{Name: "test"},
 			ignored:  true,
-			expected: struct{ Name string }{Name: "test"},
+			expected: namedValue{Name: "test"},
 		},
 		{
 			name:     "slice_value_nil_ignored",

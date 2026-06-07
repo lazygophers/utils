@@ -382,9 +382,10 @@ func TestFromSolarTimestamp(t *testing.T) {
 func TestLunarHelperFunctions(t *testing.T) {
 	t.Run("order_mod", func(t *testing.T) {
 		// Test the OrderMod function with various inputs
-		testCases := []struct {
+		type orderModCase struct {
 			a, b, expected int64
-		}{
+		}
+		testCases := []orderModCase{
 			{10, 3, 1},   // 10 % 3 = 1
 			{9, 3, 3},    // 9 % 3 = 0, but OrderMod should return 3
 			{15, 12, 3},  // 15 % 12 = 3
@@ -683,7 +684,7 @@ func TestLunarLeapMonthBoundary(t *testing.T) {
 
 // TestLunarKnownDates 使用已知的公历-农历对照数据验证转换准确性
 func TestLunarKnownDates(t *testing.T) {
-	testCases := []struct {
+	type knownDateCase struct {
 		name        string
 		solar       time.Time
 		lunarYear   int64
@@ -691,7 +692,8 @@ func TestLunarKnownDates(t *testing.T) {
 		lunarDay    int64
 		isLeapMonth bool
 		animal      string
-	}{
+	}
+	testCases := []knownDateCase{
 		{
 			name:      "春节_2000",
 			solar:     time.Date(2000, 2, 5, 0, 0, 0, 0, time.Local),
@@ -809,10 +811,11 @@ func TestLunarZodiacComplete(t *testing.T) {
 
 	// 验证边界年份生肖
 	t.Run("boundary_year_zodiac", func(t *testing.T) {
-		cases := []struct {
+		type boundaryYearCase struct {
 			year   int
 			animal string
-		}{
+		}
+		cases := []boundaryYearCase{
 			{1900, "鼠"},
 			{1912, "鼠"},
 			{2000, "龙"},
@@ -860,10 +863,11 @@ func TestLunarDayAliasComplete(t *testing.T) {
 
 // TestLunarYearAliasFormat 测试年份汉字转换
 func TestLunarYearAliasFormat(t *testing.T) {
-	testCases := []struct {
+	type yearAliasCase struct {
 		solar    time.Time
 		expected string
-	}{
+	}
+	testCases := []yearAliasCase{
 		{time.Date(1900, 1, 31, 0, 0, 0, 0, time.Local), "一九零零"},
 		{time.Date(2023, 1, 22, 0, 0, 0, 0, time.Local), "二零二三"},
 		{time.Date(2024, 2, 10, 0, 0, 0, 0, time.Local), "二零二四"},
@@ -915,10 +919,11 @@ func TestLunarNoLeapYear(t *testing.T) {
 
 // TestLunarDateFormat 测试 Date() 格式化输出
 func TestLunarDateFormat(t *testing.T) {
-	testCases := []struct {
+	type dateFormatCase struct {
 		solar    time.Time
 		expected string
-	}{
+	}
+	testCases := []dateFormatCase{
 		{time.Date(2023, 1, 22, 0, 0, 0, 0, time.Local), "2023-01-01"},
 		{time.Date(2024, 2, 10, 0, 0, 0, 0, time.Local), "2024-01-01"},
 		{time.Date(1900, 1, 31, 0, 0, 0, 0, time.Local), "1900-01-01"},

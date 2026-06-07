@@ -640,13 +640,15 @@ func TestOptimizationCorrectness(t *testing.T) {
 // ========== 场景化 Benchmarks ==========
 
 // 验证优化后的 Pattern 函数功能正确性
+type patternOptimizationCase struct {
+	name     string
+	pattern  string
+	value    string
+	expected bool
+}
+
 func TestPatternOptimization(t *testing.T) {
-	tests := []struct {
-		name     string
-		pattern  string
-		value    string
-		expected bool
-	}{
+	tests := []patternOptimizationCase{
 		{
 			name:     "有效邮箱",
 			pattern:  `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`,
@@ -736,13 +738,16 @@ func (t *testFieldLevel) GetFieldByName(name string) reflect.Value {
 
 // 性能对比基准测试
 
+// reqTestCase 必填验证测试用例
+type reqTestCase struct {
+	name  string
+	field FieldLevel
+	want  bool
+}
+
 // 测试数据
 var (
-	testCases = []struct {
-		name  string
-		field FieldLevel
-		want  bool
-	}{
+	testCases = []reqTestCase{
 		{"empty_string", testFL{reflect.ValueOf("")}, false},
 		{"nonempty_string", testFL{reflect.ValueOf("hello")}, true},
 		{"empty_slice", testFL{reflect.ValueOf([]int{})}, false},
@@ -836,13 +841,15 @@ func TestRequiredCorrectness(t *testing.T) {
 	}
 }
 
+type parseTagCase struct {
+	name     string
+	tag      string
+	expected []validationRule
+}
+
 // TestParseTag 测试 parseTag 功能正确性
 func TestParseTag(t *testing.T) {
-	tests := []struct {
-		name     string
-		tag      string
-		expected []validationRule
-	}{
+	tests := []parseTagCase{
 		{
 			name: "简单标签",
 			tag:  "required,email,max=100",
@@ -1137,11 +1144,12 @@ func TestChainedComposition(t *testing.T) {
 		}
 	}
 
-	// 测试无效用户名
-	invalidCases := []struct {
+	type invalidUsernameCase struct {
 		username string
 		reason   string
-	}{
+	}
+	// 测试无效用户名
+	invalidCases := []invalidUsernameCase{
 		{"ab", "too short"},
 		{"1invalid", "must start with letter"},
 		{"admin", "reserved name"},
@@ -1745,13 +1753,20 @@ func minLengthOpt15_Minimal(min int) ValidatorFunc {
 // ============================================
 // 正确性测试
 // ============================================
+type minLengthTestCase struct {
+	name     string
+	value    reflect.Value
+	expected bool
+}
+
+type minLengthOptCase struct {
+	name string
+	fn   ValidatorFunc
+}
+
 func TestMinLengthOptimizations_Correctness(t *testing.T) {
 	min := 3
-	testCases := []struct {
-		name     string
-		value    reflect.Value
-		expected bool
-	}{
+	testCases := []minLengthTestCase{
 		{"valid_string", reflect.ValueOf("hello"), true},
 		{"empty_string", reflect.ValueOf(""), false},
 		{"too_short", reflect.ValueOf("hi"), false},
@@ -1766,10 +1781,7 @@ func TestMinLengthOptimizations_Correctness(t *testing.T) {
 		{"invalid_type", reflect.ValueOf(123), false},
 	}
 
-	optimizations := []struct {
-		name string
-		fn   ValidatorFunc
-	}{
+	optimizations := []minLengthOptCase{
 		{"Original", minLengthOriginal(min)},
 		{"Opt1_CacheKind", minLengthOpt1_CacheKind(min)},
 		{"Opt2_FieldLen", minLengthOpt2_FieldLen(min)},
@@ -1804,14 +1816,16 @@ func TestMinLengthOptimizations_Correctness(t *testing.T) {
 	}
 }
 
+type alphaInputCase struct {
+	name     string
+	input    string
+	expected bool
+}
+
 func TestAlphaOptimized(t *testing.T) {
 	validator := Alpha()
 
-	tests := []struct {
-		name     string
-		input    string
-		expected bool
-	}{
+	tests := []alphaInputCase{
 		{"纯字母", "HelloWorld", true},
 		{"混合大小写", "HeLLoWoRLd", true},
 		{"长字符串", "TheQuickBrownFoxJumpsOverTheLazyDog", true},
@@ -1838,11 +1852,7 @@ func TestAlphaOptimized(t *testing.T) {
 func TestAlphanumOptimized(t *testing.T) {
 	validator := Alphanum()
 
-	tests := []struct {
-		name     string
-		input    string
-		expected bool
-	}{
+	tests := []alphaInputCase{
 		{"字母数字", "User123", true},
 		{"混合", "AbC123xYz", true},
 		{"长字符串", "UserID1234567890ABCDEFghijklmnopQRSTUVWXYZ9876543210", true},
@@ -2688,10 +2698,7 @@ func TestLengthOptimizations_Correctness(t *testing.T) {
 		{"invalid_type", 0, 0, reflect.ValueOf(123), false},
 	}
 
-	functions := []struct {
-		name string
-		fn   ValidatorFunc
-	}{
+	functions := []minLengthOptCase{
 		{"Original", lengthOriginal(min, max)},
 		{"Opt1_CacheKind", lengthOpt1_CacheKind(min, max)},
 		{"Opt2_StringDirect", lengthOpt2_StringDirect(min, max)},

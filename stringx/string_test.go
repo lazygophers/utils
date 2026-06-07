@@ -98,10 +98,11 @@ func TestToBytes(t *testing.T) {
 }
 
 func TestCamel2Snake(t *testing.T) {
-	testCases := []struct {
+	type camel2SnakeCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []camel2SnakeCase{
 		{"", ""},
 		{"a", "a"},
 		{"A", "a"},
@@ -126,10 +127,11 @@ func TestCamel2Snake(t *testing.T) {
 }
 
 func TestSnake2Camel(t *testing.T) {
-	testCases := []struct {
+	type snake2CamelCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []snake2CamelCase{
 		{"", ""},
 		{"a", "A"},
 		{"simple_test", "SimpleTest"},
@@ -153,10 +155,11 @@ func TestSnake2Camel(t *testing.T) {
 }
 
 func TestSnake2SmallCamel(t *testing.T) {
-	testCases := []struct {
+	type snake2SmallCamelCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []snake2SmallCamelCase{
 		{"", ""},
 		{"a", "a"},
 		{"simple_test", "simpleTest"},
@@ -181,10 +184,11 @@ func TestSnake2SmallCamel(t *testing.T) {
 }
 
 func TestToSnake(t *testing.T) {
-	testCases := []struct {
+	type toSnakeCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []toSnakeCase{
 		{"", ""},
 		{"simple", "simple"},
 		{"SimpleTest", "simple_test"},
@@ -208,10 +212,11 @@ func TestToSnake(t *testing.T) {
 }
 
 func TestToKebab(t *testing.T) {
-	testCases := []struct {
+	type toKebabCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []toKebabCase{
 		{"", ""},
 		{"simple", "simple"},
 		{"SimpleTest", "simple-test"},
@@ -235,10 +240,11 @@ func TestToKebab(t *testing.T) {
 }
 
 func TestToCamel(t *testing.T) {
-	testCases := []struct {
+	type toCamelCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []toCamelCase{
 		{"", ""},
 		{"simple", "Simple"},
 		{"   simple", "Simple"},
@@ -265,10 +271,11 @@ func TestToCamel(t *testing.T) {
 }
 
 func TestToSlash(t *testing.T) {
-	testCases := []struct {
+	type toSlashCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []toSlashCase{
 		{"", ""},
 		{"simple", "simple"},
 		{"SimpleTest", "simple/test"},
@@ -291,10 +298,11 @@ func TestToSlash(t *testing.T) {
 }
 
 func TestToDot(t *testing.T) {
-	testCases := []struct {
+	type toDotCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []toDotCase{
 		{"", ""},
 		{"simple", "simple"},
 		{"SimpleTest", "simple.test"},
@@ -317,10 +325,11 @@ func TestToDot(t *testing.T) {
 }
 
 func TestToSmallCamel(t *testing.T) {
-	testCases := []struct {
+	type toSmallCamelCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []toSmallCamelCase{
 		{"", ""},
 		{"simple", "simple"},
 		{"simple_test", "simpleTest"},
@@ -497,10 +506,11 @@ func TestShortenShow(t *testing.T) {
 }
 
 func TestIsUpper(t *testing.T) {
-	testCases := []struct {
+	type isUpperCase struct {
 		input    interface{}
 		expected bool
-	}{
+	}
+	testCases := []isUpperCase{
 		{"HELLO", true},
 		{"hello", false},
 		{"Hello", false},
@@ -530,10 +540,11 @@ func TestIsUpper(t *testing.T) {
 }
 
 func TestIsDigit(t *testing.T) {
-	testCases := []struct {
+	type isDigitCase struct {
 		input    interface{}
 		expected bool
-	}{
+	}
+	testCases := []isDigitCase{
 		{"123", true},
 		{"hello", false},
 		{"123abc", false},
@@ -562,10 +573,11 @@ func TestIsDigit(t *testing.T) {
 }
 
 func TestReverse(t *testing.T) {
-	testCases := []struct {
+	type reverseCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []reverseCase{
 		{"", ""},
 		{"a", "a"},
 		{"hello", "olleh"},
@@ -587,10 +599,11 @@ func TestReverse(t *testing.T) {
 }
 
 func TestQuote(t *testing.T) {
-	testCases := []struct {
+	type quoteCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []quoteCase{
 		{"hello", `"hello"`},
 		{"", `""`},
 		{"hello\nworld", `"hello\nworld"`},
@@ -610,10 +623,11 @@ func TestQuote(t *testing.T) {
 }
 
 func TestQuotePure(t *testing.T) {
-	testCases := []struct {
+	type quotePureCase struct {
 		input    string
 		expected string
-	}{
+	}
+	testCases := []quotePureCase{
 		{"hello", "hello"},
 		{"", ""},
 		{"hello\nworld", "hello\\nworld"},
@@ -707,11 +721,12 @@ func TestStringEdgeCases(t *testing.T) {
 
 // TestCamel2SnakeUnicode tests the Unicode path of Camel2Snake that's currently not covered
 func TestCamel2SnakeUnicode(t *testing.T) {
-	testCases := []struct {
+	type camel2SnakeUnicodeCase struct {
 		name     string
 		input    string
 		expected string
-	}{
+	}
+	testCases := []camel2SnakeUnicodeCase{
 		{
 			name:     "empty_string",
 			input:    "",
@@ -761,11 +776,12 @@ func TestCamel2SnakeUnicode(t *testing.T) {
 
 // TestToSnakeMissingBranches tests the missing branches in ToSnake function
 func TestToSnakeMissingBranches(t *testing.T) {
-	testCases := []struct {
+	type toSnakeMissingCase struct {
 		name     string
 		input    string
 		expected string
-	}{
+	}
+	testCases := []toSnakeMissingCase{
 		{
 			name:     "empty_string",
 			input:    "",
@@ -825,11 +841,12 @@ func TestToSnakeMissingBranches(t *testing.T) {
 
 // TestToSmallCamelMissingBranches tests the missing branches in ToSmallCamel
 func TestToSmallCamelMissingBranches(t *testing.T) {
-	testCases := []struct {
+	type toSmallCamelMissingCase struct {
 		name     string
 		input    string
 		expected string
-	}{
+	}
+	testCases := []toSmallCamelMissingCase{
 		{
 			name:     "empty_string",
 			input:    "",
@@ -889,12 +906,13 @@ func TestToSmallCamelMissingBranches(t *testing.T) {
 
 // TestSplitLenMissingBranches tests the missing branches in SplitLen
 func TestSplitLenMissingBranches(t *testing.T) {
-	testCases := []struct {
+	type splitLenMissingCase struct {
 		name     string
 		input    string
 		length   int
 		expected []string
-	}{
+	}
+	testCases := []splitLenMissingCase{
 		{
 			name:     "empty_string",
 			input:    "",
@@ -982,10 +1000,11 @@ func TestToSnakeCapacityLimit(t *testing.T) {
 
 	t.Run("capacity_estimation_edge_cases", func(t *testing.T) {
 		// Test various string lengths to ensure capacity estimation works
-		testCases := []struct {
+		type toSnakeCapacityCase struct {
 			input string
 			desc  string
-		}{
+		}
+		testCases := []toSnakeCapacityCase{
 			{strings.Repeat("ABC", 100), "300 character string"},
 			{strings.Repeat("A", 400), "400 character string"},
 			{strings.Repeat("CamelCase", 50), "repeated camel case"},

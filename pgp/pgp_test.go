@@ -966,10 +966,11 @@ func TestSignVerifyConsistency(t *testing.T) {
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
 
-		testCases := []struct {
+		type signCase struct {
 			name string
 			data string
-		}{
+		}
+		testCases := []signCase{
 			{"短消息", "短消息"},
 			{"长消息", "This is a longer message with more content to verify."},
 			{"二进制数据", string(make([]byte, 1000))},
@@ -1075,12 +1076,13 @@ func TestVerifySignatureErrors(t *testing.T) {
 
 func TestVerifyTextSignatureErrors(t *testing.T) {
 	t.Run("verify_text_with_invalid_inputs", func(t *testing.T) {
-		tests := []struct {
+		type verifyTextCase struct {
 			name      string
 			text      string
 			signature string
 			publicKey string
-		}{
+		}
+		tests := []verifyTextCase{
 			{"empty_text", "", "sig", "key"},
 			{"empty_signature", "text", "", "key"},
 			{"empty_key", "text", "sig", ""},
@@ -1936,10 +1938,11 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
 
-		testCases := []struct {
+		type roundTripCase struct {
 			name string
 			data []byte
-		}{
+		}
+		testCases := []roundTripCase{
 			{"empty", []byte("")},
 			{"short", []byte("short")},
 			{"medium", []byte("This is a medium-length string for testing encryption")},
@@ -1967,10 +1970,11 @@ func TestEncryptDecryptRoundTrip(t *testing.T) {
 		keyPair, err := GenerateKeyPair(nil)
 		require.NoError(t, err)
 
-		testCases := []struct {
+		type roundTripTextCase struct {
 			name string
 			data []byte
-		}{
+		}
+		testCases := []roundTripTextCase{
 			{"empty", []byte("")},
 			{"short", []byte("short")},
 			{"medium", []byte("This is a medium-length string for testing encryption")},

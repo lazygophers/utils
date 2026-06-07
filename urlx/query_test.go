@@ -7,11 +7,13 @@ import (
 )
 
 func TestSortQuery(t *testing.T) {
-	tests := []struct {
+	// testCase 描述单个 SortQuery 用例。
+	type testCase struct {
 		name     string
 		input    url.Values
 		expected url.Values
-	}{
+	}
+	tests := []testCase{
 		{
 			name:     "empty query",
 			input:    url.Values{},

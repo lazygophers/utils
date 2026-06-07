@@ -65,9 +65,10 @@ func TestTimeDuration4Sleep(t *testing.T) {
 
 	t.Run("two_arguments_various_ranges", func(t *testing.T) {
 		// 测试不同的两个参数组合
-		testCases := []struct {
+		type durationRangeCase struct {
 			start, end time.Duration
-		}{
+		}
+		testCases := []durationRangeCase{
 			{time.Millisecond * 50, time.Millisecond * 200},
 			{time.Second, time.Second * 10},
 			{time.Minute, time.Minute * 5},
@@ -609,9 +610,10 @@ func TestSleepRandomMilliseconds(t *testing.T) {
 
 	t.Run("sleep_random_milliseconds_various_ranges", func(t *testing.T) {
 		// 测试不同的范围
-		testCases := []struct {
+		type msRangeCase struct {
 			minMs, maxMs int
-		}{
+		}
+		testCases := []msRangeCase{
 			{1, 2},
 			{5, 10},
 			{0, 1},
@@ -756,10 +758,11 @@ func TestJitter(t *testing.T) {
 
 	t.Run("jitter_force_negative_scenario", func(t *testing.T) {
 		// 使用能确定产生负值的参数组合
-		testCases := []struct {
+		type jitterCase struct {
 			duration time.Duration
 			percent  float64
-		}{
+		}
+		testCases := []jitterCase{
 			{time.Nanosecond, 99.9},
 			{time.Nanosecond * 2, 99.9},
 			{time.Nanosecond * 3, 99.8},

@@ -16,14 +16,17 @@ import (
 // Exists Function Tests
 // =============================================================================
 
+// pathExistCase 描述路径存在性测试用例（Exists / Exist / IsDir / IsFile 共用）
+type pathExistCase struct {
+	name     string
+	path     string
+	setup    func() (string, func())
+	expected bool
+}
+
 func TestExists(t *testing.T) {
 	// 注意：这个函数有Bug，第12行应该是!os.IsNotExist(err)
-	tests := []struct {
-		name     string
-		path     string
-		setup    func() (string, func())
-		expected bool
-	}{
+	tests := []pathExistCase{
 		{
 			name: "existing file",
 			setup: func() (string, func()) {
@@ -182,12 +185,7 @@ func TestExistsEdgeCases(t *testing.T) {
 
 func TestExist(t *testing.T) {
 	// 测试正确实现的Exist函数
-	tests := []struct {
-		name     string
-		path     string
-		setup    func() (string, func())
-		expected bool
-	}{
+	tests := []pathExistCase{
 		{
 			name: "existing file",
 			setup: func() (string, func()) {
@@ -250,12 +248,7 @@ func TestExist(t *testing.T) {
 // =============================================================================
 
 func TestIsDir(t *testing.T) {
-	tests := []struct {
-		name     string
-		path     string
-		setup    func() (string, func())
-		expected bool
-	}{
+	tests := []pathExistCase{
 		{
 			name: "existing directory",
 			setup: func() (string, func()) {
@@ -324,12 +317,7 @@ func TestIsDir(t *testing.T) {
 // =============================================================================
 
 func TestIsFile(t *testing.T) {
-	tests := []struct {
-		name     string
-		path     string
-		setup    func() (string, func())
-		expected bool
-	}{
+	tests := []pathExistCase{
 		{
 			name: "existing file",
 			setup: func() (string, func()) {
@@ -405,12 +393,13 @@ func TestFsHasFile(t *testing.T) {
 		"empty.txt":       &fstest.MapFile{Data: []byte("")},
 	}
 
-	tests := []struct {
+	type fsHasFileCase struct {
 		name     string
 		fs       fs.FS
 		path     string
 		expected bool
-	}{
+	}
+	tests := []fsHasFileCase{
 		{
 			name:     "existing file in root",
 			fs:       testFS,
@@ -496,11 +485,12 @@ func TestFsHasFile_RealFS(t *testing.T) {
 	// 使用os.DirFS测试
 	fsys := os.DirFS(tmpDir)
 
-	tests := []struct {
+	type fsRealCase struct {
 		name     string
 		path     string
 		expected bool
-	}{
+	}
+	tests := []fsRealCase{
 		{"existing file", "test.txt", true},
 		{"existing subdir file", "subdir/sub.txt", true},
 		{"non-existing file", "nonexistent.txt", false},
@@ -561,12 +551,15 @@ func TestFsHasFileEdgeCases(t *testing.T) {
 // RenameForce Function Tests
 // =============================================================================
 
+// renameForceCase 描述 RenameForce 测试用例
+type renameForceCase struct {
+	name      string
+	setup     func() (oldpath, newpath string, cleanup func())
+	expectErr bool
+}
+
 func TestRenameForce(t *testing.T) {
-	tests := []struct {
-		name      string
-		setup     func() (oldpath, newpath string, cleanup func())
-		expectErr bool
-	}{
+	tests := []renameForceCase{
 		{
 			name: "rename file to non-existing path",
 			setup: func() (string, string, func()) {
@@ -967,13 +960,16 @@ func TestRenameForce_FullCoverage(t *testing.T) {
 // Copy Function Tests
 // =============================================================================
 
+// copyCase 描述 Copy 函数测试用例
+type copyCase struct {
+	name      string
+	setup     func() (src, dst string, cleanup func())
+	expectErr bool
+	verify    func(t *testing.T, src, dst string)
+}
+
 func TestCopy(t *testing.T) {
-	tests := []struct {
-		name      string
-		setup     func() (src, dst string, cleanup func())
-		expectErr bool
-		verify    func(t *testing.T, src, dst string)
-	}{
+	tests := []copyCase{
 		{
 			name: "copy file to new location",
 			setup: func() (string, string, func()) {
@@ -1671,11 +1667,12 @@ func TestCopy_DescriptorStatError(t *testing.T) {
 		defer os.RemoveAll(tmpDir)
 
 		// 测试不同的文件类型和权限组合
-		testFiles := []struct {
+		type fileModeCase struct {
 			name string
 			mode os.FileMode
 			data []byte
-		}{
+		}
+		testFiles := []fileModeCase{
 			{"socket_like", 0600, []byte("socket test")},
 			{"device_like", 0660, []byte("device test")},
 			{"special_perm", 0000, []byte("special permission test")},
@@ -2084,11 +2081,12 @@ func TestCopy_FileSystemEdgeCases(t *testing.T) {
 		defer os.RemoveAll(tmpDir)
 
 		// 测试各种可能导致stat失败的情况
-		testCases := []struct {
+		type fsContentCase struct {
 			name    string
 			content []byte
 			mode    fs.FileMode
-		}{
+		}
+		testCases := []fsContentCase{
 			{"empty_file", []byte(""), 0644},
 			{"single_byte", []byte("a"), 0644},
 			{"null_bytes", []byte{0, 0, 0}, 0644},
@@ -2320,11 +2318,12 @@ func TestCopy_FinalCoverage(t *testing.T) {
 		}
 		defer os.RemoveAll(tmpDir)
 
-		testCases := []struct {
+		type fileSizeCase struct {
 			name string
 			size int
 			data []byte
-		}{
+		}
+		testCases := []fileSizeCase{
 			{"empty_file", 0, []byte("")},
 			{"small_file", 10, []byte("0123456789")},
 			{"medium_file", 1024, make([]byte, 1024)},

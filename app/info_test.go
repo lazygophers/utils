@@ -7,12 +7,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// envReleaseCase 描述 APP_ENV 值与解析得到的 ReleaseType 关系
+type envReleaseCase struct {
+	name         string
+	envValue     string
+	expectedType ReleaseType
+}
+
 func TestInitFunctionWithDifferentEnvironments(t *testing.T) {
-	tests := []struct {
-		name         string
-		envValue     string
-		expectedType ReleaseType
-	}{
+	tests := []envReleaseCase{
 		{"development", "development", Debug},
 		{"dev", "dev", Debug},
 		{"test", "test", Test},
@@ -47,12 +50,15 @@ func TestInitFunctionWithDifferentEnvironments(t *testing.T) {
 	}
 }
 
+// releaseStringCase 描述 ReleaseType.String 返回值用例
+type releaseStringCase struct {
+	name     string
+	release  ReleaseType
+	expected string
+}
+
 func TestReleaseTypeString(t *testing.T) {
-	tests := []struct {
-		name     string
-		release  ReleaseType
-		expected string
-	}{
+	tests := []releaseStringCase{
 		{"Debug", Debug, "debug"},
 		{"Test", Test, "test"},
 		{"Alpha", Alpha, "alpha"},
@@ -77,10 +83,11 @@ func TestOrganization(t *testing.T) {
 func TestGlobalVariables(t *testing.T) {
 	// 构建信息变量在测试时通常为空（通过 -ldflags 注入）
 	// 这里仅验证变量存在且可访问，实际值在构建时确定
-	variables := []struct {
+	type globalVar struct {
 		name  string
 		value *string
-	}{
+	}
+	variables := []globalVar{
 		{"Commit", &Commit},
 		{"ShortCommit", &ShortCommit},
 		{"Branch", &Branch},
@@ -103,12 +110,15 @@ func TestGlobalVariables(t *testing.T) {
 	}
 }
 
+// releaseConstantCase 描述 ReleaseType 常量底层值用例
+type releaseConstantCase struct {
+	name     string
+	release  ReleaseType
+	expected uint8
+}
+
 func TestReleaseTypeConstants(t *testing.T) {
-	tests := []struct {
-		name     string
-		release  ReleaseType
-		expected uint8
-	}{
+	tests := []releaseConstantCase{
 		{"Debug", Debug, 0},
 		{"Test", Test, 1},
 		{"Alpha", Alpha, 2},
@@ -171,11 +181,7 @@ func TestSetEnvFromEnv(t *testing.T) {
 	originalEnv := os.Getenv("APP_ENV")
 	defer os.Setenv("APP_ENV", originalEnv)
 
-	tests := []struct {
-		name         string
-		envValue     string
-		expectedType ReleaseType
-	}{
+	tests := []envReleaseCase{
 		{"development", "development", Debug},
 		{"dev", "dev", Debug},
 		{"test", "test", Test},
@@ -207,10 +213,11 @@ func TestSetEnvFromEnv(t *testing.T) {
 
 func TestInitFunctionBranchCoverage(t *testing.T) {
 	// 确保 setEnvFromEnv 函数的所有分支都被测试
-	testCases := []struct {
+	type envBranchCase struct {
 		envValue     string
 		expectedType ReleaseType
-	}{
+	}
+	testCases := []envBranchCase{
 		{"dev", Debug},
 		{"development", Debug},
 		{"test", Test},
@@ -243,16 +250,19 @@ func TestInitFunctionBranchCoverage(t *testing.T) {
 	}
 }
 
+// releaseIsCase 描述 ReleaseType.IsXxx 系列方法的期望返回
+type releaseIsCase struct {
+	name      string
+	release   ReleaseType
+	isDebug   bool
+	isTest    bool
+	isAlpha   bool
+	isBeta    bool
+	isRelease bool
+}
+
 func TestReleaseTypeIsMethods(t *testing.T) {
-	tests := []struct {
-		name      string
-		release   ReleaseType
-		isDebug   bool
-		isTest    bool
-		isAlpha   bool
-		isBeta    bool
-		isRelease bool
-	}{
+	tests := []releaseIsCase{
 		{"Debug", Debug, true, false, false, false, false},
 		{"Test", Test, false, true, false, false, false},
 		{"Alpha", Alpha, false, false, true, false, false},
@@ -271,17 +281,20 @@ func TestReleaseTypeIsMethods(t *testing.T) {
 	}
 }
 
+// globalIsCase 描述全局 IsXxx 系列函数的期望返回
+type globalIsCase struct {
+	name      string
+	getEnv    func() ReleaseType
+	isDebug   bool
+	isTest    bool
+	isAlpha   bool
+	isBeta    bool
+	isRelease bool
+}
+
 func TestGlobalIsFunctions(t *testing.T) {
 	// 全局函数基于 Env 变量，测试它们的行为一致
-	tests := []struct {
-		name      string
-		getEnv    func() ReleaseType
-		isDebug   bool
-		isTest    bool
-		isAlpha   bool
-		isBeta    bool
-		isRelease bool
-	}{
+	tests := []globalIsCase{
 		{"Debug", func() ReleaseType { return Debug }, true, false, false, false, false},
 		{"Test", func() ReleaseType { return Test }, false, true, false, false, false},
 		{"Alpha", func() ReleaseType { return Alpha }, false, false, true, false, false},

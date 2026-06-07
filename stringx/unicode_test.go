@@ -5,10 +5,11 @@ import (
 )
 
 func TestAllDigit(t *testing.T) {
-	testCases := []struct {
+	type allDigitCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allDigitCase{
 		{"123", true},
 		{"", true}, // Empty string case
 		{"abc", false},
@@ -33,10 +34,11 @@ func TestAllDigit(t *testing.T) {
 }
 
 func TestHasDigit(t *testing.T) {
-	testCases := []struct {
+	type hasDigitCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasDigitCase{
 		{"123", true},
 		{"", false}, // Empty string case
 		{"abc", false},
@@ -60,10 +62,11 @@ func TestHasDigit(t *testing.T) {
 }
 
 func TestAllLetter(t *testing.T) {
-	testCases := []struct {
+	type allLetterCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allLetterCase{
 		{"abc", true},
 		{"", true}, // Empty string case
 		{"ABC", true},
@@ -88,10 +91,11 @@ func TestAllLetter(t *testing.T) {
 }
 
 func TestHasLetter(t *testing.T) {
-	testCases := []struct {
+	type hasLetterCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasLetterCase{
 		{"abc", true},
 		{"", false}, // Empty string case
 		{"123", false},
@@ -115,10 +119,11 @@ func TestHasLetter(t *testing.T) {
 }
 
 func TestAllSpace(t *testing.T) {
-	testCases := []struct {
+	type allSpaceCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allSpaceCase{
 		{"   ", true},
 		{"", true}, // Empty string case
 		{"\t\n\r", true},
@@ -143,10 +148,11 @@ func TestAllSpace(t *testing.T) {
 }
 
 func TestHasSpace(t *testing.T) {
-	testCases := []struct {
+	type hasSpaceCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasSpaceCase{
 		{"   ", true},
 		{"", false}, // Empty string case
 		{"\t\n\r", true},
@@ -171,10 +177,11 @@ func TestHasSpace(t *testing.T) {
 }
 
 func TestAllSymbol(t *testing.T) {
-	testCases := []struct {
+	type allSymbolCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allSymbolCase{
 		{"♦♠♣♥", true}, // Card symbols
 		{"", true},     // Empty string case
 		{"$", true},    // Currency symbol
@@ -198,10 +205,11 @@ func TestAllSymbol(t *testing.T) {
 }
 
 func TestHasSymbol(t *testing.T) {
-	testCases := []struct {
+	type hasSymbolCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasSymbolCase{
 		{"♦♠♣♥", true}, // Card symbols
 		{"", false},    // Empty string case
 		{"$100", true}, // Contains currency symbol
@@ -223,10 +231,11 @@ func TestHasSymbol(t *testing.T) {
 }
 
 func TestAllMark(t *testing.T) {
-	testCases := []struct {
+	type allMarkCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allMarkCase{
 		{"̀́̂̃", true}, // Combining marks
 		{"", true},     // Empty string case
 		{"é", false},   // This is a letter, not just a mark
@@ -246,10 +255,11 @@ func TestAllMark(t *testing.T) {
 }
 
 func TestHasMark(t *testing.T) {
-	testCases := []struct {
+	type hasMarkCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasMarkCase{
 		{"é", false},      // Precomposed character, not a combining mark
 		{"", false},       // Empty string case
 		{"cafe", false},   // No combining marks
@@ -270,10 +280,11 @@ func TestHasMark(t *testing.T) {
 }
 
 func TestAllPunct(t *testing.T) {
-	testCases := []struct {
+	type allPunctCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allPunctCase{
 		{"!@#$%", false}, // $ is classified as symbol, not punctuation
 		{"", true},       // Empty string case
 		{".,;:", true},
@@ -296,10 +307,11 @@ func TestAllPunct(t *testing.T) {
 }
 
 func TestHasPunct(t *testing.T) {
-	testCases := []struct {
+	type hasPunctCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasPunctCase{
 		{"!@#$%", true},
 		{"", false}, // Empty string case
 		{"hello!", true},
@@ -321,10 +333,11 @@ func TestHasPunct(t *testing.T) {
 }
 
 func TestAllGraphic(t *testing.T) {
-	testCases := []struct {
+	type allGraphicCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allGraphicCase{
 		{"abc123", true},
 		{"", true}, // Empty string case
 		{"hello!", true},
@@ -348,10 +361,11 @@ func TestAllGraphic(t *testing.T) {
 }
 
 func TestHasGraphic(t *testing.T) {
-	testCases := []struct {
+	type hasGraphicCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasGraphicCase{
 		{"abc123", true},
 		{"", false},     // Empty string case
 		{"\t\n", false}, // Only control characters
@@ -373,10 +387,11 @@ func TestHasGraphic(t *testing.T) {
 }
 
 func TestAllPrint(t *testing.T) {
-	testCases := []struct {
+	type allPrintCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allPrintCase{
 		{"abc123", true},
 		{"", true}, // Empty string case
 		{"hello!", true},
@@ -399,10 +414,11 @@ func TestAllPrint(t *testing.T) {
 }
 
 func TestHasPrint(t *testing.T) {
-	testCases := []struct {
+	type hasPrintCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasPrintCase{
 		{"abc123", true},
 		{"", false},     // Empty string case
 		{"\t\n", false}, // Only control characters
@@ -424,10 +440,11 @@ func TestHasPrint(t *testing.T) {
 }
 
 func TestAllControl(t *testing.T) {
-	testCases := []struct {
+	type allControlCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allControlCase{
 		{"\t\n\r", true},
 		{"", true}, // Empty string case
 		{"abc", false},
@@ -448,10 +465,11 @@ func TestAllControl(t *testing.T) {
 }
 
 func TestHasControl(t *testing.T) {
-	testCases := []struct {
+	type hasControlCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasControlCase{
 		{"\t\n\r", true},
 		{"", false}, // Empty string case
 		{"abc", false},
@@ -472,10 +490,11 @@ func TestHasControl(t *testing.T) {
 }
 
 func TestAllUpper(t *testing.T) {
-	testCases := []struct {
+	type allUpperCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allUpperCase{
 		{"ABC", true},
 		{"", true}, // Empty string case
 		{"abc", false},
@@ -499,10 +518,11 @@ func TestAllUpper(t *testing.T) {
 }
 
 func TestHasUpper(t *testing.T) {
-	testCases := []struct {
+	type hasUpperCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasUpperCase{
 		{"ABC", true},
 		{"", false}, // Empty string case
 		{"abc", false},
@@ -525,10 +545,11 @@ func TestHasUpper(t *testing.T) {
 }
 
 func TestAllLower(t *testing.T) {
-	testCases := []struct {
+	type allLowerCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allLowerCase{
 		{"abc", true},
 		{"", true}, // Empty string case
 		{"ABC", false},
@@ -552,10 +573,11 @@ func TestAllLower(t *testing.T) {
 }
 
 func TestHasLower(t *testing.T) {
-	testCases := []struct {
+	type hasLowerCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasLowerCase{
 		{"abc", true},
 		{"", false}, // Empty string case
 		{"ABC", false},
@@ -578,10 +600,11 @@ func TestHasLower(t *testing.T) {
 }
 
 func TestAllTitle(t *testing.T) {
-	testCases := []struct {
+	type allTitleCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allTitleCase{
 		{"ǅǈǋ", true},  // Title case characters (rare)
 		{"", true},     // Empty string case
 		{"ABC", false}, // Uppercase, not title case
@@ -601,10 +624,11 @@ func TestAllTitle(t *testing.T) {
 }
 
 func TestHasTitle(t *testing.T) {
-	testCases := []struct {
+	type hasTitleCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasTitleCase{
 		{"ǅǈǋ", true},  // Title case characters (rare)
 		{"", false},    // Empty string case
 		{"ABC", false}, // No title case
@@ -624,10 +648,11 @@ func TestHasTitle(t *testing.T) {
 }
 
 func TestAllLetterOrDigit(t *testing.T) {
-	testCases := []struct {
+	type allLetterOrDigitCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []allLetterOrDigitCase{
 		{"abc123", true},
 		{"", true}, // Empty string case
 		{"abc", true},
@@ -651,10 +676,11 @@ func TestAllLetterOrDigit(t *testing.T) {
 }
 
 func TestHasLetterOrDigit(t *testing.T) {
-	testCases := []struct {
+	type hasLetterOrDigitCase struct {
 		input    string
 		expected bool
-	}{
+	}
+	testCases := []hasLetterOrDigitCase{
 		{"abc123", true},
 		{"", false},      // Empty string case
 		{"!!!", false},   // Only punctuation

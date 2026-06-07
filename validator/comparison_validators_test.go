@@ -19,16 +19,18 @@ func (t paramFL) Param() string                       { return t.param }
 func (t paramFL) GetTag(string) string                { return "" }
 func (t paramFL) GetFieldByName(string) reflect.Value { return reflect.Value{} }
 
+type compareThresholdCase struct {
+	name  string
+	field interface{}
+	param string
+	gt    bool
+	gte   bool
+	lt    bool
+	lte   bool
+}
+
 func TestCompareThresholdAllTypes(t *testing.T) {
-	tests := []struct {
-		name  string
-		field interface{}
-		param string
-		gt    bool
-		gte   bool
-		lt    bool
-		lte   bool
-	}{
+	tests := []compareThresholdCase{
 		{"string gt", "hello", "4", true, true, false, false},
 		{"string lt", "hi", "5", false, false, true, true},
 		{"int gt", 10, "5", true, true, false, false},

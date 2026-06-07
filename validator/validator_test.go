@@ -236,13 +236,15 @@ func TestDefaultValidator(t *testing.T) {
 
 // Custom Validators Tests
 
+type allCustomValidatorsCase struct {
+	name     string
+	value    interface{}
+	tag      string
+	expected bool
+}
+
 func TestAllCustomValidators(t *testing.T) {
-	tests := []struct {
-		name     string
-		value    interface{}
-		tag      string
-		expected bool
-	}{
+	tests := []allCustomValidatorsCase{
 		// 强密码
 		{"strong password 1", "MyPass123!", "strong_password", true},
 		{"strong password 2", "Complex1@", "strong_password", true},
@@ -482,11 +484,12 @@ func TestAllLocalesAvailable(t *testing.T) {
 func TestLocaleMessages(t *testing.T) {
 	t.Skip("Skipping multi-language test - requires all locale files to be available")
 
-	testCases := []struct {
+	type localeMessageCase struct {
 		locale  string
 		msgKey  string
 		wantKey string
-	}{
+	}
+	testCases := []localeMessageCase{
 		{"en", "required", "{field} is required"},
 		{"zh", "required", "{field}不能为空"},
 		{"zh-CN", "required", "{field}不能为空"},

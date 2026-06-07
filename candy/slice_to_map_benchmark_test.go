@@ -177,11 +177,14 @@ func BenchmarkSliceField2MapBool_Original(b *testing.B) {
 
 // ==================== 优化方案 1：反射字段索引缓存 ====================
 
-// fieldIndexCache 字段索引缓存
-var fieldIndexCache struct {
+// fieldIndexCacheT 字段索引缓存类型
+type fieldIndexCacheT struct {
 	sync.RWMutex
 	cache map[reflect.Type]map[string][]int
 }
+
+// fieldIndexCache 字段索引缓存
+var fieldIndexCache fieldIndexCacheT
 
 func init() {
 	fieldIndexCache.cache = make(map[reflect.Type]map[string][]int)

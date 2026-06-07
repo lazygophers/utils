@@ -268,11 +268,13 @@ func TestDepartment(t *testing.T) {
 
 // 测试CompanyInfo函数
 func TestCompanyInfo(t *testing.T) {
-	// 测试不同语言和国家的情况
-	tests := []struct {
+	// langCountryCase 描述语言与国家组合。
+	type langCountryCase struct {
 		language Language
 		country  Country
-	}{
+	}
+	// 测试不同语言和国家的情况
+	tests := []langCountryCase{
 		{LanguageEnglish, CountryUS},
 		{LanguageChineseSimplified, CountryChina},
 		{LanguageChineseTraditional, CountryChina},

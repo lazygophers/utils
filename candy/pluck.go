@@ -227,11 +227,14 @@ func pluckStringOptimized(list interface{}, fieldName string) []string {
 	return result
 }
 
-// pluckStringFieldCache 字段索引缓存
-var pluckStringFieldCache struct {
+// pluckStringFieldCacheT 字段索引缓存类型
+type pluckStringFieldCacheT struct {
 	sync.RWMutex
 	cache map[reflect.Type]map[string][]int
 }
+
+// pluckStringFieldCache 字段索引缓存
+var pluckStringFieldCache pluckStringFieldCacheT
 
 // 初始化缓存
 func init() {
@@ -302,11 +305,14 @@ func getPluckStringFieldIndex(elemType reflect.Type, fieldName string) ([]int, r
 
 // ==================== PluckInt 优化实现 ====================
 
-// pluckIntFieldCache 字段索引缓存
-var pluckIntFieldCache struct {
+// pluckIntFieldCacheT 字段索引缓存类型
+type pluckIntFieldCacheT struct {
 	sync.RWMutex
 	cache map[reflect.Type]map[string]int
 }
+
+// pluckIntFieldCache 字段索引缓存
+var pluckIntFieldCache pluckIntFieldCacheT
 
 // 初始化缓存
 func init() {

@@ -6,11 +6,12 @@ import (
 )
 
 func TestByteSize(t *testing.T) {
-	tests := []struct {
+	type byteSizeCase struct {
 		name     string
 		input    int64
 		expected string
-	}{
+	}
+	tests := []byteSizeCase{
 		{"0 bytes", 0, "0 B"},
 		{"1 byte", 1, "1 B"},
 		{"1024 bytes", 1024, "1 KB"},
@@ -47,11 +48,12 @@ func TestByteSizeWithLocale(t *testing.T) {
 }
 
 func TestSpeed(t *testing.T) {
-	tests := []struct {
+	type speedCase struct {
 		name     string
 		input    int64
 		expected string
-	}{
+	}
+	tests := []speedCase{
 		{"0 B/s", 0, "0 B/s"},
 		{"1 B/s", 1, "1 B/s"},
 		{"1024 B/s", 1024, "1 KB/s"},
@@ -70,11 +72,12 @@ func TestSpeed(t *testing.T) {
 }
 
 func TestBitSpeed(t *testing.T) {
-	tests := []struct {
+	type bitSpeedCase struct {
 		name     string
 		input    int64
 		expected string
-	}{
+	}
+	tests := []bitSpeedCase{
 		{"0 bps", 0, "0 bps"},
 		{"512 bps", 512, "512 bps"},
 		{"1000 bps", 1000, "1 Kbps"},
@@ -121,12 +124,13 @@ func TestSpeedVsBitSpeedDistinction(t *testing.T) {
 }
 
 func TestBitSpeedWithOptions(t *testing.T) {
-	tests := []struct {
+	type bitSpeedOptCase struct {
 		name     string
 		input    int64
 		options  Options
 		expected string
-	}{
+	}
+	tests := []bitSpeedOptCase{
 		{
 			"High precision",
 			1500,
@@ -168,11 +172,12 @@ func TestInvalidInputs(t *testing.T) {
 }
 
 func TestDuration(t *testing.T) {
-	tests := []struct {
+	type durationCase struct {
 		name     string
 		input    time.Duration
 		expected string
-	}{
+	}
+	tests := []durationCase{
 		{"0 seconds", 0, "0 second"},
 		{"1 second", time.Second, "1 second"},
 		{"30 seconds", 30 * time.Second, "30 seconds"},
@@ -194,11 +199,12 @@ func TestDuration(t *testing.T) {
 }
 
 func TestClockDuration(t *testing.T) {
-	tests := []struct {
+	type clockDurationCase struct {
 		name     string
 		input    time.Duration
 		expected string
-	}{
+	}
+	tests := []clockDurationCase{
 		{"0 seconds", 0, "0:00"},
 		{"30 seconds", 30 * time.Second, "0:30"},
 		{"1 minute", time.Minute, "1:00"},
@@ -222,11 +228,12 @@ func TestClockDuration(t *testing.T) {
 func TestDurationWithClockFormat(t *testing.T) {
 	opts := Options{TimeFormat: "clock"}
 
-	tests := []struct {
+	type clockFmtCase struct {
 		name     string
 		input    time.Duration
 		expected string
-	}{
+	}
+	tests := []clockFmtCase{
 		{"30 seconds with clock format", 30 * time.Second, "0:30"},
 		{"1 hour 10 minutes with clock format", time.Hour + 10*time.Minute, "1:10"},
 		{"negative duration", -90 * time.Second, "-1:30"},
@@ -245,11 +252,12 @@ func TestDurationWithClockFormat(t *testing.T) {
 func TestRelativeTime(t *testing.T) {
 	now := time.Now()
 
-	tests := []struct {
+	type relativeCase struct {
 		name     string
 		input    time.Time
 		expected string
-	}{
+	}
+	tests := []relativeCase{
 		{"just now", now.Add(-5 * time.Second), "just now"},
 		{"30 seconds ago", now.Add(-30 * time.Second), "30 seconds ago"},
 		{"2 minutes ago", now.Add(-2 * time.Minute), "2 minutes ago"},
@@ -669,10 +677,11 @@ func TestNegativeValues(t *testing.T) {
 // TestLargeValues 测试大数值处理
 func TestLargeValues(t *testing.T) {
 	// Test very large byte sizes
-	tests := []struct {
+	type largeByteCase struct {
 		input    int64
 		expected string
-	}{
+	}
+	tests := []largeByteCase{
 		{1024 * 1024 * 1024 * 1024 * 1024, "1 PB"},           // 1 PB
 		{1024 * 1024 * 1024 * 1024 * 1024 * 1024, "1024 PB"}, // 1024 PB (beyond units)
 		{1000 * 1000 * 1000 * 1000 * 1000, "909.5 TB"},       // ~1000^5 in binary
@@ -716,11 +725,12 @@ func TestEdgeCases(t *testing.T) {
 
 // TestFormatFloat 测试浮点数格式化
 func TestFormatFloat(t *testing.T) {
-	tests := []struct {
+	type formatFloatCase struct {
 		value     float64
 		precision int
 		expected  string
-	}{
+	}
+	tests := []formatFloatCase{
 		{1.0, 2, "1"},
 		{1.5, 1, "1.5"},
 		{1.23456, 3, "1.235"},
@@ -739,10 +749,11 @@ func TestFormatFloat(t *testing.T) {
 
 // TestAbsFunction 测试abs函数
 func TestAbsFunction(t *testing.T) {
-	tests := []struct {
+	type absCase struct {
 		input    int64
 		expected int64
-	}{
+	}
+	tests := []absCase{
 		{0, 0},
 		{5, 5},
 		{-5, 5},
@@ -812,11 +823,12 @@ func TestConfigToOptions(t *testing.T) {
 
 // TestCompactFormat 测试紧凑格式
 func TestCompactFormat(t *testing.T) {
-	tests := []struct {
+	type compactCase struct {
 		function func(int64, ...Option) string
 		input    int64
 		expected string
-	}{
+	}
+	tests := []compactCase{
 		{ByteSize, 1536, "1.5KB"},
 		{Speed, 1536, "1.5KB/s"},
 		{BitSpeed, 1500, "1.5Kbps"},
@@ -832,10 +844,11 @@ func TestCompactFormat(t *testing.T) {
 
 // TestClockTimeEdgeCases 测试时钟格式边界情况
 func TestClockTimeEdgeCases(t *testing.T) {
-	tests := []struct {
+	type clockEdgeCase struct {
 		duration time.Duration
 		expected string
-	}{
+	}
+	tests := []clockEdgeCase{
 		{0, "0:00"},
 		{30 * time.Second, "0:30"},
 		{90 * time.Second, "1:30"},
@@ -1050,11 +1063,12 @@ func TestGetTimeUnitAllCases(t *testing.T) {
 		},
 	}
 
-	testCases := []struct {
+	type timeUnitCase struct {
 		unit     string
 		count    int64
 		expected string
-	}{
+	}
+	testCases := []timeUnitCase{
 		{"second", 2, "seconds"},
 		{"minute", 2, "minutes"},
 		{"hour", 2, "hours"},
@@ -1195,10 +1209,11 @@ func TestFormatRelativeTimeEdgeCases(t *testing.T) {
 func TestFormatPastTimeAllRanges(t *testing.T) {
 	locale, _ := GetLocaleConfig("en")
 
-	tests := []struct {
+	type pastTimeCase struct {
 		duration time.Duration
 		contains string
-	}{
+	}
+	tests := []pastTimeCase{
 		{5 * time.Second, "just now"},
 		{30 * time.Second, "seconds ago"},
 		{30 * time.Minute, "minutes ago"},
@@ -1221,10 +1236,11 @@ func TestFormatPastTimeAllRanges(t *testing.T) {
 func TestFormatFutureTimeAllRanges(t *testing.T) {
 	locale, _ := GetLocaleConfig("en")
 
-	tests := []struct {
+	type futureTimeCase struct {
 		duration time.Duration
 		contains string
-	}{
+	}
+	tests := []futureTimeCase{
 		{30 * time.Second, "seconds"},
 		{30 * time.Minute, "minutes"},
 		{5 * time.Hour, "hours"},
@@ -1276,10 +1292,11 @@ func TestDefaultConfigValues(t *testing.T) {
 // TestIntegerValues 测试整数值（无小数点）
 func TestIntegerValues(t *testing.T) {
 	// Test values that should be displayed as integers
-	tests := []struct {
+	type integerValueCase struct {
 		input    int64
 		expected string
-	}{
+	}
+	tests := []integerValueCase{
 		{1024, "1 KB"},        // Exactly 1KB
 		{2048, "2 KB"},        // Exactly 2KB
 		{1024 * 1024, "1 MB"}, // Exactly 1MB

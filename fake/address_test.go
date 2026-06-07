@@ -175,11 +175,13 @@ func TestCountryNameEdgeCases(t *testing.T) {
 
 // 测试FullAddress函数的各种情况
 func TestFullAddressEdgeCases(t *testing.T) {
-	// 测试不同国家和语言组合
-	tests := []struct {
+	// langCountryCase 描述语言与国家组合。
+	type langCountryCase struct {
 		language Language
 		country  Country
-	}{}
+	}
+	// 测试不同国家和语言组合
+	tests := []langCountryCase{}
 
 	// 为所有语言和国家组合生成测试用例
 	languages := []Language{
@@ -197,10 +199,7 @@ func TestFullAddressEdgeCases(t *testing.T) {
 
 	for _, lang := range languages {
 		for _, country := range countries {
-			tests = append(tests, struct {
-				language Language
-				country  Country
-			}{lang, country})
+			tests = append(tests, langCountryCase{lang, country})
 		}
 	}
 

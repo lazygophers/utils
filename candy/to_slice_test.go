@@ -10,11 +10,12 @@ func TestToFloat64Slice(t *testing.T) {
 		t.Fatalf("expected nil, got %v", got)
 	}
 
-	tests := []struct {
+	type testCase struct {
 		name string
 		in   any
 		want []float64
-	}{
+	}
+	tests := []testCase{
 		{name: "bool", in: []bool{true, false}, want: []float64{1, 0}},
 		{name: "int", in: []int{1, 2}, want: []float64{1, 2}},
 		{name: "float32", in: []float32{1.5, 2.5}, want: []float64{1.5, 2.5}},
@@ -44,11 +45,12 @@ func TestToFloat64Slice(t *testing.T) {
 }
 
 func TestToInt64Slice(t *testing.T) {
-	tests := []struct {
+	type testCase struct {
 		name string
 		in   any
 		want []int64
-	}{
+	}
+	tests := []testCase{
 		{name: "bool", in: []bool{true, false}, want: []int64{1, 0}},
 		{name: "int", in: []int{1, 2}, want: []int64{1, 2}},
 		{name: "int64", in: []int64{1, 2}, want: []int64{1, 2}},
@@ -122,11 +124,12 @@ func TestToUint64Slice(t *testing.T) {
 		t.Fatalf("expected nil, got %v", got)
 	}
 
-	tests := []struct {
+	type testCase struct {
 		name string
 		in   any
 		want []uint64
-	}{
+	}
+	tests := []testCase{
 		{name: "bool", in: []bool{true, false}, want: []uint64{1, 0}},
 		{name: "int", in: []int{1, 2}, want: []uint64{1, 2}},
 		{name: "uint64", in: []uint64{1, 2}, want: []uint64{1, 2}},
@@ -160,11 +163,12 @@ func TestToUint32Slice(t *testing.T) {
 		t.Fatalf("expected nil, got %v", got)
 	}
 
-	tests := []struct {
+	type testCase struct {
 		name string
 		in   any
 		want []uint32
-	}{
+	}
+	tests := []testCase{
 		{name: "bool", in: []bool{true, false}, want: []uint32{1, 0}},
 		{name: "int", in: []int{1, 2}, want: []uint32{1, 2}},
 		{name: "uint32", in: []uint32{1, 2}, want: []uint32{1, 2}},

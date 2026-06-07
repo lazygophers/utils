@@ -13,12 +13,39 @@ import (
 	"testing"
 )
 
+type ecdsaCurveCase struct {
+	name  string
+	curve elliptic.Curve
+}
+
+type ecdsaVerifyInputCase struct {
+	name     string
+	pubKey   *ecdsa.PublicKey
+	data     []byte
+	r        *big.Int
+	s        *big.Int
+	hashFunc func() hash.Hash
+}
+
+type ecdsaDataCase struct {
+	name string
+	data []byte
+}
+
+type ecdsaCurveNameCase struct {
+	curve    elliptic.Curve
+	expected string
+}
+
+type ecdsaCurveValidCase struct {
+	name     string
+	curve    elliptic.Curve
+	expected bool
+}
+
 // Test key generation
 func TestGenerateECDSAKey(t *testing.T) {
-	curves := []struct {
-		name  string
-		curve elliptic.Curve
-	}{
+	curves := []ecdsaCurveCase{
 		{"P224", elliptic.P224()},
 		{"P256", elliptic.P256()},
 		{"P384", elliptic.P384()},
@@ -210,14 +237,7 @@ func TestECDSAVerify_NilInputs(t *testing.T) {
 	s := big.NewInt(456)
 	data := []byte("test")
 
-	tests := []struct {
-		name     string
-		pubKey   *ecdsa.PublicKey
-		data     []byte
-		r        *big.Int
-		s        *big.Int
-		hashFunc func() hash.Hash
-	}{
+	tests := []ecdsaVerifyInputCase{
 		{"nil public key", nil, data, r, s, sha256.New},
 		{"nil r", keyPair.PublicKey, data, nil, s, sha256.New},
 		{"nil s", keyPair.PublicKey, data, r, nil, sha256.New},
@@ -498,10 +518,7 @@ func TestECDSASignatureFromBytes_ShortData(t *testing.T) {
 }
 
 func TestECDSASignatureFromBytes_InvalidDER(t *testing.T) {
-	tests := []struct {
-		name string
-		data []byte
-	}{
+	tests := []ecdsaDataCase{
 		{"missing SEQUENCE tag", []byte{0x31, 0x06, 0x02, 0x01, 0x01, 0x02, 0x01, 0x02}},
 		{"invalid sequence length", []byte{0x30, 0xFF, 0x02, 0x01, 0x01}},
 		{"missing r INTEGER tag", []byte{0x30, 0x06, 0x03, 0x01, 0x01, 0x02, 0x01, 0x02}},
@@ -554,10 +571,7 @@ func TestECDSASignatureRoundTrip(t *testing.T) {
 
 // Test curve utilities
 func TestGetCurveName(t *testing.T) {
-	tests := []struct {
-		curve    elliptic.Curve
-		expected string
-	}{
+	tests := []ecdsaCurveNameCase{
 		{elliptic.P224(), "P-224"},
 		{elliptic.P256(), "P-256"},
 		{elliptic.P384(), "P-384"},
@@ -576,11 +590,7 @@ func TestGetCurveName(t *testing.T) {
 }
 
 func TestIsValidCurve(t *testing.T) {
-	tests := []struct {
-		name     string
-		curve    elliptic.Curve
-		expected bool
-	}{
+	tests := []ecdsaCurveValidCase{
 		{"P224", elliptic.P224(), true},
 		{"P256", elliptic.P256(), true},
 		{"P384", elliptic.P384(), true},

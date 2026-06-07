@@ -9,6 +9,11 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
+type ulidInvalidCase struct {
+	name  string
+	input string
+}
+
 // TestULID tests the ULID function
 func TestULID(t *testing.T) {
 	id := ULID()
@@ -150,10 +155,7 @@ func TestGetULIDTimestamp(t *testing.T) {
 
 // TestGetULIDTimestamp_InvalidInput tests GetULIDTimestamp with invalid input
 func TestGetULIDTimestamp_InvalidInput(t *testing.T) {
-	tests := []struct {
-		name  string
-		input string
-	}{
+	tests := []ulidInvalidCase{
 		{"short string", "abc"},
 		{"overflow value", "8ZZZZZZZZZZZZZZZZZZZZZZZZZ"},
 		{"too long", "0000000000000000000000000000"},

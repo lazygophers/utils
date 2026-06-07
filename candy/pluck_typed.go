@@ -6,10 +6,12 @@ import (
 	"sync"
 )
 
-var unifiedPluckCache struct {
+type pluckIndexCache struct {
 	sync.RWMutex
 	cache map[reflect.Type]map[string][]int
 }
+
+var unifiedPluckCache pluckIndexCache
 
 func init() {
 	unifiedPluckCache.cache = make(map[reflect.Type]map[string][]int)

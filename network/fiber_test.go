@@ -6,11 +6,12 @@ import (
 )
 
 func TestRealIpFromHeader(t *testing.T) {
-	tests := []struct {
+	type realIpCase struct {
 		name     string
 		headers  map[string]string
 		expected string
-	}{
+	}
+	tests := []realIpCase{
 		// Cloudflare headers
 		{
 			name:     "Cf-Connecting-Ip with public IP",
@@ -213,12 +214,13 @@ func TestRealIpFromHeader(t *testing.T) {
 
 func TestRealIpFromHeader_HeaderCaseSensitivity(t *testing.T) {
 	// HTTP headers are case-insensitive, test different cases
-	tests := []struct {
+	type headerCaseCase struct {
 		name      string
 		headerKey string
 		headerVal string
 		expected  string
-	}{
+	}
+	tests := []headerCaseCase{
 		{"Lowercase cf-connecting-ip", "cf-connecting-ip", "203.0.113.1", "203.0.113.1"},
 		{"Uppercase CF-CONNECTING-IP", "CF-CONNECTING-IP", "203.0.113.2", "203.0.113.2"},
 		{"Mixed case Cf-Connecting-Ip", "Cf-Connecting-Ip", "203.0.113.3", "203.0.113.3"},
@@ -241,11 +243,12 @@ func TestRealIpFromHeader_HeaderCaseSensitivity(t *testing.T) {
 }
 
 func TestRealIpFromHeader_EdgeCases(t *testing.T) {
-	tests := []struct {
+	type realIpEdgeCase struct {
 		name     string
 		headers  map[string]string
 		expected string
-	}{
+	}
+	tests := []realIpEdgeCase{
 		{
 			name:     "Single comma with spaces",
 			headers:  map[string]string{"X-Forwarded-For": " , "},

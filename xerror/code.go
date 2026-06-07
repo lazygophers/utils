@@ -6,13 +6,15 @@ import (
 	"github.com/lazygophers/utils/language"
 )
 
-// messageRegistry 保存本地化消息，按 *language.Tag 指针索引到 code → msg。
+// messageStore 保存本地化消息，按 *language.Tag 指针索引到 code → msg。
 // language.Make/Parse 已将 Tag 按 canonical 字串 intern，相同 locale 指针唯一，
 // 因此可用指针作 key 跳过 String() 字串分配。
-var messageRegistry = struct {
+type messageStore struct {
 	sync.RWMutex
 	m map[*language.Tag]map[int64]string
-}{m: make(map[*language.Tag]map[int64]string)}
+}
+
+var messageRegistry = messageStore{m: make(map[*language.Tag]map[int64]string)}
 
 // Code 提取错误码：*Error 返回其 code，其他 error 返回 0。
 func Code(err error) int64 {

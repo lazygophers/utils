@@ -56,10 +56,11 @@ func TestTag_BaseRegionScript(t *testing.T) {
 }
 
 func TestTag_Parent(t *testing.T) {
-	tests := []struct {
+	type parentCase struct {
 		input string
 		want  string
-	}{
+	}
+	tests := []parentCase{
 		{"zh-CN", "zh"},
 		{"zh-TW", "zh-Hant"},
 		{"en-US", "en"},
@@ -77,10 +78,11 @@ func TestTag_Parent(t *testing.T) {
 }
 
 func TestTag_FallbackChain(t *testing.T) {
-	tests := []struct {
+	type fallbackCase struct {
 		input string
 		want  []string
-	}{
+	}
+	tests := []fallbackCase{
 		{"zh-CN", []string{"zh-CN", "zh", "und"}},
 		{"zh-TW", []string{"zh-TW", "zh-Hant", "und"}},
 		{"en-US", []string{"en-US", "en", "und"}},
@@ -103,12 +105,13 @@ func TestTag_FallbackChain(t *testing.T) {
 }
 
 func TestTag_Match(t *testing.T) {
-	tests := []struct {
+	type matchCase struct {
 		name   string
 		from   string
 		target string
 		want   bool
-	}{
+	}
+	tests := []matchCase{
 		{"zh-CN matches zh", "zh-CN", "zh", true},
 		{"zh-CN matches und", "zh-CN", "und", true},
 		{"zh-CN not match en", "zh-CN", "en", false},
@@ -127,10 +130,11 @@ func TestTag_Match(t *testing.T) {
 }
 
 func TestTag_IsRTL(t *testing.T) {
-	tests := []struct {
+	type rtlCase struct {
 		input string
 		want  bool
-	}{
+	}
+	tests := []rtlCase{
 		{"ar", true},
 		{"he", true},
 		{"fa", true},
@@ -148,11 +152,12 @@ func TestTag_IsRTL(t *testing.T) {
 }
 
 func TestParseAcceptLanguage(t *testing.T) {
-	tests := []struct {
+	type acceptCase struct {
 		name   string
 		header string
 		want   []string
-	}{
+	}
+	tests := []acceptCase{
 		{"empty", "", nil},
 		{"single", "en", []string{"en"}},
 		{"multiple", "da, en-gb;q=0.8, en;q=0.7", []string{"da", "en-GB", "en"}},
@@ -268,12 +273,13 @@ func TestDetect(t *testing.T) {
 		Make("ja"),
 	}
 
-	tests := []struct {
+	type detectCase struct {
 		name      string
 		header    string
 		wantTag   string
 		wantIndex int
-	}{
+	}
+	tests := []detectCase{
 		{"exact zh-CN", "zh-CN", "zh-CN", 1},
 		{"fallback", "ko", "en", 0},
 		{"quality order", "zh-TW;q=0.9, en;q=0.8", "zh-TW", 2},

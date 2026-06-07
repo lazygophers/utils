@@ -21,11 +21,14 @@ func Slice2Map[M constraints.Ordered](list []M) map[M]bool {
 // ==================== SliceField2Map 优化：反射字段缓存 ====================
 // 使用缓存避免重复的字段查找，显著提升性能
 
-// sliceField2MapCache 字段索引缓存
-var sliceField2MapCache struct {
+// sliceField2MapCacheT 字段索引缓存类型
+type sliceField2MapCacheT struct {
 	sync.RWMutex
 	cache map[reflect.Type]map[string][]int
 }
+
+// sliceField2MapCache 字段索引缓存
+var sliceField2MapCache sliceField2MapCacheT
 
 func init() {
 	sliceField2MapCache.cache = make(map[reflect.Type]map[string][]int)

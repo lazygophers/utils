@@ -6,18 +6,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// parseVersionCase 描述 Parse 函数的版本字符串解析用例
+type parseVersionCase struct {
+	name        string
+	input       string
+	major       int
+	minor       int
+	patch       int
+	build       int
+	prerelease  string
+	metadata    string
+	expectError bool
+}
+
 func TestParseVersion(t *testing.T) {
-	tests := []struct {
-		name        string
-		input       string
-		major       int
-		minor       int
-		patch       int
-		build       int
-		prerelease  string
-		metadata    string
-		expectError bool
-	}{
+	tests := []parseVersionCase{
 		// 标准语义化版本
 		{"标准版本", "1.2.3", 1, 2, 3, 0, "", "", false},
 		// 四段版本
@@ -68,12 +71,15 @@ func TestParseVersion(t *testing.T) {
 	}
 }
 
+// versionStringCase 描述版本字符串格式化用例
+type versionStringCase struct {
+	name     string
+	input    string
+	expected string
+}
+
 func TestVersionString(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
+	tests := []versionStringCase{
 		{"标准版本", "1.2.3", "1.2.3"},
 		{"四段版本", "1.2.3.4", "1.2.3.4"},
 		{"预发布版本", "1.2.3-alpha", "1.2.3-alpha"},
@@ -90,11 +96,7 @@ func TestVersionString(t *testing.T) {
 }
 
 func TestVersionShort(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
+	tests := []versionStringCase{
 		{"标准版本", "1.2.3", "1.2.3"},
 		{"四段版本", "1.2.3.4", "1.2.3.4"},
 		{"预发布版本（忽略）", "1.2.3-alpha", "1.2.3"},
@@ -110,13 +112,16 @@ func TestVersionShort(t *testing.T) {
 	}
 }
 
+// versionCompareCase 描述两个版本号比较用例
+type versionCompareCase struct {
+	name     string
+	v1       string
+	v2       string
+	expected int
+}
+
 func TestVersionCompare(t *testing.T) {
-	tests := []struct {
-		name     string
-		v1       string
-		v2       string
-		expected int
-	}{
+	tests := []versionCompareCase{
 		{"相等", "1.2.3", "1.2.3", 0},
 		{"主版本大", "2.0.0", "1.9.9", 1},
 		{"主版本小", "1.9.9", "2.0.0", -1},
@@ -163,13 +168,16 @@ func TestVersionComparisonMethods(t *testing.T) {
 	assert.True(t, v100.GreaterThanOrEqual(v100Copy))
 }
 
+// versionPrereleaseCase 描述预发布/稳定版判定用例
+type versionPrereleaseCase struct {
+	name         string
+	input        string
+	isPrerelease bool
+	isStable     bool
+}
+
 func TestVersionIsPrerelease(t *testing.T) {
-	tests := []struct {
-		name         string
-		input        string
-		isPrerelease bool
-		isStable     bool
-	}{
+	tests := []versionPrereleaseCase{
 		{"稳定版", "1.2.3", false, true},
 		{"alpha", "1.2.3-alpha", true, false},
 		{"beta", "1.2.3-beta", true, false},

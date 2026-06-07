@@ -176,10 +176,11 @@ func TestLazyCacheDir(t *testing.T) {
 }
 
 func TestCachePanicWithDifferentTypes(t *testing.T) {
-	tests := []struct {
+	type panicTypeCase struct {
 		name  string
 		panic interface{}
-	}{
+	}
+	tests := []panicTypeCase{
 		{"string", "test panic"},
 		{"int", 42},
 		{"error", &testError{}},
@@ -297,10 +298,11 @@ func TestPrintStackDoesNotPanic(t *testing.T) {
 }
 
 func TestUserDirsReturnValidPaths(t *testing.T) {
-	tests := []struct {
+	type userDirCase struct {
 		name string
 		fn   func() string
-	}{
+	}
+	tests := []userDirCase{
 		{"UserHomeDir", UserHomeDir},
 		{"UserConfigDir", UserConfigDir},
 		{"UserCacheDir", UserCacheDir},
@@ -714,11 +716,12 @@ func TestRuntimeFunctionsConsistency(t *testing.T) {
 // 测试CachePanicWithHandle的完整逻辑，通过触发panic来覆盖所有分支
 func TestCachePanicWithHandleFullCoverage(t *testing.T) {
 	// 测试各种panic类型，以覆盖CachePanicWithHandle的所有分支
-	tests := []struct {
+	type fullCoverCase struct {
 		name       string
 		panicVal   interface{}
 		withHandle bool
-	}{
+	}
+	tests := []fullCoverCase{
 		{"string_panic_with_handle", "test panic", true},
 		{"string_panic_without_handle", "test panic", false},
 		{"int_panic_with_handle", 42, true},

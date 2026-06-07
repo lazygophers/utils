@@ -374,15 +374,17 @@ func TestCustomValidatorsIndividually(t *testing.T) {
 	})
 }
 
+type customCaseValidatorCase struct {
+	value    string
+	expected bool
+}
+
 // TestUppercaseValidator tests the uppercase validator
 func TestUppercaseValidator(t *testing.T) {
 	v, err := New()
 	assert.NoError(t, err)
 
-	tests := []struct {
-		value    string
-		expected bool
-	}{
+	tests := []customCaseValidatorCase{
 		{"ABC", true},
 		{"HELLOWORLD", true},
 		{"A", true},
@@ -410,10 +412,7 @@ func TestLowercaseValidator(t *testing.T) {
 	v, err := New()
 	assert.NoError(t, err)
 
-	tests := []struct {
-		value    string
-		expected bool
-	}{
+	tests := []customCaseValidatorCase{
 		{"abc", true},
 		{"helloworld", true},
 		{"a", true},
@@ -441,10 +440,7 @@ func TestAlphanumUpperValidator(t *testing.T) {
 	v, err := New()
 	assert.NoError(t, err)
 
-	tests := []struct {
-		value    string
-		expected bool
-	}{
+	tests := []customCaseValidatorCase{
 		{"ABC123", true},
 		{"ABC", true},
 		{"123", true},
@@ -473,10 +469,7 @@ func TestAlphanumLowerValidator(t *testing.T) {
 	v, err := New()
 	assert.NoError(t, err)
 
-	tests := []struct {
-		value    string
-		expected bool
-	}{
+	tests := []customCaseValidatorCase{
 		{"abc123", true},
 		{"abc", true},
 		{"123", true},

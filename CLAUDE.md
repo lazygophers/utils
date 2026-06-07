@@ -36,6 +36,7 @@ make all           # clean + fmt + lint + test + build
 - **禁止 `context.Context`**：不在本库中引入 context 依赖，协程级存储用 goroutine-local 方案
 - **禁止防御性编程**：内部代码不做 nil-check / try-catch，只在系统边界校验
 - **Error 接收与判断必须分两行**：禁止 `if err := X(); err != nil {}` 内联形态；先 `err := X()` 再 `if err != nil {}`。详见 [`.trellis/spec/guides/error-handling-style.md`](.trellis/spec/guides/error-handling-style.md)
+- **变量声明禁用 anonymous struct**：包括 `var X = struct{}{}` / `:= struct{}{}` / `tests := []struct{}{}` 等所有形态；必须先 `type Name struct{...}` 再使用。`struct{}` 空结构（chan/map 集合语义）例外。详见 [`.trellis/spec/guides/no-anonymous-struct.md`](.trellis/spec/guides/no-anonymous-struct.md)
 
 ## 文档维护
 

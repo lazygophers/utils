@@ -3,11 +3,13 @@ package network
 import "testing"
 
 func TestIsLocalIp(t *testing.T) {
-	tests := []struct {
+	// testCase 描述 IsLocalIp 单个用例。
+	type testCase struct {
 		name     string
 		ip       string
 		expected bool
-	}{
+	}
+	tests := []testCase{
 		{"IPv4 Private 192.168.x.x", "192.168.1.1", true},
 		{"IPv4 Private 10.x.x.x", "10.0.0.1", true},
 		{"IPv4 Private 172.16-31.x.x", "172.16.0.1", true},

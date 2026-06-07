@@ -10,11 +10,12 @@ import (
 
 func TestToString(t *testing.T) {
 	t.Run("boolean values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    bool
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"true", true, "1"},
 			{"false", false, "0"},
 		}
@@ -30,11 +31,12 @@ func TestToString(t *testing.T) {
 	})
 
 	t.Run("integer types", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    interface{}
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"int positive", int(42), "42"},
 			{"int negative", int(-42), "-42"},
 			{"int zero", int(0), "0"},
@@ -59,11 +61,12 @@ func TestToString(t *testing.T) {
 	})
 
 	t.Run("unsigned integer types", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    interface{}
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"uint zero", uint(0), "0"},
 			{"uint positive", uint(42), "42"},
 			{"uint8 max", uint8(255), "255"},
@@ -87,11 +90,12 @@ func TestToString(t *testing.T) {
 	})
 
 	t.Run("float32 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    float32
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"float32 zero", float32(0.0), "0"},
 			{"float32 integer", float32(42.0), "42"},
 			{"float32 decimal", float32(3.14), "3.140000104904175"},
@@ -110,11 +114,12 @@ func TestToString(t *testing.T) {
 	})
 
 	t.Run("float64 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    float64
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"float64 zero", 0.0, "0"},
 			{"float64 integer", 42.0, "42"},
 			{"float64 decimal", 3.14159, "3.141590"},
@@ -134,11 +139,12 @@ func TestToString(t *testing.T) {
 	})
 
 	t.Run("time.Duration values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    time.Duration
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"zero duration", time.Duration(0), "0s"},
 			{"nanoseconds", 100 * time.Nanosecond, "100ns"},
 			{"microseconds", 100 * time.Microsecond, "100µs"},
@@ -161,11 +167,12 @@ func TestToString(t *testing.T) {
 	})
 
 	t.Run("string values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    string
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"empty string", "", ""},
 			{"simple string", "hello", "hello"},
 			{"string with spaces", "hello world", "hello world"},
@@ -184,11 +191,12 @@ func TestToString(t *testing.T) {
 	})
 
 	t.Run("byte slice values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    []byte
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"nil bytes", nil, ""},
 			{"empty bytes", []byte{}, ""},
 			{"simple bytes", []byte("test"), "test"},
@@ -214,11 +222,12 @@ func TestToString(t *testing.T) {
 	})
 
 	t.Run("error values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    error
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"simple error", errors.New("test error"), "test error"},
 			{"custom error", errors.New("custom: something went wrong"), "custom: something went wrong"},
 		}
@@ -239,11 +248,12 @@ func TestToString(t *testing.T) {
 			Value int    `json:"value"`
 		}
 
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    interface{}
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"simple struct", TestStruct{Name: "test", Value: 42}, `{"name":"test","value":42}`},
 			{"empty struct", TestStruct{}, `{"name":"","value":0}`},
 			{"struct pointer", &TestStruct{Name: "ptr", Value: 100}, `{"name":"ptr","value":100}`},
@@ -292,11 +302,12 @@ func TestToString(t *testing.T) {
 	})
 
 	t.Run("slice values with JSON serialization", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    interface{}
 			expected string
-		}{
+		}
+		tests := []testCase{
 			{"int slice", []int{1, 2, 3}, `[1,2,3]`},
 			{"string slice", []string{"a", "b", "c"}, `["a","b","c"]`},
 			{"empty slice", []int{}, `[]`},
@@ -377,11 +388,12 @@ func TestToString(t *testing.T) {
 		})
 
 		t.Run("int boundary values", func(t *testing.T) {
-			tests := []struct {
+			type testCase struct {
 				name     string
 				input    interface{}
 				expected string
-			}{
+			}
+			tests := []testCase{
 				{"int8 min", int8(-128), "-128"},
 				{"int8 max", int8(127), "127"},
 				{"int16 min", int16(-32768), "-32768"},
@@ -486,7 +498,7 @@ func BenchmarkToString(b *testing.B) {
 
 // TestToOptimizations 验证优化后的函数仍然保持正确性
 func TestToOptimizations(t *testing.T) {
-	tests := []struct {
+	type testCase struct {
 		name     string
 		input    interface{}
 		wantInt  int
@@ -494,7 +506,8 @@ func TestToOptimizations(t *testing.T) {
 		wantF64  float64
 		wantBool bool
 		wantStr  string
-	}{
+	}
+	tests := []testCase{
 		{
 			name:     "integer values",
 			input:    42,

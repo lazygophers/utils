@@ -11,11 +11,12 @@ import (
 
 // TestDropCR 测试 dropCR 函数
 func TestDropCR(t *testing.T) {
-	tests := []struct {
+	type dropCRCase struct {
 		name     string
 		input    []byte
 		expected []byte
-	}{
+	}
+	tests := []dropCRCase{
 		{
 			name:     "空切片",
 			input:    []byte{},
@@ -62,14 +63,15 @@ func TestScanBy(t *testing.T) {
 	// 测试用逗号作为分隔符
 	splitFunc := ScanBy([]byte(","))
 
-	tests := []struct {
+	type scanByCase struct {
 		name    string
 		data    []byte
 		atEOF   bool
 		advance int
 		token   []byte
 		err     error
-	}{
+	}
+	tests := []scanByCase{
 		{
 			name:    "空数据且EOF",
 			data:    []byte{},
@@ -154,14 +156,15 @@ func TestScanByWithEmptySeparator(t *testing.T) {
 
 // TestScanLines 测试 ScanLines 函数
 func TestScanLines(t *testing.T) {
-	tests := []struct {
+	type scanLinesCase struct {
 		name    string
 		data    []byte
 		atEOF   bool
 		advance int
 		token   []byte
 		err     error
-	}{
+	}
+	tests := []scanLinesCase{
 		{
 			name:    "空数据且EOF",
 			data:    []byte{},

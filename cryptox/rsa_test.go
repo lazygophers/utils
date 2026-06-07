@@ -10,6 +10,11 @@ import (
 	"time"
 )
 
+type rsaMessageCase struct {
+	name    string
+	message []byte
+}
+
 // Test data
 const (
 	testMessage = "Hello, RSA encryption and digital signature!"
@@ -1250,10 +1255,7 @@ func TestRSASignPKCS1v15WithDifferentMessages(t *testing.T) {
 		t.Fatalf("Failed to generate RSA key pair: %v", err)
 	}
 
-	testCases := []struct {
-		name    string
-		message []byte
-	}{
+	testCases := []rsaMessageCase{
 		{"empty message", []byte("")},
 		{"single byte", []byte("A")},
 		{"short message", []byte("Hello, World!")},

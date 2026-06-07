@@ -263,10 +263,11 @@ func TestEndMethods(t *testing.T) {
 }
 
 func TestQuarter(t *testing.T) {
-	testCases := []struct {
+	type quarterCase struct {
 		month    time.Month
 		expected uint
-	}{
+	}
+	testCases := []quarterCase{
 		{time.January, 1},
 		{time.February, 1},
 		{time.March, 1},
@@ -386,11 +387,12 @@ func TestEdgeCases(t *testing.T) {
 }
 
 func TestBeginningOfQuarter_Correctness(t *testing.T) {
-	tests := []struct {
+	type beginQuarterCase struct {
 		name     string
 		input    time.Time
 		expected monthDay
-	}{
+	}
+	tests := []beginQuarterCase{
 		{"Q1 Jan", time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC), monthDay{1, 1}},
 		{"Q1 Feb", time.Date(2024, 2, 15, 0, 0, 0, 0, time.UTC), monthDay{1, 1}},
 		{"Q1 Mar", time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC), monthDay{1, 1}},
@@ -424,11 +426,12 @@ type monthDay struct {
 
 // TestBeginningOfYear_Correctness 测试 BeginningOfYear 的正确性
 func TestBeginningOfYear_Correctness(t *testing.T) {
-	tests := []struct {
+	type beginYearCase struct {
 		name     string
 		input    time.Time
 		expected time.Time
-	}{
+	}
+	tests := []beginYearCase{
 		{
 			name:     "2024-06-15 (年中)",
 			input:    time.Date(2024, 6, 15, 14, 30, 45, 123456789, time.Local),
@@ -603,11 +606,12 @@ func TestBeginningOfYear_Dependents(t *testing.T) {
 
 // TestBeginningOfHalf_Correctness 验证 BeginningOfHalf 正确性
 func TestBeginningOfHalf_Correctness(t *testing.T) {
-	tests := []struct {
+	type beginHalfCase struct {
 		name     string
 		input    time.Time
 		expected time.Time
-	}{
+	}
+	tests := []beginHalfCase{
 		{
 			name:     "H1起始 - 1月",
 			input:    time.Date(2024, 1, 15, 12, 30, 45, 0, time.Local),
@@ -925,10 +929,11 @@ func TestBeginningOfDayGlobal_V11_Correctness(t *testing.T) {
 
 // 简单的基准测试结果收集器
 func TestBenchmarkBeginningOfHour(t *testing.T) {
-	results := []struct {
+	type benchHourCase struct {
 		name string
 		fn   func()
-	}{
+	}
+	results := []benchHourCase{
 		{"Current", func() { _ = BeginningOfHour() }},
 		{"TruncateNil", func() {
 			t := time.Now()
@@ -970,10 +975,11 @@ func TestBenchmarkBeginningOfHour(t *testing.T) {
 
 // TestBeginningOfHourOptimization 验证优化方案的正确性
 func TestBeginningOfHourOptimization(t *testing.T) {
-	testCases := []struct {
+	type hourOptCase struct {
 		name string
 		time time.Time
-	}{
+	}
+	testCases := []hourOptCase{
 		{"2024年6月15日 14:30:45", time.Date(2024, 6, 15, 14, 30, 45, 123456789, time.Local)},
 		{"2024年1月1日 00:00:00", time.Date(2024, 1, 1, 0, 0, 0, 0, time.Local)},
 		{"2024年12月31日 23:59:59", time.Date(2024, 12, 31, 23, 59, 59, 999999999, time.Local)},
@@ -1098,11 +1104,12 @@ func TestBeginningOfMonthGlobal_Consistency(t *testing.T) {
 // TestBeginningOfMonthGlobal_MonthBoundaries 测试不同月份边界
 func TestBeginningOfMonthGlobal_MonthBoundaries(t *testing.T) {
 	// 这个测试验证函数逻辑正确性，不依赖 time.Now()
-	testCases := []struct {
+	type beginMonthBoundaryCase struct {
 		name     string
 		input    time.Time
 		expected func(*Time) bool
-	}{
+	}
+	testCases := []beginMonthBoundaryCase{
 		{
 			name:  "5月中旬",
 			input: time.Date(2024, 5, 15, 14, 30, 45, 123456789, time.Local),
@@ -1249,11 +1256,12 @@ func TestBeginningOfMonth_Consistency(t *testing.T) {
 }
 
 func TestBeginningOfMonth(t *testing.T) {
-	tests := []struct {
+	type beginMonthCase struct {
 		name     string
 		input    time.Time
 		expected time.Time
-	}{
+	}
+	tests := []beginMonthCase{
 		{
 			name:     "middle of month",
 			input:    time.Date(2024, 5, 15, 14, 30, 45, 123456789, time.Local),
@@ -1365,11 +1373,12 @@ func TestBOMOptimizationCorrectness(t *testing.T) {
 
 // TestBeginningOfQuarterGlobal_Correctness 验证全局 BeginningOfQuarter 函数的正确性
 func TestBeginningOfQuarterGlobal_Correctness(t *testing.T) {
-	tests := []struct {
+	type beginQuarterGlobalCase struct {
 		name     string
 		month    time.Month
 		expected time.Month
-	}{
+	}
+	tests := []beginQuarterGlobalCase{
 		{"January starts Q1", time.January, time.January},
 		{"February starts Q1", time.February, time.January},
 		{"March starts Q1", time.March, time.January},
@@ -1563,10 +1572,11 @@ func TestBeginningOfQuarterGlobal_MemoryAllocation(t *testing.T) {
 // TestBeginningOfQuarterGlobal_RealWorldUsage 真实场景测试
 func TestBeginningOfQuarterGlobal_RealWorldUsage(t *testing.T) {
 	// 模拟真实使用场景：在不同时间点调用
-	testTimes := []struct {
+	type realWorldCase struct {
 		time time.Time
 		name string
-	}{
+	}
+	testTimes := []realWorldCase{
 		{time.Date(2024, 1, 15, 10, 30, 0, 0, time.Local), "Q1 Middle"},
 		{time.Date(2024, 4, 30, 23, 59, 59, 0, time.Local), "Q2 End"},
 		{time.Date(2024, 7, 1, 0, 0, 0, 0, time.Local), "Q3 Start"},
@@ -1641,10 +1651,11 @@ func TestBeginningOfQuarterGlobal_Concurrency(t *testing.T) {
 
 // TestBeginningOfWeek_Global_Correctness 验证全局 BeginningOfWeek 函数正确性
 func TestBeginningOfWeek_Global_Correctness(t *testing.T) {
-	testCases := []struct {
+	type beginWeekGlobalCase struct {
 		name     string
 		expected time.Weekday
-	}{
+	}
+	testCases := []beginWeekGlobalCase{
 		{"周日", time.Sunday},
 	}
 
@@ -1728,14 +1739,15 @@ func TestBeginningOfWeek_Global_ConsistencyWithMethod(t *testing.T) {
 
 // TestBeginningOfWeek_Correctness 验证 BeginningOfWeek 功能正确性
 func TestBeginningOfWeek_Correctness(t *testing.T) {
-	tests := []struct {
+	type beginWeekCase struct {
 		name         string
 		date         time.Time
 		weekStartDay time.Weekday
 		wantDay      int
 		wantMonth    time.Month
 		wantYear     int
-	}{
+	}
+	tests := []beginWeekCase{
 		{
 			name:         "2024-05-11 (周六) 周日起始",
 			date:         time.Date(2024, 5, 11, 15, 30, 45, 0, time.Local),
@@ -1871,10 +1883,11 @@ func TestBeginningOfWeek_ConfigNil(t *testing.T) {
 
 // TestBeginningOfWeek_Timezone 验证时区正确性
 func TestBeginningOfWeek_Timezone(t *testing.T) {
-	locations := []struct {
+	type tzCase struct {
 		name string
 		loc  *time.Location
-	}{
+	}
+	locations := []tzCase{
 		{"UTC", time.UTC},
 		{"Local", time.Local},
 		{"America/New_York", time.FixedZone("EST", -5*3600)},
@@ -1996,9 +2009,10 @@ func TestBeginningOfYearGlobal_DetailedPerformance(t *testing.T) {
 
 // TestBeginningOfYearGlobal_CorrectnessInDetail 详细正确性测试
 func TestBeginningOfYearGlobal_CorrectnessInDetail(t *testing.T) {
-	testCases := []struct {
+	type yearDetailCase struct {
 		name string
-	}{
+	}
+	testCases := []yearDetailCase{
 		{"Test in current year"},
 	}
 
@@ -2210,11 +2224,12 @@ func TestEndOfHour_Correctness(t *testing.T) {
 
 // TestEndOfHour_BoundaryConditions 测试边界条件
 func TestEndOfHour_BoundaryConditions(t *testing.T) {
-	tests := []struct {
+	type endHourCase struct {
 		name     string
 		input    time.Time
 		expected string
-	}{
+	}
+	tests := []endHourCase{
 		{
 			name:     "小时开始",
 			input:    time.Date(2024, 1, 1, 10, 0, 0, 0, time.UTC),
@@ -2324,12 +2339,13 @@ func TestEndOfHour_GlobalFunction(t *testing.T) {
 }
 
 func TestEndOfHalf_Correctness(t *testing.T) {
-	tests := []struct {
+	type endHalfCase struct {
 		name          string
 		input         string
 		expectedMonth time.Month
 		expectedDay   int
-	}{
+	}
+	tests := []endHalfCase{
 		{
 			name:          "上半年开始",
 			input:         "2024-01-01 00:00:00",
@@ -2426,11 +2442,12 @@ func TestEndOfHalf_ConfigPreserved(t *testing.T) {
 
 // TestEndOfMonth_Correctness 验证 EndOfMonth 的正确性
 func TestEndOfMonth_Correctness(t *testing.T) {
-	tests := []struct {
+	type endMonthCase struct {
 		name     string
 		input    time.Time
 		expected time.Time
-	}{
+	}
+	tests := []endMonthCase{
 		{
 			name:     "2024年1月",
 			input:    time.Date(2024, 1, 15, 12, 30, 45, 123456789, time.Local),
@@ -2545,11 +2562,12 @@ func TestEndOfMonth_EdgeCases(t *testing.T) {
 // Benchmark_EndOfMonth_Final 最终性能测试（无 Config）
 
 func TestEndOfQuarter_Correctness(t *testing.T) {
-	tests := []struct {
+	type endQuarterCase struct {
 		name     string
 		input    time.Time
 		expected time.Time
-	}{
+	}
+	tests := []endQuarterCase{
 		{
 			name:     "Q1 - 结束于3月31日",
 			input:    time.Date(2024, 1, 15, 12, 0, 0, 0, time.Local),
@@ -2668,11 +2686,12 @@ func TestEndOfQuarter_ConsistencyWithBeginningOfQuarter(t *testing.T) {
 
 // TestEndOfWeek_Correctness 验证 EndOfWeek 正确性
 func TestEndOfWeek_Correctness(t *testing.T) {
-	tests := []struct {
+	type endWeekCase struct {
 		name     string
 		input    time.Time
 		expected time.Weekday // 期望结果为周六（周日为周起始）
-	}{
+	}
+	tests := []endWeekCase{
 		{
 			name:     "周一",
 			input:    time.Date(2024, 1, 15, 12, 0, 0, 0, time.Local), // 2024-01-15 周一
@@ -2777,13 +2796,14 @@ func TestEndOfWeek_ConfigPreservation(t *testing.T) {
 
 // 添加简单的测试用例验证正确性
 func TestEndOfYear_Correctness(t *testing.T) {
-	tests := []struct {
+	type endYearCase struct {
 		name      string
 		date      time.Time
 		wantYear  int
 		wantMonth time.Month
 		wantDay   int
-	}{
+	}
+	tests := []endYearCase{
 		{
 			name:     "2024年6月15日",
 			date:     time.Date(2024, 6, 15, 14, 30, 45, 123456789, time.Local),
@@ -2870,7 +2890,7 @@ func TestEOD_OldVsNew_Correctness(t *testing.T) {
 
 // TestEndOfDayGlobal 验证全局 EndOfDay 函数的正确性
 func TestEndOfDayGlobal(t *testing.T) {
-	testCases := []struct {
+	type endDayGlobalCase struct {
 		name  string
 		year  int
 		month time.Month
@@ -2879,7 +2899,8 @@ func TestEndOfDayGlobal(t *testing.T) {
 		min   int
 		sec   int
 		nsec  int
-	}{
+	}
+	testCases := []endDayGlobalCase{
 		{"2024年6月15日", 2024, time.June, 15, 14, 30, 45, 123456789},
 		{"2024年1月1日", 2024, time.January, 1, 0, 0, 0, 0},
 		{"2024年12月31日中午", 2024, time.December, 31, 12, 0, 0, 0},
@@ -3006,11 +3027,12 @@ func TestEndOfDayGlobalMemoryLayout(t *testing.T) {
 
 // TestEndOfDay_Correctness 验证 EndOfDay 功能正确性
 func TestEndOfDay_Correctness(t *testing.T) {
-	testCases := []struct {
+	type endDayCase struct {
 		name     string
 		input    time.Time
 		expected string // ISO 8601 格式
-	}{
+	}
+	testCases := []endDayCase{
 		{
 			name:     "中午时间",
 			input:    time.Date(2024, 5, 11, 15, 30, 45, 123456789, time.Local),
@@ -3169,11 +3191,12 @@ func TestEndOfDay_PerformanceComparison(t *testing.T) {
 
 // TestEndOfMonthGlobal_Correctness 验证优化后的函数正确性
 func TestEndOfMonthGlobal_Correctness(t *testing.T) {
-	tests := []struct {
+	type endMonthGlobalCase struct {
 		name string
 		date time.Time
 		want string
-	}{
+	}
+	tests := []endMonthGlobalCase{
 		{
 			name: "2024年1月15日",
 			date: time.Date(2024, 1, 15, 10, 30, 0, 0, time.Local),
@@ -3267,11 +3290,12 @@ func TestEndOfMonthGlobal_ZeroAllocation(t *testing.T) {
 
 // TestEndOfMonthGlobal_MonthBoundaries 测试月份边界
 func TestEndOfMonthGlobal_MonthBoundaries(t *testing.T) {
-	testMonths := []struct {
+	type monthBoundaryCase struct {
 		year  int
 		month time.Month
 		day   int
-	}{
+	}
+	testMonths := []monthBoundaryCase{
 		{2024, 1, 31},  // 一月有31天
 		{2024, 2, 29},  // 闰年二月有29天
 		{2023, 2, 28},  // 非闰年二月有28天
@@ -3395,11 +3419,12 @@ func TestEndOfQuarterGlobal_CorrectnessFinal(t *testing.T) {
 
 // TestEndOfQuarterGlobal_AllQuartersEdgeCases 测试所有季度的边界情况
 func TestEndOfQuarterGlobal_AllQuartersEdgeCases(t *testing.T) {
-	testCases := []struct {
+	type endQuarterEdgeCase struct {
 		name     string
 		month    time.Month
 		expected time.Month
-	}{
+	}
+	testCases := []endQuarterEdgeCase{
 		{"Q1 - January", time.January, time.March},
 		{"Q1 - February", time.February, time.March},
 		{"Q1 - March", time.March, time.March},
@@ -3442,10 +3467,11 @@ func TestEndOfQuarterGlobal_Correctness(t *testing.T) {
 	expected := With(testTime).EndOfQuarter()
 
 	// 测试所有变体
-	variants := []struct {
+	type variantCase struct {
 		name string
 		fn   func() *Time
-	}{
+	}
+	variants := []variantCase{
 		{
 			name: "Original",
 			fn: func() *Time {
@@ -3500,11 +3526,12 @@ func TestEndOfQuarterGlobal_Correctness(t *testing.T) {
 
 // TestEndOfQuarterGlobal_AllQuarters 测试所有季度的边界情况
 func TestEndOfQuarterGlobal_AllQuarters(t *testing.T) {
-	testCases := []struct {
+	type endQuarterAllCase struct {
 		name     string
 		input    time.Time
 		expected time.Time
-	}{
+	}
+	testCases := []endQuarterAllCase{
 		{
 			name:     "Q1 (Jan)",
 			input:    time.Date(2024, time.January, 15, 12, 0, 0, 0, time.Local),
@@ -3582,11 +3609,12 @@ func TestEndOfQuarterGlobal_Performance(t *testing.T) {
 
 // TestEndOfWeekGlobal_Correctness 验证全局 EndOfWeek() 函数正确性
 func TestEndOfWeekGlobal_Correctness(t *testing.T) {
-	tests := []struct {
+	type endWeekGlobalCase struct {
 		name             string
 		year, month, day int
 		expectedWeekday  time.Weekday
-	}{
+	}
+	tests := []endWeekGlobalCase{
 		{"2024年6月15日 (周六)", 2024, 6, 15, time.Sunday},
 		{"2024年6月16日 (周日)", 2024, 6, 16, time.Sunday},
 		{"2024年6月17日 (周一)", 2024, 6, 17, time.Sunday},
@@ -3757,11 +3785,12 @@ func TestEndOfYearGlobal_OptimizationVerification(t *testing.T) {
 // TestEndOfYearGlobal_Correctness 验证 EndOfYear 全局函数正确性
 func TestEndOfYearGlobal_Correctness(t *testing.T) {
 	// 测试不同年份
-	testCases := []struct {
+	type endYearGlobalCase struct {
 		year        int
 		expectedDay int
 		expectedMon int
-	}{
+	}
+	testCases := []endYearGlobalCase{
 		{2024, 31, 12}, // 闰年
 		{2023, 31, 12},
 		{2020, 31, 12}, // 闰年

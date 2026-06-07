@@ -8,12 +8,13 @@ import (
 
 // TestAllNewLocales 测试所有新增的语言地区
 func TestAllNewLocales(t *testing.T) {
-	testCases := []struct {
+	type localeCase struct {
 		locale   string
 		name     string
 		language string
 		region   string
-	}{
+	}
+	testCases := []localeCase{
 		// Note: These tests only work if the corresponding language files are built
 		// Currently falling back to English due to build tag restrictions
 		{"en", "English", "en", "US"},
@@ -23,12 +24,7 @@ func TestAllNewLocales(t *testing.T) {
 
 	// Test zh-TW separately if available (build-tag dependent)
 	if locale, ok := GetLocaleConfig("zh-TW"); ok && locale.Language == "zh" && locale.Region == "TW" {
-		testCases = append(testCases, struct {
-			locale   string
-			name     string
-			language string
-			region   string
-		}{"zh-TW", "Traditional Chinese", "zh", "TW"})
+		testCases = append(testCases, localeCase{"zh-TW", "Traditional Chinese", "zh", "TW"})
 	}
 
 	for _, tc := range testCases {
@@ -230,10 +226,11 @@ func TestAllLocalesWithOptions(t *testing.T) {
 
 // TestPluralizationRules 测试复数规则
 func TestPluralizationRules(t *testing.T) {
-	testCases := []struct {
+	type pluralCase struct {
 		locale           string
 		hasPluralization bool
-	}{
+	}
+	testCases := []pluralCase{
 		{"en", true}, // 英语有复数
 		// Note: zh might fallback to en/US which has pluralization
 		// So we only test this if we actually get a Chinese locale
@@ -241,18 +238,12 @@ func TestPluralizationRules(t *testing.T) {
 
 	// Test zh only if it's actually a Chinese locale (not falling back to English)
 	if locale, ok := GetLocaleConfig("zh"); ok && locale.Language == "zh" && locale.Region == "CN" {
-		testCases = append(testCases, struct {
-			locale           string
-			hasPluralization bool
-		}{"zh", false}) // 中文没有复数
+		testCases = append(testCases, pluralCase{"zh", false}) // 中文没有复数
 	}
 
 	// Test zh-TW separately if it's actually available (not falling back to English)
 	if locale, ok := GetLocaleConfig("zh-TW"); ok && locale.Language == "zh" && locale.Region == "TW" {
-		testCases = append(testCases, struct {
-			locale           string
-			hasPluralization bool
-		}{"zh-TW", false}) // 繁体中文没有复数
+		testCases = append(testCases, pluralCase{"zh-TW", false}) // 繁体中文没有复数
 	}
 
 	for _, tc := range testCases {

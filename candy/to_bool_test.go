@@ -8,11 +8,12 @@ import (
 
 func TestToBool(t *testing.T) {
 	t.Run("bool values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    bool
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"true", true, true},
 			{"false", false, false},
 		}
@@ -28,11 +29,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("int values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    int
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", 0, false},
 			{"positive", 1, true},
 			{"negative", -1, true},
@@ -51,11 +53,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("int8 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    int8
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", int8(0), false},
 			{"positive", int8(1), true},
 			{"negative", int8(-1), true},
@@ -74,11 +77,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("int16 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    int16
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", int16(0), false},
 			{"positive", int16(100), true},
 			{"negative", int16(-100), true},
@@ -95,11 +99,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("int32 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    int32
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", int32(0), false},
 			{"positive", int32(1000), true},
 			{"negative", int32(-1000), true},
@@ -116,11 +121,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("int64 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    int64
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", int64(0), false},
 			{"positive", int64(100000), true},
 			{"negative", int64(-100000), true},
@@ -137,11 +143,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("uint values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    uint
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", uint(0), false},
 			{"positive", uint(1), true},
 			{"large", uint(1000), true},
@@ -158,11 +165,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("uint8 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    uint8
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", uint8(0), false},
 			{"positive", uint8(1), true},
 			{"max", uint8(255), true},
@@ -179,11 +187,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("uint16 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    uint16
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", uint16(0), false},
 			{"positive", uint16(100), true},
 		}
@@ -199,11 +208,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("uint32 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    uint32
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", uint32(0), false},
 			{"positive", uint32(1000), true},
 		}
@@ -219,11 +229,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("uint64 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    uint64
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", uint64(0), false},
 			{"positive", uint64(100000), true},
 		}
@@ -239,11 +250,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("float32 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    float32
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", float32(0.0), false},
 			{"positive", float32(1.5), true},
 			{"negative", float32(-1.5), true},
@@ -261,11 +273,12 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("float64 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    float64
 			expected bool
-		}{
+		}
+		tests := []testCase{
 			{"zero", 0.0, false},
 			{"positive", 1.5, true},
 			{"negative", -1.5, true},
@@ -383,10 +396,11 @@ func TestToBool(t *testing.T) {
 	})
 
 	t.Run("other types default to false", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name  string
 			input interface{}
-		}{
+		}
+		tests := []testCase{
 			{"struct", struct{ Name string }{Name: "test"}},
 			{"slice", []int{1, 2, 3}},
 			{"map", map[string]int{"a": 1}},

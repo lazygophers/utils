@@ -9,11 +9,12 @@ import (
 
 func TestToBytes(t *testing.T) {
 	t.Run("boolean values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    bool
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"true", true, []byte("1")},
 			{"false", false, []byte("0")},
 		}
@@ -29,11 +30,12 @@ func TestToBytes(t *testing.T) {
 	})
 
 	t.Run("integer types", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    interface{}
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"int positive", int(42), []byte("42")},
 			{"int negative", int(-42), []byte("-42")},
 			{"int zero", int(0), []byte("0")},
@@ -58,11 +60,12 @@ func TestToBytes(t *testing.T) {
 	})
 
 	t.Run("unsigned integer types", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    interface{}
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"uint zero", uint(0), []byte("0")},
 			{"uint positive", uint(42), []byte("42")},
 			{"uint8 max", uint8(255), []byte("255")},
@@ -86,11 +89,12 @@ func TestToBytes(t *testing.T) {
 	})
 
 	t.Run("float32 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    float32
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"float32 zero", float32(0.0), []byte("0")},
 			{"float32 integer", float32(42.0), []byte("42")},
 			{"float32 decimal", float32(3.14), []byte("3.140000104904175")},
@@ -109,11 +113,12 @@ func TestToBytes(t *testing.T) {
 	})
 
 	t.Run("float64 values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    float64
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"float64 zero", 0.0, []byte("0")},
 			{"float64 integer", 42.0, []byte("42")},
 			{"float64 decimal", 3.14159, []byte("3.141590")},
@@ -133,11 +138,12 @@ func TestToBytes(t *testing.T) {
 	})
 
 	t.Run("time.Duration values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    time.Duration
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"zero duration", time.Duration(0), []byte("0s")},
 			{"nanoseconds", 100 * time.Nanosecond, []byte("100ns")},
 			{"microseconds", 100 * time.Microsecond, []byte("100µs")},
@@ -160,11 +166,12 @@ func TestToBytes(t *testing.T) {
 	})
 
 	t.Run("string values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    string
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"empty string", "", []byte("")},
 			{"simple string", "hello", []byte("hello")},
 			{"string with spaces", "hello world", []byte("hello world")},
@@ -183,11 +190,12 @@ func TestToBytes(t *testing.T) {
 	})
 
 	t.Run("byte slice values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    []byte
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"nil bytes", nil, nil},
 			{"empty bytes", []byte{}, []byte{}},
 			{"simple bytes", []byte("test"), []byte("test")},
@@ -212,11 +220,12 @@ func TestToBytes(t *testing.T) {
 	})
 
 	t.Run("error values", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    error
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"simple error", errors.New("test error"), []byte("test error")},
 			{"custom error", errors.New("custom: something went wrong"), []byte("custom: something went wrong")},
 		}
@@ -237,11 +246,12 @@ func TestToBytes(t *testing.T) {
 			Value int    `json:"value"`
 		}
 
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    interface{}
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"simple struct", TestStruct{Name: "test", Value: 42}, []byte(`{"name":"test","value":42}`)},
 			{"empty struct", TestStruct{}, []byte(`{"name":"","value":0}`)},
 			{"struct pointer", &TestStruct{Name: "ptr", Value: 100}, []byte(`{"name":"ptr","value":100}`)},
@@ -287,11 +297,12 @@ func TestToBytes(t *testing.T) {
 	})
 
 	t.Run("slice values with JSON serialization", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name     string
 			input    interface{}
 			expected []byte
-		}{
+		}
+		tests := []testCase{
 			{"int slice", []int{1, 2, 3}, []byte(`[1,2,3]`)},
 			{"string slice", []string{"a", "b", "c"}, []byte(`["a","b","c"]`)},
 			{"empty slice", []int{}, []byte(`[]`)},
@@ -326,10 +337,11 @@ func TestToBytes(t *testing.T) {
 
 func TestToString_HelperFunc(t *testing.T) {
 	t.Run("convert bytes to string", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name  string
 			input []byte
-		}{
+		}
+		tests := []testCase{
 			{"empty bytes", []byte{}},
 			{"simple bytes", []byte("hello")},
 			{"unicode bytes", []byte("你好")},
@@ -355,10 +367,11 @@ func TestToString_HelperFunc(t *testing.T) {
 
 func TestToBytes_HelperFunc(t *testing.T) {
 	t.Run("convert string to bytes", func(t *testing.T) {
-		tests := []struct {
+		type testCase struct {
 			name  string
 			input string
-		}{
+		}
+		tests := []testCase{
 			{"empty string", ""},
 			{"simple string", "hello"},
 			{"unicode string", "你好"},

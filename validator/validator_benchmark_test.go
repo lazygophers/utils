@@ -9,6 +9,11 @@ import (
 	xlanguage "golang.org/x/text/language"
 )
 
+// benchFmtRepl 占位符替换键值对
+type benchFmtRepl struct {
+	p, v string
+}
+
 // BenchmarkValidate_SingleField 单字段验证性能测试
 func BenchmarkValidate_SingleField(b *testing.B) {
 	v, err := New()
@@ -388,7 +393,7 @@ func benchmarkFmt_Builder(template string, err *FieldError) string {
 	var b strings.Builder
 	b.Grow(len(template) + 50)
 
-	repls := []struct{ p, v string }{
+	repls := []benchFmtRepl{
 		{"{field}", err.Field},
 		{"{tag}", err.Tag},
 		{"{param}", err.Param},
@@ -397,7 +402,7 @@ func benchmarkFmt_Builder(template string, err *FieldError) string {
 	if err.Value != nil {
 		vstr = fmt.Sprintf("%v", err.Value)
 	}
-	repls = append(repls, struct{ p, v string }{"{value}", vstr})
+	repls = append(repls, benchFmtRepl{"{value}", vstr})
 
 	i := 0
 	for i < len(template) {
@@ -422,7 +427,7 @@ func benchmarkFmt_Builder(template string, err *FieldError) string {
 func benchmarkFmt_ByteSlice(template string, err *FieldError) string {
 	result := make([]byte, 0, len(template)+50)
 
-	repls := []struct{ p, v string }{
+	repls := []benchFmtRepl{
 		{"{field}", err.Field},
 		{"{tag}", err.Tag},
 		{"{param}", err.Param},
@@ -431,7 +436,7 @@ func benchmarkFmt_ByteSlice(template string, err *FieldError) string {
 	if err.Value != nil {
 		vstr = fmt.Sprintf("%v", err.Value)
 	}
-	repls = append(repls, struct{ p, v string }{"{value}", vstr})
+	repls = append(repls, benchFmtRepl{"{value}", vstr})
 
 	i := 0
 	for i < len(template) {
@@ -500,7 +505,7 @@ func benchmarkFmt_FastPath(template string, err *FieldError) string {
 	result := make([]byte, 0, len(template)+50)
 
 	i := 0
-	repls := []struct{ p, v string }{
+	repls := []benchFmtRepl{
 		{"{field}", err.Field},
 		{"{tag}", err.Tag},
 		{"{param}", err.Param},
@@ -509,7 +514,7 @@ func benchmarkFmt_FastPath(template string, err *FieldError) string {
 	if err.Value != nil {
 		vstr = fmt.Sprintf("%v", err.Value)
 	}
-	repls = append(repls, struct{ p, v string }{"{value}", vstr})
+	repls = append(repls, benchFmtRepl{"{value}", vstr})
 
 	for i < len(template) {
 		matched := false
@@ -545,7 +550,7 @@ func benchmarkFmt_Pool(template string, err *FieldError) string {
 
 	b.Grow(len(template) + 50)
 
-	repls := []struct{ p, v string }{
+	repls := []benchFmtRepl{
 		{"{field}", err.Field},
 		{"{tag}", err.Tag},
 		{"{param}", err.Param},
@@ -554,7 +559,7 @@ func benchmarkFmt_Pool(template string, err *FieldError) string {
 	if err.Value != nil {
 		vstr = fmt.Sprintf("%v", err.Value)
 	}
-	repls = append(repls, struct{ p, v string }{"{value}", vstr})
+	repls = append(repls, benchFmtRepl{"{value}", vstr})
 
 	i := 0
 	for i < len(template) {
@@ -584,7 +589,7 @@ func benchmarkFmt_Estimated(template string, err *FieldError) string {
 
 	result := make([]byte, 0, estSize)
 
-	repls := []struct{ p, v string }{
+	repls := []benchFmtRepl{
 		{"{field}", err.Field},
 		{"{tag}", err.Tag},
 		{"{param}", err.Param},
@@ -593,7 +598,7 @@ func benchmarkFmt_Estimated(template string, err *FieldError) string {
 	if err.Value != nil {
 		vstr = fmt.Sprintf("%v", err.Value)
 	}
-	repls = append(repls, struct{ p, v string }{"{value}", vstr})
+	repls = append(repls, benchFmtRepl{"{value}", vstr})
 
 	i := 0
 	for i < len(template) {
