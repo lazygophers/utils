@@ -1,0 +1,176 @@
+# xerror
+
+带错误码 + cause 链 + 多语言翻译 + 多错误聚合的错误处理包。
+导入路径：`github.com/lazygophers/utils/xerror`
+
+## 功能
+
+- **错误码错误**：`*Error` 组合 `code int` + `msg string` + `cause error`，比 stdlib `errors` 多一层业务错误码维度。
+- **多语言消息**：错误码 → 本地化消息，通过 `Localizer` 接口翻译；默认接入 `utils/i18n.Default`，按当前 goroutine 语言（`utils/language`）解析。消息在**构造时**解析并固化到 `*Error`。
+- **cause 链穿透**：`Unwrap`/`Cause` 兼容 stdlib `errors.Is/As/Unwrap`，支持单 cause 与多 cause（`Unwrap() []error`）两种契约。
+- **多错误聚合**：`Join`/`Append`/`Collector` 实现 stdlib 风格多错误合并；`Collector` 并发安全。
+- **内置错误码段**：1001-10000 预留框架（已用 1001-1010），业务码建议 ≥ 10001；`CodeSuccess=0`、`CodeSystem=-1` 为特殊值。
+
+适用场景：需要错误码分类 + 国际化错误消息 + 跨 goroutine 错误收集的服务端代码。
+
+约束：
+- 公共 API 的语言 tag 统一用 `golang.org/x/text/language.Tag`（标准库值类型），不暴露 `utils/language` 内部类型。
+- 内置翻译只覆盖 en/zh（始终注册）；ja/ko/ar/es/fr/ru/zh-tw 走 build tag `lang_<xx> || lang_all` 才注册。
+- `*Error` 消息在构造时绑定语言；运行时切换 goroutine 语言不影响已构造的错误。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/lazygophers/utils/xerror"
+)
+
+func main() {
+	// 1. 错误码错误 + 内置翻译（默认按 goroutine 语言，未命中翻译则 msg 为空）
+	e := xerror.NewInvalidParam()
+	fmt.Println(xerror.Code(e), e.Error()) // 1001 invalid parameter
+
+	// 2. fallback 消息：翻译未命中时用 msg
+	e2 := xerror.NewWithMsg(10001, "order %d not found", 42)
+	fmt.Println(e2.Error()) // order 42 not found
+
+	// 3. 包装下层 err，保留 errors.Is 穿透
+	root := errors.New("db down")
+	w := xerror.Wrap(root, "load user failed")
+	fmt.Println(errors.Is(w, root)) // true
+	fmt.Println(xerror.Cause(w))    // db down
+
+	// 4. 流式挂载 cause
+	e3 := xerror.New(xerror.CodeConflict).WithCause(root)
+	fmt.Println(e3.Code()) // 1004
+
+	// 5. 多错误聚合 / 并发收集
+	var c xerror.Collector
+	c.Add(errors.New("a"))
+	c.Add(nil) // 忽略
+	c.Add(errors.New("b"))
+	fmt.Println(c.Len(), c.ErrorOrNil()) // 2 a\nb
+}
+```
+
+## 核心类型
+
+| 类型 | 说明 |
+| --- | --- |
+| `Error` | 核心错误类型，字段 `code/msg/cause`（均非导出，经方法访问）。实现 `error` + `Unwrapper`。 |
+| `Collector` | 并发安全错误收集器（内含 `sync.Mutex`）。 |
+| `Localizer` | 错误码翻译接口；`i18n.I18n` 满足之。 |
+| `Unwrapper` | `Unwrap() error` 单错误契约（stdlib 未导出，本包导出供编译期校验/mock）。 |
+| `MultiUnwrapper` | `Unwrap() []error` 多错误契约（Go 1.20+）。 |
+
+```go
+type Error struct { /* code, msg, cause 非导出 */ }
+func (e *Error) Error() string           // msg；空则回退 cause.Error()
+func (e *Error) Msg() string             // 原始 msg 字段，不回退 cause
+func (e *Error) Code() int               // 业务错误码
+func (e *Error) Unwrap() error           // 返回 cause
+func (e *Error) WithCause(cause error) *Error // 流式设置 cause，返回自身
+
+type Collector struct { /* mu, errs 非导出 */ }
+func (c *Collector) Add(err error)        // nil 忽略
+func (c *Collector) ErrorOrNil() error    // 聚合错误，无错返 nil
+func (c *Collector) Len() int
+
+type Localizer interface {
+	LocalizeWithLang(tag language.Tag, key string, args ...any) string
+	Register(tag language.Tag, key, value string)
+	RegisterBatch(tag language.Tag, data map[string]any)
+}
+type Unwrapper interface{ Unwrap() error }
+type MultiUnwrapper interface{ Unwrap() []error }
+```
+
+## 主要 API
+
+构造（`tag` 为 `golang.org/x/text/language.Tag`）：
+
+```go
+func New(code int, args ...any) *Error                          // 按 goroutine 语言翻译
+func NewWithMsg(code int, msg string, args ...any) *Error       // 翻译未命中时用 msg
+func NewWithLanguage(tag language.Tag, code int, args ...any) *Error // 指定语言，不读 goroutine-local
+func Wrap(err error, msg string, args ...any) error            // 包装单 err，code=CodeSystem；err==nil 透传 nil
+func Wraps(errs ...error) error                                // 多 err 经 Join 合并为 cause
+```
+
+错误码语义类构造器（均 `code` 见下表，签名 `func(args ...any) *Error`）：
+`NewSystemError`、`NewInvalidParam`、`NewNoAuth`、`NewNoData`、`NewConflict`、`NewNotLogin`、`NewTimeout`、`NewRateLimited`、`NewForbidden`、`NewUnavailable`、`NewDataCorrupted`。
+
+提取 / 链遍历：
+
+```go
+func Code(err error) int    // nil→CodeSuccess；*Error→其 code；其他→CodeSystem
+func Cause(err error) error // 沿 Unwrap() error 解到根；遇 Unwrap() []error 聚合层停止
+```
+
+多错误聚合：
+
+```go
+func Join(errs ...error) error            // 过滤 nil；全 nil→nil；单个直接返回；多个→聚合
+func Append(dst error, errs ...error) error // dst 为聚合错误则原地扩展，否则新建合并
+```
+
+Localizer / 翻译注册（全局，atomic 槽位）：
+
+```go
+func SetLocalizer(l Localizer)   // 注入全局 Localizer，nil 解除
+func GetLocalizer() Localizer    // 当前 Localizer，无则 nil
+func SetKeyPrefix(prefix string) // 翻译键前缀，默认 "error."
+func KeyPrefix() string
+func Register(tag language.Tag, key, value string)        // 无 Localizer 时静默忽略
+func RegisterBatch(tag language.Tag, data map[string]any)
+func RegisterMessage(tag language.Tag, code int, msg string) // = Register(tag, "error."+code, msg)
+```
+
+## 错误码常量
+
+| 常量 | 值 | 含义 |
+| --- | --- | --- |
+| `CodeSuccess` | 0 | 成功，非错误状态 |
+| `CodeSystem` | -1 | 未指定/未知错误码（Wrap 与非 *Error 默认） |
+| `CodeInvalidParam` | 1001 | 请求参数无效或缺失 |
+| `CodeNoAuth` | 1002 | 未授权或认证失败 |
+| `CodeNoData` | 1003 | 请求的数据不存在 |
+| `CodeConflict` | 1004 | 数据冲突 |
+| `CodeNotLogin` | 1005 | 登录状态异常 |
+| `CodeTimeout` | 1006 | 操作超时 |
+| `CodeRateLimited` | 1007 | 触发限流 |
+| `CodeForbidden` | 1008 | 已认证但无权限 |
+| `CodeUnavailable` | 1009 | 服务暂不可用 |
+| `CodeDataCorrupted` | 1010 | 数据损坏或不一致 |
+
+翻译键 = `KeyPrefix() + strconv(code)`，默认前缀 `"error."`（例：`error.1001`）。
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `error.go` | `Error` 类型 + `New`/`NewWithMsg`/`NewWithLanguage`/`Wrap`/`Wraps`/`Cause`；`Unwrapper`/`MultiUnwrapper` 接口 |
+| `code.go` | `Localizer` 接口 + 全局槽位（`SetLocalizer`/`GetLocalizer`/`SetKeyPrefix`/`KeyPrefix`）；`Code`/`Register*`；消息解析（`resolveMsg`），默认接入 `i18n.Default` |
+| `codes.go` | 框架内置错误码常量（1001-1010）+ 语义类构造器（`NewInvalidParam` 等）+ `registerBuiltinLocale` |
+| `multi.go` | `multiError` 聚合类型 + `Join`/`Append` + 并发安全 `Collector` |
+| `locale_en.go` / `locale_zh.go` | en/zh 内置翻译，始终注册（无 build tag） |
+| `locale_<lang>.go` | ja/ko/ar/es/fr/ru/zh_tw 内置翻译，build tag `lang_<xx> \|\| lang_all` 才注册 |
+
+## 内置翻译语言
+
+| 文件 | 语言 | build tag |
+| --- | --- | --- |
+| `locale_en.go` | en | 无（始终注册） |
+| `locale_zh.go` | zh | 无（始终注册） |
+| `locale_ja.go` | ja | `lang_ja \|\| lang_all` |
+| `locale_ko.go` | ko | `lang_ko \|\| lang_all` |
+| `locale_ar.go` | ar | `lang_ar \|\| lang_all` |
+| `locale_es.go` | es | `lang_es \|\| lang_all` |
+| `locale_fr.go` | fr | `lang_fr \|\| lang_all` |
+| `locale_ru.go` | ru | `lang_ru \|\| lang_all` |
+| `locale_zh_tw.go` | zh-TW | `lang_zh_tw \|\| lang_all` |

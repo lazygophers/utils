@@ -1,0 +1,187 @@
+# hystrix
+
+高性能熔断器（Circuit Breaker），基于原子操作 + 无锁环形缓冲区，提供三档实现：功能完整版 `CircuitBreaker`、超轻量版 `FastCircuitBreaker`、批量聚合版 `BatchCircuitBreaker`。
+
+导入路径：`github.com/lazygophers/utils/hystrix`
+
+## 功能
+
+熔断器用于保护下游服务：当失败率达到阈值时主动「熔断」，让后续请求快速失败（或走降级），避免雪崩；冷却后进入半开探测，确认恢复后再放行。
+
+本包特性与适用场景：
+
+- **三态模型**：Closed（关闭/放行）、Open（熔断/拒绝）、HalfOpen（半开/探测）。状态用 `atomic.Uint32` 存储，状态转换走 CAS。
+- **滑动时间窗口统计**：`CircuitBreaker` 通过 `TimeWindow` 维护一段时间内的成功/失败计数，过期数据自动清理，统计不会无限累积。
+- **无锁高并发**：核心计数器用 `atomic.Uint64`，并做缓存行填充（cache line padding）避免伪共享；环形缓冲区把「相对时间戳 + 成功标志」紧凑打包进单个 `int64`。
+- **可定制熔断策略**：通过 `ReadyToTrip` 自定义触发条件，`Probe` 自定义半开探测概率，`OnStateChange` 监听状态变化。
+- **降级支持**：`CallWithFallback` / `CallFastWithFallback` 在熔断开启或调用失败时执行 `FallbackFunc`。
+
+选型建议：
+
+| 类型 | 适用 | 特点 |
+| --- | --- | --- |
+| `CircuitBreaker` | 需要滑动窗口统计 + 半开探测 + 状态回调 | 功能最全，环形缓冲区记录每次请求 |
+| `FastCircuitBreaker` | 极致性能、只需固定窗口失败计数 | 仅靠失败阈值触发，时间窗口到期整体重置 |
+| `BatchCircuitBreaker` | 超高吞吐、可接受统计延迟 | 内嵌 `CircuitBreaker`，批量聚合结果后统一刷新（有后台 goroutine） |
+
+约束：
+
+- 失败定义统一为「`fn` 返回非 nil error」；`success == (err == nil)`。
+- 熔断开启且未提供 fallback 时，`Call*` 返回 `errors.New("circuit breaker is open")`。
+- `BatchCircuitBreaker` 会启动一个常驻后台 goroutine 定时 flush，不需要时不要随意创建大量实例。
+- 默认 `Probe` 为 50% 概率放行；默认 `ReadyToTrip` 为「总请求 ≥ 10 且 failures > successes」；默认 `BufferSize` 为 1000（内部向上取整为 2 的幂）。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/lazygophers/utils/hystrix"
+)
+
+func main() {
+	cb := hystrix.NewCircuitBreaker(hystrix.CircuitBreakerConfig{
+		TimeWindow: 10 * time.Second,
+		ReadyToTrip: func(successes, failures uint64) bool {
+			return successes+failures >= 5 && failures > successes
+		},
+		Probe: hystrix.ProbeWithChance(30), // 半开时 30% 概率探测
+		OnStateChange: func(old, new hystrix.State) {
+			fmt.Printf("state: %s -> %s\n", old, new)
+		},
+		BufferSize: 1024,
+	})
+
+	// 方式一：手动 Before/After
+	if cb.Before() {
+		err := callRemote()
+		cb.After(err == nil)
+	}
+
+	// 方式二：Call 包装
+	err := cb.Call(callRemote)
+	if err != nil {
+		fmt.Println("call failed:", err)
+	}
+
+	// 方式三：带降级
+	err = cb.CallWithFallback(callRemote, func() error {
+		fmt.Println("fallback: serve cached data")
+		return nil
+	})
+
+	fmt.Println("state:", cb.State(), "total:", cb.Total())
+}
+
+func callRemote() error {
+	return errors.New("upstream timeout")
+}
+```
+
+超轻量版：
+
+```go
+fast := hystrix.NewFastCircuitBreaker(10, 5*time.Second) // 10 次失败/5s 触发熔断
+err := fast.CallFast(callRemote)
+_ = err
+```
+
+## 核心类型
+
+```go
+// 状态枚举
+type State string
+const (
+	Closed   State = "closed"
+	Open     State = "open"
+	HalfOpen State = "half-open"
+)
+
+// 回调与策略函数类型
+type StateChange  func(oldState, newState State)
+type ReadyToTrip  func(successes, failures uint64) bool
+type Probe        func() bool
+type FallbackFunc func() error
+
+// 配置
+type CircuitBreakerConfig struct {
+	TimeWindow    time.Duration // 统计成功率的滑动时间窗口
+	OnStateChange StateChange   // 状态变化回调（可选）
+	ReadyToTrip   ReadyToTrip   // 熔断条件（可选，有默认）
+	Probe         Probe         // 半开探测（可选，默认 50%）
+	BufferSize    int           // 环形缓冲区大小，默认 1000，内部向上取整为 2 的幂
+}
+```
+
+## 主要 API
+
+### CircuitBreaker（功能完整版）
+
+```go
+func NewCircuitBreaker(c CircuitBreakerConfig) *CircuitBreaker
+
+func (p *CircuitBreaker) Before() bool                                      // 是否放行新请求（含状态更新）
+func (p *CircuitBreaker) After(success bool)                                // 记录一次请求结果
+func (p *CircuitBreaker) Call(fn func() error) error                        // 包装：Before → fn → After
+func (p *CircuitBreaker) CallWithFallback(fn func() error, fallback FallbackFunc) error // 熔断/失败时走 fallback
+
+func (p *CircuitBreaker) State() State                  // 当前状态
+func (p *CircuitBreaker) Stat() (successes, failures uint64)
+func (p *CircuitBreaker) Total() uint64                 // successes + failures
+func (p *CircuitBreaker) GetState() uint32              // 零分配：原始状态值（0/1/2）
+func (p *CircuitBreaker) IsOpen() bool                  // 零分配判断
+func (p *CircuitBreaker) IsClosed() bool                // 零分配判断
+```
+
+### FastCircuitBreaker（超轻量版）
+
+```go
+func NewFastCircuitBreaker(failureThreshold uint64, timeWindow time.Duration) *FastCircuitBreaker
+
+func (cb *FastCircuitBreaker) AllowRequest() bool       // 是否放行（到期自动重置窗口）
+func (cb *FastCircuitBreaker) RecordResult(success bool)// 记录结果，达到阈值即熔断
+func (cb *FastCircuitBreaker) CallFast(fn func() error) error
+func (cb *FastCircuitBreaker) CallFastWithFallback(fn func() error, fallback FallbackFunc) error
+```
+
+### BatchCircuitBreaker（批量聚合版）
+
+```go
+func NewBatchCircuitBreaker(config CircuitBreakerConfig, batchSize int, batchTimeout time.Duration) *BatchCircuitBreaker
+
+func (cb *BatchCircuitBreaker) AfterBatch(success bool) // 批量记录，攒够 batchSize 或超时后 flush
+// 内嵌 *CircuitBreaker，可直接使用其全部方法（State/Stat/Before/Call 等）
+```
+
+> 注意：`batchSize <= 0` 时默认为 100；构造后会启动后台 goroutine 定时 flush。
+
+### 探测策略辅助函数
+
+```go
+func ProbeWithChance(percent float64) Probe // 返回按 percent[0,100] 概率放行的 Probe，底层用 randx.Booln
+```
+
+## 状态机
+
+| 当前状态 | 条件 | 转移到 |
+| --- | --- | --- |
+| Closed | `ReadyToTrip` 为 true | Open |
+| Closed | 否则 | Closed |
+| Open | `ReadyToTrip` 变为 false | HalfOpen |
+| Open | 仍为 true | Open |
+| HalfOpen | 最近一次请求成功 | Closed（并重置缓冲区） |
+| HalfOpen | 最近一次请求失败 | Open |
+| HalfOpen | 无最近请求 | HalfOpen |
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `hystrix.go` | 三种熔断器实现（`CircuitBreaker` / `FastCircuitBreaker` / `BatchCircuitBreaker`）、状态枚举、配置、无锁环形缓冲区与统计逻辑 |
+| `tools.go` | `ProbeWithChance` 探测概率辅助函数（依赖 `randx`） |
+| `hystrix_test.go` | 单元测试与基准测试 |

@@ -1,0 +1,182 @@
+# human
+
+把原始数值（字节大小、速度、时长、相对时间、日期）格式化为带本地化单位的人类可读字符串。
+
+导入路径：`github.com/lazygophers/utils/human`
+
+## 功能
+
+- **字节大小**：`ByteSize` 用二进制（1024）缩放输出 `B/KB/MB/GB/TB/PB`。
+- **速度**：`Speed`（字节/秒，二进制 1024）与 `BitSpeed`（比特/秒，十进制 1000，贴合网络习惯）。
+- **时长**：`Duration` 最多两个有效单位（如 `1 day 3 hours`），英文按数量自动单复数；`ClockDuration` 强制 `HH:MM:SS` / `M:SS` 形式，不受全局时钟开关影响。
+- **相对时间**：`RelativeTime` 把 `t` 与 `time.Now()` 的差渲染为本地化短语（`3 minutes ago` / `in 2 hours`），分级到秒/分/时/天/周/月/年。
+- **日期时间**：`Date`/`Time`/`DateTime`/`Year`/`YearMonth`/`MonthDay`/`DateShort`/`DateLong`/`Weekday`/`WeekdayMin` 按当前 locale 的 layout 渲染。
+- **多语言**：内置 en/zh 始终注册（无 build tag）；ar/es/fr/ja/ko/ru/zh-TW 走 `//go:build lang_xx || lang_all`。
+
+约束与行为：
+
+- locale 解析顺序：goroutine-local 覆盖（`language.Get`）→ 全局默认（`language.Default`）→ 英文。
+- locale 查表匹配顺序：完整 tag → base 语言（`zh-CN` → `zh`）→ English。
+- 渲染选项是包级全局状态（精度 / compact / 时钟格式），通过 `Set*` 设置，非并发安全的逐调用参数。
+- 公共 locale API 用 stdlib `golang.org/x/text/language.Tag`。
+- 单位常量（`Bit`/`KB`/`Byte` 等）用于换算字面量，不参与格式化函数的内部缩放逻辑。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/lazygophers/utils/human"
+)
+
+func main() {
+	fmt.Println(human.ByteSize(1536))                       // 1.5 KB
+	fmt.Println(human.Speed(2 * 1024 * 1024))               // 2 MB/s
+	fmt.Println(human.BitSpeed(100 * 1000 * 1000))          // 100 Mbps
+	fmt.Println(human.Duration(27 * time.Hour))             // 1 day 3 hours
+	fmt.Println(human.ClockDuration(90 * time.Second))      // 1:30
+	fmt.Println(human.RelativeTime(time.Now().Add(-3 * time.Minute))) // 3 minutes ago
+	fmt.Println(human.DateTime(time.Now()))                 // 2026-06-07 15:04:05
+
+	human.SetDefaultPrecision(2) // 小数位数
+	human.SetCompact(true)       // 1.5KB（值与单位间无空格）
+	human.SetClockFormat(true)   // Duration 走 HH:MM:SS
+}
+```
+
+## 主要 API
+
+格式化函数：
+
+```go
+func ByteSize(bytes int64) string                 // 二进制 1024 缩放
+func Speed(bytesPerSecond int64) string           // 二进制 1024 缩放
+func BitSpeed(bitsPerSecond int64) string         // 十进制 1000 缩放
+func Duration(d time.Duration) string             // 最多两单位；受 SetClockFormat 影响
+func ClockDuration(d time.Duration) string        // 始终 HH:MM:SS / M:SS
+func RelativeTime(t time.Time) string             // "x ago" / "in x"
+
+func Date(t time.Time) string
+func Time(t time.Time) string
+func DateTime(t time.Time) string
+func Year(t time.Time) string
+func YearMonth(t time.Time) string
+func MonthDay(t time.Time) string
+func DateShort(t time.Time) string
+func DateLong(t time.Time) string
+func Weekday(t time.Time) string
+func WeekdayMin(t time.Time) string
+```
+
+包级渲染开关：
+
+```go
+func SetDefaultPrecision(precision int) // 小数位数，默认 1
+func SetCompact(compact bool)           // 值与单位间是否留空格，默认 false
+func SetClockFormat(clock bool)         // Duration 是否走时钟格式，默认 false
+```
+
+Locale 注册与查询：
+
+```go
+func RegisterLocale(tag language.Tag, locale *Locale)        // tag = golang.org/x/text/language.Tag
+func GetLocaleConfig(tag language.Tag) (*Locale, bool)       // 完整 tag → base → English
+```
+
+## 核心类型
+
+```go
+type Locale struct {
+	Language string
+	Region   string
+
+	ByteUnits     []string // 如 ["B","KB","MB","GB","TB","PB"]
+	SpeedUnits    []string // 如 ["B/s","KB/s",...]
+	BitSpeedUnits []string // 如 ["bps","Kbps",...]
+
+	TimeUnits    TimeUnits
+	TimeFormats  TimeFormats
+	RelativeTime RelativeTimeStrings
+	NumberFormat NumberFormat
+	Common       CommonStrings
+}
+
+type TimeUnits struct {
+	Nanosecond, Microsecond, Millisecond,
+	Second, Minute, Hour, Day, Week, Month, Year string
+	// 英文复数形式
+	Seconds, Minutes, Hours, Days, Weeks, Months, Years string
+}
+
+type TimeFormats struct {
+	Date, Time, DateTime,
+	Year, YearMonth, MonthDay,
+	Short, Long, Weekday, WeekdayMin string // time.Time.Format layout 字符串
+}
+
+type RelativeTimeStrings struct {
+	JustNow, SecondsAgo, MinutesAgo, HoursAgo,
+	DaysAgo, WeeksAgo, MonthsAgo, YearsAgo string
+	In, SecondsLater, MinutesLater, HoursLater,
+	DaysLater, WeeksLater, MonthsLater, YearsLater string
+}
+
+type NumberFormat struct {
+	DecimalSeparator  string
+	ThousandSeparator string
+	LargeNumberUnits  []string
+}
+
+type CommonStrings struct {
+	And string
+	Or  string
+}
+```
+
+## 单位常量
+
+定义于 `it.go`，用作换算字面量。
+
+| 组 | 常量 | 基数 | 说明 |
+| --- | --- | --- | --- |
+| 比特 | `Bit` `Kb` `Mb` `Gb` `Tb` `Pb` `Eb` `Zb` | 1000 | 基本单位 = 1 bit，十进制（网络速度习惯） |
+| 字节 | `Byte` `KB` `MB` `GB` `TB` `PB` `EB` `ZB` | 1024 | `Byte` = 8 bits，KB 起按二进制 |
+| 字节（十进制） | `KBDecimal` `MBDecimal` `GBDecimal` `TBDecimal` `PBDecimal` `EBDecimal` `ZBDecimal` | 1000 | 兼容用十进制字节单位 |
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `human.go` | 包文档、包级渲染状态、`Set*` 设置器、`currentTag`、共享缩放/格式化辅助 |
+| `byte.go` | `ByteSize`（二进制 1024 字节缩放） |
+| `speed.go` | `Speed`（字节/秒，1024）/ `BitSpeed`（比特/秒，1000） |
+| `duration.go` | `Duration` / `ClockDuration` 及时钟格式实现 |
+| `relative.go` | `RelativeTime` 及过去/未来分级渲染 |
+| `time_format.go` | 10 个日期时间格式化函数 + layout 字段枚举 + fallback layout |
+| `it.go` | 比特 / 字节 / 十进制字节单位常量 |
+| `locale.go` | `Locale` 类型、`RegisterLocale` / `GetLocaleConfig`、`getTimeUnit` 单复数辅助 |
+| `locale_time.go` | `TimeUnits` / `TimeFormats` / `RelativeTimeStrings` 类型 |
+| `locale_number.go` | `NumberFormat` 类型 |
+| `locale_common.go` | `CommonStrings` 类型 |
+| `locale_en.go` | 英文 locale 注册（始终生效，无 build tag） |
+| `locale_zh.go` | 中文 locale 注册（始终生效，无 build tag） |
+| `locale_ar.go` `locale_es.go` `locale_fr.go` `locale_ja.go` `locale_ko.go` `locale_ru.go` `locale_zh_tw.go` | 各语言 locale，`//go:build lang_xx \|\| lang_all` |
+| `human_test.go` `locale_test.go` | 单元测试 |
+
+## 内置语言
+
+| 语言 | 文件 | build tag |
+| --- | --- | --- |
+| en | `locale_en.go` | 无（始终注册） |
+| zh | `locale_zh.go` | 无（始终注册） |
+| ar | `locale_ar.go` | `lang_ar \|\| lang_all` |
+| es | `locale_es.go` | `lang_es \|\| lang_all` |
+| fr | `locale_fr.go` | `lang_fr \|\| lang_all` |
+| ja | `locale_ja.go` | `lang_ja \|\| lang_all` |
+| ko | `locale_ko.go` | `lang_ko \|\| lang_all` |
+| ru | `locale_ru.go` | `lang_ru \|\| lang_all` |
+| zh-TW | `locale_zh_tw.go` | `lang_zh_tw \|\| lang_all` |

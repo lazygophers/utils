@@ -1,0 +1,132 @@
+# config
+
+多格式配置文件加载器：自动探测路径、按扩展名解析、环境变量覆盖、可选 struct 校验。导入路径 `github.com/lazygophers/utils/config`。
+
+## 功能
+
+把配置文件反序列化进任意 struct，覆盖常见运维场景：
+
+- **多格式解析**：内置 `.json` / `.json5` / `.toml` / `.yaml` / `.yml` / `.ini` / `.xml` / `.properties` / `.env` / `.hcl` 共 10 类扩展名，每类同时含 Marshaler 与 Unmarshaler。
+- **自动路径探测**：未显式给路径时，依次从「显式 paths → 环境变量 `LAZYGOPHERS_CONFIG` → 当前工作目录 → 程序所在目录」查找名为 `conf.<ext>` 或 `config.<ext>` 的文件。
+- **环境变量覆盖**：加载后用字段 `env` tag 对应的环境变量覆盖配置值（最高优先级），支持嵌套 struct 递归覆盖。
+- **可选校验**：`LoadConfig` 用 `validator.Struct` 跑 `validate` tag；`*SkipValidate` 变体跳过校验。
+- **配置继承**：`LoadConfigWithInheritance` 按优先级从低到高合并多个文件，后者非零值字段覆盖前者（零值不覆盖），实现 默认 < 基础 < 环境 < 本地 的分层。
+- **按环境加载**：`LoadConfigByEnvironment` 读 `ENV` 环境变量（缺省 `dev`），自动按 `base / <env> / local` 三层 + 各扩展名组合继承加载。
+- **自定义解析器**：`RegisterParser` 可注册新扩展名或覆盖内置解析器。
+
+约束：
+
+- 找不到配置文件不报错，仅打日志后用 struct 默认值（仅 `LoadConfig` 因校验失败可能返回错误）。
+- `configPath` 是包级全局变量，被探测/加载逻辑写入；`SetConfig` 写回时复用它。非并发安全。
+- `.properties` / `.env` 解析支持扁平及任意层级嵌套 struct（嵌套键用 `prefix.key` 递归拼接），且叶子字段类型限 string/int/uint/float/bool。
+- `SetConfig` 在 Marshal 出错时返回 nil（吞错），仅在扩展名不支持或文件打开失败时返回 error。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"github.com/lazygophers/utils/config"
+)
+
+type AppConfig struct {
+	Name string `json:"name" yaml:"name" env:"APP_NAME" validate:"required"`
+	Port int    `json:"port" yaml:"port" env:"APP_PORT" validate:"min=1,max=65535"`
+	DB   struct {
+		Host string `json:"host" yaml:"host" env:"DB_HOST"`
+	} `json:"db" yaml:"db"`
+}
+
+func main() {
+	var cfg AppConfig
+
+	// 显式路径；也可不传，自动从 env/当前目录/程序目录探测 conf.* 或 config.*
+	err := config.LoadConfig(&cfg, "config.yaml")
+	if err != nil {
+		panic(err)
+	}
+
+	// 分层继承：default < base < prod，后者非零值覆盖前者
+	_ = config.LoadConfigWithInheritance(&cfg, "default.yaml", "base.yaml", "prod.yaml")
+
+	// 按 ENV 环境变量自动选层（base/<env>/local）
+	_ = config.LoadConfigByEnvironment(&cfg, "./conf.d")
+
+	// 写回当前 configPath 对应的文件
+	_ = config.SetConfig(&cfg)
+}
+```
+
+## 核心类型 / 主要 API
+
+```go
+// 解析器函数签名
+type Unmarshaler func(reader io.Reader, v interface{}) error
+type Marshaler   func(writer io.Writer, v interface{}) error
+
+// 注册/覆盖某扩展名的解析器（ext 含点，如 ".json"）
+func RegisterParser(ext string, m Marshaler, u Unmarshaler)
+
+// 探测路径 → 解析 → env 覆盖 → validator.Struct 校验
+func LoadConfig(c any, paths ...string) (err error)
+
+// 同上但跳过校验
+func LoadConfigSkipValidate(c any, paths ...string) error
+
+// 把 c 序列化写回包级 configPath 指向的文件（按其扩展名选 Marshaler）
+func SetConfig(c any) error
+
+// 按 paths 顺序（低→高优先级）合并加载 + env 覆盖 + 校验
+func LoadConfigWithInheritance(c any, paths ...string) (err error)
+
+// 同上但跳过校验
+func LoadConfigWithInheritanceSkipValidate(c any, paths ...string) error
+
+// 读 ENV 环境变量（缺省 dev），按 base/<env>/local × 各扩展名继承加载 + 校验
+func LoadConfigByEnvironment(c any, baseDir string) (err error)
+
+// 同上但跳过校验
+func LoadConfigByEnvironmentSkipValidate(c any, baseDir string) error
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `load.go` | 全部实现：解析器注册表、路径探测、加载/写回、env 覆盖、配置继承与合并、properties/env/hcl 自定义解析 |
+| `load_test.go` | 单元测试，覆盖各格式 load/set、路径回退、env 覆盖、继承合并、错误分支 |
+
+## 内置支持格式
+
+| 扩展名 | 底层库 / 实现 | Marshal | Unmarshal |
+| --- | --- | --- | --- |
+| `.json` | `utils/json` | ✓ | ✓ |
+| `.json5` | `yosuke-furukawa/json5` | ✓ | ✓ |
+| `.toml` | `pelletier/go-toml/v2` | ✓ | ✓ |
+| `.yaml` / `.yml` | `gopkg.in/yaml.v3` | ✓ | ✓ |
+| `.ini` | `gopkg.in/ini.v1` | ✓ | ✓ |
+| `.xml` | `encoding/xml` | ✓ | ✓ |
+| `.properties` | 内置 `parseProperties` / `writeProperties` | ✓ | ✓ |
+| `.env` | 内置 `parseEnvFile` / `writeEnvFile` | ✓ | ✓ |
+| `.hcl` | `hashicorp/hcl/v2` 解析 + 内置 `writeHCLFile` 序列化 | ✓ | ✓ |
+
+## 路径探测优先级
+
+| 顺序 | 来源 | 说明 |
+| --- | --- | --- |
+| 1 | 显式 `paths...` | 取第一个存在的文件 |
+| 2 | 环境变量 `LAZYGOPHERS_CONFIG` | 指向具体文件路径 |
+| 3 | 当前工作目录 `runtime.Pwd()` | 找 `conf.<ext>` / `config.<ext>` |
+| 4 | 程序所在目录 `runtime.ExecDir()` | 找 `conf.<ext>` / `config.<ext>` |
+
+同目录内 `conf.<ext>` 优先于 `config.<ext>`。
+
+## struct tag 优先级
+
+| 场景 | tag 查找顺序（命中即用） |
+| --- | --- |
+| properties/env 解析字段名 (`getFieldTagName`) | `properties` → `env` → `json` → `yaml` → `toml` → `ini` → 字段名小写 |
+| HCL 序列化字段名 (`getHCLFieldTagName`) | `hcl` → `json` → `yaml` → `toml` → `ini` → 字段名小写 |
+| 环境变量覆盖 | 仅认 `env` tag |
+| 校验 | `validate` tag（经 `utils/validator`） |

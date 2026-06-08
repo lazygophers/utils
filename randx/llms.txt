@@ -1,0 +1,149 @@
+# randx
+
+高性能随机数 / 随机数据生成工具包，导入路径 `github.com/lazygophers/utils/randx`。
+
+## 功能
+
+`randx` 在标准库 `math/rand` 之上封装了一组进程级全局随机源（`globalRand` + `sync.Mutex`），用并发安全的全局函数对外暴露常见的随机能力，避免每次调用都创建独立 Source。覆盖范围：
+
+- 整数 / 浮点随机数：`int` / `int64` / `uint32` / `uint64` / `float32` / `float64`，含 `[min, max]` 闭区间范围版本。
+- 布尔随机：均匀布尔、百分比概率布尔、加权布尔。
+- 切片操作：随机取单个、取 N 个不重复、洗牌、加权选择、重复批量取。
+- 时间随机：随机间隔、随机时间点、当天/当小时内随机时间、睡眠、抖动（jitter）。
+- 批量生成：所有高频原语都有 `Batch*` 版本，一次加锁循环生成 N 个，降低锁开销。
+
+适用场景：测试桩数据、负载抖动 / 退避（backoff jitter）、随机调度睡眠、抽样 / 加权抽奖、洗牌发牌等。
+
+约束与边界行为（来自源码，调用时务必注意）：
+
+- **并发安全**，所有函数共用一把全局锁；不可注入自定义种子，进程内不可复现。
+- 范围版函数 `min > max` 时返回 0（`RandomDuration` / `RandomTime` 返回 `min`）；`min == max` 返回该值。
+- `Intn(n)`：`n <= 0` 或 `n == 1` 返回 0。
+- `Booln(n)` / `BatchBooln`：参数为百分比（0–100），`n >= 100` 恒真、`n <= 0` 恒假。
+- `WeightedBool(weight)`：参数为概率（0.0–1.0），`>= 1.0` 恒真、`<= 0.0` 恒假。
+- `WeightedChoose`：`items` 与 `weights` 长度不等返回零值；权重和 `<= 0` 退化为均匀随机。
+- `TimeDuration4Sleep`：当 `start > end` 会 **panic**；`start == end` 返回该值。
+- `Jitter`：`jitterPercent` 自动钳制到 `(0, 100]`，结果不为负。
+- 取不到元素的场景返回类型零值或空切片（如 `Choose` 空切片返回 `*new(T)`，`ChooseN` 返回 `[]T{}`）。
+
+注意：源码中 `generateSeed()` / `seedCounter` 为未导出的辅助逻辑，未被对外 API 使用，不属于公共契约。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/lazygophers/utils/randx"
+)
+
+func main() {
+	// 整数与范围
+	fmt.Println(randx.Intn(100))            // [0, 100)
+	fmt.Println(randx.IntnRange(10, 20))    // [10, 20]
+	fmt.Println(randx.Float64Range(0, 1))   // [0.0, 1.0]
+
+	// 布尔
+	fmt.Println(randx.Bool())               // 50/50
+	fmt.Println(randx.Booln(30))            // 30% 概率为 true
+	fmt.Println(randx.WeightedBool(0.7))    // 0.7 概率为 true
+
+	// 切片
+	fruits := []string{"apple", "pear", "peach", "plum"}
+	fmt.Println(randx.Choose(fruits))                       // 随机一个
+	fmt.Println(randx.ChooseN(fruits, 2))                   // 不重复 2 个
+	randx.Shuffle(fruits)                                   // 原地洗牌
+	fmt.Println(randx.WeightedChoose(fruits, []float64{1, 2, 3, 4}))
+
+	// 时间 / 抖动
+	d := randx.RandomDuration(time.Second, 3*time.Second)
+	fmt.Println(d)
+	fmt.Println(randx.Jitter(time.Second, 10)) // ±10%
+	randx.SleepRandomMilliseconds(50, 200)
+
+	// 批量
+	fmt.Println(randx.BatchIntn(6, 5)) // 一次生成 5 个 [0,6) 整数
+}
+```
+
+## 主要 API
+
+### 数值（number.go）
+
+```go
+func Intn(n int) int                              // [0, n)
+func Int() int
+func IntnRange(min, max int) int                  // [min, max]
+func Int64n(n int64) int64                         // [0, n)
+func Int64() int64
+func Int64nRange(min, max int64) int64             // [min, max]
+func Float64() float64                              // [0.0, 1.0)
+func Float64Range(min, max float64) float64         // [min, max)
+func Float32() float32
+func Float32Range(min, max float32) float32
+func Uint32() uint32
+func Uint32Range(min, max uint32) uint32           // [min, max]
+func Uint64() uint64
+func Uint64Range(min, max uint64) uint64           // [min, max]
+func BatchIntn(n int, count int) []int
+func BatchInt64n(n int64, count int) []int64
+func BatchFloat64(count int) []float64
+```
+
+### 布尔（bool.go）
+
+```go
+func Bool() bool                          // 均匀 50/50
+func Booln(n float64) bool                // n 为百分比 0–100
+func WeightedBool(weight float64) bool    // weight 为概率 0.0–1.0
+func BatchBool(count int) []bool
+func BatchBooln(n float64, count int) []bool
+```
+
+### 切片 / 泛型（any.go）
+
+```go
+func Choose[T any](s []T) T                                   // 随机取一个
+func ChooseN[T any](s []T, n int) []T                         // Fisher-Yates 取 N 个不重复
+func Shuffle[T any](s []T)                                     // 原地洗牌
+func WeightedChoose[T any](items []T, weights []float64) T     // 加权选择
+func BatchChoose[T any](s []T, count int) []T                  // 可重复批量取 count 个
+```
+
+### 时间（time.go）
+
+```go
+func TimeDuration4Sleep(s ...time.Duration) time.Duration       // 0/1/2 参数；默认 [1s,3s]，start>end 时 panic
+func RandomDuration(min, max time.Duration) time.Duration       // [min, max]
+func RandomTime(start, end time.Time) time.Time                 // [start, end)
+func RandomTimeInDay(date time.Time) time.Time                  // 当天 00:00–次日 00:00
+func RandomTimeInHour(baseTime time.Time, hour int) time.Time   // 指定小时内；hour 越界回退到 baseTime.Hour()
+func BatchRandomDuration(min, max time.Duration, count int) []time.Duration
+func SleepRandom(min, max time.Duration)
+func SleepRandomMilliseconds(minMs, maxMs int)
+func Jitter(duration time.Duration, jitterPercent float64) time.Duration  // ±jitterPercent%
+```
+
+`TimeDuration4Sleep` 的参数语义：
+
+| 入参个数 | 行为 |
+| --- | --- |
+| 0 | 默认 `[1s, 3s]` |
+| 1 | `[0, s[0]]` |
+| ≥2 | `[s[0], s[1]]`（多余参数忽略） |
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `number.go` | 全局随机源定义（`globalRand` / `globalMu`）+ 整数、浮点、无符号整数随机及范围/批量版本 |
+| `bool.go` | 均匀布尔、百分比概率布尔、加权布尔及批量版本 |
+| `any.go` | 泛型切片操作：随机取、不重复取 N、洗牌、加权选择、批量取 |
+| `time.go` | 随机时间间隔 / 时间点、当天/当小时随机、随机睡眠、抖动 |
+| `number_test.go` | `number.go` 单元测试 |
+| `bool_test.go` | `bool.go` 单元测试 |
+| `any_test.go` | `any.go` 单元测试 |
+| `time_test.go` | `time.go` 单元测试 |

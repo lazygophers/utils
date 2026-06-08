@@ -1,0 +1,123 @@
+# fbr
+
+基于访问频率的淘汰缓存（Frequency-Based Replacement），泛型、并发安全；淘汰最不常被访问的条目，同频内退化为 LRU。导入路径 `github.com/lazygophers/utils/cache/fbr`。
+
+## 功能
+
+- **频率优先淘汰**：每个条目维护访问频率，容量满时优先淘汰频率最低（`minFreq`）的条目。
+- **同频 LRU**：同一频率层级内部用双向链表维护访问顺序（`container/list`），淘汰该层级最久未用者，命中/写入时移到链表头。
+- **泛型**：`Cache[K comparable, V any]`，键值类型由调用方指定，无 `interface{}` 装箱。
+- **并发安全**：所有读写经 `sync.RWMutex` 保护；只读方法（`Contains`/`Peek`/`Len`/`Keys`/`Values`/`Items`/`Stats`）用读锁，`Get` 因要递增频率用写锁。
+- **淘汰回调**：`NewWithEvict` 注册 `onEvict(K, V)`，在淘汰与 `Clear` 时触发。
+- **可观测**：`Stats` 暴露大小、容量、最小/最大频率与频率分布。
+
+适用场景：访问频率比时间局部性更能反映热度的缓存（热点数据长期高频访问）。约束：容量必须为正（`New`/`Resize` 否则返回 error）；`Get` 会修改频率，需纯读不影响频率时用 `Peek`；频率单调递增、无衰减机制（长生命周期下旧热点可能因历史高频长期驻留）。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache/fbr"
+)
+
+func main() {
+	cache, err := fbr.New[string, int](3)
+	if err != nil {
+		panic(err)
+	}
+
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	cache.Put("c", 3)
+
+	// 多次访问抬高 "a" 的频率
+	for i := 0; i < 5; i++ {
+		cache.Get("a")
+	}
+	cache.Get("b")
+
+	// 容量满，写入新键淘汰频率最低的 "c"
+	evicted := cache.Put("d", 4)
+	fmt.Println("evicted:", evicted)        // true
+	fmt.Println(cache.Contains("c"))        // false
+	fmt.Println(cache.Keys())               // 按频率从高到低排序
+
+	// 淘汰回调
+	withCb, _ := fbr.NewWithEvict[string, int](2, func(k string, v int) {
+		fmt.Printf("evict %s=%d\n", k, v)
+	})
+	withCb.Put("x", 10)
+	withCb.Put("y", 20)
+	withCb.Put("z", 30) // 触发回调淘汰一条
+
+	fmt.Printf("%+v\n", cache.Stats())
+}
+```
+
+## 主要 API
+
+构造：
+
+```go
+func New[K comparable, V any](capacity int) (*Cache[K, V], error)
+func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error)
+```
+
+`*Cache[K, V]` 方法：
+
+```go
+func (c *Cache[K, V]) Get(key K) (value V, ok bool)      // 命中并递增频率
+func (c *Cache[K, V]) Put(key K, value V) (evicted bool) // 新增/更新；返回是否发生淘汰
+func (c *Cache[K, V]) Remove(key K) (value V, ok bool)
+func (c *Cache[K, V]) Contains(key K) bool               // 不改频率
+func (c *Cache[K, V]) Peek(key K) (value V, ok bool)     // 不改频率
+func (c *Cache[K, V]) Len() int
+func (c *Cache[K, V]) Cap() int
+func (c *Cache[K, V]) Clear()                            // 逐条触发 onEvict
+func (c *Cache[K, V]) Keys() []K                         // 频率从高到低
+func (c *Cache[K, V]) Values() []V                       // 频率从高到低
+func (c *Cache[K, V]) Items() map[K]V                    // 无序
+func (c *Cache[K, V]) Resize(capacity int) error         // 缩容时淘汰超额条目
+func (c *Cache[K, V]) Stats() Stats
+```
+
+## 核心类型
+
+```go
+type Cache[K comparable, V any] struct { /* 私有字段 */ }
+
+type Stats struct {
+	Size                  int         // 当前缓存条目数
+	Capacity              int         // 最大容量
+	MinFrequency          int         // 缓存内最小频率
+	MaxFrequency          int         // 缓存内最大频率
+	FrequencyDistribution map[int]int // 频率 -> 该频率下的条目数
+}
+```
+
+> 注：`entry[K, V]` 为内部结构（持有 key/value/frequency/链表元素），不对外导出。
+
+## 行为要点
+
+| 方法 | 是否改频率 | 锁 | 容量满时 |
+| --- | --- | --- | --- |
+| `Get` | 是（+1） | 写锁 | — |
+| `Put`（新键） | 频率置 1 | 写锁 | 淘汰最低频条目 |
+| `Put`（已存在） | 是（+1） | 写锁 | 不淘汰 |
+| `Peek` / `Contains` | 否 | 读锁 | — |
+| `Remove` | 删除条目 | 写锁 | — |
+
+- 新写入的条目频率始终为 1，`minFreq` 重置为 1。
+- 淘汰时若最低频层级为空，会向上推进 `minFreq` 直到找到非空层级；全空则不淘汰。
+- `Keys`/`Values` 从 `maxFreq` 向 `minFreq` 遍历，故高频在前。
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `fbr.go` | `Cache`/`Stats` 类型、`New`/`NewWithEvict` 构造、全部公共方法及私有频率维护逻辑（`incrementFrequency`/`evictLeastFrequent`/`removeEntry`） |
+| `fbr_test.go` | 单元测试（淘汰、同频 LRU、频率分布、并发、边界）+ `BenchmarkPut`/`BenchmarkGet`/`BenchmarkMixed` 基准 |

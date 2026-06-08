@@ -1,0 +1,108 @@
+# runtime
+
+进程运行时辅助：panic 捕获/堆栈打印、优雅退出与退出信号、平台判定、可执行/用户目录定位。导入路径 `github.com/lazygophers/utils/runtime`。
+
+## 功能
+
+- **panic 捕获**：`CachePanic` / `CachePanicWithHandle` 在 `defer` 中调用，捕获 panic 后用最基础的 `os.Stderr` 系统调用打印错误与堆栈（避免在 panic 处理链中再触发栈溢出），再依次执行临时 handle 与全局注册的 handler。
+- **全局 panic handler**：`OnPanic` 注册全局回调，所有 `CachePanic*` 触发时统一执行，适合上报/告警。
+- **堆栈输出**：`PrintStack`（分块写 stderr）、`GetStack`（返回字符串，复用 `lazygophers/log` 的 buffer 池）。
+- **优雅退出**：`WaitExit` 阻塞直到收到退出信号；`GetExitSign` 返回已 `signal.Notify` 的 channel；`Exit` 向自身进程发 `os.Interrupt`（而非 SIGKILL，以便进程能处理收尾）。
+- **平台判定**：`IsWindows` / `IsDarwin` / `IsLinux`，按 build tag 编译期固定返回，零运行时开销。
+- **路径定位**：可执行文件目录/路径、工作目录、用户 home/config/cache 目录，以及拼接 `app.Organization` 的 Lazy 专属配置/缓存目录。
+
+约束：
+
+- 所有目录函数在底层 `os` 调用出错时返回空字符串（`""`），不返回 error；调用方自行判空。
+- `exitSignal` 退出信号集合按 OS/架构由 build tag 选择，非导出，仅供 `GetExitSign` 内部使用。
+- 依赖 `lazygophers/log`（`Exit` 日志、`GetStack` buffer 池）与 `lazygophers/utils/app`（`Organization` 常量）。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"github.com/lazygophers/utils/runtime"
+)
+
+func worker() {
+	defer runtime.CachePanic() // 捕获并打印 panic，不让 goroutine 崩整个进程
+	// ... 业务逻辑
+}
+
+func main() {
+	// 注册全局 panic 处理（上报等）
+	runtime.OnPanic(func(err interface{}) {
+		// report(err)
+	})
+
+	if runtime.IsDarwin() {
+		_ = runtime.LazyConfigDir() // <userConfigDir>/<app.Organization>
+	}
+
+	go worker()
+
+	runtime.WaitExit() // 阻塞直到收到 SIGINT/SIGTERM 等退出信号
+}
+```
+
+## 主要 API
+
+```go
+// panic 处理
+func CachePanic()                                   // 等价 CachePanicWithHandle(nil)，defer 中使用
+func CachePanicWithHandle(handle func(err interface{})) // 捕获 panic，打印堆栈，先执行 handle 再执行全局 handler
+func OnPanic(logic func(err interface{}))           // 注册全局 panic handler（追加到列表）
+
+// 堆栈
+func PrintStack()       // 分块写当前 goroutine 堆栈到 stderr
+func GetStack() string  // 返回 "dump stack:\n" + 堆栈字符串
+
+// 退出
+func GetExitSign() chan os.Signal // 返回已 Notify 退出信号集的 channel（缓冲 1）
+func WaitExit()                   // 阻塞直到收到退出信号
+func Exit()                       // 向自身进程发送 os.Interrupt；失败则 os.Exit(0)
+
+// 平台判定（build tag 编译期固定）
+func IsWindows() bool
+func IsDarwin() bool
+func IsLinux() bool
+
+// 路径
+func ExecDir() string        // 可执行文件所在目录
+func ExecFile() string       // 可执行文件完整路径
+func Pwd() string            // 当前工作目录
+func UserHomeDir() string    // 用户 home 目录
+func UserConfigDir() string  // 用户配置目录
+func UserCacheDir() string   // 用户缓存目录
+func LazyConfigDir() string  // UserConfigDir()/app.Organization
+func LazyCacheDir() string   // UserCacheDir()/app.Organization
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `runtime.go` | panic 捕获/堆栈打印、可执行文件与用户目录定位、Lazy 专属目录 |
+| `exit.go` | 退出信号 channel、`WaitExit`、`Exit` |
+| `exit_signal.go` | `exitSignal` 集合 — 未单独列出的 OS 兜底版本（build tag 取反全部已知平台）|
+| `exit_signal_darwin.go` | darwin 退出信号集 |
+| `exit_signal_windows.go` | windows 退出信号集（无 SIGSTOP/SIGTSTP）|
+| `exit_signal_linux.go` | linux 通用（非 mips*/arm64）退出信号集 |
+| `exit_signal_linux_arm64.go` | linux arm64 退出信号集 |
+| `exit_signal_linux_mips.go` / `_mipsle.go` / `_mips64.go` / `_mips64le.go` | linux mips 系列各架构退出信号集 |
+| `exit_signal_dragonfly.go` / `_freebsd.go` / `_netbsd.go` / `_openbsd.go` / `_solaris.go` / `_plan9.go` | 各 BSD/Unix/plan9 退出信号集 |
+| `system_darwin.go` / `system_linux.go` / `system_windows.go` | `IsWindows`/`IsDarwin`/`IsLinux` 平台判定 |
+| `*_test.go` | 单元测试 |
+
+## 退出信号集合（按平台）
+
+`exitSignal` 为非导出变量，经 build tag 在编译期选定，供 `GetExitSign` 注册。
+
+| 平台 | 信号集合 |
+| --- | --- |
+| darwin / linux(通用) / 多数 Unix | SIGINT, SIGQUIT, SIGABRT, SIGKILL, SIGTERM, SIGSTOP, SIGTRAP, SIGTSTP |
+| windows | SIGINT, SIGQUIT, SIGABRT, SIGKILL, SIGTERM, SIGTRAP（无 SIGSTOP/SIGTSTP）|
+
+> 注：SIGKILL/SIGSTOP 实际无法被进程捕获，列入集合不影响其余信号的正常通知。

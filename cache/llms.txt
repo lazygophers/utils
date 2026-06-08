@@ -1,0 +1,103 @@
+# cache
+
+缓存算法统一抽象层：定义所有缓存实现共享的泛型 `Cache[K, V]` 接口，并以子包形式提供 11 种缓存淘汰算法。导入路径 `github.com/lazygophers/utils/cache`。
+
+## 功能
+
+- 本包自身只暴露一个东西：泛型接口 `Cache[K comparable, V any]`，它是 11 种算法的统一契约。
+- 11 个子包（alfu / arc / fbr / lfu / lru / lruk / mru / optimal / slru / tinylfu / wtinylfu）各自实现该接口，提供 `*Cache[K, V]` 具体类型 + `New` 系列构造函数。
+- 适用场景：需要在不同淘汰策略间切换或做基准对比时，面向 `cache.Cache` 接口编程，运行时替换底层算法零成本。
+- 约束：本包不提供构造函数，必须从子包创建实例；`K` 必须 `comparable`，`V` 任意类型。各算法的 `Keys()` / `Values()` 顺序为算法自定义，不保证一致。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache"
+	"github.com/lazygophers/utils/cache/lru"
+)
+
+func main() {
+	// 子包构造，面向接口持有
+	var c cache.Cache[string, int]
+	c, _ = lru.New[string, int](2)
+
+	c.Put("a", 1)
+	c.Put("b", 2)
+	c.Put("c", 3) // 容量为 2，触发淘汰
+
+	if v, ok := c.Get("a"); ok {
+		fmt.Println(v)
+	} else {
+		fmt.Println("a 已被淘汰")
+	}
+
+	fmt.Println(c.Len(), c.Cap()) // 2 2
+}
+```
+
+## 核心类型 / 主要 API
+
+本包公开符号仅 `Cache` 接口一个：
+
+```go
+type Cache[K comparable, V any] interface {
+	Get(key K) (value V, ok bool)          // 取值，可能更新内部状态（recency/frequency）
+	Put(key K, value V) (evicted bool)     // 写入/更新，返回是否发生淘汰
+	Remove(key K) (value V, ok bool)       // 删除并返回旧值
+	Contains(key K) bool                    // 是否存在，不更新内部状态
+	Peek(key K) (value V, ok bool)         // 取值但不更新内部状态
+	Len() int                               // 当前条目数
+	Cap() int                               // 最大容量
+	Clear()                                 // 清空
+	Keys() []K                              // 所有键（顺序算法自定义）
+	Values() []V                            // 所有值（顺序算法自定义）
+	Items() map[K]V                         // 所有键值对
+	Resize(capacity int) error              // 调整容量，缩小时淘汰多余条目
+}
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| cache.go | 定义泛型 `Cache[K, V]` 接口（11 种算法的统一契约） |
+| cache_test.go | 编译期接口符合性断言：对 11 个子包做 `var _ cache.Cache[...] = (*xxx.Cache[...])(nil)` |
+
+## 子目录索引
+
+| 子包 | 链接 | 用途 |
+| --- | --- | --- |
+| alfu | [./alfu/](./alfu/) | Adaptive LFU，按访问模式自适应调整的 LFU（带频率衰减） |
+| arc | [./arc/](./arc/) | ARC（Adaptive Replacement Cache），在 recency 与 frequency 间自适应平衡 |
+| fbr | [./fbr/](./fbr/) | Frequency-Based Replacement，基于频率的淘汰 |
+| lfu | [./lfu/](./lfu/) | LFU（Least Frequently Used），淘汰访问频率最低项 |
+| lru | [./lru/](./lru/) | LRU（Least Recently Used），淘汰最久未访问项 |
+| lruk | [./lruk/](./lruk/) | LRU-K，依据倒数第 K 次访问时间淘汰 |
+| mru | [./mru/](./mru/) | MRU（Most Recently Used），淘汰最近访问项 |
+| optimal | [./optimal/](./optimal/) | Belady 最优算法，需未来访问序列，作为理论上界基准 |
+| slru | [./slru/](./slru/) | Segmented LRU，分 probationary / protected 两段 |
+| tinylfu | [./tinylfu/](./tinylfu/) | TinyLFU，用 Count-Min Sketch 估计频率 |
+| wtinylfu | [./wtinylfu/](./wtinylfu/) | Window-TinyLFU，LRU 窗口 + 频率主缓存组合 |
+
+## 子包构造函数一览
+
+所有子包均实现 `cache.Cache` 接口，构造函数签名如下（均返回 `(*Cache[K, V], error)`）：
+
+| 子包 | 基础构造 | 其它构造 |
+| --- | --- | --- |
+| alfu | `New(capacity int)` | `NewWithConfig(capacity int, decayFactor float64, decayInterval time.Duration)`、`NewWithEvict(capacity int, onEvict func(K, V))` |
+| arc | `New(capacity int)` | `NewWithEvict(capacity int, onEvict func(K, V))` |
+| fbr | `New(capacity int)` | `NewWithEvict(capacity int, onEvict func(K, V))` |
+| lfu | `New(capacity int)` | `NewWithEvict(capacity int, onEvict func(K, V))` |
+| lru | `New(capacity int)` | `NewWithEvict(capacity int, onEvict func(K, V))` |
+| lruk | `New(capacity, k int)` | `NewWithEvict(capacity, k int, onEvict func(K, V))` |
+| mru | `New(capacity int)` | `NewWithEvict(capacity int, onEvict func(K, V))` |
+| optimal | `New(capacity int)` | `NewWithPattern(capacity int, pattern []K)`、`NewWithEvict(capacity int, onEvict func(K, V))` |
+| slru | `New(capacity int)` | `NewWithRatio(capacity int, probationaryRatio float64)`、`NewWithEvict(capacity int, onEvict func(K, V))` |
+| tinylfu | `New(capacity int)` | `NewWithEvict(capacity int, onEvict func(K, V))`（另含辅助类型 `CountMinSketch` + `NewCountMinSketch(capacity int)`） |
+| wtinylfu | `New(capacity int)` | `NewWithEvict(capacity int, onEvict func(K, V))` |

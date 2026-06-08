@@ -1,0 +1,236 @@
+# candy
+
+Go 语法糖工具库：泛型集合 / slice / map 操作 + 弱类型转换 (`ToXxx`) + 反射型字段抽取，简化常见编程操作。
+导入路径：`github.com/lazygophers/utils/candy`
+
+## 功能
+
+- **泛型集合操作**：`Map` / `Filter` / `Reduce` / `All` / `Any` / `Each` / `Sort` / `Unique` 等，基于 Go generics，类型安全、零反射开销。
+- **slice 工具**：取头尾 (`First` / `Last` / `Top` / `Bottom`)、分块 (`Chunk`)、去重 (`Unique`)、集合运算 (`Diff` / `Same` / `Remove`)、判定 (`Contains` / `SliceEqual`)。
+- **map 工具**：取键值 (`MapKeys` / `MapValues`)、slice 转 set (`Slice2Map`)、按字段建索引 (`KeyByXxx`)。
+- **弱类型转换**：`ToInt` / `ToString` / `ToBool` / `ToFloat64` / `ToBytes` / `ToSlice` / `ToMap` 系列，接受 `interface{}` 容错转换，转换失败返回零值（不返回 error，fail-soft）。
+- **反射型字段抽取**：`Pluck` / `PluckXxx` / `KeyByXxx` / `SliceField2MapXxx` 从 struct slice 按字段名提取列或建索引，内部带字段索引缓存。
+- **深拷贝 / 深比较**：`DeepCopy` / `DeepEqual` / `Equal`。
+
+适用场景：业务层数据搬运、配置解析后的弱类型读取、struct 列表的提取与索引。约束：弱类型 `ToXxx` 牺牲严格性换便利，不适合需要精确错误处理的边界；反射型 `PluckXxx` / `KeyByXxx` 比泛型版本慢，热路径优先用泛型 `Pluck`。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/candy"
+)
+
+func main() {
+	nums := []int{3, 1, 2, 3, 1}
+
+	// 泛型集合操作
+	doubled := candy.Map(nums, func(n int) int { return n * 2 })
+	evens := candy.Filter(nums, func(n int) bool { return n%2 == 0 })
+	uniq := candy.Unique(nums)        // [1 2 3]
+	sum := candy.Sum(nums...)         // 10
+	sorted := candy.Sort(nums)        // [1 1 2 3 3]
+	_ = doubled
+	_ = evens
+
+	fmt.Println(uniq, sum, sorted)
+
+	// 弱类型转换（fail-soft，失败返回零值）
+	fmt.Println(candy.ToInt("42"))      // 42
+	fmt.Println(candy.ToBool("true"))   // true
+	fmt.Println(candy.ToString(3.14))   // 3.14
+
+	type User struct{ Id int; Name string }
+	users := []User{{1, "a"}, {2, "b"}}
+
+	// 泛型抽取
+	names := candy.Pluck(users, func(u User) string { return u.Name })
+	// 反射按字段名建索引
+	idx := candy.KeyByInt(users, "Id") // map[1:{1 a} 2:{2 b}]
+	fmt.Println(names, idx)
+}
+```
+
+## 主要 API
+
+### 集合操作（collection_ops.go / math_ops.go）
+
+```go
+func Map[T, U any](ss []T, f func(T) U) []U
+func Reduce[T any](ss []T, f func(T, T) T) T
+func All[T any](ss []T, f func(T) bool) bool
+func Any[T any](ss []T, f func(T) bool) bool
+func Each[T any](values []T, fn func(value T))
+func EachReverse[T any](ss []T, f func(T))
+func Reverse[T any](ss []T) []T
+func Shuffle[T any](ss []T) []T
+func Sort[T constraints.Ordered](ss []T) []T
+func SortUsing[T any](slice []T, less func(T, T) bool) []T
+func Join[T constraints.Ordered](ss []T, glue ...string) string
+
+func Max[T constraints.Ordered](ss ...T) (max T)
+func Min[T constraints.Ordered](ss ...T) (min T)
+func Sum[T constraints.Ordered](ss ...T) (ret T)
+func Average[T constraints.Integer | constraints.Float | time.Duration](ss ...T) (ret T)
+func Abs[T constraints.Integer | constraints.Float](s T) T
+```
+
+### slice 操作（slice_*.go / unique.go）
+
+```go
+func First[T any](ss []T) (ret T)
+func FirstOr[T any](ss []T, or T) (ret T)
+func Last[T any](ss []T) (ret T)
+func LastOr[T any](ss []T, or T) (ret T)
+func Top[T any](ss []T, n int) (ret []T)      // 取前 n 个
+func Bottom[T any](ss []T, n int) (ret []T)   // 取后 n 个
+func Drop[T any](ss []T, n int) []T
+func Chunk[T any](ss []T, size int) (ret [][]T)
+func RemoveIndex[T any](ss []T, index int) []T
+
+func Filter[T any](ss []T, f func(T) bool) []T
+func FilterNot[T any](ss []T, f func(T) bool) []T
+func Contains[T comparable](ss []T, s T) bool
+func ContainsUsing[T any](ss []T, f func(v T) bool) bool
+func SliceEqual[T any](a, b []T) bool
+
+func Unique[T constraints.Ordered](ss []T) (ret []T)
+func UniqueUsing[T any](ss []T, f func(T) any) (ret []T)
+
+// 集合运算（constraints.Ordered）
+func Remove[T constraints.Ordered](ss []T, toRemove []T) (result []T)
+func Diff[T constraints.Ordered](ss []T, against []T) (added, removed []T)
+func Index[T constraints.Ordered](ss []T, sub T) int
+func Same[T constraints.Ordered](against []T, ss []T) (result []T)
+
+// 反射型（interface{}），仅在元素类型不固定时用
+func RemoveSlice(src interface{}, rm interface{}) interface{}
+func DiffSlice(a interface{}, b interface{}) (interface{}, interface{})
+```
+
+### map 操作（map.go / slice_to_map.go）
+
+```go
+func MapKeys[K constraints.Ordered, V any](m map[K]V) []K
+func MapValues[K constraints.Ordered, V any](m map[K]V) []V
+func Slice2Map[M constraints.Ordered](list []M) map[M]bool
+
+// 反射型按类型取键：MapKeysInt / MapKeysInt8/16/32/64 / MapKeysUint... /
+// MapKeysFloat32/64 / MapKeysString / MapKeysAny(m interface{})
+func MapKeysInt(m interface{}) []int
+func MapKeysString(m interface{}) []string
+func MapKeysAny(m interface{}) []interface{}
+```
+
+### 反射型字段抽取（pluck*.go / key_by.go / slice_to_map.go）
+
+```go
+// 泛型版（推荐，无反射）
+func Pluck[T any, U any](slice []T, selector func(T) U) []U
+func PluckPtr[T any, U any](slice []*T, selector func(*T) U, defaultVal U) []U
+func PluckUnique[T any, U comparable](slice []T, selector func(T) U) []U
+func PluckMap[T any, K comparable, V any](slice []T, keySelector func(T) K, valueSelector func(T) V) map[K]V
+func PluckGroupBy[T any, K comparable](slice []T, keySelector func(T) K) map[K][]T
+
+// 反射按字段名版（带字段索引缓存）：
+//   PluckInt / PluckInt8/16/32/64 / PluckUint/8/16/32/64 /
+//   PluckFloat32/64 / PluckString / PluckBool
+func PluckInt(list interface{}, fieldName string) []int
+func PluckString(list interface{}, fieldName string) []string
+
+// 按字段名建索引 map[K]T：KeyByInt / KeyByInt8/16/32/64 /
+//   KeyByUint/8/16/32/64 / KeyByFloat32/64 / KeyByString / KeyByBool
+func KeyByInt[T any](ss []T, fieldName string) map[int]T
+func KeyByString[T any](ss []T, fieldName string) map[string]T
+
+// 按字段名建 set map[K]bool：SliceField2MapString / SliceField2MapInt /
+//   ...Int8/16/32/64 / ...Uint/8/16/32/64 / ...Float32/64 / ...Bool
+func SliceField2MapString[T any](ss []T, fieldName string) map[string]bool
+func SliceField2MapInt[T any](ss []T, fieldName string) map[int]bool
+```
+
+### 弱类型转换（to_*.go）
+
+```go
+func ToInt(val interface{}) int          // 及 ToInt8/16/32/64
+func ToUint(val interface{}) uint        // 及 ToUint8/16/32/64
+func ToFloat32(val interface{}) float32
+func ToFloat64(val interface{}) float64
+func ToBool(val interface{}) bool
+func ToString(val interface{}) string
+func ToBytes(val interface{}) []byte
+func ToPtr[T any](v T) *T
+
+// slice 转换
+func ToStringSlice(v interface{}) []string
+func ToArrayString(v interface{}) []string
+func ToInt64Slice(val interface{}) []int64
+func ToUint32Slice(val interface{}) []uint32
+func ToUint64Slice(val interface{}) []uint64
+func ToFloat64Slice(val interface{}) []float64
+func ToInterfaceSlice(val interface{}) []interface{}
+
+// map 转换
+func ToMap(v interface{}) map[string]interface{}
+func ToMapStringAny(v interface{}) map[string]interface{}
+func ToMapStringString(v interface{}) map[string]string
+func ToMapStringInt64(v interface{}) map[string]int64
+func ToMapStringArrayString(v interface{}) map[string][]string
+func ToMapInt32String(v interface{}) map[int32]string
+func ToMapInt64String(v interface{}) map[int64]string
+```
+
+### 深拷贝 / 深比较（deep_*.go）
+
+```go
+func DeepCopy(src, dst any)              // src -> dst（dst 须为指针）
+func DeepEqual[M any](x, y M) bool       // 泛型深比较
+func Equal[T comparable](a, b T) bool    // comparable 直接 ==
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `collection_ops.go` | 泛型集合操作：Map/Reduce/All/Any/Each/Sort/Reverse/Shuffle/Join |
+| `math_ops.go` | 数值聚合：Max/Min/Sum/Average/Abs |
+| `slice_select.go` | 取元素：First/FirstOr/Last/LastOr/Bottom |
+| `slice_top.go` | Top（取前 n） |
+| `slice_chunk.go` | Chunk 分块 |
+| `slice_predicate.go` | Filter/FilterNot/Contains/ContainsUsing/Drop |
+| `slice_equal.go` | SliceEqual |
+| `slice_set.go` | 集合运算：Remove/Diff/Index/Same（Ordered 泛型） |
+| `slice_remove.go` | RemoveIndex |
+| `slice_remove_reflect.go` | 反射版 RemoveSlice/DiffSlice |
+| `unique.go` | Unique/UniqueUsing；含包文档注释 |
+| `filter_not_variants.go` | FilterNot 内部实现的多种性能变体（基准对比用，未导出） |
+| `map.go` | MapKeys/MapValues + 各类型 MapKeysXxx 反射版 |
+| `slice_to_map.go` | Slice2Map + SliceField2MapXxx（按字段名建 set，带索引缓存） |
+| `key_by.go` | KeyByXxx：按字段名建 map[K]T 索引（带字段校验与缓存） |
+| `pluck.go` | 泛型 Pluck/PluckPtr/PluckUnique/PluckMap/PluckGroupBy + 反射 PluckInt/PluckString |
+| `pluck_typed.go` | 反射 PluckXxx 各数值/bool 类型版（统一字段索引缓存） |
+| `to_int.go` / `to_uint.go` | ToInt/ToUint 各位宽 |
+| `to_float.go` | ToFloat32/ToFloat64 |
+| `to_bool.go` | ToBool |
+| `to_string.go` | ToString |
+| `to_bytes.go` | ToBytes |
+| `to_ptr.go` | ToPtr 泛型取址 |
+| `to_slice.go` | ToStringSlice/ToInt64Slice/ToArrayString 等 slice 转换 |
+| `to_map.go` | ToMap/ToMapStringString 等 map 转换 |
+| `deep_copy.go` | DeepCopy（反射深拷贝） |
+| `deep_equal.go` | DeepEqual（泛型深比较） |
+| `deep_helpers.go` | Equal（comparable 直接比较） |
+| `test_bench_simple.go` | 基准辅助（BenchmarkSimple） |
+
+## 设计要点
+
+| 维度 | 约定 |
+| --- | --- |
+| 泛型 vs 反射 | 元素类型已知用泛型 API（`Pluck` / `KeyBy` 泛型形态）；字段名运行时才定时用反射 `PluckXxx` / `KeyByXxx`（慢，但带索引缓存） |
+| 转换语义 | `ToXxx` 系列 fail-soft：转换失败返回零值，不返回 error，不 panic |
+| 排序约束 | `Sort` / `Unique` / `Diff` / `Same` / 集合运算要求 `constraints.Ordered`；任意类型用 `SortUsing` / `UniqueUsing` |
+| 命名约定 | 缩写词首字母大写其余小写（`KeyByInt` 而非 `KeyByINT`） |

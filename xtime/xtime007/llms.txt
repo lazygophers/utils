@@ -1,0 +1,76 @@
+# xtime007
+
+基于标准库 `time` 的「7×24 全天候」业务时间常量集。导入路径 `github.com/lazygophers/utils/xtime/xtime007`。
+
+## 功能
+
+本包预定义一组 `time.Duration` 常量，描述 **24/7 全天候** 工时模型，用于定时任务、工时累计、周期换算等场景，避免在业务代码里散落 `time.Hour * 24 * 30` 这类魔法表达式。
+
+模型约定（关键差异点）：
+
+- 所有常量类型均为 `time.Duration`，可直接参与时间运算与比较。
+- **全天候模型**：`WorkX` 等于对应的 `X`（工作时间 = 周期总时长），`RestX` 恒为 `0`（无休息时段），即对任意周期满足 `WorkX + RestX == X`。
+- 月按 30 天、季度按 91 天、年按 365 天的固定换算（非自然历，不处理闰年/大小月）。
+- 纯常量包：无函数、无类型、无变量，零运行开销。
+
+适用场景：连续运行服务的限流/过期/调度窗口、按固定天数估算的工时统计。不适用：需要精确自然历（闰年、月末、工作日历）的场景。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/lazygophers/utils/xtime/xtime007"
+)
+
+func main() {
+	// 直接用作时长
+	ttl := xtime007.HalfHour            // 30 分钟
+	deadline := time.Now().Add(xtime007.WorkMonth) // 30 天后
+
+	// 周期换算（全天候模型）
+	hoursPerMonth := xtime007.WorkMonth / xtime007.Hour // 720
+	daysPerYear := xtime007.WorkYear / xtime007.WorkDay  // 365
+
+	fmt.Println(ttl, deadline, hoursPerMonth, daysPerYear)
+}
+```
+
+## 主要 API
+
+本包仅导出常量（均为 `time.Duration`）。
+
+### 基础时间单位
+
+| 常量 | 定义 | 实际值 |
+| --- | --- | --- |
+| `Nanosecond` | `time.Nanosecond` | 1ns |
+| `Microsecond` | `time.Microsecond` | 1µs |
+| `Millisecond` | `time.Millisecond` | 1ms |
+| `Second` | `time.Second` | 1s |
+| `Minute` | `time.Minute` | 1m |
+| `HalfHour` | `time.Minute * 30` | 30m |
+| `Hour` | `time.Hour` | 1h |
+
+### 周期常量（全天候模型）
+
+| 周期 | 总时长 (`X`) | 工作 (`WorkX`) | 休息 (`RestX`) |
+| --- | --- | --- | --- |
+| 日 | `Day` = 24h | `WorkDay` = 24h | `RestDay` = `Day - WorkDay` = 0 |
+| 周 | `Week` = `Day*7` | `WorkWeek` = `WorkDay*7` | `RestWeek` = `Week - WorkWeek` = 0 |
+| 月 | `Month` = `Day*30` | `WorkMonth` = `Month` | `RestMonth` = `RestDay*0` = 0 |
+| 季 | `Quarter` = `Day*91` | `WorkQuarter` = `Quarter` | `RestQuarter` = `RestDay*0` = 0 |
+| 年 | `Year` = `Day*365` | `WorkYear` = `Year` | `RestYear` = `RestDay*0` = 0 |
+
+恒等关系：对任意周期 `WorkX + RestX == X`；所有 `RestX == 0`；所有 `WorkX == X`。
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `xtime.go` | 定义全部时间常量（基础单位 + 全天候周期模型） |
+| `xtime_test.go` | 常量值/关系/类型断言测试 + 常量访问与换算基准 |

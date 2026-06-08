@@ -1,0 +1,166 @@
+# defaults
+
+基于 struct tag 的结构体默认值填充库，通过反射读取 `default:"..."` 标签为零值字段填充默认值。
+
+导入路径：`github.com/lazygophers/utils/defaults`
+
+## 功能
+
+- 用 `default:"value"` struct tag 声明字段默认值，运行时反射填充。
+- 仅对零值字段生效（除非开启 `AllowOverwrite`），不覆盖已赋值字段。
+- 覆盖几乎所有 Go 类型：string / int 全宽 / uint 全宽 / float32-64 / bool / 指针（含多层）/ 嵌套 struct / interface / slice / array / map / chan（缓冲区大小）/ func。
+- 特殊类型 `time.Time`：支持 `now` 取当前时间，或多种布局字符串（RFC3339、RFC3339Nano、`2006-01-02 15:04:05`、`2006-01-02`、`15:04:05`）。
+- slice / array / map 支持 JSON 字面量（`[1,2,3]`、`{"k":"v"}`）及逗号分隔快速路径（如 `a,b,c`）。
+- 条件默认值：根据同结构体内其他字段的值选择默认值，支持 `=` `!=` `>` `<` `>=` `<=` 比较，格式 `Field=value:default,Field2=value2:default2`。
+- 自定义默认值函数：按类型名（`string`/`int`/`uint`/`float`/`bool`/`func`）注册 `DefaultFunc` 覆盖内置逻辑。
+- 三种错误模式：`ErrorModePanic`（默认）/ `ErrorModeIgnore` / `ErrorModeReturn`。
+- 优化路径：基于 `sync.Map` 的类型反射信息缓存 + 预解析值，多次填充同类型时显著降低反射开销。
+
+约束：传入值必须是可寻址的指针（如 `&cfg`），否则字段无法 `Set`；优化版填充结构体需 `CanAddr`。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/defaults"
+)
+
+type Server struct {
+	Host    string   `default:"localhost"`
+	Port    int      `default:"8080"`
+	Debug   bool     `default:"true"`
+	Tags    []string `default:"a,b,c"`
+	Timeout float64  `default:"3.5"`
+}
+
+func main() {
+	s := &Server{Port: 9090} // Port 非零，不被覆盖
+	defaults.SetDefaults(s)
+	fmt.Printf("%+v\n", *s)
+	// {Host:localhost Port:9090 Debug:true Tags:[a b c] Timeout:3.5}
+}
+```
+
+条件默认值与错误模式：
+
+```go
+type Order struct {
+	UserType string `default:"guest"`
+	Discount int    `default:"UserType=guest:10,UserType=vip:20,UserType=admin:30"`
+	Grade    string `default:"Discount>=20:A,Discount<20:B"`
+}
+
+o := &Order{UserType: "vip"}
+opts := &defaults.Options{ErrorMode: defaults.ErrorModeReturn}
+err := defaults.SetDefaultsWithOptions(o, opts)
+_ = err // o.Discount == 20, o.Grade == "A"
+```
+
+自定义默认值：
+
+```go
+defaults.RegisterCustomDefault("string", func() interface{} { return "from-func" })
+defer defaults.ClearCustomDefaults()
+```
+
+## 核心类型
+
+```go
+// 自定义默认值函数类型，返回值需与目标字段类型匹配
+type DefaultFunc func() interface{}
+
+// 错误处理模式
+type ErrorMode int
+const (
+	ErrorModePanic  ErrorMode = iota // 遇错 panic（默认）
+	ErrorModeIgnore                  // 忽略错误继续处理
+	ErrorModeReturn                  // 返回错误
+)
+
+// 配置选项
+type Options struct {
+	ErrorMode        ErrorMode              // 错误处理模式
+	CustomDefaults   map[string]DefaultFunc // 按类型名映射自定义默认值函数
+	ValidateDefaults bool                   // 是否验证默认值（保留字段）
+	AllowOverwrite   bool                   // 是否覆盖非零值字段
+}
+
+// 性能统计（HitCount/MissCount 当前为占位字段）
+type PerfStats struct {
+	HitCount  int64
+	MissCount int64
+}
+```
+
+## 主要 API
+
+```go
+// 用默认配置填充（内部走优化路径），出错时 panic
+func SetDefaults(value interface{})
+
+// 用自定义选项填充；opts 为 nil 时回退默认配置
+func SetDefaultsWithOptions(value interface{}, opts *Options) error
+
+// 优化算法填充（类型缓存 + 预解析），出错时 panic
+func SetDefaultsOptimized(value interface{})
+
+// 优化算法 + 自定义选项填充
+func SetDefaultsWithOptionsOptimized(value interface{}, opts *Options) error
+
+// 注册按类型名生效的自定义默认值函数（typeName: string/int/uint/float/bool/func）
+func RegisterCustomDefault(typeName string, fn DefaultFunc)
+
+// 清除所有已注册的自定义默认值函数
+func ClearCustomDefaults()
+
+// 清除类型反射缓存（主要用于测试）
+func ClearCache()
+
+// 获取性能统计
+func GetPerfStats() PerfStats
+```
+
+## tag 语法
+
+| 字段类型 | tag 示例 | 说明 |
+| --- | --- | --- |
+| string | `default:"hello"` | 直接赋值 |
+| int / uint / float | `default:"42"` / `default:"3.14"` | strconv 解析；0/1/-1 等有快速路径 |
+| bool | `default:"true"` | 接受 true/1/t/T/TRUE/True 及对应 false 形式 |
+| 指针（含多层） | `default:"123"` | nil 时自动 `New` 并对元素填充 |
+| slice / array | `default:"[1,2,3]"` 或 `default:"a,b,c"` | JSON 字面量或逗号分隔快速路径 |
+| map | `default:"{\"k\":\"v\"}"` | JSON 对象字面量 |
+| chan | `default:"5"` | 数字为缓冲区大小，`0` 为无缓冲 |
+| interface | `default:"x"` 或 `default:"{...}"` | `{`/`[` 开头按 JSON 解析，否则当字符串 |
+| time.Time | `default:"now"` / `default:"2023-01-01T12:00:00Z"` | `now` 取当前时间或按布局解析 |
+| 条件默认 | `default:"Field=val:default,..."` | 见下表 |
+
+## 条件默认值运算符
+
+格式 `FieldName<op>value:defaultValue`，多个条件逗号分隔，命中首个匹配项。`=`/`!=` 走相等比较，其余走数值比较。
+
+| 运算符 | 含义 | 示例 |
+| --- | --- | --- |
+| `=` | 等于 | `UserType=vip:20` |
+| `!=` | 不等于 | `Status!=0:active` |
+| `>` | 大于 | `Count>5:high` |
+| `<` | 小于 | `Age<18:minor` |
+| `>=` | 大于等于 | `Score>=90:A` |
+| `<=` | 小于等于 | `Score<=60:C` |
+
+注意：以 `{` `[` `http://` `https://` 开头或仅含单个 `:` 的 tag 不会被识别为条件默认值（避免与 JSON / URL 冲突）。
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `default.go` | 核心实现：`SetDefaults` / `SetDefaultsWithOptions`、各类型填充逻辑、条件默认值解析与匹配、自定义默认值注册 |
+| `optimize.go` | 优化路径：类型反射信息缓存（`sync.Map`）+ 预解析值、`SetDefaultsOptimized` / `SetDefaultsWithOptionsOptimized`、`ClearCache` / `GetPerfStats` |
+| `default_test.go` | `default.go` 单元测试 |
+| `optimize_test.go` | `optimize.go` 单元测试 |
+| `default_benchmark_test.go` | `default.go` 性能基准 |
+| `optimize_benchmark_test.go` | `optimize.go` 性能基准 |

@@ -1,15 +1,112 @@
 # optimal
 
-> 这是 optimal 目录的 llms.txt 文件，用于帮助语言模型理解该目录的结构和内容。
+> Belady 最优页面置换算法（OPT/MIN）的泛型缓存实现，导入路径 `github.com/lazygophers/utils/cache/optimal`。
 
-该目录包含 optimal 相关的代码和资源，遵循项目的整体架构设计。
+## 功能
 
-## 目录结构
+实现 Belady 最优缓存置换算法：淘汰时选择「未来最久才会再次访问」的条目（若某条目此后再无访问，则优先淘汰）。这是理论上命中率最优的置换策略，但前提是必须提前知道未来的访问序列（access pattern），因此不能用于真实在线负载，主要用于：
 
-- [当前目录](./): 包含 optimal 核心代码
+- 作为基准（baseline），评估 LRU/LFU/ARC 等在线算法离最优有多远
+- 离线模拟与算法研究：给定完整访问序列，计算理论最高命中率
+- 教学演示 Belady 异常与最优置换原理
 
-## 主要功能
+约束：
 
-- 提供 optimal 相关的功能实现
-- 支持项目的整体架构设计
-- 与其他模块协同工作
+- 泛型键 `K comparable`、值 `V any`；`New` 系列返回 error，容量必须 > 0
+- 最优决策依赖通过 `SetAccessPattern` / `NewWithPattern` 提供的未来访问序列；未提供时所有条目 `nextAccess = -1`，淘汰退化为「任意一个无未来访问的条目」
+- `Get` / `Put` 每次调用都会推进内部 `currentTime`（模拟一次访问推进），并据此重算 next access；调用顺序需与访问序列对齐才有意义
+- 全程 `sync.RWMutex` 保护，并发安全
+- `evictOptimal` 与 `Keys` 排序为 O(n)/O(n²)，面向中小规模模拟，非高吞吐生产缓存
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache/optimal"
+)
+
+func main() {
+	// 已知未来访问序列时，用 NewWithPattern 获得最优淘汰
+	pattern := []string{"a", "b", "c", "a", "b", "d", "a"}
+	c, err := optimal.NewWithPattern[string, int](2, pattern)
+	if err != nil {
+		panic(err)
+	}
+
+	c.Put("a", 1)
+	c.Put("b", 2)
+	// 容量已满，再放入 c：a/b 中未来更晚访问的会被淘汰
+	c.Put("c", 3)
+
+	if v, ok := c.Get("a"); ok {
+		fmt.Println("a =", v)
+	}
+	fmt.Println("len:", c.Len(), "cap:", c.Cap())
+
+	// 离线模拟：直接喂一串操作，得到命中率统计
+	ops := []optimal.Operation[string, int]{
+		{Type: optimal.OpPut, Key: "a", Value: 1},
+		{Type: optimal.OpGet, Key: "a"},
+		{Type: optimal.OpGet, Key: "z"},
+	}
+	stats := c.Simulate(ops)
+	fmt.Printf("hits=%d misses=%d hitRate=%.2f\n", stats.Hits, stats.Misses, stats.HitRate)
+}
+```
+
+## 核心类型
+
+| 类型 | 说明 |
+| --- | --- |
+| `Cache[K comparable, V any]` | 最优置换缓存主体，内部维护 items / accessPattern / currentTime |
+| `Operation[K comparable, V any]` | 模拟用操作单元，字段 `Type OpType`、`Key K`、`Value V` |
+| `OpType` | 操作类型枚举（`int`），取值 `OpGet`、`OpPut` |
+| `Stats` | 模拟统计结果：`Hits`、`Misses`、`Evictions int`，`HitRate float64` |
+
+常量：
+
+| 常量 | 值 | 说明 |
+| --- | --- | --- |
+| `OpGet` | `OpType(0)` | 模拟中的读操作 |
+| `OpPut` | `OpType(1)` | 模拟中的写操作 |
+
+## 主要 API
+
+构造函数：
+
+| 函数 | 签名 | 说明 |
+| --- | --- | --- |
+| `New` | `New[K comparable, V any](capacity int) (*Cache[K, V], error)` | 创建空 pattern 的缓存，capacity ≤ 0 报错 |
+| `NewWithPattern` | `NewWithPattern[K comparable, V any](capacity int, pattern []K) (*Cache[K, V], error)` | 带已知未来访问序列创建 |
+| `NewWithEvict` | `NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error)` | 带淘汰回调创建 |
+
+方法（接收者 `*Cache[K, V]`）：
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `SetAccessPattern` | `SetAccessPattern(pattern []K)` | 设置/重置未来访问序列，重置 currentTime 并重算所有 nextAccess |
+| `Get` | `Get(key K) (value V, ok bool)` | 读取并推进 currentTime，命中时重算该条目 nextAccess |
+| `Put` | `Put(key K, value V) (evicted bool)` | 写入；满则按最优策略淘汰，返回是否发生淘汰 |
+| `Remove` | `Remove(key K) (value V, ok bool)` | 删除指定键，触发 onEvict 回调 |
+| `Contains` | `Contains(key K) bool` | 是否存在，不改变状态 |
+| `Peek` | `Peek(key K) (value V, ok bool)` | 读取但不推进时间 / 不改状态 |
+| `Len` | `Len() int` | 当前条目数 |
+| `Cap` | `Cap() int` | 容量 |
+| `Clear` | `Clear()` | 清空所有条目（逐项触发 onEvict），重置 currentTime |
+| `Keys` | `Keys() []K` | 所有键，按 nextAccess 降序（最久才访问的在前，即淘汰优先序） |
+| `Values` | `Values() []V` | 所有值（map 遍历，无序） |
+| `Items` | `Items() map[K]V` | 所有键值对快照 |
+| `Resize` | `Resize(capacity int) error` | 改容量，缩小时按最优策略淘汰超额条目，capacity ≤ 0 报错 |
+| `CurrentTime` | `CurrentTime() int` | 当前在访问序列中的位置 |
+| `Simulate` | `Simulate(operations []Operation[K, V]) Stats` | 重置后跑完整操作序列，返回命中/未命中/淘汰/命中率统计 |
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `optimal.go` | 全部实现：`Cache` 及构造/读写/淘汰/模拟，`Operation`/`OpType`/`Stats` 类型与 `OpGet`/`OpPut` 常量 |
+| `optimal_test.go` | 单元测试与基准，覆盖构造、读写、淘汰最优性、模拟统计、并发等 |

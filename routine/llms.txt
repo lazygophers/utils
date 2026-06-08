@@ -1,0 +1,128 @@
+# routine
+
+协程启动包装 + goroutine-local trace 钩子 + 协程信息缓存。
+导入路径：`github.com/lazygophers/utils/routine`
+
+## 功能
+
+封装 `go func()` 的常见模式，把 goroutine 的生命周期纳入统一的前置/后置钩子，并提供轻量的 goroutine 信息缓存。
+
+- **trace 透传**：基于 `petermattis/goid` 取真实 goroutine id（gid）。`Go`/`GoWithRecover`/`GoWithMustSuccess` 启动子协程时，自动把父协程（baseGid）的 trace id 派生一个子 trace id 注入子协程（currentGid），子协程退出时清理。依赖 `lazygophers/log` 的 `SetTraceWithGID`/`GetTraceWithGID`/`DelTraceWithGID`。
+- **统一错误处理**：被包装的函数签名固定为 `func() (err error)`。返回的 error 由包内统一 `log.Errorf` 打印，调用方无需在每个 `go` 里手写错误日志。
+- **三种失败策略**：仅记录日志（`Go`）/ recover panic 并 dump 堆栈（`GoWithRecover`）/ 出错即 `os.Exit(1)`（`GoWithMustSuccess`）。
+- **可扩展钩子**：`AddBeforeRoutine` / `AddAfterRoutine` 注册全局前置/后置回调，init 中已注册默认的 trace 钩子。
+- **协程信息缓存**：`Cache[K, V]` 泛型并发安全 map，带可选过期时间，适合缓存与 goroutine 相关的临时信息。
+
+### 约束
+
+- 包装函数签名必须是 `func() (err error)`，无法传参/取返回值，需用闭包捕获。
+- 钩子是进程级全局且无锁注册，应在程序启动阶段（init/main 早期）完成注册，运行期并发注册不安全。
+- `GoWithMustSuccess` 出错会直接终止整个进程（`os.Exit(1)`），仅用于致命任务。
+- `Group` 当前为空类型占位，无任何方法。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"errors"
+	"time"
+
+	"github.com/lazygophers/utils/routine"
+)
+
+func main() {
+	// 仅记录错误日志
+	routine.Go(func() (err error) {
+		// ... 业务逻辑
+		return nil
+	})
+
+	// recover panic 并 dump 堆栈
+	routine.GoWithRecover(func() (err error) {
+		panic("boom")
+	})
+
+	// 出错即终止进程
+	routine.GoWithMustSuccess(func() (err error) {
+		return errors.New("fatal") // 触发 os.Exit(1)
+	})
+
+	// 注册自定义前置钩子（父 gid -> 子 gid）
+	routine.AddBeforeRoutine(func(baseGid, currentGid int64) { /* ... */ })
+	routine.AddAfterRoutine(func(currentGid int64) { /* ... */ })
+
+	// 泛型缓存
+	c := routine.NewCache[string, int]()
+	c.Set("a", 1)
+	c.SetEx("b", 2, time.Minute)
+	v, ok := c.Get("a")  // 1, true
+	d := c.GetWithDef("z", -1) // -1（缺省值）
+	c.Delete("a")
+	_ = v
+	_ = ok
+	_ = d
+
+	time.Sleep(time.Second)
+}
+```
+
+## 核心类型 / 主要 API
+
+### 协程启动
+
+```go
+func Go(f func() (err error))               // 启动协程，f 返回的 err 仅 log.Errorf 记录
+func GoWithRecover(f func() (err error))    // 同上，额外 recover panic 并 dump 堆栈
+func GoWithMustSuccess(f func() (err error))// 同上，err != nil 时 os.Exit(1)
+```
+
+### 钩子
+
+```go
+type BeforeRoutine func(baseGid, currentGid int64) // 子协程启动后、f 执行前调用
+type AfterRoutine  func(currentGid int64)          // f 执行后（defer）调用
+
+func AddBeforeRoutine(f BeforeRoutine) // 追加全局前置钩子
+func AddAfterRoutine(f AfterRoutine)   // 追加全局后置钩子
+```
+
+> init 中默认注册：before 派生子 trace id（`log.SetTraceWithGID`），after 清理（`log.DelTraceWithGID`）。
+
+### 缓存
+
+```go
+type Cache[K cmp.Ordered, V any] struct { /* sync.RWMutex + map */ }
+
+func NewCache[K cmp.Ordered, V any]() *Cache[K, V]
+
+func (p *Cache[K, V]) Get(key K) (V, bool)
+func (p *Cache[K, V]) GetWithDef(key K, def ...V) V       // 未命中返回 def[0] 或零值
+func (p *Cache[K, V]) Set(key K, value V)                 // 无过期
+func (p *Cache[K, V]) SetEx(key K, value V, ex time.Duration) // 带过期时间
+func (p *Cache[K, V]) Delete(key K)
+```
+
+### 占位类型
+
+```go
+type Group struct{} // 空类型，暂无方法
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `routine.go` | `Go`/`GoWithRecover`/`GoWithMustSuccess` 三个启动函数 + `BeforeRoutine`/`AfterRoutine` 钩子类型与注册 + init 默认 trace 钩子 |
+| `cache.go` | 泛型并发安全 `Cache[K, V]`（`Get`/`GetWithDef`/`Set`/`SetEx`/`Delete`/`NewCache`）+ 内部 `cacheItem[V]` |
+| `group.go` | `Group` 空占位类型 |
+| `routine_test.go` | 单元测试 + 基准测试（`BenchmarkGo`/`BenchmarkGoWithRecover`/`BenchmarkGoWithMustSuccess`） |
+
+## 启动函数对比
+
+| 函数 | err != nil 行为 | panic 行为 |
+| --- | --- | --- |
+| `Go` | `log.Errorf` 记录 | 不 recover（协程崩溃） |
+| `GoWithRecover` | `log.Errorf` 记录 | recover + dump 堆栈到 log |
+| `GoWithMustSuccess` | `log.Errorf` 记录后 `os.Exit(1)` | 不 recover（协程崩溃） |

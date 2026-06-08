@@ -1,146 +1,254 @@
 # validator
 
-Go 数据验证库。包路径：`github.com/lazygophers/utils/validator`。
+Go 结构体/字段数据验证库。包路径：`github.com/lazygophers/utils/validator`。
 
 ## 功能
 
-提供结构体字段验证引擎，支持自定义验证器、多语言错误消息、银行卡/身份证/邮箱/手机号等内置验证。
+基于 `validate:"..."` 结构体标签的验证引擎，覆盖必填、长度/数值比较、字符串格式、网络地址、文件系统、加密哈希、跨字段、条件必填等 100+ 内置规则；支持注册自定义验证器、结构体级别验证、组合验证器（And/Or/Not），以及基于 `golang.org/x/text/language.Tag` 的多语言错误消息（12 语言，goroutine-local 语言优先）。字段名默认取 JSON tag。
+
+适用场景：API 入参校验、表单校验、配置校验。约束：
+
+- locale 相关公共 API 用 `golang.org/x/text/language.Tag`（值类型），不是字符串。
+- 非默认语言（en/zh 之外）的 locale 文件走 `//go:build lang_<lang> || lang_all` build tag，默认 build 仅含 en/zh。
+- 空字符串通常视为通过（用 `required` 控制非空），这是格式类验证器的统一约定。
 
 ## 快速开始
 
 ```go
-import "github.com/lazygophers/utils/validator"
+import (
+    "github.com/lazygophers/utils/validator"
+    xlanguage "golang.org/x/text/language"
+)
 
-// 结构体标签验证
 type User struct {
-    Name  string `validate:"required,min=1,max=100"`
-    Email string `validate:"required,email"`
-    Age   int    `validate:"min=0,max=150"`
-    Phone string `validate:"required,mobile"`
+    Name  string `json:"name"  validate:"required,min=1,max=100"`
+    Email string `json:"email" validate:"required,email"`
+    Age   int    `json:"age"   validate:"gte=0,lte=150"`
+    Site  string `json:"site"  validate:"omitempty,url"`
 }
 
-err := validator.Struct(user)
+// 结构体验证（默认验证器）
+err := validator.Struct(User{Name: "a", Email: "x@y.com", Age: 20})
 
-// 单字段验证
-err := validator.Var(field, "required,email")
+// 单变量验证
+err = validator.Var("x@y.com", "required,email")
 
-// 获取默认验证器实例
-v := validator.Default()
-
-// 自定义配置
+// 自定义实例
 v, err := validator.New(
-    validator.WithLocale("zh"),
+    validator.WithLocale(xlanguage.Make("zh")),
     validator.WithUseJSON(true),
 )
-```
+err = v.Struct(myStruct)
 
-## 核心类型
-
-### Validator
-
-主验证器。通过 `New()` 创建或 `Default()` 获取单例。
-
-```go
-v, _ := validator.New(validator.WithLocale("en"))
-err := v.Struct(myStruct)
-err := v.Var(field, "required,email")
-```
-
-### Engine
-
-验证引擎。管理验证器注册和执行。适合需要多实例、隔离验证规则的高级场景。
-
-```go
-e := validator.NewEngine()
-e.RegisterValidation("custom", myValidatorFunc)
-```
-
-### Option
-
-配置函数。`WithLocale`、`WithUseJSON`、`WithTranslations`、`WithCustomValidator`、`WithConfig`。
-
-## 内置验证标签
-
-| 标签 | 说明 |
-|------|------|
-| `required` | 非零值 |
-| `email` | 邮箱格式 |
-| `url` | URL 格式 |
-| `mobile` | 手机号（中国大陆 11 位） |
-| `bankcard` | 银行卡号（Luhn 校验） |
-| `idcard` | 身份证号（18 位，含校验位） |
-| `alpha` | 纯字母 |
-| `alphanum` | 字母+数字 |
-| `min=N` | 最小值/最小长度 |
-| `max=N` | 最大值/最大长度 |
-| `len=N` | 精确长度 |
-| `minlen=N` | 最小长度 |
-| `maxlen=N` | 最大长度 |
-| `range=min,max` | 数值范围 |
-| `in=v1,v2,...` | 枚举值 |
-| `notin=v1,v2,...` | 排除枚举 |
-| `pattern=regex` | 正则匹配 |
-| `containspecial` | 包含特殊字符 |
-| `strong_password` | 强密码（大小写+数字+特殊字符） |
-
-## 自定义验证器
-
-```go
-// 函数签名
-type ValidatorFunc func(fl FieldLevel) bool
-
-// 注册
-validator.RegisterValidation("mytag", func(fl validator.FieldLevel) bool {
-    return fl.Field().String() != "bad"
-})
-
-// 组合逻辑
-combined := validator.And(validator.Required(), validator.MinLength(5))
-either := validator.Or(validator.Email(), validator.Pattern(`^\d+$`))
-negated := validator.Not(validator.In("a", "b"))
-```
-
-## 多语言
-
-支持语言：`en`（默认）、`zh`、`zh-TW`、`ja`、`ko`、`ar`、`de`、`es`、`fr`、`it`、`pt`、`ru`。
-
-```go
-validator.SetLocale("zh")  // 全局设置
-v, _ := validator.New(validator.WithLocale("ja"))  // 实例级别
-
-// 自定义翻译
-validator.RegisterTranslation("zh", "required", "此字段为必填项")
-```
-
-## 错误处理
-
-```go
-err := validator.Struct(user)
+// 错误处理
 if err != nil {
     if ve, ok := err.(validator.ValidationErrors); ok {
         for _, fe := range ve {
-            fmt.Printf("field: %s, tag: %s, value: %v\n", fe.Field(), fe.Tag(), fe.Value())
+            fmt.Printf("%s: %s\n", fe.Field, fe.Message)
         }
     }
 }
 ```
 
-## 性能
+## 核心类型 / 主要 API
 
-内置多种算法变体用于关键验证（银行卡 Luhn、身份证校验、邮箱格式），通过基准测试对比选择最优实现。
+### Validator（高层入口）
+
+```go
+func New(opts ...Option) (*Validator, error)
+func Default() *Validator
+
+func (v *Validator) Struct(s interface{}) error
+func (v *Validator) Var(field interface{}, tag string) error
+func (v *Validator) RegisterValidation(tag string, fn ValidatorFunc) error
+func (v *Validator) RegisterStructValidation(fn StructValidatorFunc, typeName string) error
+func (v *Validator) RegisterValidationWithComposition(tag string, fn ValidatorFunc) error
+func (v *Validator) RegisterTranslation(locale xlanguage.Tag, tag, translation string)
+func (v *Validator) SetLocale(tag xlanguage.Tag)
+func (v *Validator) GetLocale() xlanguage.Tag
+func (v *Validator) SetUseJSON(useJSON bool)
+```
+
+### 全局便捷函数（操作 Default()）
+
+```go
+func Struct(s interface{}) error
+func Var(field interface{}, tag string) error
+func RegisterValidation(tag string, fn ValidatorFunc) error
+func RegisterStructValidation(fn StructValidatorFunc, typeName string) error
+func RegisterValidationWithComposition(tag string, fn ValidatorFunc) error
+func RegisterTranslation(locale xlanguage.Tag, tag, translation string)
+func SetLocale(tag xlanguage.Tag)
+func SetUseJSON(useJSON bool)
+```
+
+### Option / Config
+
+```go
+type Option func(*Validator)
+func WithLocale(tag xlanguage.Tag) Option
+func WithUseJSON(useJSON bool) Option
+func WithTranslations(translations map[string]string) Option
+func WithCustomValidator(tag string, fn func(interface{}) bool) Option
+func WithConfig(config Config) Option
+
+type Config struct {
+    Locale       xlanguage.Tag
+    UseJSON      bool
+    Translations map[string]string
+}
+```
+
+### Engine（底层引擎，多实例/隔离场景）
+
+```go
+func NewEngine() *Engine
+func (e *Engine) Struct(s interface{}) error
+func (e *Engine) Var(field interface{}, tag string) error
+func (e *Engine) RegisterValidation(tag string, fn ValidatorFunc) error
+func (e *Engine) RegisterStructValidation(fn StructValidatorFunc, typeName string) error
+func (e *Engine) SetFieldNameFunc(fn func(reflect.StructField) string)
+func (e *Engine) SetTagName(name string)
+
+type ValidatorFunc func(fl FieldLevel) bool
+type StructValidatorFunc func(sl StructLevel) bool
+
+type FieldLevel interface {
+    Top() reflect.Value
+    Parent() reflect.Value
+    Field() reflect.Value
+    FieldName() string
+    StructFieldName() string
+    Param() string
+    GetTag(key string) string
+    GetFieldByName(name string) reflect.Value
+}
+
+type StructLevel interface {
+    ReportError(field interface{}, fieldName, tagName, message string)
+    Top() reflect.Value
+    GetStruct() reflect.Value
+}
+```
+
+### 组合验证器
+
+```go
+func And(validators ...ValidatorFunc) ValidatorFunc
+func Or(validators ...ValidatorFunc) ValidatorFunc
+func Not(validator ValidatorFunc) ValidatorFunc
+
+// 预制构造器
+func Required() ValidatorFunc
+func MinLength(min int) ValidatorFunc
+func MaxLength(max int) ValidatorFunc
+func Length(min, max int) ValidatorFunc
+func Range(min, max float64) ValidatorFunc
+func ContainsSpecial() ValidatorFunc
+func Email() ValidatorFunc
+func URL() ValidatorFunc
+func Alpha() ValidatorFunc
+func Alphanum() ValidatorFunc
+func Pattern(pattern string) ValidatorFunc
+func In(values ...interface{}) ValidatorFunc
+func NotIn(values ...interface{}) ValidatorFunc
+```
+
+### 错误类型
+
+```go
+type FieldError struct {
+    Field, Tag, Param, ActualTag, Namespace, StructField, Message string
+    Value interface{}
+}
+func (e *FieldError) Error() string
+
+type ValidationErrors []*FieldError
+func (e ValidationErrors) Error() string
+func (e ValidationErrors) First() *FieldError
+func (e ValidationErrors) FirstError() string
+func (e ValidationErrors) ByField(field string) *FieldError
+func (e ValidationErrors) HasField(field string) bool
+func (e ValidationErrors) Fields() []string
+func (e ValidationErrors) Messages() []string
+func (e ValidationErrors) ToMap() map[string]string
+func (e ValidationErrors) ToDetailMap() map[string]map[string]interface{}
+func (e ValidationErrors) JSON() map[string]interface{}
+func (e ValidationErrors) String() string
+func (e ValidationErrors) Len() int
+func (e ValidationErrors) IsEmpty() bool
+func (e *ValidationErrors) Add(err *FieldError)
+func (e *ValidationErrors) Merge(other ValidationErrors)
+func (e ValidationErrors) Filter(fn func(*FieldError) bool) ValidationErrors
+func (e ValidationErrors) ForField(field string) ValidationErrors
+func (e ValidationErrors) ForTag(tag string) ValidationErrors
+func (e ValidationErrors) Format(format string) string
+```
+
+### Locale 配置
+
+```go
+type LocaleConfig struct {
+    Language language.Tag
+    Region   string
+    Messages map[string]string
+}
+func RegisterLocaleConfig(name string, config *LocaleConfig)
+func GetLocaleConfig(name string) (*LocaleConfig, bool)
+func GetAvailableLocales() []string
+```
+
+## 内置验证标签（节选）
+
+| 分类 | 标签 |
+|------|------|
+| 基础 | `required` `len=N` `min=N` `max=N` `eq=N` `ne=N` `numeric` `number` `boolean` |
+| 比较 | `gt` `gte` `lt` `lte` `eq_ignore_case` `ne_ignore_case` |
+| 跨字段 | `eqfield` `nefield` `gtfield` `gtefield` `ltfield` `ltefield` `eqcsfield` `necsfield` `gtcsfield` `gtecsfield` `ltcsfield` `ltecsfield` `fieldcontains` `fieldexcludes` |
+| 条件必填 | `required_if` `required_unless` `required_with` `required_with_all` `required_without` `required_without_all` |
+| 条件排除 | `excluded_if` `excluded_unless` `excluded_with` `excluded_with_all` `excluded_without` `excluded_without_all` |
+| 字符串 | `alpha` `alphanum` `alphaspace` `alphanumspace` `alphaunicode` `alphanumunicode` `ascii` `printascii` `uppercase` `lowercase` `alphanum_upper` `alphanum_lower` `multibyte` `contains` `containsany` `containsrune` `excludes` `excludesall` `excludesrune` `startswith` `startsnotwith` `endswith` `endsnotwith` |
+| 集合 | `oneof` `unique` `isdefault` |
+| 格式 | `email` `url` `uuid` `uuid3` `uuid4` `uuid5` `uuid_rfc4122` `json` `jwt` `semver` `ulid` `cve` `cron` `datetime` `e164` `bic` `html` `html_encoded` `mongodb` `spicedb` `bcp47_language_tag` |
+| 哈希/编码 | `md4` `md5` `sha256` `sha384` `sha512` `ripemd128` `ripemd160` `tiger128` `tiger160` `tiger192` `hexadecimal` `base64` `base64url` `base64rawurl` |
+| 颜色 | `hexcolor` `rgb` `rgba` `hsl` `hsla` `cmyk` `iscolor` |
+| 金融/编号 | `credit_card` `luhn_checksum` `isbn` `isbn10` `isbn13` `issn` `ein` `ssn` `btc_addr` `btc_addr_bech32` `eth_addr` |
+| 地理/标准 | `latitude` `longitude` `timezone` `iso3166_1_alpha2` `iso3166_1_alpha3` `iso3166_1_alpha_numeric` `iso3166_2` `iso4217` `postcode_iso3166_alpha2` `country_code` |
+| 网络 | `ip` `ipv4` `ipv6` `ip_addr` `ip4_addr` `ip6_addr` `cidr` `cidrv4` `cidrv6` `mac` `hostname` `hostname_rfc1123` `hostname_port` `fqdn` `uri` `http_url` `url_encoded` `datauri` `urn_rfc2141` `tcp_addr` `tcp4_addr` `tcp6_addr` `udp_addr` `udp4_addr` `udp6_addr` `unix_addr` |
+| 文件系统 | `dir` `dirpath` `file` `filepath` `image` |
+| 密码 | `strong_password`（另有 Go 构造器 `ContainsSpecial()`，非 validate tag） |
+
+注：`iscolor` 是 hexcolor/rgb/rgba/hsl/hsla 的别名，`country_code` 是三种 iso3166_1 的别名。
+
+## 多语言
+
+内置语言：`en`（默认）、`zh`（默认），以及 `ar` `de` `es` `fr` `it` `ja` `ko` `pt` `ru` `zh-TW`（需对应 `lang_<lang>` / `lang_all` build tag）。
+消息模板支持占位符 `{field}` `{tag}` `{param}` `{value}`。有效语言优先级：实例显式 SetLocale > goroutine-local 语言（`utils/language`）> 全局默认 > en 兜底。
+
+```go
+v, _ := validator.New(validator.WithLocale(xlanguage.Make("zh")))
+validator.RegisterTranslation(xlanguage.Make("zh"), "required", "此字段为必填项")
+```
 
 ## 文件结构
 
 | 文件 | 职责 |
 |------|------|
-| `validator.go` | Validator 主结构、Option、公共 API |
-| `engine.go` | Engine 验证引擎、FieldLevel/StructLevel 接口、验证器注册 |
-| `types.go` | FieldError、ValidationErrors 类型 |
-| `options.go` | Option 函数、Config 类型 |
-| `messages.go` | 默认错误消息 |
-| `locale.go` | 多语言注册与查询 |
-| `locale_*.go` | 各语言翻译 |
-| `custom_validators.go` | 内置验证器实现（email/mobile/bankcard 等） |
-| `bankcard_variants.go` | 银行卡 Luhn 多算法变体 |
-| `format_variants.go` | 消息格式化多实现变体 |
-| `idcard18_variants.go` | 身份证 18 位多算法变体 |
+| `validator.go` | Validator 主结构、Default 单例、全局便捷函数、消息翻译/格式化、默认验证器注册 |
+| `engine.go` | Engine 引擎、FieldLevel/StructLevel 接口、ValidatorFunc、内置 required/min/max/len 等、And/Or/Not 与预制构造器 |
+| `types.go` | FieldError、ValidationErrors 及其查询/转换方法 |
+| `options.go` | Option 函数、Config |
+| `messages.go` | 内置默认中文消息表（备用）与格式化辅助 |
+| `locale.go` | LocaleConfig、locale 注册/查询、en 默认配置 |
+| `locale_<lang>.go` | 各语言消息表（en/zh 无 build tag，其余走 lang_<lang>/lang_all） |
+| `custom_validators.go` | strong_password/email/url/ipv4/mac/json/uuid/大小写类验证器 |
+| `string_validators.go` | alpha/ascii/contains/startswith 等字符串验证器 |
+| `format_validators.go` | FormatValidators() 哈希/UUID/颜色/金融/ISO/JWT 等格式验证器集合 |
+| `format_variants.go` | 消息格式化多算法变体（基准对比用） |
+| `comparison_validators.go` | ComparisonValidators() gt/gte/lt/lte/ignore_case |
+| `conditional_validators.go` | ConditionalValidators() required_unless/excluded_* 系列 |
+| `field_validators.go` | FieldValidators() 跨字段比较验证器 |
+| `net_validators.go` | NetValidators() ip/cidr/hostname/tcp_addr 等网络验证器 |
+| `fs_validators.go` | FSValidators() dir/file/image 文件系统验证器 |
+| `misc_validators.go` | MiscValidators() oneof/unique/isdefault |
+| `quick_strong_password_bench.go` | strong_password 快速实现基准变体 |

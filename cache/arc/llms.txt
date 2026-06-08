@@ -1,0 +1,143 @@
+# arc
+
+ARC（Adaptive Replacement Cache，自适应替换缓存）的泛型实现，线程安全。
+导入路径：`github.com/lazygophers/utils/cache/arc`
+
+## 功能
+
+ARC 在 LRU 与 LFU 之间动态自适应平衡，兼顾「最近性」和「频率」两种访问模式，
+在扫描型负载下抗污染能力优于纯 LRU。
+
+内部维护四条双向链表：
+
+- T1：最近只访问过一次的条目（recency）
+- T2：被访问过两次及以上的频繁条目（frequency）
+- B1 / B2：分别记录从 T1 / T2 淘汰出去的「幽灵条目」（ghost，只留 key 不留 value）
+
+命中 B1 / B2 时调整自适应参数 `p`（T1 的目标容量），从而在 recency 与 frequency 间倾斜。
+`p` 增大偏向 T1（更看重最近性），减小偏向 T2（更看重频率）。
+
+适用场景：
+
+- 数据库 / 存储块缓存，访问模式混合且会随时间漂移
+- 需要比 LRU 更强的扫描抗性，又不想手动调参
+- 泛型 key/value，要求 O(1) 查找与并发安全
+
+约束：
+
+- 容量必须为正整数，`New` / `Resize` 传入 `<= 0` 返回 error
+- 容量统计仅计 T1+T2 实际条目；幽灵条目（B1/B2）不占用户容量但各自上限为 capacity
+- 所有读写经 `sync.RWMutex` 保护，读路径（Contains/Peek/Len/Keys/Values/Items/Stats）用 RLock
+- `Cap` 不加锁，直接返回 capacity 字段
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache/arc"
+)
+
+func main() {
+	// 创建容量为 3 的缓存
+	c, err := arc.New[string, int](3)
+	if err != nil {
+		panic(err)
+	}
+
+	c.Put("a", 1)
+	c.Put("b", 2)
+
+	if v, ok := c.Get("a"); ok {
+		fmt.Println("a =", v) // a 被再次访问 -> 移入 T2（频繁区）
+	}
+
+	// 带淘汰回调
+	c2, _ := arc.NewWithEvict[string, int](2, func(k string, v int) {
+		fmt.Printf("evicted %s=%d\n", k, v)
+	})
+	c2.Put("x", 10)
+	c2.Put("y", 20)
+	c2.Put("z", 30) // 容量满，触发淘汰回调
+
+	// 查看自适应状态
+	s := c.Stats()
+	fmt.Printf("size=%d t1=%d t2=%d p=%d\n", s.Size, s.T1Size, s.T2Size, s.P)
+}
+```
+
+## 核心类型
+
+```go
+// Cache 是 ARC 缓存主体；K 可比较，V 任意类型
+type Cache[K comparable, V any] struct { /* 私有字段 */ }
+
+// Stats 缓存统计快照
+type Stats struct {
+	Size     int // 实际条目数（T1+T2）
+	Capacity int // 最大容量
+	T1Size   int // 最近条目数（T1）
+	T2Size   int // 频繁条目数（T2）
+	B1Size   int // T1 淘汰的幽灵条目数（B1）
+	B2Size   int // T2 淘汰的幽灵条目数（B2）
+	P        int // 自适应参数（T1 目标容量）
+}
+```
+
+## 主要 API
+
+构造：
+
+```go
+func New[K comparable, V any](capacity int) (*Cache[K, V], error)
+func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error)
+```
+
+读写：
+
+```go
+func (c *Cache[K, V]) Get(key K) (value V, ok bool)      // 命中则提升位置（recency->frequency）
+func (c *Cache[K, V]) Put(key K, value V) (evicted bool) // 新增/更新；返回是否触发淘汰
+func (c *Cache[K, V]) Remove(key K) (value V, ok bool)    // 删除并返回旧值
+func (c *Cache[K, V]) Contains(key K) bool                // 是否存在（不改变位置，排除幽灵）
+func (c *Cache[K, V]) Peek(key K) (value V, ok bool)      // 读取但不改变位置（排除幽灵）
+```
+
+容量与维护：
+
+```go
+func (c *Cache[K, V]) Len() int               // T1+T2 条目数
+func (c *Cache[K, V]) Cap() int               // 当前容量
+func (c *Cache[K, V]) Resize(capacity int) error // 调整容量，按比例缩放 p 并淘汰超额
+func (c *Cache[K, V]) Clear()                  // 清空（对每个非幽灵条目回调 onEvict，p 归零）
+```
+
+枚举与统计：
+
+```go
+func (c *Cache[K, V]) Keys() []K        // 所有 key，T2（频繁）在前，T1 在后
+func (c *Cache[K, V]) Values() []V      // 所有 value，T2 在前
+func (c *Cache[K, V]) Items() map[K]V   // 所有键值对（排除幽灵）
+func (c *Cache[K, V]) Stats() Stats     // 统计快照
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| arc.go | ARC 缓存全部实现：`Cache` / `Stats` 类型、构造函数、公开方法，以及私有的双向链表（linkedList/node）与 hit/miss/ghostHit/replace 替换算法 |
+| arc_test.go | 单元测试、并发测试与基准（BenchmarkPut/BenchmarkGet 等） |
+
+## 自适应链表说明
+
+| 链表 | 含义 | 越界处理 |
+| --- | --- | --- |
+| T1 | 最近访问一次（recency） | 满时由 `replace` 淘汰到 B1 |
+| T2 | 访问两次及以上（frequency） | 满时由 `replace` 淘汰到 B2 |
+| B1 | T1 淘汰的幽灵（仅 key） | 命中则增大 `p`；超过 capacity 删最旧 |
+| B2 | T2 淘汰的幽灵（仅 key） | 命中则减小 `p`；超过 capacity 删最旧 |
+
+`p` 取值范围 `[0, capacity]`；初始为 0（偏向 T1），命中 B1 增大、命中 B2 减小。

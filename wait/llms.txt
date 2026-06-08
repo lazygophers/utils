@@ -1,0 +1,161 @@
+# wait
+
+并发协调工具包：协程池任务处理、worker 组、按 key 的命名信号量池。
+
+import path: `github.com/lazygophers/utils/wait`
+
+## 功能
+
+围绕三类并发协调场景提供原语，全部基于 `chan` + `sync` 实现，协程通过 `routine.GoWithRecover` 启动并自带 panic 恢复：
+
+- **协程池批处理（async.go）**：固定数量 worker 消费同一任务通道。提供「推送—消费—等待全部完成」的 `Async`/`AsyncUnique`/`AsyncCollect`，以及「持续消费、由调用者关闭通道」的 `AsyncAlwaysWithChan`/`AsyncAlwaysUnique`/`AsyncAlwaysUniqueWithChan`。`*Unique` 系列借助 `sync.Map` 对 `UniqueTask.UniqueKey()` 去重，相同 key 不并发执行。`AsyncCollect` 把每个任务的 error 与 panic 汇聚到返回的 error 通道。
+- **Worker 组（group.go）**：`NewWorker(max)` 启动固定 worker，`Add` 提交无参函数，`Wait` 关闭队列并等待全部完成。每个任务在独立闭包中执行并 `runtime.CachePanic()` 兜底，单任务 panic 不影响其他任务。`Wait` 后再 `Add` 会 panic。
+- **命名信号量池（sync.go）**：全局 `poolMap` 按字符串 key 维护多个 `Pool`，每个 `Pool` 是带缓冲通道实现的信号量，用于限制某类操作的并发数。包级函数 `Ready` 预创建池，`Lock`/`Unlock`/`TryLock`/`Sync`/`SyncTimeout`/`Resize`/`Depth` 按 key 操作。
+
+约束与注意：
+
+- `Async`/`AsyncUnique`/`AsyncCollect`/`AsyncAlwaysWithChan`/`AsyncAlwaysUniqueWithChan` 当 `process <= 0` 时直接返回（`AsyncCollect` 返回 nil 通道）；`AsyncAlwaysUnique` 在 `process <= 0` 时回退为 1。
+- `*Unique` 去重基于「执行期间」的 in-flight 集合：任务执行完即 `Delete(key)`，并非全局历史去重。
+- 命名池的 `Lock`/`Unlock`/`Depth`/`Sync` 在 key 未经 `Ready` 初始化时会因 nil pool 而 panic；需先 `Ready(key, max)`。`TryLock`/`DepthOK`/`Resize`/`SyncTimeout` 对不存在的 key 安全返回（false / ok=false / no-op / `ErrPoolNotReady`）。
+- 全局 `Wgp`（`sync.Pool`）复用 `*sync.WaitGroup`，被 `Async*`/`Worker` 内部使用。
+
+## 快速开始
+
+```go
+import "github.com/lazygophers/utils/wait"
+
+// 1. 协程池批处理：4 worker 消费，push 推完即关通道，函数返回时全部完成
+wait.Async(4, func(c chan int) {
+    for i := 0; i < 100; i++ {
+        c <- i
+    }
+}, func(n int) {
+    process(n)
+})
+
+// 2. 收集错误
+errCh := wait.AsyncCollect(4, func(c chan int) {
+    for i := 0; i < 100; i++ {
+        c <- i
+    }
+}, func(n int) error {
+    return doWork(n)
+})
+for err := range errCh {
+    log.Println(err)
+}
+
+// 3. Worker 组
+w := wait.NewWorker(8)
+for i := 0; i < 100; i++ {
+    i := i
+    w.Add(func() { handle(i) })
+}
+w.Wait() // 关闭队列并等待
+
+// 4. 命名信号量池：限制 "db" 这类操作最多 3 并发
+wait.Ready("db", 3)
+err := wait.Sync("db", func() error {
+    return query()
+})
+```
+
+去重任务示例：
+
+```go
+type Job struct{ Id string }
+func (j Job) UniqueKey() string { return j.Id } // 实现 wait.UniqueTask
+
+c := wait.AsyncAlwaysUnique(4, func(j Job) { run(j) })
+c <- Job{Id: "a"}
+// 调用者负责 close(c) 以停止协程
+```
+
+## 核心类型 / 主要 API
+
+### 接口与类型
+
+```go
+type UniqueTask interface {
+    UniqueKey() string
+}
+
+type Worker struct { /* 私有字段 */ }
+type Pool   struct { /* 私有字段 */ }
+
+var Wgp sync.Pool                  // 复用 *sync.WaitGroup
+var ErrPoolNotReady error          // SyncTimeout 在池未就绪时返回
+```
+
+### 协程池（async.go）
+
+```go
+func Async[M any](process int, push func(chan M), logic func(M))
+func AsyncAlwaysWithChan[M any](process int, c chan M, logic func(M))
+func AsyncUnique[M UniqueTask](process int, push func(chan M), logic func(M))
+func AsyncCollect[M any](process int, push func(chan M), logic func(M) error) <-chan error
+func AsyncAlwaysUnique[M UniqueTask](process int, logic func(M)) chan M
+func AsyncAlwaysUniqueWithChan[M UniqueTask](c chan M, process int, logic func(M))
+```
+
+### Worker 组（group.go）
+
+```go
+func NewWorker(max int) *Worker
+func (p *Worker) Add(fn func())   // Wait 后调用会 panic
+func (p *Worker) Wait()           // 关闭队列、等待全部完成，可重复调用安全
+```
+
+### 命名信号量池 — 包级函数（sync.go）
+
+```go
+func Ready(key string, max int)                                          // 预创建池（已存在则 no-op）
+func Lock(key string)                                                     // 池不存在则 panic
+func Unlock(key string)                                                   // 池不存在则 panic
+func TryLock(key string) bool                                            // 池不存在返回 false
+func Depth(key string) int                                              // 池不存在则 panic
+func DepthOK(key string) (depth int, ok bool)                          // 池不存在返回 0,false
+func Resize(key string, newMax int)                                     // 池不存在则 no-op
+func Sync(key string, logic func() error) error                        // 自动 Lock/Unlock 执行
+func SyncTimeout(key string, timeout time.Duration, logic func() error) error // 超时返回 error；池未就绪返回 ErrPoolNotReady
+```
+
+### 命名信号量池 — Pool 方法（sync.go）
+
+```go
+func (p *Pool) Lock()
+func (p *Pool) Unlock()
+func (p *Pool) TryLock() bool
+func (p *Pool) Available() int       // 当前已占用数（= len(c)）
+func (p *Pool) Acquired() int        // cap - len
+func (p *Pool) Depth() int           // Deprecated: 用 Available
+func (p *Pool) Resize(newMax int)    // 缩容时阻塞至释放足够信号量
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `async.go` | 协程池任务处理：`Async`/`AsyncCollect`/`*Unique` 系列 + `UniqueTask` 接口 + 全局 `Wgp` 池 |
+| `group.go` | `Worker` 组：`NewWorker` + `Add`/`Wait`，单任务 panic 隔离 |
+| `sync.go` | 命名信号量池：`Pool` 类型 + 按 key 的包级函数 + `ErrPoolNotReady` |
+| `async_test.go` | `async.go` 单元测试 |
+| `group_test.go` | `group.go` 单元测试 |
+| `sync_test.go` | `sync.go` 单元测试 |
+
+## 协程池函数对比
+
+| 函数 | 通道生命周期 | 去重 | 错误收集 | process<=0 行为 |
+| --- | --- | --- | --- | --- |
+| `Async` | 内部建+推完即关 | 否 | 否 | return |
+| `AsyncUnique` | 内部建+推完即关 | 是 | 否 | return |
+| `AsyncCollect` | 内部建+推完即关 | 否 | 是（返回 error chan） | 返回 nil |
+| `AsyncAlwaysWithChan` | 调用者传入并负责关 | 否 | 否 | return |
+| `AsyncAlwaysUnique` | 内部建并返回，调用者负责关 | 是 | 否 | 回退为 1 |
+| `AsyncAlwaysUniqueWithChan` | 调用者传入并负责关 | 是 | 否 | return |
+
+## 依赖
+
+- `github.com/lazygophers/log`：日志（任务 panic、池深度、重复 key 告警）
+- `github.com/lazygophers/utils/routine`：`GoWithRecover` 启动带恢复的协程
+- `github.com/lazygophers/utils/runtime`：`CachePanic` 在 Worker 任务中兜底 panic

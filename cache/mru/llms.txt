@@ -1,0 +1,106 @@
+# mru
+
+MRU（Most Recently Used）缓存：容量满时优先淘汰**最近使用**的条目。导入路径 `github.com/lazygophers/utils/cache/mru`。
+
+## 功能
+
+- 泛型 MRU 缓存 `Cache[K comparable, V any]`，键值类型在编译期约束。
+- 淘汰策略与 LRU 相反：当缓存满且需要插入新键时，淘汰**队首（最近使用）**的条目。这类策略适合「最近访问的数据短期内不会再被访问」的负载（如顺序扫描、流式遍历），保留较冷数据反而提升命中率。
+- 底层用 `container/list` 双向链表维护使用顺序，`map[K]*list.Element` 做 O(1) 定位；`Get`/`Put` 命中后把节点移到队首标记为最近使用。
+- 并发安全：所有公共方法用 `sync.Mutex` 保护。选用 Mutex 而非 RWMutex，因为 MRU 的 `Get` 也需要移动链表节点（写操作），基准显示 Mutex 比 RWMutex 快约 20%-30%。
+- 支持淘汰回调 `onEvict`（通过 `NewWithEvict`），淘汰与 `Clear` 时逐条触发。
+- 容量必须为正：`New`/`NewWithEvict`/`Resize` 在 capacity ≤ 0 时返回 error。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache/mru"
+)
+
+func main() {
+	cache, err := mru.New[string, int](2)
+	if err != nil {
+		panic(err)
+	}
+
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+
+	// 访问 "a"，使其成为「最近使用」
+	cache.Get("a")
+
+	// 插入 "c" 触发淘汰：MRU 淘汰最近使用的 "a"
+	evicted := cache.Put("c", 3)
+	fmt.Println(evicted) // true
+
+	_, ok := cache.Get("a")
+	fmt.Println(ok) // false（已被淘汰）
+
+	v, _ := cache.Get("b")
+	fmt.Println(v) // 2（仍在）
+}
+```
+
+带淘汰回调：
+
+```go
+cache, _ := mru.NewWithEvict[string, int](2, func(k string, v int) {
+	fmt.Printf("evicted %s=%d\n", k, v)
+})
+```
+
+## 核心类型
+
+```go
+// Cache 是 MRU 缓存主体
+type Cache[K comparable, V any] struct { /* 私有字段 */ }
+
+// Stats 缓存统计
+type Stats struct {
+	Size     int
+	Capacity int
+}
+```
+
+## 主要 API
+
+| 函数 / 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `New` | `New[K comparable, V any](capacity int) (*Cache[K, V], error)` | 创建缓存；capacity ≤ 0 返回 error |
+| `NewWithEvict` | `NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error)` | 创建带淘汰回调的缓存 |
+| `Get` | `(c *Cache[K, V]) Get(key K) (value V, ok bool)` | 取值并将该键标记为最近使用 |
+| `Put` | `(c *Cache[K, V]) Put(key K, value V) (evicted bool)` | 写入/更新；满时淘汰最近使用条目，返回是否发生淘汰 |
+| `Remove` | `(c *Cache[K, V]) Remove(key K) (value V, ok bool)` | 删除指定键，返回被删值 |
+| `Contains` | `(c *Cache[K, V]) Contains(key K) bool` | 是否存在，不更新使用顺序 |
+| `Peek` | `(c *Cache[K, V]) Peek(key K) (value V, ok bool)` | 取值但不更新使用顺序 |
+| `Len` | `(c *Cache[K, V]) Len() int` | 当前条目数 |
+| `Cap` | `(c *Cache[K, V]) Cap() int` | 容量 |
+| `Clear` | `(c *Cache[K, V]) Clear()` | 清空；逐条触发 onEvict |
+| `Keys` | `(c *Cache[K, V]) Keys() []K` | 所有键，最近→最久使用顺序 |
+| `Values` | `(c *Cache[K, V]) Values() []V` | 所有值，最近→最久使用顺序 |
+| `Items` | `(c *Cache[K, V]) Items() map[K]V` | 所有键值对（map 无序） |
+| `Resize` | `(c *Cache[K, V]) Resize(capacity int) error` | 调整容量；缩容时从最近使用端淘汰超额条目 |
+| `Stats` | `(c *Cache[K, V]) Stats() Stats` | 返回 Size / Capacity 统计 |
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `mru.go` | `Cache`、`Stats` 类型，构造函数与全部公共方法实现 |
+| `mru_test.go` | 单元测试 + `BenchmarkPut` / `BenchmarkGet` 基准 |
+
+## 行为要点
+
+| 场景 | 行为 |
+| --- | --- |
+| `Put` 已存在键 | 更新值并移到队首，不触发淘汰（`evicted=false`） |
+| `Put` 新键且满 | 淘汰队首（最近使用）条目，`evicted=true` |
+| `Get` / `Put` 命中 | 命中条目移到队首，刷新为最近使用 |
+| `Peek` / `Contains` | 不改变使用顺序 |
+| `Resize` 缩容 | 循环从队首（最近使用端）淘汰直至 `Len ≤ capacity` |
+| `Clear` | 清空所有条目并逐条触发 `onEvict` |

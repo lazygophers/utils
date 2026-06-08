@@ -1,0 +1,99 @@
+# event
+
+进程内事件总线（pub/sub），支持同步与异步事件处理器。导入路径 `github.com/lazygophers/utils/event`。
+
+## 功能
+
+`event` 提供轻量的进程内事件发布/订阅机制：以字符串事件名注册一个或多个处理器，发布时按注册顺序逐个回调。
+
+- 同步处理器（`Register`）在 `Emit` 调用方的 goroutine 内直接执行。
+- 异步处理器（`RegisterAsync`）通过容量为 10 的内部 channel 投递，由 `Manager` 创建时启动的单个后台 goroutine 串行消费执行。
+- 异步处理器执行被 `runtime.CachePanic` 包裹，单个处理器 panic 不会导致后台 goroutine 崩溃；同步处理器不做 panic 保护，panic 会向上传播到 `Emit` 调用方。
+- 后台 goroutine 经 `routine.GoWithRecover` 启动，自身具备 recover 兜底。
+- 包级全局函数（`Register` / `RegisterAsync` / `Emit`）操作内置的 `defaultManager`；需要隔离的事件域可用 `NewManager()` 创建独立实例。
+
+约束与注意：
+
+- 同名事件可注册多个处理器，`Emit` 按注册顺序触发；同步与异步处理器混注时，同步立即执行、异步入队。
+- 异步 channel 容量固定为 10；当后台消费跟不上、且队列已满时，`Emit` 会在发送处阻塞直到有空位。
+- 不提供注销/清空处理器的 API；处理器一经注册即长期有效。
+- 仅进程内有效，不跨进程、不持久化。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/event"
+)
+
+func main() {
+	// 同步处理器：在 Emit 的 goroutine 内执行
+	event.Register("user.created", func(args any) {
+		fmt.Println("sync:", args)
+	})
+
+	// 异步处理器：经后台 goroutine 串行执行
+	event.RegisterAsync("user.created", func(args any) {
+		fmt.Println("async:", args)
+	})
+
+	event.Emit("user.created", "alice")
+
+	// 独立实例，与全局 defaultManager 隔离
+	m := event.NewManager()
+	m.Register("ping", func(args any) {
+		fmt.Println("pong:", args)
+	})
+	m.Emit("ping", 1)
+}
+```
+
+## 核心类型 / 主要 API
+
+```go
+// 事件处理器签名
+type EventHandler func(args any)
+
+// 事件管理器：持有事件名到处理器列表的映射及异步投递 channel
+type Manager struct { /* 私有字段 */ }
+
+// 创建并返回一个新的 Manager，同时启动其异步消费后台 goroutine
+func NewManager() *Manager
+
+// 包级全局函数，作用于内置 defaultManager
+func Register(eventName string, handler EventHandler)
+func RegisterAsync(eventName string, handler EventHandler)
+func Emit(eventName string, args any)
+
+// Manager 方法
+func (p *Manager) Register(eventName string, handler EventHandler)
+func (p *Manager) RegisterAsync(eventName string, handler EventHandler)
+func (p *Manager) Emit(eventName string, args any)
+```
+
+| 符号 | 说明 |
+| --- | --- |
+| `EventHandler` | 处理器函数类型，入参为 `any`（由 `Emit` 透传） |
+| `Manager` | 事件管理器，封装注册表 + 异步 channel（容量 10）+ 读写锁 |
+| `NewManager()` | 构造 `Manager` 并启动后台异步消费 goroutine |
+| `Register` / `(*Manager).Register` | 注册同步处理器，`Emit` 时当场执行 |
+| `RegisterAsync` / `(*Manager).RegisterAsync` | 注册异步处理器，`Emit` 时入队后台执行 |
+| `Emit` / `(*Manager).Emit` | 触发事件，按注册顺序分发到各处理器 |
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `event.go` | 全部实现：`EventHandler` 类型、`Manager`、全局 `defaultManager`、`Register`/`RegisterAsync`/`Emit` 全局函数及方法、`NewManager` 与异步消费循环 |
+| `event_test.go` | 单元测试：同步/异步注册与触发、多处理器顺序、并发访问、异步 channel 容量、panic 恢复、混合同步异步等 |
+
+## 执行语义
+
+| 处理器类型 | 注册方式 | 执行位置 | panic 保护 |
+| --- | --- | --- | --- |
+| 同步 | `Register` | `Emit` 调用方 goroutine，立即执行 | 无（panic 传播给调用方） |
+| 异步 | `RegisterAsync` | 后台单 goroutine，经容量 10 的 channel 串行消费 | 有（`runtime.CachePanic`） |

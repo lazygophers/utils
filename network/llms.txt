@@ -1,0 +1,105 @@
+# network
+
+网络地址工具库：CIDR 合并/计算、本地 IP 判定、网卡 IP 探测、反向代理真实 IP 提取。
+导入路径：`github.com/lazygophers/utils/network`
+
+## 功能
+
+围绕 `net` / `net/netip` 提供四组互相独立的工具：
+
+- **CIDR 处理**（基于 `net/netip`）：把一批前缀合并成最小规范化集合（吸收重叠、合并相邻兄弟），并计算单个前缀的起止地址与地址总数。IPv4 / IPv6 各自独立合并，不跨族。
+- **本地 IP 判定**：判断一个字符串 IP 是否为私有 / 回环 / 链路本地地址。
+- **网卡 IP 探测**：从网卡名、地址列表或自动探测中取出内网监听 IP，支持 IPv4 / IPv6 偏好。
+- **反向代理真实 IP**：从 HTTP 头按 CDN/代理优先级链路提取客户端真实 IP（跳过本地 IP）。
+
+约束与行为：
+
+- CIDR 系列输入 invalid 时安全降级：`MergeCIDRs` 返回 `nil`，`CIDRStart`/`CIDREnd` 返回零值 `netip.Addr`，`CIDRCount` 返回 `nil`。
+- `MergeCIDRStrings` 解析失败的条目静默跳过，不报错。
+- 合并输出每个 `Prefix` 已 `Masked()` 规范化，按地址升序、bits 升序排列。
+- `CIDRCount` 用 `*big.Int` 兼容 IPv6（`/0` 即 2^128）。
+- `GetListenIp` 优先读环境变量 `LISTEN_IP`，再依次尝试 `eth0`、`en0`，最后遍历全部网卡地址。
+- `RealIpFromHeader` 按固定优先级遍历头部，返回首个非本地 IP；逗号分隔的转发头逐段校验。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/netip"
+
+	"github.com/lazygophers/utils/network"
+)
+
+func main() {
+	// 合并 CIDR：两个相邻 /25 合并为 /24
+	merged := network.MergeCIDRStrings("10.0.0.0/25", "10.0.0.128/25", "10.0.0.0/24")
+	fmt.Println(merged) // [10.0.0.0/24]
+
+	// 单前缀起止地址与计数
+	p := netip.MustParsePrefix("192.168.1.0/30")
+	start, end := network.CIDRStartEnd(p)
+	fmt.Println(start, end, network.CIDRCount(p)) // 192.168.1.0 192.168.1.3 4
+
+	// 本地 IP 判定
+	fmt.Println(network.IsLocalIp("192.168.1.1")) // true
+	fmt.Println(network.IsLocalIp("8.8.8.8"))     // false
+
+	// 探测本机内网监听 IP
+	fmt.Println(network.GetListenIp())   // IPv4 优先
+	fmt.Println(network.GetListenIPv6()) // IPv6
+}
+```
+
+## 主要 API
+
+```go
+// CIDR 合并
+func MergeCIDRs(prefixes ...netip.Prefix) []netip.Prefix
+func MergeCIDRStrings(prefixes ...string) []netip.Prefix
+
+// CIDR 单前缀计算
+func CIDRStart(p netip.Prefix) netip.Addr
+func CIDREnd(p netip.Prefix) netip.Addr
+func CIDRStartEnd(p netip.Prefix) (start, end netip.Addr)
+func CIDRCount(p netip.Prefix) *big.Int
+
+// 本地 IP 判定（private / loopback / link-local）
+func IsLocalIp(ip string) bool
+
+// 网卡 IP 探测
+func GetInterfaceIpByName(name string, prev6 bool) string
+func GetInterfaceIpByAddrs(address []net.Addr, prev6 bool) string
+func GetListenIp(prev6 ...bool) string
+func GetListenIPv6() string
+
+// 反向代理真实 IP
+func RealIpFromHeader(header http.Header) string
+```
+
+## 文件结构
+
+| 文件          | 职责                                                                 |
+| ------------- | ------------------------------------------------------------------- |
+| `cidr.go`     | CIDR 合并（吸收重叠 + 兄弟合并）与单前缀起止/计数计算                |
+| `ip.go`       | `IsLocalIp`：私有 / 回环 / 链路本地地址判定                          |
+| `interface.go`| 网卡 IP 探测：按名/按地址列表/自动选取内网监听 IP，含 IPv6 偏好     |
+| `fiber.go`    | `RealIpFromHeader`：按 CDN/代理头优先级链路提取客户端真实 IP        |
+
+## RealIpFromHeader 头部优先级
+
+按顺序检查，返回首个非本地 IP（逗号分隔头逐段校验并要求合法 IP）：
+
+| 顺序 | 头部                                                  | 来源              |
+| ---- | ----------------------------------------------------- | ----------------- |
+| 1-4  | `Cf-Connecting-Ip` / `Cf-Pseudo-Ipv4` / `Cf-Connecting-Ipv6` / `Cf-Pseudo-Ipv6` | Cloudflare        |
+| 5    | `Fastly-Client-Ip`                                    | Fastly            |
+| 6    | `True-Client-Ip`                                      | Akamai/通用       |
+| 7    | `X-Amz-Cf-Id`                                         | Amazon CloudFront |
+| 8    | `X-Cloud-Trace-Context`                               | Google Cloud CDN  |
+| 9    | `X-Azure-ClientIP`                                    | Azure Front Door  |
+| 10   | `Incap-Client-IP`                                     | Incapsula         |
+| 11-12| `X-Real-IP` / `X-Client-IP`                           | 通用反代          |
+| 13-17| `X-Original-Forwarded-For` / `X-Forwarded-For` / `X-Forwarded` / `Forwarded-For` / `Forwarded` | 转发链（逐段解析） |

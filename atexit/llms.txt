@@ -1,0 +1,102 @@
+# atexit
+
+进程退出时执行清理回调的跨平台工具包。导入路径 `github.com/lazygophers/utils/atexit`。
+
+## 功能
+
+注册一组回调函数，在进程退出前按注册顺序执行，用于释放资源（关闭文件 / 刷新缓冲 / 断开连接 / 上报指标等）。
+
+核心特性：
+
+- **唯一公共入口 `Register`**：所有平台一致，注册 `func()` 回调。
+- **平台分文件实现**，对外 API 相同，触发机制按操作系统分两类：
+  - **信号拦截型**（darwin/ios、windows、linux-arm、freebsd/openbsd/netbsd/dragonfly、solaris/illumos、aix、其他类 Unix 兜底）：首次 `Register` 时 `sync.Once` 懒启动信号监听 goroutine，捕获终止信号后执行回调并 `os.Exit(0)`。
+  - **`os.Exit` Hook 型**（linux/android 且非 arm）：`init()` 通过 `gomonkey` patch `os.Exit`，拦截调用、先跑回调再真正退出；patch 失败则静默降级。
+  - **无信号环境**（js/wasm、plan9、wasip1）：无信号机制，额外导出 `Exit(code int)`，需显式调用以触发回调。
+- **回调隔离**：单个回调 panic 被 `recover` 吞掉，不影响后续回调（linux 非 arm 的 hook 实现除外，直接顺序调用）。
+- **并发安全**：回调列表用互斥锁保护；执行前复制快照，避免持锁回调。
+- `Register(nil)` 是空操作，直接返回。
+
+约束：
+
+- 信号拦截型平台必须靠信号触发；直接调用 `os.Exit`（非 linux）不会跑回调。
+- linux/android arm（32 位）不支持 gomonkey，故走信号方案。
+- js/wasm、plan9、wasip1 必须用本包的 `Exit` 而非 `os.Exit`，否则回调不执行。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/lazygophers/utils/atexit"
+)
+
+func main() {
+	atexit.Register(func() {
+		fmt.Println("flush buffers")
+	})
+	atexit.Register(func() {
+		fmt.Println("close connections")
+	})
+
+	// 收到 SIGINT/SIGTERM 等信号时，按注册顺序执行回调后退出
+	time.Sleep(time.Minute)
+}
+```
+
+js/wasm、plan9、wasip1 平台需显式触发：
+
+```go
+//go:build js || plan9 || wasip1
+
+atexit.Register(func() { /* cleanup */ })
+atexit.Exit(0) // 执行回调后退出（替代 os.Exit）
+```
+
+## 主要 API
+
+```go
+// 所有平台均提供。注册退出回调；callback 为 nil 时为空操作。
+func Register(callback func())
+
+// 仅 js、plan9、wasip1 平台提供。
+// 执行所有已注册回调后退出（在这些平台用于替代 os.Exit）。
+func Exit(code int)
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `atexit.go` | 类 Unix 兜底实现（排除所有已知 OS 的 build tag）；信号拦截 + `Register` |
+| `atexit_darwin.go` | darwin/ios：监听 SIGINT/SIGTERM/SIGHUP/SIGQUIT |
+| `atexit_windows.go` | windows：监听 Interrupt/SIGTERM |
+| `atexit_linux.go` | linux/android 非 arm：`gomonkey` patch `os.Exit` 拦截退出 |
+| `atexit_linux_arm.go` | linux arm：32 位不支持 gomonkey，回退信号方案 |
+| `atexit_bsd.go` | freebsd/openbsd/netbsd/dragonfly：监听 SIGINT/SIGTERM/SIGHUP/SIGQUIT |
+| `atexit_solaris.go` | solaris/illumos：监听 SIGINT/SIGTERM/SIGHUP |
+| `atexit_aix.go` | aix：监听 SIGINT/SIGTERM/SIGHUP |
+| `atexit_js.go` | js/wasm：无信号，提供 `Register` + `Exit` |
+| `atexit_plan9.go` | plan9：无 Unix 信号，提供 `Register` + `Exit` |
+| `atexit_wasip1.go` | wasip1：无信号，提供 `Register` + `Exit` |
+| `atexit_*_test.go` | 各平台对应单元测试 |
+
+## 平台触发机制对比
+
+| 平台 | 触发方式 | 监听信号 | 额外导出 `Exit` |
+| --- | --- | --- | --- |
+| darwin/ios | 信号拦截 | Interrupt, SIGTERM, SIGHUP, SIGQUIT | 否 |
+| windows | 信号拦截 | Interrupt, SIGTERM | 否 |
+| linux/android (非 arm) | gomonkey hook os.Exit | — | 否 |
+| linux/android arm | 信号拦截 | Interrupt, SIGTERM, SIGHUP, SIGQUIT | 否 |
+| freebsd/openbsd/netbsd/dragonfly | 信号拦截 | Interrupt, SIGTERM, SIGHUP, SIGQUIT | 否 |
+| solaris/illumos | 信号拦截 | Interrupt, SIGTERM, SIGHUP | 否 |
+| aix | 信号拦截 | Interrupt, SIGTERM, SIGHUP | 否 |
+| 其他类 Unix（兜底） | 信号拦截 | Interrupt, SIGTERM | 否 |
+| js/wasm | 显式 `Exit` | 无 | 是 |
+| plan9 | 显式 `Exit` | 无 | 是 |
+| wasip1 | 显式 `Exit` | 无 | 是 |

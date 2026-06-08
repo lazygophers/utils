@@ -1,0 +1,90 @@
+# pyroscope
+
+Grafana Pyroscope 持续性能剖析（continuous profiling）一键接入封装。导入路径 `github.com/lazygophers/utils/pyroscope`。
+
+## 功能
+
+把 `github.com/grafana/pyroscope-go` 客户端的初始化收敛成单个 `Load(address)` 调用，开箱即可向 Pyroscope 服务端上报多维度 profile。
+
+- **fire-and-forget**：`Load` 内部启动 pyroscope client，启动失败只记日志（`log.Errorf`），不返回 error、不 panic，调用方无需处理失败分支。
+- **默认地址**：`address` 传空串时回退到 `http://127.0.0.1:4040`。
+- **应用名自动注入**：`ApplicationName` 取自 `github.com/lazygophers/utils/app` 的 `app.Name`。
+- **hostname 标签**：从环境变量 `HOSTNAME` 读取，作为 `hostname` tag 附在 profile 上。
+- **全量 profile 类型**：默认开启 CPU / 内存（inuse+alloc，objects+space）/ goroutine / mutex（count+duration）/ block（count+duration）共 10 类。
+- **build tag 三态切换**（见下表）：决定 `Load` 是真正接入还是空操作（no-op），用于区分开发 / 生产 / 生产强制开启场景。
+
+约束：本包不暴露配置项（UploadRate、ProfileTypes、Tags 等均为内置常量，`UploadRate: 0` 表示用 client 默认上报频率，`DisableGCRuns: true`）。需要细粒度控制请直接用 `pyroscope-go`。
+
+### build tag 矩阵
+
+| build tag 组合 | 文件 | `Load` 行为 |
+| --- | --- | --- |
+| 默认（无 `release`） | `other.go` | 调用 `load`，真实接入 |
+| `release` 且无 `pyroscope` | `release.go` | 空函数，no-op（生产默认关闭） |
+| `release` 且 `pyroscope` | `release_open.go` | 调用 `load`，真实接入（生产强制开启） |
+
+即：开发态默认开启；`-tags release` 后默认关闭，再叠加 `-tags pyroscope` 才重新开启。
+
+## 快速开始
+
+```go
+package main
+
+import "github.com/lazygophers/utils/pyroscope"
+
+func main() {
+    // 传空串使用默认地址 http://127.0.0.1:4040
+    pyroscope.Load("")
+
+    // 或指定服务端地址
+    pyroscope.Load("http://pyroscope.prod.internal:4040")
+
+    // 业务逻辑...
+}
+```
+
+启动本地 Pyroscope 服务端：
+
+```bash
+docker run -itd -p 4040:4040 pyroscope/pyroscope:latest server
+```
+
+## 主要 API
+
+```go
+// Load 启动 pyroscope 持续剖析客户端并向 address 上报 profile。
+// address 为空时回退到 http://127.0.0.1:4040。
+// fire-and-forget：启动失败仅记日志，不返回 error，不 panic。
+// 实际行为受 build tag 控制（见 build tag 矩阵）。
+func Load(address string)
+```
+
+内部未导出函数 `load(address string)` 承载真实启动逻辑，`Load` 的三个 build 变体按需委托给它。
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `open.go` | 未导出 `load`：配置并 `pyroscope.Start`，定义默认地址 / app 名 / hostname tag / 10 类 profile |
+| `other.go` | `//go:build !release`：默认态导出 `Load`，委托 `load` |
+| `release.go` | `//go:build release && !pyroscope`：生产默认态导出空 `Load`（no-op） |
+| `release_open.go` | `//go:build release && pyroscope`：生产强制开启态导出 `Load`，委托 `load` |
+| `open_test.go` | `Load` 的健壮性测试（空/非法地址、并发、幂等、HOSTNAME 环境变量等） |
+| `open_benchmark_test.go` | `BenchmarkLoad` / `BenchmarkLoadEmpty` 基准 |
+
+## 内置 ProfileType 清单
+
+`load` 默认启用以下 10 类（来自 `pyroscope-go`）：
+
+| ProfileType | 含义 |
+| --- | --- |
+| `ProfileCPU` | CPU 占用 |
+| `ProfileInuseObjects` | 在用对象数 |
+| `ProfileAllocObjects` | 累计分配对象数 |
+| `ProfileInuseSpace` | 在用内存 |
+| `ProfileAllocSpace` | 累计分配内存 |
+| `ProfileGoroutines` | goroutine 数 |
+| `ProfileMutexCount` | mutex 竞争次数 |
+| `ProfileMutexDuration` | mutex 竞争耗时 |
+| `ProfileBlockCount` | 阻塞次数 |
+| `ProfileBlockDuration` | 阻塞耗时 |

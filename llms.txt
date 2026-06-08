@@ -1,0 +1,103 @@
+# utils
+
+LazyGophers Go 工具库根包。包路径：`github.com/lazygophers/utils`。
+
+## 功能
+
+根包只暴露少量"断言式"泛型辅助函数与数据库 ORM 桥接函数，遵循 fail-fast 风格：内部用 `Must*` 系列断言取代成片的 `if err != nil`。其余能力按领域拆分到 30+ 个独立子包（见「子目录索引」），各子包可单独导入、互不强耦合。
+
+适用场景：
+
+- 需要把 `(T, error)` / `(T, bool)` 直接解包成 `T`，错误即 panic（初始化、脚本、测试、配置加载等不可恢复路径）。
+- 结构体与数据库列之间通过 JSON 序列化互转（GORM/`database/sql` 的 `Scanner` / `Valuer` 适配），并在反序列化空值时自动填充默认值。
+
+约束：
+
+- `Must*` 失败会调用 `github.com/lazygophers/log` 的 `Panic` 系列，不可用于可恢复错误路径。
+- `Scan` / `Value` 走 `utils/json` 编解码并依赖 `utils/defaults` 填充默认值；只接受 `[]byte` / `string` 作为源，其他类型返回错误。
+
+## 快速开始
+
+```go
+import "github.com/lazygophers/utils"
+
+// 解包 (T, error)：err != nil 时 panic
+data := utils.Must(os.ReadFile("config.yaml"))
+
+// 解包 (T, bool)：ok == false 时 panic
+v := utils.MustOk(m["key"])
+
+// 仅断言 error
+utils.MustSuccess(json.Unmarshal(buf, &cfg))
+
+// 丢弃第二个返回值
+n := utils.Ignore(strconv.Atoi("42")) // 返回 int，忽略 error
+
+// 数据库列 <-> 结构体（实现 sql.Scanner / driver.Valuer 时复用）
+type Profile struct{ Nick string `json:"nick"` }
+var p Profile
+_ = utils.Scan(srcBytes, &p)          // 列值 -> 结构体（空值则填默认值）
+val, _ := utils.Value(p)              // 结构体 -> driver.Value（JSON 字节）
+```
+
+## 核心类型 / 主要 API
+
+```go
+// must.go — 泛型断言辅助
+func Must[T any](value T, err error) T   // err != nil 则 panic，否则返回 value
+func MustSuccess(err error)              // err != nil 则 panic
+func MustOk[T any](value T, ok bool) T   // ok == false 则 panic，否则返回 value
+func Ignore[T any](value T, _ any) T     // 返回 value，强制忽略第二个参数
+
+// orm.go — 数据库 <-> 结构体 JSON 桥接
+func Scan(src interface{}, dst interface{}) (err error)            // src([]byte|string) 反序列化进 dst；空值时 defaults.SetDefaults(dst)
+func Value(m interface{}) (value driver.Value, err error)         // m 序列化为 JSON 字节；struct/非空 struct 指针先 SetDefaults；nil -> "null"
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `must.go` | `Must` / `MustSuccess` / `MustOk` / `Ignore` 泛型断言辅助 |
+| `must_test.go` | `must.go` 单元测试 |
+| `orm.go` | `Scan` / `Value`：结构体与数据库列的 JSON 互转 + 默认值填充 |
+| `orm_test.go` | `orm.go` 单元测试 |
+
+## 子目录索引
+
+每个子目录是一个独立 Go package，可单独导入。
+
+| 子目录 | 用途 |
+| --- | --- |
+| [anyx](./anyx/) | `any` / `map[string]any` 动态访问与类型转换辅助 |
+| [app](./app/) | 应用元信息（名称/组织/版本/release 类型），按 build tag（alpha/beta/debug…）切换 |
+| [atexit](./atexit/) | 进程退出钩子注册，跨平台信号处理（aix/bsd/darwin 等） |
+| [bufiox](./bufiox/) | `bufio.Scanner` 扩展：按自定义分隔符 / 行扫描（`ScanBy` / `ScanLines`） |
+| [cache](./cache/) | 缓存抽象 + 10 个淘汰算法子包（alfu/arc/fbr/lfu/lru/lruk/mru/slru/tinylfu/wtinylfu） |
+| [candy](./candy/) | Go 语法糖工具函数，泛型简化常见编程操作（slice/map/数值等） |
+| [config](./config/) | 配置文件加载（json/yaml/toml 等多格式） |
+| [country](./country/) | ISO 3166-1 国家/地区数据（249 区）+ 多语言名/首都/时区/区号/TLD/官方语言 |
+| [cryptox](./cryptox/) | 加密工具：AES / ECDH / ECDSA 等对称与非对称算法封装 |
+| [currency](./currency/) | ISO 4217 货币数据（154 种）+ 多语言名，双形态 API（`Get` / 常量） |
+| [defaults](./defaults/) | 结构体默认值填充（`SetDefaults`，基于 struct tag） |
+| [event](./event/) | 事件管理器：事件注册 / 同步与异步分发（`Manager`） |
+| [fake](./fake/) | 假数据生成器（faker 风格），按 `country.Code` 生成本地化数据，可 seed 复现 |
+| [human](./human/) | 人类可读格式化：字节大小 / 速率 / 时长 / 相对时间 |
+| [hystrix](./hystrix/) | 熔断器（circuit breaker）实现 |
+| [i18n](./i18n/) | 多语言翻译：`Pack` / `Localize`，内置 json/yaml/toml，复用 `language` 做 goroutine-local 语言 |
+| [json](./json/) | JSON 编解码封装 + 文件读写 + `Must` 变体 |
+| [language](./language/) | 语言标签解析 + goroutine-local 语言存储（`SetDefault` / `Default` / `Set` / `Get`） |
+| [network](./network/) | 网络工具：CIDR 合并 / 范围计算、网络接口、fiber 辅助 |
+| [osx](./osx/) | 文件系统辅助：`Exists` 等路径判断 |
+| [pgp](./pgp/) | PGP 密钥生成 / 加解密 / 读写（`GenerateKeyPair` / `Encrypt` 等） |
+| [pyroscope](./pyroscope/) | Pyroscope 性能剖析接入（`Load`，按 build tag 启停） |
+| [randx](./randx/) | 随机数 / 随机值生成（bool / number / any 等） |
+| [routine](./routine/) | goroutine 辅助：goroutine-local `Cache` + `Group` 并发组 |
+| [runtime](./runtime/) | 运行时退出信号处理（`GetExitSign` / `WaitExit` / `Exit`），跨平台 |
+| [singledo](./singledo/) | 单飞（singleflight）：`Single` / `Group` 抑制重复并发调用 |
+| [stringx](./stringx/) | 字符串扩展：常规处理 + 普通/安全随机字符串生成 |
+| [urlx](./urlx/) | URL 工具：query 参数排序（`SortQuery`）等 |
+| [validator](./validator/) | 结构体字段验证引擎，自定义验证器 + 多语言错误 + 内置校验规则 |
+| [wait](./wait/) | 并发等待原语：`Async` / `Group` / 同步辅助 |
+| [xerror](./xerror/) | 错误码 + 堆栈 + 多 error 聚合 + panic/recover 辅助（`New` / `Wrap` / `Join` / `Try` / `Recover`） |
+| [xtime](./xtime/) | 时间扩展：日历 / 农历（lunar）/ 时间计算优化 |

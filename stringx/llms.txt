@@ -1,0 +1,218 @@
+# stringx
+
+字符串处理工具集：命名风格转换、随机/安全随机字符串生成、Unicode 字符判定、掩码脱敏、编辑距离、编解码等。
+
+导入路径：`github.com/lazygophers/utils/stringx`
+
+## 功能
+
+`stringx` 扩展标准库 `strings`，聚焦四类场景：
+
+- 命名风格转换：驼峰 / 蛇形 / kebab / 点分 / 斜杠互转，用于代码生成、配置 key 规范化。
+- 随机字符串：`Rand*`（基于 `math/rand`，快速、可复现，适合非敏感场景）与 `SecureRand*`（基于 `crypto/rand`，密码学安全，适合会话 ID / token / 验证码）。
+- 字符集判定：`All*` / `Has*` 系列谓词检查字符串是否全部 / 至少含某类 Unicode 字符（数字、字母、空白、大小写等），ASCII 走快速路径。
+- 文本处理：掩码脱敏（`Mask` / `MaskEmail` / `MaskPhone`）、编辑距离与相似度、slug 化、子串、词/行计数、编解码（Base64 / Hex）。
+
+约束与注意：
+
+- `ToString` / `ToBytes` 使用 `unsafe` 零拷贝转换，返回结果与原数据共享底层内存；`ToBytes` 的结果禁止修改（指向只读字符串内存）。
+- `Normalize` 为占位实现，仅返回原字符串；真正的 Unicode 归一化需自行引入 `golang.org/x/text/unicode/norm`。
+- `ToTitle` 实际调用 `strings.ToTitle`（全部转大写，并非按词首字母大写）；按词首字母大写应用 `ToTitleCase` / `Capitalize`。
+- `Rand*` 使用全局 `math/rand`，非密码学安全；安全场景必须用 `SecureRand*`。
+- `Shorten` / `ShortenShow` 按字节截断（适合 ASCII），多字节字符可能被截断；`Substring` / `SplitLen` / `Mask` 等按 rune 处理。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/stringx"
+)
+
+func main() {
+	// 命名风格转换
+	fmt.Println(stringx.ToSnake("HelloWorld"))   // hello_world
+	fmt.Println(stringx.ToCamel("hello_world"))  // HelloWorld
+	fmt.Println(stringx.ToSmallCamel("hello_world")) // helloWorld
+	fmt.Println(stringx.ToKebab("HelloWorld"))   // hello-world
+
+	// 随机字符串（快速，非安全）
+	fmt.Println(stringx.RandLetterNumbers(8))
+
+	// 安全随机（crypto/rand）
+	token, _ := stringx.SecureRandHex(32)
+	fmt.Println(token)
+
+	// 字符集判定
+	fmt.Println(stringx.AllDigit("12345")) // true
+	fmt.Println(stringx.HasUpper("abcD"))  // true
+
+	// 脱敏
+	fmt.Println(stringx.MaskPhone("13812345678")) // 138****5678
+	fmt.Println(stringx.MaskEmail("user@example.com")) // u***@example.com
+
+	// 相似度
+	fmt.Println(stringx.EditDistance("kitten", "sitting")) // 3
+	fmt.Printf("%.2f\n", stringx.Similarity("hello", "hallo")) // 0.80
+}
+```
+
+## 主要 API
+
+### 类型转换（零拷贝）
+
+```go
+func ToString(b []byte) string
+func ToBytes(s string) []byte
+```
+
+### 命名风格转换
+
+```go
+func Camel2Snake(s string) string        // 驼峰 -> 蛇形
+func Snake2Camel(s string) string        // 蛇形 -> 大驼峰
+func Snake2SmallCamel(s string) string   // 蛇形 -> 小驼峰
+func ToSnake(s string) string            // 任意 -> 蛇形
+func ToKebab(s string) string            // 任意 -> kebab (连字符)
+func ToCamel(s string) string            // 任意 -> 大驼峰
+func ToSmallCamel(s string) string       // 任意 -> 小驼峰
+func ToSlash(s string) string            // 任意 -> 斜杠分隔
+func ToDot(s string) string              // 任意 -> 点分隔
+```
+
+### 截断 / 分割 / 反转 / 引号
+
+```go
+func SplitLen(s string, max int) []string  // 按 rune 长度分段
+func Shorten(s string, max int) string     // 截断到 max 字节
+func ShortenShow(s string, max int) string // 截断并加 "..."
+func Reverse(s string) string              // 反转（ASCII 快速路径）
+func Quote(s string) string                // strconv.Quote
+func QuotePure(s string) string            // Quote 后去掉首尾引号
+```
+
+### 大小写 / 标题 / 判定（泛型）
+
+```go
+func IsUpper[M string | []rune](r M) bool
+func IsDigit[M string | []rune](r M) bool
+```
+
+### Unicode 字符集判定（All* 全部满足 / Has* 至少一个）
+
+```go
+func AllDigit(s string) bool;          func HasDigit(s string) bool
+func AllLetter(s string) bool;         func HasLetter(s string) bool
+func AllSpace(s string) bool;          func HasSpace(s string) bool
+func AllSymbol(s string) bool;         func HasSymbol(s string) bool
+func AllMark(s string) bool;           func HasMark(s string) bool
+func AllPunct(s string) bool;          func HasPunct(s string) bool
+func AllGraphic(s string) bool;        func HasGraphic(s string) bool
+func AllPrint(s string) bool;          func HasPrint(s string) bool
+func AllControl(s string) bool;        func HasControl(s string) bool
+func AllUpper(s string) bool;          func HasUpper(s string) bool
+func AllLower(s string) bool;          func HasLower(s string) bool
+func AllTitle(s string) bool;          func HasTitle(s string) bool
+func AllLetterOrDigit(s string) bool;  func HasLetterOrDigit(s string) bool
+```
+
+注：`AllDigit("")` / `AllLetterOrDigit("")` / `AllSpace("")` 返回 `true`（空串视为全满足）。
+
+### 随机字符串（math/rand，非安全）
+
+```go
+func RandLetters(n int) string
+func RandLowerLetters(n int) string
+func RandUpperLetters(n int) string
+func RandNumbers(n int) string
+func RandLetterNumbers(n int) string
+func RandLowerLetterNumbers(n int) string
+func RandUpperLetterNumbers(n int) string
+func RandStringWithSeed(n int, seed []rune) string  // 自定义字符集
+```
+
+### 安全随机字符串（crypto/rand）
+
+```go
+func SecureRandBytes(n int) ([]byte, error)
+func SecureRandString(n int) (string, error)   // base64url，截断到 n 字符
+func SecureRandHex(n int) (string, error)       // hex，截断到 n 字符
+func SecureRandLetters(n int) (string, error)
+func SecureRandLowerLetters(n int) (string, error)
+func SecureRandUpperLetters(n int) (string, error)
+func SecureRandNumbers(n int) (string, error)
+func SecureRandLetterNumbers(n int) (string, error)
+func SecureRandLowerLetterNumbers(n int) (string, error)
+func SecureRandUpperLetterNumbers(n int) (string, error)
+```
+
+注：安全随机使用拒绝采样保证字符集均匀分布；批量读取随机字节以减少系统调用。
+
+### 文本处理 / 脱敏 / 度量
+
+```go
+func TrimSpaceAll(s string) string             // 移除所有空白（含内部）
+func ToTitle(s string) string                  // = strings.ToTitle（全大写）
+func Normalize(s string, form int) string      // 占位实现，原样返回
+func Mask(s string, visible int) string        // 首尾各保留 visible 个字符
+func MaskEmail(email string) string
+func MaskPhone(phone string) string
+func EditDistance(a, b string) int             // Levenshtein 距离
+func Similarity(a, b string) float64           // 0-1，基于编辑距离
+func Slugify(s string) string                  // URL 友好 slug
+func RemoveHyphens(s string) string            // 移除所有连字符
+func NormalizeHyphens(s string) string         // 各类连字符统一为标准 '-'
+func CountWords(s string) int                  // strings.Fields 计数
+func CountLines(s string) int                  // 按 '\n' 计数
+func CountRunes(s string) int
+func Substring(s string, start, end int) string // 支持负数索引，按 rune
+func RemoveDuplicates(s string) string         // 去除连续重复字符
+func ReverseWords(s string) string             // 反转单词顺序
+func Capitalize(s string) string               // 首字母大写其余小写
+```
+
+### strings 快捷包装
+
+```go
+func ToLower(s string) string
+func ToUpper(s string) string
+func ToTitleCase(s string) string  // = strings.Title（按词首字母大写）
+func Contains(s, substr string) bool
+func HasPrefix(s, prefix string) bool
+func HasSuffix(s, suffix string) bool
+func TrimPrefix(s, prefix string) string
+func TrimSuffix(s, suffix string) string
+func Index(s, substr string) int
+func LastIndex(s, substr string) int
+```
+
+### 编解码
+
+```go
+func Base64Encode(s string) string
+func Base64Decode(s string) (string, error)
+func Base64URLEncode(s string) string          // RawURLEncoding，无填充
+func Base64URLDecode(s string) (string, error)
+func HexEncode(s string) string
+func HexDecode(s string) (string, error)
+```
+
+### UTF-16
+
+```go
+func Utf16Len[M string | []rune | []byte](str M) int  // UTF-16 编码单元数
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `string.go` | 类型转换、命名风格转换、截断/分割/反转、`IsUpper`/`IsDigit`、`Quote` |
+| `extension.go` | 文本处理与脱敏、编辑距离/相似度、slug、计数、编解码、strings 快捷包装 |
+| `rand.go` | `Rand*` 系列（`math/rand`，非安全随机） |
+| `secure_rand.go` | `SecureRand*` 系列（`crypto/rand`，安全随机，拒绝采样） |
+| `unicode.go` | `All*` / `Has*` Unicode 字符集判定谓词 |
+| `utf16.go` | `Utf16Len` UTF-16 编码单元计数 |

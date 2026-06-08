@@ -1,0 +1,119 @@
+# lruk
+
+LRU-K 缓存：要求 key 累计被访问满 K 次后才晋升进主缓存，过滤偶发的一次性扫描。导入路径 `github.com/lazygophers/utils/cache/lruk`。
+
+## 功能
+
+- **K 次访问门槛**：新 key 先进 history（历史）队列，访问次数累计到 K 次才晋升（promote）到主缓存（cache）。`Put` 算第 1 次访问，`Get` 每次 +1。
+- **抗扫描污染**：只访问一两次的冷 key 永远停留在 history，不会挤占主缓存，解决经典 LRU 被一次性扫描刷爆的问题。K=1 时退化为普通 LRU。
+- **主缓存内 LRU 淘汰**：晋升后的条目按 LRU 维护；主缓存满时淘汰最久未用条目。
+- **泛型**：`Cache[K comparable, V any]`，key 可比较，value 任意。
+- **并发安全**：内部 `sync.RWMutex`，读路径（`Contains`/`Peek`/`Len`/`Keys`/`Values`/`Items`/`Stats`）走读锁。
+- **淘汰回调**：可选 `onEvict func(K, V)`，仅对已晋升（inCache）条目触发——history 中淘汰/删除不回调。
+- **环形缓冲访问时间**：每条目用长度为 K 的环形缓冲记录最近访问时间戳，避免切片扩容。
+
+约束：`capacity` 与 `k` 必须为正，否则 `New`/`NewWithEvict`/`Resize` 返回 error。`Get`/`Contains`/`Peek`/`Keys`/`Values`/`Items`/`Len` 只反映主缓存，history 中条目对外不可见（`Get` 命中 history 仍返回 ok=false）。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache/lruk"
+)
+
+func main() {
+	// 容量 100，K=2：需要访问 2 次才晋升进主缓存
+	c, err := lruk.New[string, int](100, 2)
+	if err != nil {
+		panic(err)
+	}
+
+	c.Put("a", 1)            // 第 1 次访问 → 进 history
+	if _, ok := c.Get("a"); ok {
+		// 第 2 次访问 → 晋升进主缓存，ok=true
+		fmt.Println("promoted")
+	}
+
+	v, ok := c.Peek("a")     // 只读，不改变 LRU 顺序
+	fmt.Println(v, ok)       // 1 true
+
+	st := c.Stats()
+	fmt.Println(st.Size, st.HistorySize, st.TotalEntries)
+}
+```
+
+带淘汰回调：
+
+```go
+c, _ := lruk.NewWithEvict[string, int](2, 2, func(k string, v int) {
+	fmt.Printf("evicted %s=%d\n", k, v)
+})
+```
+
+## 核心类型 / 主要 API
+
+```go
+// 构造
+func New[K comparable, V any](capacity, k int) (*Cache[K, V], error)
+func NewWithEvict[K comparable, V any](capacity, k int, onEvict func(K, V)) (*Cache[K, V], error)
+
+// 读写
+func (c *Cache[K, V]) Put(key K, value V) (evicted bool)   // 写入/更新，累计 1 次访问
+func (c *Cache[K, V]) Get(key K) (value V, ok bool)        // 读取，累计 1 次访问；命中 history 返回 ok=false
+func (c *Cache[K, V]) Remove(key K) (value V, ok bool)     // 删除（history 或 cache 均可）
+func (c *Cache[K, V]) Peek(key K) (value V, ok bool)       // 只读主缓存，不改变顺序、不计访问
+func (c *Cache[K, V]) Contains(key K) bool                 // 是否在主缓存（已晋升）
+
+// 视图（仅主缓存，MRU→LRU 顺序）
+func (c *Cache[K, V]) Keys() []K
+func (c *Cache[K, V]) Values() []V
+func (c *Cache[K, V]) Items() map[K]V
+func (c *Cache[K, V]) Len() int                            // 主缓存条目数
+func (c *Cache[K, V]) Cap() int                            // 当前容量
+func (c *Cache[K, V]) GetK() int                           // K 值
+
+// 管理
+func (c *Cache[K, V]) Clear()                              // 清空；对晋升条目触发 onEvict
+func (c *Cache[K, V]) Resize(capacity int) error           // 调整容量，缩容时淘汰超额条目
+func (c *Cache[K, V]) Stats() Stats                        // 统计快照
+
+// 统计结构
+type Stats struct {
+	Size         int // 主缓存条目数
+	Capacity     int // 最大容量
+	K            int // K 值
+	HistorySize  int // history 中（未晋升）条目数
+	TotalEntries int // 总条目数 = 主缓存 + history
+}
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `lruk.go` | `Cache[K,V]` 与 `Stats` 定义、全部公共 API、内部晋升/淘汰/环形缓冲逻辑 |
+| `lruk_test.go` | 单元测试 + 并发测试 + `BenchmarkPut`/`BenchmarkGet`/`BenchmarkMixed` 基准 |
+
+## K 值语义
+
+| K 值 | 行为 |
+| --- | --- |
+| K=1 | 退化为普通 LRU，`Put` 后即晋升进主缓存 |
+| K=2 | 需 1 次写 + 1 次读（或 2 次访问）才晋升，过滤一次性 key |
+| K≥3 | 晋升门槛更高，抗扫描能力更强，但热 key 上手更慢 |
+
+## 双队列模型
+
+```
+Put/Get 新 key
+   │
+   ▼
+[history 队列] ──访问次数累计到 K──▶ [主缓存 cache 队列(LRU)]
+   │                                      │
+   │                                      ▼
+未达 K 不可见(Get→ok=false)        满时淘汰最久未用 → onEvict(已晋升才回调)
+```

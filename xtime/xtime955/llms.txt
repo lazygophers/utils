@@ -1,0 +1,103 @@
+# xtime955
+
+基于标准库 `time` 的「955 作息」时间常量集合（朝九晚五、每周五天）。导入路径 `github.com/lazygophers/utils/xtime/xtime955`。
+
+## 功能
+
+本包只提供一组 `time.Duration` 常量，描述「955」工作制下的时间周期划分：
+
+- 复用标准库基础时间单位（Nanosecond ~ Minute），保证与 `time` 包数值一致，可直接互换。
+- 在「955」模型下定义工作/休息时长：每日工作 8 小时、每周工作 5 天（40 小时/周）、每月 22 个工作日、每年 250 个工作日。
+- 每个周期均拆为 `Work*`（工作时长）与 `Rest*`（休息时长）一对常量，满足 `Work* + Rest* == 周期总量`。
+
+适用场景：
+
+- 工时/排班/考勤计算中需要统一的「标准工作日/周/月/年」基准。
+- 作为可读性更好的 magic number 替代，避免在业务代码里散落 `time.Hour * 8` 等字面量。
+- 与同级 `xtime996` / `xtime007` 等包对照，表达不同工作制的时间口径。
+
+约束：
+
+- 全部为编译期常量，类型均为 `time.Duration`，无函数、无运行时状态。
+- 周期采用固定近似口径（月 = 30 天、季度 = 91 天、年 = 365 天），不做日历对齐，不感知闰年/节假日。
+- 注意 `WorkMonth` / `WorkQuarter` 按「整自然日 × 工作日数」计（22 天 × 24h），而 `WorkDay` / `WorkWeek` / `WorkYear` 按「工作小时」计（8h/日）；两类口径不同，使用时需区分。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/xtime/xtime955"
+)
+
+func main() {
+	// 每周工作小时数
+	fmt.Println(xtime955.WorkWeek / xtime955.Hour) // 40
+
+	// 每年工作天数
+	fmt.Println(xtime955.WorkYear / xtime955.WorkDay) // 250
+
+	// 每日工作占比
+	ratio := float64(xtime955.WorkDay) / float64(xtime955.Day)
+	fmt.Printf("%.0f%%\n", ratio*100) // 33%
+
+	// 工作 + 休息 == 周期总量
+	fmt.Println(xtime955.WorkDay+xtime955.RestDay == xtime955.Day) // true
+}
+```
+
+## 核心常量
+
+所有常量类型均为 `time.Duration`。
+
+### 基础时间单位（与标准库一致）
+
+| 常量 | 值 |
+| --- | --- |
+| `Nanosecond` | `time.Nanosecond` |
+| `Microsecond` | `time.Microsecond` |
+| `Millisecond` | `time.Millisecond` |
+| `Second` | `time.Second` |
+| `Minute` | `time.Minute` |
+
+### 工作时间周期
+
+| 常量 | 定义 | 等价值 |
+| --- | --- | --- |
+| `HalfHour` | `time.Minute * 30` | 30 分钟 |
+| `Hour` | `time.Hour` | 1 小时 |
+| `Day` | `time.Hour * 24` | 24 小时 |
+| `WorkDay` | `time.Hour * 8` | 8 小时（工作） |
+| `RestDay` | `Day - WorkDay` | 16 小时（休息） |
+| `Week` | `Day * 7` | 7 天 |
+| `WorkWeek` | `WorkDay * 5` | 40 小时（5 工作日） |
+| `RestWeek` | `Week - WorkWeek` | Week − 40h |
+
+### 月 / 季度周期
+
+| 常量 | 定义 | 说明 |
+| --- | --- | --- |
+| `Month` | `Day * 30` | 30 天 |
+| `WorkMonth` | `Day * 22` | 22 个自然日（整日口径） |
+| `RestMonth` | `Month - WorkMonth` | 8 天 |
+| `Quarter` | `Day * 91` | 91 天 |
+| `WorkQuarter` | `WorkMonth * 3` | 22 天 × 3 |
+| `RestQuarter` | `Quarter - WorkQuarter` | Quarter − WorkQuarter |
+
+### 年度周期
+
+| 常量 | 定义 | 说明 |
+| --- | --- | --- |
+| `Year` | `Day * 365` | 365 天 |
+| `WorkYear` | `WorkDay * 250` | 250 工作日 × 8h（工作小时口径） |
+| `RestYear` | `Year - WorkYear` | Year − WorkYear |
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `xtime.go` | 定义全部「955」作息 `time.Duration` 常量 |
+| `xtime_test.go` | 常量值、关系、口径与使用场景的单元测试 + 基准测试 |

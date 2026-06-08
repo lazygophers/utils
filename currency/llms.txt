@@ -1,0 +1,123 @@
+# currency
+
+ISO 4217 货币数据库：每种货币提供强类型常量 + 多语言名称 + 符号/小数位/面额/储备货币标记，支持按字母码或数字码查表。
+
+导入路径：`github.com/lazygophers/utils/currency`
+
+## 功能
+
+- 覆盖 154 种 ISO 4217 货币，1 币 1 数据文件（`<code>.go`），每币再按语言拆分本地化名称文件（`<code>_<lang>.go`）。
+- 双形态访问：
+  - **常量形态**：直接引用包级变量 `currency.CNY`、`currency.USD`、`currency.EUR` 等（`*Currency`）。
+  - **查表形态**：`Get("cny")`（字母码，大小写不敏感）/ `GetByNumeric(156)`（数字码）。
+- 每币携带：ISO 字母码、符号、ISO 数字码、最小单位小数位（`Decimals`，如 JPY=0、CNY=2、BHD/KWD=3）、实际流通的纸币 / 硬币面额、IMF 储备货币标记。
+- 多语言名称：内置 en / zh 始终注册；ar / es / fr / ja / ko / ru / zh_hant 由 build tag（`lang_xx` 或 `lang_all`）控制。运行时按当前 goroutine 语言解析，逐级回退。
+- 公共 API 的语言参数统一用标准库 `golang.org/x/text/language.Tag`；goroutine-local 语言来自 `github.com/lazygophers/utils/language`。
+
+### 约束
+
+- `Get` 仅接受长度为 3 的字母码，否则返回 nil。`GetByNumeric` 未命中返回 nil。
+- 默认 build 仅注册 11 种常驻货币（**CNY EUR GBP HKD INR JPY KRW RUB SGD TWD USD**）；其余货币的数据文件带 `//go:build country_xx || country_all || country_<region> || currency_<code> || currency_all` tag，未启用对应 tag 时 `Get`/常量不可用。
+- `Currency` 字段全部不可导出，仅通过只读访问器读取；`With*` 链式 setter 仅供数据文件构造期使用。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	xlanguage "golang.org/x/text/language"
+	"github.com/lazygophers/utils/currency"
+	"github.com/lazygophers/utils/language"
+)
+
+func main() {
+	// 常量形态
+	fmt.Println(currency.CNY.Code(), currency.CNY.Symbol()) // CNY ¥
+	fmt.Println(currency.CNY.Decimals())                    // 2
+	fmt.Println(currency.CNY.Banknotes())                   // [1 5 10 20 50 100]
+	fmt.Println(currency.CNY.Reserve())                     // true
+
+	// 查表形态（大小写不敏感）
+	usd := currency.Get("usd")
+	jpy := currency.GetByNumeric(392)
+	fmt.Println(usd.Symbol(), jpy.Code()) // $ JPY
+
+	// 指定语言取名
+	fmt.Println(currency.CNY.NameIn(xlanguage.English)) // Yuan Renminbi
+
+	// goroutine-local 语言影响 Name()
+	language.SetDefault(language.Chinese)
+	fmt.Println(currency.CNY.Name())
+
+	// 遍历全部已注册货币
+	for _, c := range currency.List() {
+		_ = c
+	}
+}
+```
+
+## 核心类型
+
+`Currency` 是不可变的 ISO 4217 货币定义（字段不可导出，仅读访问器 + 构造期链式 setter）。
+
+只读访问器：
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `Code` | `func (c *Currency) Code() string` | ISO 4217 字母码，如 `"CNY"` |
+| `Symbol` | `func (c *Currency) Symbol() string` | 货币符号，如 `"¥"` |
+| `Numeric` | `func (c *Currency) Numeric() int` | ISO 4217 数字码，如 `156` |
+| `Decimals` | `func (c *Currency) Decimals() int` | 最小单位小数位 |
+| `Banknotes` | `func (c *Currency) Banknotes() []float64` | 流通纸币面额（返回副本） |
+| `Coins` | `func (c *Currency) Coins() []float64` | 流通硬币面额（返回副本） |
+| `Reserve` | `func (c *Currency) Reserve() bool` | 是否 IMF 储备货币 |
+| `Name` | `func (c *Currency) Name() string` | 当前 goroutine 语言下的名称 |
+| `NameIn` | `func (c *Currency) NameIn(tag xlanguage.Tag) string` | 指定语言名称，逐级回退 |
+| `String` | `func (c *Currency) String() string` | 返回字母码（实现 `fmt.Stringer`） |
+
+构造期链式 setter（供 `<code>.go` 数据文件使用，返回 `*Currency`）：
+
+| 方法 | 签名 |
+| --- | --- |
+| `WithDecimals` | `func (c *Currency) WithDecimals(d int) *Currency` |
+| `WithBanknotes` | `func (c *Currency) WithBanknotes(values ...float64) *Currency` |
+| `WithCoins` | `func (c *Currency) WithCoins(values ...float64) *Currency` |
+| `WithReserve` | `func (c *Currency) WithReserve() *Currency` |
+| `RegisterName` | `func (c *Currency) RegisterName(tag xlanguage.Tag, name string)` |
+
+## 主要 API（包级函数）
+
+| 函数 | 签名 | 说明 |
+| --- | --- | --- |
+| `New` | `func New(code, symbol string, numeric int) *Currency` | 构造并注册货币（供数据文件用） |
+| `Get` | `func Get(code string) *Currency` | 按字母码查表，大小写不敏感；非 3 字符或未命中返回 nil |
+| `GetByNumeric` | `func GetByNumeric(n int) *Currency` | 按数字码查表，未命中返回 nil |
+| `List` | `func List() []*Currency` | 返回全部已注册货币的副本切片 |
+
+### 名称回退顺序
+
+`NameIn(tag)` 的查找链：精确 tag → tag 的 base 语言 → `language.Default()` → 英文 → ISO 字母码（保底）。`Name()` 等价于 `NameIn(currentTag())`，其中 `currentTag` 优先取 goroutine-local 覆盖，否则取全局默认。
+
+## 文件结构
+
+> 大规模 per-entity 数据目录，154 币 × 多语言共约 1500+ 文件；下表只描述模式，不逐一列举实体文件。
+
+| 文件 / 模式 | 职责 |
+| --- | --- |
+| `currency.go` | 核心：`Currency` 类型、访问器、`With*` setter、注册表（`byCode`/`byNumeric`/`all`）、`New`/`Get`/`GetByNumeric`/`List`、语言解析 |
+| `<code>.go` | 单个货币数据文件，定义包级常量（如 `cny.go` → `var CNY`），用 `New(...).With*(...)` 链式构造 |
+| `<code>_<lang>.go` | 单个货币 × 单语言的本地化名称，`init()` 中调用 `RegisterName` |
+| `currency_test.go` | 单元测试 |
+| `benchmark_test.go` | 性能基准 |
+
+### build tag 约定
+
+| 范畴 | 文件 | tag |
+| --- | --- | --- |
+| 常驻货币数据（11 种） | `cny/eur/gbp/hkd/inr/jpy/krw/rub/sgd/twd/usd.go` | 无 tag，始终编译 |
+| 其余货币数据 | `<code>.go` | `//go:build country_xx \|\| country_all \|\| country_<region> \|\| currency_<code> \|\| currency_all` |
+| 默认语言名称（en/zh） | `<code>_en.go` / `<code>_zh.go` | 无 tag，始终编译 |
+| 扩展语言名称 | `<code>_{ar,es,fr,ja,ko,ru,zh_hant}.go` | `//go:build lang_xx \|\| lang_all` |

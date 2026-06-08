@@ -1,0 +1,180 @@
+# app
+
+应用程序元信息与语义化版本（SemVer）工具：管理发布环境（Debug/Test/Alpha/Beta/Release）、构建期注入的版本/提交/构建元数据，并提供 SemVer 解析与比较。
+导入路径：`github.com/lazygophers/utils/app`
+
+## 功能
+
+- **发布环境模型**：`ReleaseType` 枚举五档环境（Debug < Test < Alpha < Beta < Release），全局变量 `Env` 在 build tag 控制下确定当前环境，并可被环境变量 `APP_ENV` 覆盖。
+- **环境判定**：提供 `ReleaseType` 上的方法（`IsDebug` 等）与包级全局便捷函数（`IsDev`/`IsProd` 等），直接基于全局 `Env` 判断当前环境。
+- **构建期元信息**：一组包级变量（`Version`/`Commit`/`Branch`/`BuildDate`/`GoVersion` 等）供构建时通过 `-ldflags -X` 注入；运行时只读消费。
+- **SemVer 解析与比较**：`SemVer` 类型 + `Parse`/`MustParse`，支持 `v` 前缀、四段版本、预发布标识与构建元数据；提供完整的比较族方法（`Compare`/`Equals`/`LessThan`/`GreaterThanOrEqual` 等）。
+- **全局版本缓存**：`init` 时解析全局 `Version`；`GetVersion`/`SetVersion`/`MustSetVersion` 读写已缓存的版本对象，解析失败时回退默认 `0.0.1`。
+
+约束：
+- `Env` 由 build tag 决定（`debug`/`test`/`alpha`/`beta`/`release`，互斥；均未指定时默认 `Debug`），同一二进制内仅生效一份定义。
+- `APP_ENV` 环境变量在包 `init` 时覆盖 `Env`（`dev`/`development`→Debug，`test`/`canary`→Test，`prod`/`release`/`production`→Release，`alpha`→Alpha，`beta`→Beta）。
+- `Parse` 要求至少三段数字（`major.minor.patch`），任一段为负或非数字均报错。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/app"
+)
+
+func main() {
+	// 当前发布环境（受 build tag / APP_ENV 影响）
+	fmt.Println(app.Env.String(), app.IsProd())
+
+	// 设置并读取版本
+	app.MustSetVersion("v1.2.3-beta.1+build.42")
+	v := app.GetVersion()
+	fmt.Println(v.String())       // 1.2.3-beta.1+build.42
+	fmt.Println(v.Short())        // 1.2.3
+	fmt.Println(v.IsPrerelease()) // true
+
+	// 解析与比较
+	a := app.MustParse("1.2.0")
+	b := app.MustParse("1.10.0")
+	fmt.Println(a.LessThan(b)) // true
+}
+```
+
+## 核心类型 / 主要 API
+
+### 发布环境
+
+```go
+type ReleaseType uint8
+
+const (
+	Debug ReleaseType = iota
+	Test
+	Alpha
+	Beta
+	Release
+)
+
+func (p ReleaseType) String() string
+
+func (p ReleaseType) IsDebug() bool
+func (p ReleaseType) IsTest() bool
+func (p ReleaseType) IsAlpha() bool
+func (p ReleaseType) IsBeta() bool
+func (p ReleaseType) IsRelease() bool
+
+// 包级全局便捷函数（基于全局 Env 判断）
+func IsDev() bool     // Env == Debug
+func IsDebug() bool   // Env == Debug
+func IsTest() bool    // Env == Test
+func IsAlpha() bool   // Env == Alpha
+func IsBeta() bool    // Env == Beta
+func IsProd() bool    // Env == Release
+func IsRelease() bool // Env == Release
+```
+
+### SemVer
+
+```go
+type SemVer struct {
+	Major      int    // 主版本号
+	Minor      int    // 次版本号
+	Patch      int    // 修订号
+	Build      int    // 构建号（可选第 4 段）
+	Prerelease string // 预发布标识（如 alpha, beta, rc）
+	Metadata   string // 构建元数据（+ 之后内容）
+}
+
+func Parse(version string) (*SemVer, error)
+func MustParse(version string) *SemVer
+
+func (v *SemVer) String() string // 完整版本串
+func (v *SemVer) Short() string  // 不含预发布/元数据
+
+func (v *SemVer) Compare(other *SemVer) int // -1 / 0 / 1
+func (v *SemVer) Equals(other *SemVer) bool
+func (v *SemVer) LessThan(other *SemVer) bool
+func (v *SemVer) GreaterThan(other *SemVer) bool
+func (v *SemVer) LessThanOrEqual(other *SemVer) bool
+func (v *SemVer) GreaterThanOrEqual(other *SemVer) bool
+
+func (v *SemVer) IsPrerelease() bool
+func (v *SemVer) IsStable() bool
+func (v *SemVer) HasMetadata() bool
+```
+
+### 全局版本与元信息
+
+```go
+func GetVersion() *SemVer        // 返回缓存版本，未设置则回退 {0,0,1}
+func SetVersion(version string) error
+func MustSetVersion(version string)
+
+// 包级变量（构建期可通过 -ldflags -X 注入）
+var Organization = "lazygophers"
+var Name string
+var Version string
+var Env ReleaseType // 由 build tag 决定，APP_ENV 可覆盖
+
+var (
+	Commit, ShortCommit, Branch, Tag string
+	BuildDate                        string
+	GoVersion                        string
+	GoOS, Goarch, Goarm, Goamd64, Gomips string
+	Description                      string
+)
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `info.go` | `Organization`/`Name`/`Version` 变量；`ReleaseType` 枚举与 `String`/`IsXxx` 方法；包级 `IsDev`/`IsProd` 等全局判定函数 |
+| `version.go` | `SemVer` 类型、`Parse`/`MustParse`、`String`/`Short`/比较族方法、版本缓存与 `GetVersion`/`SetVersion`/`MustSetVersion` |
+| `env.go` | 构建期元信息变量（Commit/Branch/BuildDate/Go* 等）；`setEnvFromEnv` 在 `init` 中按 `APP_ENV` 覆盖 `Env` |
+| `default.go` | build tag `!debug && !alpha && !beta && !release && !test` 时定义 `var Env = Debug`（默认） |
+| `debug.go` | build tag `debug` 时定义 `var Env = Debug` |
+| `test.go` | build tag `test` 时定义 `var Env = Test` |
+| `alpha.go` | build tag `alpha` 时定义 `var Env = Alpha` |
+| `beta.go` | build tag `beta` 时定义 `var Env = Beta` |
+| `release.go` | build tag `release` 时定义 `var Env = Release` |
+| `info_test.go` | `ReleaseType`/全局判定函数测试 |
+| `version_test.go` | `SemVer` 解析与比较测试 |
+
+## 发布环境与 build tag 对照
+
+| build tag | Env 取值 | 说明 |
+| --- | --- | --- |
+| （无，默认） | `Debug` | `default.go`，未指定任何 tag |
+| `debug` | `Debug` | `debug.go` |
+| `test` | `Test` | `test.go` |
+| `alpha` | `Alpha` | `alpha.go` |
+| `beta` | `Beta` | `beta.go` |
+| `release` | `Release` | `release.go` |
+
+## APP_ENV 覆盖映射
+
+| APP_ENV（小写） | Env |
+| --- | --- |
+| `dev` / `development` | `Debug` |
+| `test` / `canary` | `Test` |
+| `prod` / `release` / `production` | `Release` |
+| `alpha` | `Alpha` |
+| `beta` | `Beta` |
+
+## 支持的版本格式
+
+| 示例 | 含义 |
+| --- | --- |
+| `1.2.3` | 标准语义化版本 |
+| `1.2.3.4` | 四段版本（第 4 段为 `Build`） |
+| `v1.2.3` / `V1.2.3` | 带 `v`/`V` 前缀（自动剥离） |
+| `1.2.3-alpha` | 预发布版本 |
+| `1.2.3-beta.1` | 带编号预发布 |
+| `1.2.3+meta` | 带构建元数据 |
+| `1.2.3-alpha+meta` | 预发布 + 元数据 |

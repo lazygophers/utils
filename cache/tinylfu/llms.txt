@@ -1,0 +1,131 @@
+# tinylfu
+
+泛型 TinyLFU 缓存：W-TinyLFU 分段（Window / Probation / Protected）+ Count-Min Sketch 频率估计 + Doorkeeper 准入策略。导入路径 `github.com/lazygophers/utils/cache/tinylfu`。
+
+## 功能
+
+TinyLFU 是一种结合「频率」与「时新性」的缓存淘汰算法，适合命中分布长尾、需要抵御一次性扫描（scan resistance）的场景：
+
+- 三段 LRU 结构：新条目先进 Window（约 1% 容量），从 Window 淘汰时由准入策略决定是否进入 Main（Probation + Protected，约 99%）。
+- Count-Min Sketch 用 4 个 hash 函数 + 每槽 4-bit 计数（上限 15）估计访问频率，空间开销小。
+- Doorkeeper 充当 Bloom filter 替身：键首次出现只记入 doorkeeper、不准入，过滤一次性键。
+- 频率老化：累计准入达 `capacity*10` 次时 sketch 计数减半、清空 doorkeeper，避免历史热点长期霸榜。
+- Probation 命中即晋升 Protected；Protected 满（约 main 的 80%）则 LRU 降级回 Probation。
+- 泛型 `Cache[K comparable, V any]`，键序列化对 string / int / int64 有专门路径，其余类型走 FNV 哈希兜底。
+- 读写均加锁（`sync.RWMutex`），并发安全；`Get`/`Put`/`Remove` 用写锁，`Peek`/`Contains`/`Len`/`Stats` 等只读用读锁。
+
+约束：`capacity` 必须为正，否则 `New`/`Resize` 返回 error。`Get` 会更新频率与 LRU 位置；不想改变状态用 `Peek`。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache/tinylfu"
+)
+
+func main() {
+	c, err := tinylfu.New[string, int](100)
+	if err != nil {
+		panic(err)
+	}
+
+	evicted := c.Put("a", 1)
+	c.Put("b", 2)
+	_ = evicted
+
+	if v, ok := c.Get("a"); ok {
+		fmt.Println("a =", v)
+	}
+
+	// 不更新位置/频率地查看
+	if v, ok := c.Peek("b"); ok {
+		fmt.Println("peek b =", v)
+	}
+
+	fmt.Println("len:", c.Len(), "cap:", c.Cap())
+
+	// 带淘汰回调
+	ce, _ := tinylfu.NewWithEvict[string, int](10, func(k string, v int) {
+		fmt.Printf("evicted %s=%d\n", k, v)
+	})
+	ce.Put("x", 42)
+
+	st := c.Stats()
+	fmt.Printf("size=%d window=%d probation=%d protected=%d\n",
+		st.Size, st.WindowSize, st.ProbationSize, st.ProtectedSize)
+}
+```
+
+## 核心类型 / 主要 API
+
+### Cache
+
+```go
+type Cache[K comparable, V any] struct { /* 内部字段不导出 */ }
+
+func New[K comparable, V any](capacity int) (*Cache[K, V], error)
+func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error)
+
+func (c *Cache[K, V]) Get(key K) (value V, ok bool)        // 命中并更新频率/LRU 位置
+func (c *Cache[K, V]) Put(key K, value V) (evicted bool)   // 插入/更新，返回是否触发淘汰
+func (c *Cache[K, V]) Remove(key K) (value V, ok bool)     // 删除并返回旧值
+func (c *Cache[K, V]) Contains(key K) bool                 // 不更新位置
+func (c *Cache[K, V]) Peek(key K) (value V, ok bool)       // 不更新位置/频率
+func (c *Cache[K, V]) Len() int                            // 当前条目数（三段之和）
+func (c *Cache[K, V]) Cap() int                            // 容量
+func (c *Cache[K, V]) Clear()                              // 清空（对每项触发 onEvict）
+func (c *Cache[K, V]) Keys() []K                           // protected→probation→window 顺序
+func (c *Cache[K, V]) Values() []V
+func (c *Cache[K, V]) Items() map[K]V
+func (c *Cache[K, V]) Resize(capacity int) error           // 改容量，超额则淘汰
+func (c *Cache[K, V]) Stats() Stats
+```
+
+### Stats
+
+```go
+type Stats struct {
+	Size           int // 实际缓存条目数
+	Capacity       int // 最大容量
+	WindowSize     int // 当前 window 段大小
+	ProbationSize  int // 当前 probation 段大小
+	ProtectedSize  int // 当前 protected 段大小
+	WindowCapacity int // window 段容量
+	MainCapacity   int // main（probation+protected）容量
+	SketchSize     int // 频率 sketch 累计计数
+	DoorkeeperSize int // doorkeeper 当前大小
+}
+```
+
+### CountMinSketch（频率估计，可单独使用）
+
+```go
+type CountMinSketch struct { /* 内部字段不导出 */ }
+
+func NewCountMinSketch(capacity int) *CountMinSketch  // width = max(64, capacity*10)
+func (cms *CountMinSketch) Add(key []byte)            // 计数 +1（每槽上限 15）
+func (cms *CountMinSketch) EstimateCount(key []byte) int // 取 4 个 hash 槽最小值
+func (cms *CountMinSketch) Reset()                    // 所有计数减半（老化）
+func (cms *CountMinSketch) Size() int                 // 累计 Add 次数
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `tinylfu.go` | 全部实现：`Cache` 三段结构、准入/晋升/降级/淘汰逻辑、`CountMinSketch`、`Stats` |
+| `tinylfu_test.go` | 单元测试与基准 |
+
+## 段结构与参数
+
+| 段 | 容量占比 | 作用 |
+| --- | --- | --- |
+| Window | `max(1, capacity*0.01)` | 新条目入口，LRU |
+| Probation | main 的约 20% | Window 准入后的试用区 / Protected 降级区 |
+| Protected | main 的约 80% | 命中过的热点条目 |
+
+> main = `capacity - windowSize`。准入策略 `shouldAdmitToMain`：键须先经 doorkeeper（首次只记录不准入），再以 Count-Min Sketch 频率与 probation 尾部 victim 频率比较，更高才准入。老化触发阈值为累计准入 `capacity*10` 次。

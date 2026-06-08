@@ -1,0 +1,70 @@
+# bufiox
+
+`bufio.SplitFunc` 扩展工具，提供按任意字节序列分割与兼容 CRLF/LF 的按行扫描。导入路径 `github.com/lazygophers/utils/bufiox`。
+
+## 功能
+
+标准库 `bufio.Scanner` 通过 `Scanner.Split(SplitFunc)` 自定义分割逻辑，但内置只提供 `ScanLines` / `ScanWords` / `ScanRunes` / `ScanBytes`。`bufiox` 补足两类常见需求：
+
+- **按任意分隔符切分**：`ScanBy(seq)` 工厂函数返回一个 `SplitFunc`，按给定字节序列（单字节或多字节，如 `,` / `||` / `\r\n\r\n`）切分流，token 不含分隔符本身。
+- **跨平台按行扫描**：`ScanLines` 与标准库 `bufio.ScanLines` 行为一致，按 `\n` 分行并自动剥除行尾 `\r`，统一处理 Windows(CRLF) 与 Unix(LF) 换行。
+
+适用场景：流式解析日志、CSV/分隔符文本、网络协议帧、混合换行风格的文本文件。
+
+约束与边界：
+- 二者均为 `bufio.SplitFunc`，需配合 `bufio.Scanner` 使用，无独立类型/状态。
+- `ScanBy` 仅匹配第一个出现的分隔符位置；多个分隔符按顺序逐次产出 token。
+- `ScanBy` 传入空分隔符 `[]byte{}` 时 `bytes.Index` 恒返回 0，产出空 token 且 `advance` 为 0，不会推进（退化行为，需调用方自行规避）。
+- `ScanLines` 只把 `\n` 视为换行，单独的 `\r` 不作为行分隔（与标准库一致）。
+- EOF 时若仍有剩余数据，作为最后一个未终止 token 返回。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"bufio"
+	"bytes"
+	"fmt"
+
+	"github.com/lazygophers/utils/bufiox"
+)
+
+func main() {
+	// 1. 按行扫描（兼容 CRLF / LF，自动剥除 \r）
+	s := bufio.NewScanner(bytes.NewBufferString("line1\nline2\r\nline3"))
+	s.Split(bufiox.ScanLines)
+	for s.Scan() {
+		fmt.Printf("%q\n", s.Text()) // "line1" "line2" "line3"
+	}
+
+	// 2. 按自定义分隔符扫描
+	c := bufio.NewScanner(bytes.NewBufferString("a||b||c"))
+	c.Split(bufiox.ScanBy([]byte("||")))
+	for c.Scan() {
+		fmt.Printf("%q\n", c.Text()) // "a" "b" "c"
+	}
+}
+```
+
+## 主要 API
+
+```go
+// ScanBy 返回一个按 seq 字节序列分割数据的 bufio.SplitFunc，
+// 产出的 token 不包含分隔符本身。
+func ScanBy(seq []byte) func(data []byte, atEOF bool) (advance int, token []byte, err error)
+
+// ScanLines 是按行分割的 bufio.SplitFunc，行为与标准库 bufio.ScanLines 一致，
+// 按 '\n' 分行并自动剥除行尾的 '\r'。
+func ScanLines(data []byte, atEOF bool) (advance int, token []byte, err error)
+```
+
+二者返回值均遵循 `bufio.SplitFunc` 契约：`advance` 为推进的字节数，`token` 为本次产出的 token（`nil` 表示需要更多数据），`err` 为分割错误。
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `scan.go` | `ScanBy`、`ScanLines` 两个导出 SplitFunc，及内部 `dropCR`（剥除行尾 `\r`） |
+| `scan_test.go` | 单元测试 + 与 `bufio.Scanner` 的集成测试 + 大数据 `dropCR` 测试 |

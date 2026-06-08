@@ -1,0 +1,157 @@
+# alfu
+
+Adaptive LFU（自适应最少使用频率）缓存，泛型 + 频率衰减 + 同频 LRU + 线程安全。
+导入路径：`github.com/lazygophers/utils/cache/alfu`
+
+## 功能
+
+`alfu` 实现一个**自适应 LFU 缓存**。在经典 LFU（淘汰访问频率最低的条目）基础上增加两个特性：
+
+- **频率衰减（decay）**：每隔 `decayInterval` 把所有条目的频率乘以 `decayFactor`（默认 0.9）向下取整，最低保留为 1。让历史热点随时间降温，避免「老热点永不淘汰」。读写时惰性触发（`checkAndDecay`），也可手动 `ForceDecay`。
+- **同频 LRU**：相同频率层级内部用 `container/list` 维护访问顺序，淘汰时在最低频率层级里取最久未访问者（链表尾部）。
+
+适用场景：
+
+- 访问分布随时间漂移、需要兼顾「冷热」与「新旧」的本地缓存
+- 想要 LFU 的命中率优势，又担心纯 LFU 的「频率僵化」问题
+- 需要泛型键值、并发安全、可选淘汰回调的中小规模进程内缓存
+
+约束：
+
+- `capacity` 必须 > 0，否则 `New` / `NewWithConfig` / `Resize` 返回错误。
+- `decayFactor` 必须落在 `(0, 1]`，否则 `NewWithConfig` 返回错误。
+- 全程 `sync.RWMutex` 保护；写操作（含 `Get`，因其更新频率）走写锁。
+- `Keys()` / `Values()` 按频率从高到低排序返回；`Peek` / `Contains` 不改频率。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/lazygophers/utils/cache/alfu"
+)
+
+func main() {
+	// 基础用法：容量 3
+	cache, err := alfu.New[string, int](3)
+	if err != nil {
+		panic(err)
+	}
+
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	cache.Get("a") // 提升 a 的频率
+
+	cache.Put("c", 3)
+	cache.Put("d", 4) // 容量已满，淘汰频率最低者（b）
+
+	if v, ok := cache.Get("a"); ok {
+		fmt.Println("a =", v)
+	}
+
+	// 自定义衰减：因子 0.8、间隔 10 分钟
+	tuned, _ := alfu.NewWithConfig[string, int](100, 0.8, 10*time.Minute)
+	tuned.Put("hot", 42)
+	tuned.ForceDecay() // 手动触发一次衰减
+
+	// 淘汰回调
+	evicted, _ := alfu.NewWithEvict[string, int](2, func(k string, v int) {
+		fmt.Printf("evicted %s=%d\n", k, v)
+	})
+	evicted.Put("x", 1)
+	evicted.Put("y", 2)
+	evicted.Put("z", 3) // 触发回调
+
+	fmt.Println(cache.Stats())
+}
+```
+
+## 核心类型
+
+```go
+// 自适应 LFU 缓存，K 为可比较键，V 为任意值
+type Cache[K comparable, V any] struct { /* 私有字段 */ }
+
+// 缓存统计快照
+type Stats struct {
+	Size                  int           // 当前条目数
+	Capacity              int           // 最大容量
+	MinFrequency          int           // 当前最小频率
+	MaxFrequency          int           // 当前最大频率
+	DecayFactor           float64       // 衰减因子
+	DecayInterval         time.Duration // 衰减间隔
+	LastDecay             time.Time     // 上次衰减时间
+	FrequencyDistribution map[int]int   // 频率 -> 该频率的条目数
+}
+```
+
+## 主要 API
+
+### 构造
+
+```go
+func New[K comparable, V any](capacity int) (*Cache[K, V], error)
+func NewWithConfig[K comparable, V any](capacity int, decayFactor float64, decayInterval time.Duration) (*Cache[K, V], error)
+func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error)
+```
+
+`New` 使用默认衰减因子 0.9、衰减间隔 5 分钟。
+
+### 读写
+
+```go
+func (c *Cache[K, V]) Get(key K) (value V, ok bool)        // 命中则提升频率
+func (c *Cache[K, V]) Put(key K, value V) (evicted bool)   // 新增/更新；满则淘汰，返回是否发生淘汰
+func (c *Cache[K, V]) Remove(key K) (value V, ok bool)
+func (c *Cache[K, V]) Peek(key K) (value V, ok bool)       // 不改频率
+func (c *Cache[K, V]) Contains(key K) bool                 // 不改频率
+```
+
+### 容量与集合
+
+```go
+func (c *Cache[K, V]) Len() int
+func (c *Cache[K, V]) Cap() int
+func (c *Cache[K, V]) Clear()                  // 清空，逐条触发 onEvict
+func (c *Cache[K, V]) Resize(capacity int) error
+func (c *Cache[K, V]) Keys() []K               // 按频率降序
+func (c *Cache[K, V]) Values() []V             // 按频率降序
+func (c *Cache[K, V]) Items() map[K]V
+```
+
+### 衰减与统计
+
+```go
+func (c *Cache[K, V]) ForceDecay()    // 立即执行一次衰减
+func (c *Cache[K, V]) Stats() Stats
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `alfu.go` | `Cache` / `Stats` 类型、构造函数、全部公共方法及私有的频率维护 / 衰减 / 淘汰逻辑 |
+| `alfu_test.go` | 单元测试（基础操作、频率淘汰、同频 LRU、衰减、并发、边界）+ `BenchmarkPut/Get/Mixed` 基准 |
+
+## 默认配置
+
+| 配置项 | 默认值（`New`） | 说明 |
+| --- | --- | --- |
+| `decayFactor` | `0.9` | 衰减时频率乘数，范围 `(0, 1]` |
+| `decayInterval` | `5 * time.Minute` | 两次衰减的最小间隔 |
+| `minFreq` / `maxFreq` | `1` | 初始频率边界 |
+
+## 淘汰策略
+
+```mermaid
+flowchart TD
+    A[Put 新键且已满] --> B[evictLeastFrequent]
+    B --> C{minFreq 层级非空?}
+    C -- 否 --> D[minFreq++ 直到 maxFreq]
+    C -- 是 --> E[取该层级链表尾部<br/>同频最久未访问]
+    E --> F[删除并触发 onEvict]
+```

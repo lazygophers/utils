@@ -47,6 +47,7 @@ make all           # clean + fmt + lint + test + build
 
 ## 文档维护
 
+- **每个含 `.go` 的目录必须有 `llms.txt`**（给 LLM 的包级说明）：H1 + 导入路径 + 功能 + 快速开始 + 核心 API + 文件结构表，内容须与代码一致（增/改 API 同步更新）；目录含 `.go` 子目录时须加「子目录索引」段列出各子目录相对路径链接。质量样板见 [`validator/llms.txt`](validator/llms.txt)
 - 三语言文档必须结构对称（zh-CN / zh-TW / en）
 - 新增模块 → 三语言各补对应 .md
 - 文档优先说明"适合做什么、适用场景、约束"，而非堆 API 列表

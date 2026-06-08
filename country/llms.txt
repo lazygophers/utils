@@ -1,0 +1,176 @@
+# country
+
+ISO 3166-1 国家 / 地区数据库：alpha-2/alpha-3/numeric 三码 + 多语言名 / 官方名 / 首都、IANA 时区、ITU-T 区号、ISO 4217 主货币、国家顶级域、官方语言 / 通用语言、UN M.49 大洲 / 地区 / 子地区分类、国旗 emoji。
+
+导入路径：`github.com/lazygophers/utils/country`
+
+## 功能
+
+- 覆盖全部 249 个 ISO 3166-1 条目；拥有独立区号 / 货币 / 顶级域的属地（香港、澳门、台湾、波多黎各等）作为独立条目，不并入母国。
+- 双形态访问：
+  - 按码 / 名查表：`Get` / `GetByAlpha3` / `GetByNumeric` / `GetByName`、`List`。
+  - 强类型包级变量：全部 249 个条目均导出 `var <Name> = data<Name>`（每个是 `*Country`），如 `China` / `UnitedStates` / `Japan` / `Germany` / `Taiwan` / `HongKong` …。注意非常驻国的变量受其 `<code>.go` 的 `country_*` build tag 约束，默认 build 下不可引用。
+- 多语言名 / 官方名 / 首都 / 子地区名通过 goroutine-local 语言解析（复用 `github.com/lazygophers/utils/language`）；`Name()` 取当前协程语言，`NameIn(tag)` 取指定语言。
+- 公共 API 的语言参数统一使用标准库 `golang.org/x/text/language.Tag`（值类型），不暴露 `utils/language` 包装类型。
+- 数据不可变：所有字段未导出，slice 字段访问返回防御性拷贝；本地化名仅在包 init 期注册（`RegisterName` / `RegisterOfficialName` / `RegisterCapital`），运行期读取走 RLock。
+- 注册表在 init 后只读，查表无锁。
+
+约束：
+- `Get(code)` 仅接受 2 字符 alpha-2，`GetByAlpha3` 仅 3 字符，否则返回 nil（均大小写不敏感）。
+- `GetByName` 是对全部条目名 map 的线性扫描，仅用于低频解析（表单输入），不适合热路径。
+- 未居住属地可能无首都，`Capital*` 返回 ""。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/country"
+	xlanguage "golang.org/x/text/language"
+)
+
+func main() {
+	// 常量形态
+	cn := country.China
+	fmt.Println(cn.Alpha2(), cn.Alpha3(), cn.Numeric()) // CN CHN 156
+	fmt.Println(cn.NameIn(xlanguage.Chinese))           // 中国
+	fmt.Println(cn.OfficialNameIn(xlanguage.Chinese))   // 中华人民共和国
+	fmt.Println(cn.CapitalIn(xlanguage.Chinese))        // 北京
+	fmt.Println(cn.CallingCodes(), cn.Timezones())      // [+86] [Asia/Shanghai]
+	fmt.Println(cn.Currency().Code)                     // CNY
+	fmt.Println(cn.Continent(), cn.Subregion())         // AS Eastern Asia
+	fmt.Println(cn.FlagEmoji())                         // 🇨🇳
+
+	// 查表形态（大小写不敏感）
+	us := country.Get("us")
+	jp := country.GetByAlpha3("JPN")
+	de := country.GetByNumeric(276)
+	kr := country.GetByName("South Korea")
+	fmt.Println(us, jp, de, kr) // 各自的 alpha2: US JP DE KR
+
+	// 遍历全部（按 alpha-2 排序）
+	for _, c := range country.List() {
+		_ = c
+	}
+}
+```
+
+## 核心类型
+
+```go
+// 不可变国家 / 地区条目；所有字段未导出。
+type Country struct { /* ... */ }
+
+// UN M.49 地理分类：continent + region + subregion，按指针单例，指针相等比较。
+type Region struct { /* ... */ }
+```
+
+## 主要 API
+
+### 包级查表函数
+
+```go
+func Get(code string) *Country          // alpha-2 查表，大小写不敏感；非 2 字符返回 nil
+func GetByAlpha3(code string) *Country   // alpha-3 查表，大小写不敏感；非 3 字符返回 nil
+func GetByNumeric(n int) *Country        // numeric 码查表
+func GetByName(name string) *Country     // 任意语言的通用名 / 官方名匹配（线性扫描）
+func List() []*Country                    // 全部条目，按 alpha-2 排序，返回拷贝
+```
+
+### Country 访问器
+
+```go
+func (c *Country) Alpha2() string                 // ISO alpha-2，如 "CN"
+func (c *Country) Alpha3() string                 // ISO alpha-3，如 "CHN"
+func (c *Country) Numeric() int                   // ISO numeric，如 156
+func (c *Country) CallingCodes() []string         // E.164 区号（含 "+" 前缀），拷贝
+func (c *Country) Timezones() []string            // 主 IANA 时区，拷贝
+func (c *Country) Tlds() []string                 // 国家顶级域，如 [".cn"]，拷贝
+func (c *Country) Currency() *currency.Currency    // 主 ISO 4217 货币
+func (c *Country) Region() *Region                 // UN M.49 区域指针
+func (c *Country) Continent() string               // 两字母大洲码，等价 Region().Continent()
+func (c *Country) Subregion() string               // 英文子地区，等价 Region().Subregion()
+func (c *Country) FlagEmoji() string               // 国旗 emoji
+func (c *Country) String() string                  // 返回 Alpha2，满足 fmt.Stringer
+
+// 官方语言 / 通用语言
+func (c *Country) OfficialLanguage() xlanguage.Tag       // 主官方语言
+func (c *Country) OfficialLanguageCode() string          // BCP47 短码，如 "zh"
+func (c *Country) OfficialLanguageBase() string          // ISO 639 base 子标签
+func (c *Country) OfficialLanguageName() string          // 官方语言显示名（当前协程语言）
+func (c *Country) OfficialLanguageNameIn(tag xlanguage.Tag) string
+func (c *Country) SpokenLanguages() []xlanguage.Tag      // 全部通用语言，拷贝
+
+// 多语言名 / 官方名 / 首都（当前协程语言 + 指定语言两套）
+func (c *Country) Name() string
+func (c *Country) NameIn(tag xlanguage.Tag) string
+func (c *Country) OfficialName() string
+func (c *Country) OfficialNameIn(tag xlanguage.Tag) string
+func (c *Country) Capital() string
+func (c *Country) CapitalIn(tag xlanguage.Tag) string
+
+// 母语形态（以官方语言渲染，即 endonym）
+func (c *Country) LocalName() string
+func (c *Country) LocalOfficialName() string
+func (c *Country) LocalCapital() string
+
+// init 期注册（locale_<lang>.go 内调用）
+func (c *Country) RegisterName(tag xlanguage.Tag, name string)
+func (c *Country) RegisterOfficialName(tag xlanguage.Tag, name string)
+func (c *Country) RegisterCapital(tag xlanguage.Tag, name string)
+```
+
+回退链（`NameIn` / `OfficialNameIn` / `CapitalIn`）：指定 tag → 语言 base → 全局默认（`language.Default`）→ English；`OfficialNameIn` 末端再回退到通用名；`NameIn` 最终回退到 alpha-2 码。
+
+### Region 访问器
+
+```go
+func (r *Region) Continent() string                  // 两字母大洲码
+func (r *Region) RegionName() string                 // UN M.49 region，如 "Asia"
+func (r *Region) Subregion() string                  // 英文子地区，如 "Eastern Asia"
+func (r *Region) Name() string                       // 子地区本地化名（当前协程语言）
+func (r *Region) NameIn(tag xlanguage.Tag) string    // 子地区本地化名（指定语言）
+func (r *Region) RegisterName(tag xlanguage.Tag, name string)
+func (r *Region) String() string                     // 英文子地区，满足 fmt.Stringer
+```
+
+`Region` 方法对 nil 接收者安全（返回 ""）。
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `country.go` | 包 doc；`Country` 类型定义；除多语言名 / 首都外的全部访问器；官方语言 / 通用语言 / 货币 / 区域 / 国旗访问器 |
+| `name.go` | 多语言通用名 / 官方名 / 首都的注册器 + 读取器（含 `currentTag` / `defaultTag` 协程语言解析与回退链） |
+| `region.go` | `Region` 类型 + 访问器 + `newRegion`；全部 UN M.49 子地区单例（`RegionEasternAsia` 等，按 `var` 导出） |
+| `region_<lang>.go` | 各语言子地区名注册；`region_en.go` / `region_zh.go` 无 build tag 常驻，其余走 `//go:build lang_<xx> \|\| lang_all` |
+| `registry.go` | 注册表索引（byAlpha2 / byAlpha3 / byNumeric / all）；`register`；`Get` / `GetByAlpha3` / `GetByNumeric` / `GetByName` / `List` |
+| `<code>.go` | 单条目数据（1 国 1 文件，249 个）：`var data<Name>` + `init(){ register(...) }` + 导出别名 `var <Name> = data<Name>`（249 国全部导出，非常驻国受自身 `country_*` build tag 约束） |
+| `<code>_<lang>.go` | 单条目某语言的名 / 官方名 / 首都注册（1 国 × 1 语言 1 文件，lang ∈ ar/en/es/fr/ja/ko/ru/zh/zh_hant） |
+
+## 区域单例（var，可直接引用）
+
+| 大洲码 | region | 子地区单例 |
+| --- | --- | --- |
+| AS | Asia | RegionEasternAsia / RegionSouthEasternAsia / RegionSouthernAsia / RegionWesternAsia / RegionCentralAsia |
+| EU | Europe | RegionEasternEurope / RegionNorthernEurope / RegionSouthernEurope / RegionWesternEurope |
+| AF | Africa | RegionNorthernAfrica / RegionEasternAfrica / RegionMiddleAfrica / RegionSouthernAfrica / RegionWesternAfrica |
+| NA | Americas | RegionNorthernAmerica / RegionCentralAmerica / RegionCaribbean |
+| SA | Americas | RegionSouthAmerica |
+| OC | Oceania | RegionAustraliaAndNewZealand / RegionMelanesia / RegionMicronesia / RegionPolynesia |
+| AN | Antarctic | RegionAntarctic |
+
+## Build Tag 约定（per-entity locale）
+
+| 类别 | 文件 | tag 规则 |
+| --- | --- | --- |
+| 常驻国数据 | 12 国 `<code>.go`（cn/de/fr/gb/hk/in/jp/kr/ru/sg/tw/us） | 无 tag，始终编译 + 导出常量 |
+| 其余国数据 | 237 国 `<code>.go` | `//go:build country_<xx> \|\| country_all \|\| country_<region>` |
+| en/zh locale | `<code>_en.go` / `<code>_zh.go` / `region_en.go` / `region_zh.go` | 受所属 entity 的 country tag 约束（region 的 en/zh 无 tag），language 维度不加 lang tag |
+| 其他语言 locale | `<code>_<lang>.go`（ar/es/fr/ja/ko/ru/zh_hant） | 同时受 `(lang_<xx> \|\| lang_all)` 与 entity 的 country tag 约束 |
+| region 其他语言 | `region_<lang>.go` | `//go:build lang_<xx> \|\| lang_all` |
+
+默认 build（无 tag）下只有 12 常驻国可用；查询其他国家需启用对应 `country_<xx>` / `country_<region>` / `country_all` tag。

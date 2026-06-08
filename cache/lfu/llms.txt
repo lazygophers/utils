@@ -1,0 +1,112 @@
+# lfu
+
+LFU（Least Frequently Used，最不经常使用）缓存：泛型、并发安全，按访问频次淘汰最少使用的条目。导入路径 `github.com/lazygophers/utils/cache/lfu`。
+
+## 功能
+
+- 泛型键值缓存 `Cache[K comparable, V any]`，固定容量，满载时淘汰频次最低的条目。
+- 频次相同的条目按 LRU（最近最少使用）规则二级淘汰：淘汰频次最低中最久未访问的那个。
+- 内部用 `map[K]*entry` + 按频次分桶的双向链表（`map[int]*freqList`）+ `minFreq` 指针，使 `Get`/`Put` 平均 O(1)。
+- 全部公共方法用 `sync.RWMutex` 保护，可并发使用。注意 `Get` 因要更新频次会短暂升级为写锁。
+- 支持淘汰回调 `onEvict`（`NewWithEvict`）：条目被淘汰、被 `Remove`、`Clear` 时触发。
+- 提供 `Peek`/`Contains` 只读访问（不改频次）、`GetFreq` 查询频次、`Stats` 导出频次分布。
+
+适用场景：访问分布长尾、热点数据需长期驻留、希望按"用得多少"而非"用得多新"来保留数据的缓存层。
+
+约束：容量必须为正（否则 `New`/`Resize` 返回 error）；`minFreq` 的快速路径仅向上探查 10 个频次，超出则回退全量扫描。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache/lfu"
+)
+
+func main() {
+	cache, err := lfu.New[string, int](2)
+	if err != nil {
+		panic(err)
+	}
+
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+
+	// 提升 "a" 的频次
+	cache.Get("a")
+
+	// 容量已满，淘汰频次最低的 "b"
+	evicted := cache.Put("c", 3)
+	fmt.Println(evicted) // true
+
+	fmt.Println(cache.Contains("b")) // false
+	fmt.Println(cache.GetFreq("a"))  // 2
+
+	// 带淘汰回调
+	c2, _ := lfu.NewWithEvict[string, int](1, func(k string, v int) {
+		fmt.Printf("evicted %s=%d\n", k, v)
+	})
+	c2.Put("x", 10)
+	c2.Put("y", 20) // 触发回调 evicted x=10
+}
+```
+
+## 核心类型
+
+```go
+// Cache 是 LFU 缓存，键须 comparable，值任意类型。
+type Cache[K comparable, V any] struct { /* 私有字段 */ }
+
+// Stats 是缓存统计快照。
+type Stats struct {
+	Size             int         // 当前条目数
+	Capacity         int         // 容量
+	MinFreq          int         // 当前最小频次
+	FreqDistribution map[int]int // 频次 -> 该频次下条目数
+}
+```
+
+## 主要 API
+
+```go
+func New[K comparable, V any](capacity int) (*Cache[K, V], error)
+func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error)
+
+func (c *Cache[K, V]) Get(key K) (value V, ok bool)   // 命中则频次 +1
+func (c *Cache[K, V]) Put(key K, value V) (evicted bool) // 新增/更新；返回本次是否发生淘汰
+func (c *Cache[K, V]) Remove(key K) (value V, ok bool)
+func (c *Cache[K, V]) Contains(key K) bool             // 不改频次
+func (c *Cache[K, V]) Peek(key K) (value V, ok bool)   // 不改频次
+func (c *Cache[K, V]) GetFreq(key K) int               // 不存在返回 0
+func (c *Cache[K, V]) Len() int
+func (c *Cache[K, V]) Cap() int
+func (c *Cache[K, V]) Clear()                           // 清空，对每个条目触发 onEvict
+func (c *Cache[K, V]) Keys() []K                        // 顺序不确定
+func (c *Cache[K, V]) Values() []V                      // 顺序不确定
+func (c *Cache[K, V]) Items() map[K]V
+func (c *Cache[K, V]) Resize(capacity int) error       // 缩容时淘汰多余条目
+func (c *Cache[K, V]) Stats() Stats
+```
+
+## 行为说明
+
+| 方法 | 是否改频次 | 是否触发 onEvict | 备注 |
+| --- | --- | --- | --- |
+| `Get` | 是（+1） | 否 | 命中升级为写锁更新频次 |
+| `Put`（新增） | 频次置 1 | 满载淘汰时是 | 返回 `evicted` |
+| `Put`（更新已存在） | 是（+1） | 否 | 返回 `false` |
+| `Peek` / `Contains` / `GetFreq` | 否 | 否 | 纯只读 |
+| `Remove` | — | 是 | 命中才回调 |
+| `Clear` | — | 是（逐条） | 重置 `minFreq=1` |
+| `Resize`（缩容） | — | 是（逐条淘汰） | 容量须为正 |
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `lfu.go` | 全部实现：`Cache`/`Stats` 类型、构造函数、公共方法，以及私有 `entry`/`freqList` 双向链表与 `incrementFreq`/`evictLFU`/`updateMinFreq` 等淘汰逻辑 |
+| `lfu_test.go` | 单元测试：构造、增删查、淘汰策略、频次、并发、Resize、Stats 等 |
+| `lfu_benchmark_test.go` | 基准测试：Put/Get/混合/并发读写/淘汰/各类操作的性能 |

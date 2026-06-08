@@ -1,0 +1,119 @@
+# wtinylfu
+
+Window-TinyLFU 缓存：LRU 准入窗口 + 基于频率（Count-Min Sketch）的主缓存（Probation/Protected 两段 SLRU）。泛型、并发安全。导入路径 `github.com/lazygophers/utils/cache/wtinylfu`。
+
+## 功能
+
+W-TinyLFU 是 Caffeine 同款准入策略，兼顾「新近性」与「频率」，在 Zipf 分布访问下命中率优于纯 LRU/LFU。
+
+缓存结构分三段：
+
+- Window（准入窗口）：所有新写入先进窗口，默认占容量的 10%（至少 1）。
+- Probation（试用区）：主缓存的「LRU 末段」，被淘汰时优先从这里选受害者。
+- Protected（保护区）：主缓存的「LRU 主体」，从试用区被再次访问才能晋升进入；默认占主缓存的 80%。
+
+频率统计由 Count-Min Sketch 完成（depth=4，width 与容量成比例，最小 16；容量 ≥ 100 时按 1/10 采样写入）。窗口受害者与试用区受害者竞争时，比较二者的频率估计，高频者保留。
+
+约束与注意：
+
+- `New` 容量必须为正，否则返回 error；`Resize` 同理。
+- 键的哈希用 `fmt.Sprintf("%v", key)` + FNV-1a，键含不可比内容会反映在字符串化结果上（影响频率统计精度，不影响正确性）。
+- 所有读写方法持锁，并发安全；`Cap()` 不持锁（容量是常量级字段）。
+- `Get`/`Put` 会更新频率与段位置；`Peek`/`Contains` 不更新位置。
+- 单容量缓存（capacity==1）退化为纯窗口，主缓存为空。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache/wtinylfu"
+)
+
+func main() {
+	cache, err := wtinylfu.New[string, int](100)
+	if err != nil {
+		panic(err)
+	}
+
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+
+	if v, ok := cache.Get("a"); ok {
+		fmt.Println("a =", v) // a = 1
+	}
+
+	fmt.Println("len:", cache.Len(), "cap:", cache.Cap())
+
+	stats := cache.Stats()
+	fmt.Printf("window=%d/%d probation=%d/%d protected=%d/%d\n",
+		stats.WindowSize, stats.WindowCapacity,
+		stats.ProbationSize, stats.ProbationCap,
+		stats.ProtectedSize, stats.ProtectedCap)
+
+	// 带淘汰回调
+	evictCache, _ := wtinylfu.NewWithEvict[string, int](10, func(k string, v int) {
+		fmt.Println("evicted:", k, v)
+	})
+	_ = evictCache
+}
+```
+
+## 核心类型
+
+```go
+// Cache 是 Window-TinyLFU 缓存，K 必须 comparable，V 任意类型。
+type Cache[K comparable, V any] struct { /* 私有字段 */ }
+
+// Stats 缓存统计快照。
+type Stats struct {
+	Size           int // 实际条目数
+	Capacity       int // 最大容量
+	WindowSize     int // 当前窗口条目数
+	WindowCapacity int // 窗口容量
+	ProbationSize  int // 当前试用区条目数
+	ProbationCap   int // 试用区容量
+	ProtectedSize  int // 当前保护区条目数
+	ProtectedCap   int // 保护区容量
+}
+```
+
+## 主要 API
+
+| 函数 / 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `New` | `New[K comparable, V any](capacity int) (*Cache[K, V], error)` | 创建缓存；capacity ≤ 0 返回 error |
+| `NewWithEvict` | `NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error)` | 创建并设置淘汰回调 |
+| `Get` | `(c *Cache[K, V]) Get(key K) (value V, ok bool)` | 取值并更新频率/段位置 |
+| `Put` | `(c *Cache[K, V]) Put(key K, value V) (evicted bool)` | 写入或更新；返回是否发生淘汰 |
+| `Remove` | `(c *Cache[K, V]) Remove(key K) (value V, ok bool)` | 删除指定键 |
+| `Contains` | `(c *Cache[K, V]) Contains(key K) bool` | 是否存在（不更新位置） |
+| `Peek` | `(c *Cache[K, V]) Peek(key K) (value V, ok bool)` | 取值但不更新位置 |
+| `Len` | `(c *Cache[K, V]) Len() int` | 当前条目数 |
+| `Cap` | `(c *Cache[K, V]) Cap() int` | 容量 |
+| `Clear` | `(c *Cache[K, V]) Clear()` | 清空，逐项触发 onEvict |
+| `Keys` | `(c *Cache[K, V]) Keys() []K` | 所有键（window→protected→probation 顺序） |
+| `Values` | `(c *Cache[K, V]) Values() []V` | 所有值（同上顺序） |
+| `Items` | `(c *Cache[K, V]) Items() map[K]V` | 所有键值对快照 |
+| `Resize` | `(c *Cache[K, V]) Resize(capacity int) error` | 调整容量并按需淘汰；capacity ≤ 0 返回 error |
+| `Stats` | `(c *Cache[K, V]) Stats() Stats` | 返回统计快照 |
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `wtinylfu.go` | Cache 全部实现：公共 API、三段 SLRU 调度（晋升/降级/淘汰）、Count-Min Sketch、FNV-1a 哈希、Stats |
+| `wtinylfu_test.go` | 单元测试与基准（BenchmarkPut/BenchmarkGet/BenchmarkMixed），覆盖基本操作、频率晋升、空间管理、并发、边界与复杂淘汰链 |
+
+## 容量分配规则
+
+| 场景 | Window | Protected | Probation |
+| --- | --- | --- | --- |
+| capacity == 1 | 1 | 0 | 0 |
+| mainSize ≤ 4 | max(1, cap/10) | mainSize - probation | max(1, mainSize/2) |
+| mainSize > 4 | max(1, cap/10) | mainSize * 4/5 | mainSize - protected |
+
+其中 `mainSize = capacity - windowSize`。

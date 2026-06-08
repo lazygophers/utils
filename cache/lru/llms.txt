@@ -1,0 +1,116 @@
+# lru
+
+泛型 LRU（Least Recently Used）缓存，线程安全，支持容量上限与淘汰回调。
+导入路径：`github.com/lazygophers/utils/cache/lru`
+
+## 功能
+
+- 基于 `container/list` 双向链表 + `map[K]*list.Element` 实现 O(1) 的 `Get`/`Put`/`Remove`。
+- 容量满时自动淘汰最久未使用（链表尾部）的条目。
+- 泛型键值：`Cache[K comparable, V any]`，无需类型断言。
+- 线程安全：内部统一用 `sync.Mutex`（非 `RWMutex`，因 `Get` 需移动节点也要写锁，实测 Mutex 快约 25%）。
+- 可选淘汰回调 `onEvict func(K, V)`：在条目被淘汰、`Remove`、`Clear` 时触发。
+- 提供不影响访问顺序的 `Peek`/`Contains`，以及运行时 `Resize` 动态调整容量。
+
+约束：
+
+- 容量必须为正整数，`New`/`NewWithEvict`/`Resize` 传入 `<= 0` 返回 error。
+- 非递归安全：`onEvict` 回调内禁止再调用本缓存的加锁方法，否则死锁。
+- `Keys`/`Values`/`Items` 返回从最近到最久使用的顺序快照（`Items` 为 map 无序）。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache/lru"
+)
+
+func main() {
+	// 基础用法
+	cache, err := lru.New[string, int](2)
+	if err != nil {
+		panic(err)
+	}
+
+	cache.Put("a", 1)
+	cache.Put("b", 2)
+	cache.Put("c", 3) // 容量已满，淘汰最久未用的 "a"
+
+	if v, ok := cache.Get("b"); ok {
+		fmt.Println("b =", v) // b = 2
+	}
+	_, ok := cache.Get("a")
+	fmt.Println("a exists:", ok) // a exists: false
+
+	// 带淘汰回调
+	c2, _ := lru.NewWithEvict[string, int](1, func(k string, v int) {
+		fmt.Printf("evicted %s=%d\n", k, v)
+	})
+	c2.Put("x", 10)
+	c2.Put("y", 20) // 触发回调：evicted x=10
+}
+```
+
+## 核心类型
+
+```go
+// 泛型 LRU 缓存
+type Cache[K comparable, V any] struct { /* 私有字段 */ }
+
+// 缓存统计快照
+type Stats struct {
+	Size     int // 当前条目数
+	Capacity int // 容量上限
+}
+```
+
+## 主要 API
+
+构造函数：
+
+```go
+func New[K comparable, V any](capacity int) (*Cache[K, V], error)
+func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error)
+```
+
+方法（均为 `*Cache[K, V]` 接收者）：
+
+```go
+func (c *Cache[K, V]) Get(key K) (value V, ok bool)      // 读取并提升为最近使用
+func (c *Cache[K, V]) Put(key K, value V) (evicted bool) // 写入/更新，返回是否触发淘汰
+func (c *Cache[K, V]) Remove(key K) (value V, ok bool)   // 删除并返回旧值，触发 onEvict
+func (c *Cache[K, V]) Contains(key K) bool               // 是否存在，不改访问顺序
+func (c *Cache[K, V]) Peek(key K) (value V, ok bool)     // 读取，不改访问顺序
+func (c *Cache[K, V]) Len() int                          // 当前条目数
+func (c *Cache[K, V]) Cap() int                          // 容量上限
+func (c *Cache[K, V]) Clear()                            // 清空，对每条触发 onEvict
+func (c *Cache[K, V]) Keys() []K                         // 键快照，最近 → 最久
+func (c *Cache[K, V]) Values() []V                       // 值快照，最近 → 最久
+func (c *Cache[K, V]) Items() map[K]V                    // 键值快照（map 无序）
+func (c *Cache[K, V]) Resize(capacity int) error         // 动态调容量，缩小则淘汰超额条目
+func (c *Cache[K, V]) Stats() Stats                      // 返回 Size/Capacity 统计
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `lru.go` | `Cache`、`Stats` 类型，构造函数与全部公共方法实现 |
+| `lru_test.go` | 单元测试：构造/淘汰/顺序/并发/边界等场景 |
+| `lru_benchmark_test.go` | 性能基准测试 |
+
+## 行为速览
+
+| 操作 | 影响访问顺序 | 触发 onEvict | 容量满时行为 |
+| --- | --- | --- | --- |
+| `Get` | 是（提升为最近） | 否 | — |
+| `Put`（新键） | 是（插入最近） | 超容量时淘汰尾部 | 淘汰最久未用，返回 `evicted=true` |
+| `Put`（已存在） | 是（提升为最近） | 否 | 仅更新值，`evicted=false` |
+| `Peek` / `Contains` | 否 | 否 | — |
+| `Remove` | — | 是 | — |
+| `Clear` | — | 对每条触发 | — |
+| `Resize`（缩小） | — | 淘汰超额条目时触发 | 逐个淘汰最久未用直至 `Len <= capacity` |

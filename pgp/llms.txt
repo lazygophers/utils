@@ -1,0 +1,114 @@
+# pgp
+
+基于 ProtonMail go-crypto/openpgp 的 PGP/OpenPGP 工具包：密钥对生成、加解密、数字签名与验签、指纹提取。导入路径 `github.com/lazygophers/utils/pgp`。
+
+## 功能
+
+- **密钥对生成**：`GenerateKeyPair` 生成 RSA 密钥对，输出 ASCII armor（PEM 风格）文本公私钥，支持姓名/注释/邮箱、密钥长度、哈希、加密算法、过期时间配置。
+- **密钥读取**：从 armor 文本解析公钥 / 私钥 / 密钥对为 `openpgp.EntityList`，私钥可带 passphrase 解密。
+- **数据加解密**：`Encrypt`/`Decrypt` 直接用 PEM 字符串；`EncryptWithEntities`/`DecryptWithEntities` 复用已解析实体避免重复解析；`EncryptText`/`DecryptText` 处理 ASCII armor 文本消息。
+- **数字签名**：`Sign`/`VerifySignature` 处理 `[]byte` 分离签名（DetachSign）；`SignText`/`VerifyTextSignature` 处理字符串便捷封装。
+- **指纹**：`GetFingerprint` 从公钥或私钥 PEM 提取主键指纹（大写十六进制）。
+
+适用场景：敏感数据端到端加密、消息完整性签名验证、密钥管理。
+
+约束：
+- 仅支持 RSA 密钥；`KeyLength` 有效范围 1024-16384（默认 4096）。
+- 提供 `Email` 时校验须含 `@` 与 `.`。
+- 签名采用分离签名（detached signature），验签需同时提供原始数据。
+- 验签失败时 `VerifySignature` 返回 `(false, nil)`（签名无效非错误），仅解析/解码失败返回 error。
+- 依赖 `github.com/lazygophers/log` 输出日志，非纯零依赖包。
+
+## 快速开始
+
+```go
+import "github.com/lazygophers/utils/pgp"
+
+// 生成密钥对
+opts := &pgp.GenerateOptions{
+    Name:    "张三",
+    Email:   "zhangsan@example.com",
+    Comment: "测试密钥",
+}
+kp, err := pgp.GenerateKeyPair(opts)
+// kp.PublicKey / kp.PrivateKey 为 armor 文本
+
+// 加密 / 解密
+enc, _ := pgp.Encrypt([]byte("敏感信息"), kp.PublicKey)
+dec, _ := pgp.Decrypt(enc, kp.PrivateKey, "")
+
+// armor 文本消息
+cipherText, _ := pgp.EncryptText([]byte("hello"), kp.PublicKey)
+plain, _ := pgp.DecryptText(cipherText, kp.PrivateKey, "")
+
+// 签名 / 验签
+sig, _ := pgp.Sign([]byte("重要消息"), kp.PrivateKey, "")
+valid, _ := pgp.VerifySignature([]byte("重要消息"), sig, kp.PublicKey)
+
+// 指纹
+fp, _ := pgp.GetFingerprint(kp.PublicKey)
+```
+
+## 核心类型
+
+```go
+// KeyPair PGP 密钥对（含未导出 entity 字段缓存解析后的实体）
+type KeyPair struct {
+    PublicKey  string // armor 格式的公钥
+    PrivateKey string // armor 格式的私钥
+}
+
+// GenerateOptions 密钥生成选项
+type GenerateOptions struct {
+    Name       string                // 姓名
+    Comment    string                // 注释
+    Email      string                // 邮箱（提供时校验含 @ 与 .）
+    KeyLength  int                   // RSA 密钥长度，默认 4096，范围 1024-16384
+    Hash       crypto.Hash           // 哈希算法，默认 SHA256
+    Cipher     packet.CipherFunction // 对称加密算法，默认 AES256
+    Expiration time.Duration         // 过期时间，0 表示永不过期
+}
+```
+
+## 主要 API
+
+```go
+// 密钥生成与读取
+func GenerateKeyPair(opts *GenerateOptions) (*KeyPair, error) // opts 为 nil 时用默认选项
+func ReadPublicKey(publicKeyPEM string) (openpgp.EntityList, error)
+func ReadPrivateKey(privateKeyPEM, passphrase string) (openpgp.EntityList, error)
+func ReadKeyPair(publicKeyPEM, privateKeyPEM, passphrase string) (*KeyPair, error)
+
+// 加密 / 解密
+func Encrypt(data []byte, publicKeyPEM string) ([]byte, error)
+func EncryptWithEntities(data []byte, entities openpgp.EntityList) ([]byte, error)
+func Decrypt(encryptedData []byte, privateKeyPEM, passphrase string) ([]byte, error)
+func DecryptWithEntities(encryptedData []byte, entities openpgp.EntityList) ([]byte, error)
+func EncryptText(data []byte, publicKeyPEM string) (string, error)        // 输出 PGP MESSAGE armor
+func DecryptText(encryptedText, privateKeyPEM, passphrase string) ([]byte, error)
+
+// 签名 / 验签（分离签名）
+func Sign(data []byte, privateKeyPEM, passphrase string) ([]byte, error)
+func VerifySignature(data, signature []byte, publicKeyPEM string) (bool, error)
+func SignText(text, privateKeyPEM, passphrase string) (string, error)
+func VerifyTextSignature(text, signatureText, publicKeyPEM string) (bool, error)
+
+// 指纹
+func GetFingerprint(keyPEM string) (string, error) // 自动识别公钥 / 私钥，返回大写十六进制
+```
+
+## 文件结构
+
+| 文件         | 职责                                                          |
+| ------------ | ------------------------------------------------------------- |
+| pgp.go       | 全部实现：密钥生成/读取、加解密、签名验签、指纹               |
+| pgp_test.go  | 单元测试，覆盖正常路径、错误分支、边界与实体字段校验          |
+
+## 默认值
+
+| 选项      | 默认值              | 说明                       |
+| --------- | ------------------- | -------------------------- |
+| KeyLength | 4096                | 2025 安全标准，范围 1024-16384 |
+| Hash      | crypto.SHA256       | 默认哈希算法               |
+| Cipher    | packet.CipherAES256 | 默认对称加密算法           |
+| Expiration| 0                   | 永不过期                   |

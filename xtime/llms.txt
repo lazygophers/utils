@@ -1,0 +1,268 @@
+# xtime
+
+增强型时间工具包：在标准库 `time` 之上叠加链式时间运算、起止边界计算、农历/节气/生肖换算与完整中式日历。导入路径 `github.com/lazygophers/utils/xtime`。
+
+## 功能
+
+- **增强时间类型 `Time`**：内嵌 `time.Time` 与可选 `*Config`（周起始日 / 时区 / 解析格式 / 单调时钟基准），支持链式调用。
+- **时间边界计算**：`BeginningOf*` / `EndOf*` 系列覆盖分/时/日/周/月/季/半年/年；提供方法形态（基于既有 `Time`）与全局函数形态（基于 `time.Now()`），全局函数经过零分配优化。
+- **时间解析**：基于 `github.com/jinzhu/now` 的多格式解析（`Parse` / `MustParse`）。
+- **农历换算 `Lunar`**：公历 ↔ 农历转换、闰月判断、生肖推算、汉字日期格式化；内置 1900–2100 历法数据表（紫金山天文台《中国天文年历》）。
+- **二十四节气 `Solarterm`**：基于 J2000 儒略日数据表（覆盖 1904–3000），节气查询、上一个/下一个、时间戳换算。
+- **综合日历 `Calendar`**：聚合公历 + 农历 + 干支生肖 + 节气季节，提供格式化字符串与 `map` 序列化输出。
+- **辅助器**：`LunarHelper`（农历节日/生辰）与 `SolarTermHelper`（节气养生信息）。
+- **随机休眠**：`RandSleep` 基于 `randx` 随机时长睡眠。
+
+约束：农历换算输入须落在 1900-01-31 ~ 2099-12-31；节气表上限 3000 年；农历/节气计算多以 `time.Local` 为基准。
+
+## 快速开始
+
+```go
+import (
+	"fmt"
+	"time"
+
+	"github.com/lazygophers/utils/xtime"
+)
+
+func main() {
+	// 增强时间 + 边界计算
+	t := xtime.Now()
+	fmt.Println(t.BeginningOfDay(), t.EndOfMonth(), t.Quarter())
+
+	// 全局零分配边界函数
+	fmt.Println(xtime.BeginningOfWeek(), xtime.EndOfYear())
+
+	// 解析
+	pt := xtime.MustParse("2023-08-15 12:30:00")
+	fmt.Println(pt.Format("2006-01-02"))
+
+	// 农历
+	l := xtime.WithLunar(time.Now())
+	fmt.Println(l.YearAlias(), l.MonthAlias(), l.DayAlias(), l.Animal())
+
+	// 节气
+	st := xtime.NextSolarterm(time.Now())
+	fmt.Println(st.String(), st.Time())
+
+	// 综合日历
+	cal := xtime.NowCalendar()
+	fmt.Println(cal.String())
+	fmt.Println(cal.DetailedString())
+}
+```
+
+## 核心类型 / 主要 API
+
+### Time（time.go / now.go）
+
+```go
+type Config struct {
+	WeekStartDay time.Weekday
+	TimeLocation *time.Location
+	TimeFormats  []string
+	Monotonic    time.Time
+}
+type Time struct {
+	time.Time
+	*Config
+}
+
+func With(t time.Time) *Time
+func Now() *Time
+func NowUnix() int64
+func NowUnixMilli() int64
+func Parse(strs ...string) (*Time, error)
+func MustParse(str ...string) *Time
+func RandSleep(s ...time.Duration)
+
+func (t *Time) Elapsed() time.Duration
+func (t *Time) UTC() *Time
+func (t *Time) Local() *Time
+func (t *Time) In(loc *time.Location) *Time
+func (t *Time) Since(d time.Duration) time.Duration
+func (t *Time) Until(d time.Duration) time.Duration
+func (p *Time) Quarter() uint
+func Quarter() uint
+```
+
+边界计算（方法形态 `(p *Time)` 与同名全局函数各一套）：
+
+| 边界单元 | 方法 | 全局函数 |
+| --- | --- | --- |
+| 分钟 | `BeginningOfMinute` / `EndOfMinute` | `BeginningOfMinute` / `EndOfMinute` |
+| 小时 | `BeginningOfHour` / `EndOfHour` | `BeginningOfHour` / `EndOfHour` |
+| 日 | `BeginningOfDay` / `EndOfDay` | `BeginningOfDay` / `EndOfDay` |
+| 周 | `BeginningOfWeek` / `EndOfWeek` | `BeginningOfWeek` / `EndOfWeek` |
+| 月 | `BeginningOfMonth` / `EndOfMonth` | `BeginningOfMonth` / `EndOfMonth` |
+| 季度 | `BeginningOfQuarter` / `EndOfQuarter` | `BeginningOfQuarter` / `EndOfQuarter` |
+| 半年 | `BeginningOfHalf` / `EndOfHalf` | （仅方法形态） |
+| 年 | `BeginningOfYear` / `EndOfYear` | `BeginningOfYear` / `EndOfYear` |
+
+> 全局变量 `BeginningOfMinuteConfig`、`BeginningOfHourConfig`（`*Config`）为复用配置以实现零分配。
+
+### Lunar（lunar.go）
+
+```go
+type Lunar struct { time.Time /* + 私有 year/month/day/monthIsLeap */ }
+
+func WithLunar(t time.Time) *Lunar
+func WithLunarTime(t time.Time) *Lunar
+func FromSolarTimestamp(ts int64) (lunarYear, lunarMonth, lunarDay int64, lunarMonthIsLeap bool)
+func OrderMod(a, b int64) int64
+
+func (p *Lunar) Year() int64
+func (p *Lunar) Month() int64
+func (p *Lunar) Day() int64
+func (p *Lunar) Date() string
+func (p *Lunar) LeapMonth() int64
+func (p *Lunar) IsLeap() bool
+func (p *Lunar) IsLeapMonth() bool
+func (p *Lunar) Animal() string
+func (p *Lunar) YearAlias() string
+func (p *Lunar) MonthAlias() string
+func (p *Lunar) DayAlias() string
+func (p *Lunar) MonthDayAlias() string
+func (p *Lunar) Equals(b *Lunar) bool
+```
+
+### Solarterm（solarterm.go）
+
+```go
+type Solarterm int64
+
+const SolartermFromYear = 1904
+const SolartermToYear   = 3000
+
+func NextSolarterm(t time.Time) Solarterm
+func DD(jd float64) (_Y, _M, _D, _h, _m, _s int)
+
+func (p Solarterm) String() string
+func (p Solarterm) Time() time.Time
+func (p Solarterm) Timestamp() int64
+func (p Solarterm) Prev() Solarterm
+func (p Solarterm) Next() Solarterm
+func (p Solarterm) Equals(other Solarterm) bool
+func (p Solarterm) IsToDay() bool
+func (p Solarterm) IsInDay(t time.Time) bool
+```
+
+二十四节气顺序（`solartermAlias`，按 J2000 表索引）：小寒、大寒、立春、雨水、惊蛰、春分、清明、谷雨、立夏、小满、芒种、夏至、小暑、大暑、立秋、处暑、白露、秋分、寒露、霜降、立冬、小雪、大雪、冬至。
+
+### Calendar（calendar.go）
+
+```go
+type Calendar struct { *Time /* + 私有 lunar/zodiac/season */ }
+type ZodiacInfo struct {
+	Animal, SkyTrunk, EarthBranch string
+	YearGanZhi, MonthGanZhi, DayGanZhi, HourGanZhi string
+}
+type SeasonInfo struct {
+	CurrentTerm, NextTerm string
+	NextTermTime time.Time
+	Season string
+	SeasonProgress, YearProgress float64
+}
+
+func NewCalendar(t time.Time) *Calendar
+func NowCalendar() *Calendar
+
+func (c *Calendar) Lunar() *Lunar
+func (c *Calendar) LunarDate() string
+func (c *Calendar) LunarDateShort() string
+func (c *Calendar) IsLunarLeapYear() bool
+func (c *Calendar) LunarLeapMonth() int64
+func (c *Calendar) Animal() string
+func (c *Calendar) AnimalWithYear() string
+func (c *Calendar) YearGanZhi() string
+func (c *Calendar) MonthGanZhi() string
+func (c *Calendar) DayGanZhi() string
+func (c *Calendar) HourGanZhi() string
+func (c *Calendar) FullGanZhi() string
+func (c *Calendar) CurrentSolarTerm() string
+func (c *Calendar) NextSolarTerm() string
+func (c *Calendar) NextSolarTermTime() time.Time
+func (c *Calendar) DaysToNextTerm() int
+func (c *Calendar) Season() string
+func (c *Calendar) SeasonProgress() float64
+func (c *Calendar) YearProgress() float64
+func (c *Calendar) String() string
+func (c *Calendar) DetailedString() string
+func (c *Calendar) ToMap() map[string]interface{}
+```
+
+### LunarHelper（lunar_helper.go）
+
+```go
+type LunarHelper struct{}
+var DefaultLunarHelper = &LunarHelper{}
+func NewLunarHelper() *LunarHelper
+
+type LunarFestival struct {
+	Name string; Month, Day int
+	Description string; Traditions, Foods []string
+}
+type FestivalDate struct { /* 节日 + 公历日期 */ }
+
+func (h *LunarHelper) GetTodayFestival() *LunarFestival
+func (h *LunarHelper) GetFestival(t time.Time) *LunarFestival
+func (h *LunarHelper) GetYearFestivals(year int) []FestivalDate
+func (h *LunarHelper) GetUpcomingFestivals(count int) []FestivalDate
+func (h *LunarHelper) FormatFestivalInfo(festival *LunarFestival) string
+func (h *LunarHelper) IsSpecialDay(t time.Time) (bool, string)
+func (h *LunarHelper) GetLunarInfo(t time.Time) map[string]interface{}
+func (h *LunarHelper) CompareLunarDates(t1, t2 time.Time) string
+func (h *LunarHelper) GetLunarAge(birthTime, currentTime time.Time) int
+func (h *LunarHelper) GetNextLunarBirthday(birthTime, currentTime time.Time) time.Time
+```
+
+### SolarTermHelper（solarterm_helper.go）
+
+```go
+type SolarTermHelper struct{}
+var DefaultSolarTermHelper = &SolarTermHelper{}
+func NewSolarTermHelper() *SolarTermHelper
+
+type SolarTermInfo struct {
+	Name string; Time time.Time; Index int
+	Season, Description string; Tips []string
+}
+
+func (h *SolarTermHelper) GetCurrentTerm(t time.Time) *SolarTermInfo
+func (h *SolarTermHelper) GetNextTerm(t time.Time) *SolarTermInfo
+func (h *SolarTermHelper) GetTermsInRange(start, end time.Time) []SolarTermInfo
+func (h *SolarTermHelper) GetYearTerms(year int) []SolarTermInfo
+func (h *SolarTermHelper) GetSeasonTerms(year int, season string) []SolarTermInfo
+func (h *SolarTermHelper) FindTermByName(year int, name string) *SolarTermInfo
+func (h *SolarTermHelper) GetTermCalendar(year int) map[int][]SolarTermInfo
+func (h *SolarTermHelper) FormatTermInfo(info *SolarTermInfo) string
+func (h *SolarTermHelper) DaysUntilTerm(from time.Time, termName string) int
+func (h *SolarTermHelper) GetRecentTerms(t time.Time, count int) []SolarTermInfo
+```
+
+### 时长常量（xtime.go）
+
+`Nanosecond` `Microsecond` `Millisecond` `Second` `Minute` `HalfHour` `Hour` `HalfDay` `Day` `WorkDayWeek`（5 天）`ResetDayWeek`（2 天）`Week` `WorkDayMonth` `ResetDayMonth` `Month`（30 天）`QUARTER`（91 天）`Year`（365 天）`Decade` `Century`。
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `xtime.go` | 通用时长常量（Day/Week/Month/Year 等） |
+| `time.go` | `Config` / `Time` 核心类型；`With` / `Parse` / `MustParse` / `RandSleep` 及时区/单调时钟方法 |
+| `now.go` | `Now` 及全部 `BeginningOf*` / `EndOf*` 边界计算（方法 + 全局零分配函数）、`Quarter` |
+| `lunar.go` | 农历 `Lunar` 类型、公历↔农历换算、生肖/汉字格式化、1900–2100 历法数据表 |
+| `lunar_helper.go` | `LunarHelper`：农历节日、生辰、特殊日、农历年龄/下次生日 |
+| `solarterm.go` | 二十四节气 `Solarterm` 类型、J2000 数据表、儒略日换算 `DD` |
+| `solarterm_helper.go` | `SolarTermHelper`：节气养生信息、区间/年度节气查询 |
+| `calendar.go` | 综合日历 `Calendar`：公历+农历+干支生肖+节气季节聚合与格式化 |
+| `calendar_optimizations.go` | `Calendar` 内部性能优化实现（私有，非公共 API） |
+| `*_test.go` / `now_benchmark_test.go` | 单元测试与基准测试 |
+
+## 子目录索引
+
+| 子目录 | 用途 |
+| --- | --- |
+| [xtime007](./xtime007/) | 「007」全天候工时模型时长常量：WorkDay=24h，工作=全天无休（WorkMonth=30天、WorkYear=365天） |
+| [xtime955](./xtime955/) | 「955」标准工时模型时长常量：WorkDay=8h、WorkWeek=5天、WorkMonth=22天、WorkYear=250天 |
+| [xtime996](./xtime996/) | 「996」高强度工时模型时长常量：WorkDay=12h、WorkWeek=6天、WorkMonth=26天、WorkYear=307天 |

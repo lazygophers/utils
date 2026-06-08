@@ -1,0 +1,139 @@
+# language
+
+BCP 47 语言标签解析 + Accept-Language 协商 + goroutine-local 语言存储。
+导入路径：`github.com/lazygophers/utils/language`
+
+## 功能
+
+封装 `golang.org/x/text/language`，提供更轻量好用的语言标签处理能力：
+
+- **标签解析**：`Make` / `Parse` 从 BCP 47 字符串构建 `*Tag`，相同输入返回同一指针（intern 缓存，零重复分配）。
+- **元数据提取**：Base / Region / Script / Parent / FallbackChain，沿 BCP 47 继承链回退（`zh-CN → zh → und`）。
+- **RTL 判定**：`IsRTL` 覆盖 10 种已知从右到左书写语言（ar/he/fa/ur/ps/sd/ug/ku/dv/yi），非 CLDR 推导。
+- **HTTP 语言协商**：`ParseAcceptLanguage` 解析 Accept-Language 头并按 q 值降序返回；`Detect` / `DetectFromStrings` 在支持列表中选最佳匹配（内部缓存 Matcher）。
+- **goroutine-local 存储**：基于 `goid` 的协程级语言覆盖（`Set` / `Get` / `Del`）+ 全局默认（`SetDefault` / `Default`），i18n 等包据此实现请求级语言上下文。
+
+约束与设计取舍：
+
+- `*Tag` 是 intern 后的共享指针，可直接用 `==` 比较；不要依赖其内部字段。
+- 仅 `ParseAcceptLanguage` 产出的 Tag 带 `Weight`（q 值）；其余 Tag 的 `Weight()` 恒为 0，因为带权 Tag 不进 intern 缓存。
+- `Detect` 在 header 解析为空时回退到 `supported[0]`；supported 为空时返回 `(nil, -1)`。
+- 跨包公共 API 暴露语言时应优先用 stdlib 的 `xlanguage.Tag`（经由 `Tag.Tag()` 转换）；本包 `*Tag` 主要供内部及协商场景使用。
+
+## 快速开始
+
+```go
+import (
+	"github.com/lazygophers/utils/language"
+	xlanguage "golang.org/x/text/language"
+)
+
+// 解析与元数据
+tag := language.Make("zh-Hant-TW")
+_ = tag.Base()          // "zh"
+_ = tag.Script()        // "Hant"
+_ = tag.Region()        // "TW"
+_ = tag.FallbackChain() // [zh-Hant-TW, zh-Hant, und]
+
+// HTTP Accept-Language 协商
+supported := []*language.Tag{language.Make("en"), language.Make("zh-CN")}
+best, idx := language.Detect("zh-CN,zh;q=0.9,en;q=0.8", supported)
+_ = best // zh-CN
+_ = idx  // 1
+
+// 字符串便捷形态
+best2, _ := language.DetectFromStrings("ja;q=0.9, en;q=0.5", []string{"en", "ja"})
+_ = best2 // ja
+
+// 转回 stdlib Tag 配合标准库
+var xt xlanguage.Tag = tag.Tag()
+_ = xt
+
+// goroutine-local 语言（典型用于 i18n 请求上下文）
+language.SetDefault(language.Make("en")) // 全局默认
+language.Set(language.Make("zh-CN"))     // 当前 goroutine 覆盖
+_ = language.Get()                       // zh-CN
+language.Del()                           // 恢复为全局默认
+```
+
+## 核心类型 / 主要 API
+
+```go
+type Tag struct{ /* underlying xlanguage.Tag; weight float64 — 均为私有 */ }
+```
+
+构造与转换：
+
+```go
+func Make(s string) *Tag                  // 从 BCP 47 字符串构建，结果 intern + 缓存
+func Parse(s string) (*Tag, error)        // 同 Make 但解析失败返回 error
+func (t *Tag) Tag() xlanguage.Tag         // 转回 stdlib Tag
+func (t *Tag) String() string             // 规范 BCP 47 字符串
+```
+
+元数据与继承链：
+
+```go
+func (t *Tag) Base() string               // 基础语言码，如 "zh"
+func (t *Tag) Region() string             // 地区码，如 "CN"
+func (t *Tag) Script() string             // 文字码，如 "Hant"
+func (t *Tag) Weight() float64            // Accept-Language q 值；非 header Tag 恒为 0
+func (t *Tag) Parent() *Tag               // 继承链上一级，如 zh-CN → zh
+func (t *Tag) FallbackChain() []*Tag      // 自身到 und 的完整链，首元素为自身
+func (t *Tag) Match(target *Tag) bool     // 自身或任一祖先是否等于 target
+func (t *Tag) IsRTL() bool                // 是否从右到左书写
+```
+
+HTTP 协商：
+
+```go
+func ParseAcceptLanguage(header string) []*Tag                    // 按 q 降序，q=0/解析失败者剔除
+func Detect(header string, supported []*Tag) (*Tag, int)          // 返回最佳匹配 Tag 及其索引
+func DetectFromStrings(header string, supported []string) (*Tag, int) // 同上，支持列表为字符串
+```
+
+goroutine-local 与全局默认（store.go）：
+
+```go
+func SetDefault(tag *Tag)  // 设置全局默认（初始为 en）
+func Default() *Tag        // 读取全局默认
+func Set(tag *Tag)         // 设置当前 goroutine 语言
+func Get() *Tag            // 当前 goroutine 覆盖 > 全局默认
+func Del()                 // 清除当前 goroutine 覆盖
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `language.go` | `Tag` 类型、Make/Parse、元数据/继承链/Match/IsRTL、Accept-Language 解析与协商；tagCache / makeCache / matcherCache 三类 `sync.Map` 缓存 |
+| `store.go` | 全局默认 + 基于 `petermattis/goid` 的 goroutine-local 语言存储 |
+| `language_test.go` | 解析、继承链、Match、IsRTL、Accept-Language、Detect、HTTP 集成测试 |
+| `store_test.go` | 全局默认与 goroutine 隔离测试 |
+| `language_benchmark_test.go` | 性能基准 |
+
+## RTL 语言覆盖（IsRTL）
+
+| 码 | 语言 |
+| --- | --- |
+| ar | 阿拉伯语 |
+| he | 希伯来语 |
+| fa | 波斯语 |
+| ur | 乌尔都语 |
+| ps | 普什图语 |
+| sd | 信德语 |
+| ug | 维吾尔语 |
+| ku | 库尔德语 |
+| dv | 迪维希语 |
+| yi | 意第绪语 |
+
+## Accept-Language q 值处理（parseAcceptLanguage 内部规则）
+
+| 输入 | 结果 weight | 说明 |
+| --- | --- | --- |
+| 无 q 参数 | 1.0 | 默认权重 |
+| `q=0.8` | 0.8 | 正常区间 (0,1] |
+| `q=2.5` | 1.0 | 大于 1 钳制为 1.0 |
+| `q=abc` | 1.0 | 非法值按默认处理 |
+| `level=1` 等非 q 参数 | 1.0 | 非 q 指令，保留 |
+| `q=0` / 负值 | — | 剔除该 Tag |

@@ -1,0 +1,160 @@
+# anyx
+
+动态 `map[string]interface{}` 访问与类型转换工具，核心是带读写锁的 `MapAny` 容器与一组纯函数 `MapGet*`。导入路径 `github.com/lazygophers/utils/anyx`。
+
+## 功能
+
+把任意来源（JSON / YAML / struct / map）的无类型数据包装成 `*MapAny`，再按 key 取出确定类型的值（bool / 各宽度整型 / 浮点 / 字符串 / 字节 / 切片 / 子 map），转换失败返回零值而非 panic。
+
+适用场景：
+
+- 解析配置、API 响应等结构不固定的 JSON / YAML，按需取字段
+- 需要嵌套路径访问（如 `user.profile.name`，分隔符可自定义）
+- 需要数组索引访问（如 `data.items[0]`，仅纯函数 `MapGet*` 支持）
+- 并发读多写少：`MapAny` 内部用 `sync.RWMutex` 保护
+
+约束与设计取舍：
+
+- 取值型方法（`GetInt` / `GetString` 等）转换失败返回零值，不返回 error；需要区分「不存在」用 `Get`（返回 `ErrNotFound`）或 `Exists`
+- 嵌套路径默认关闭，须先 `EnableCut(seq)` 开启并指定分隔符；关闭时 key 按整串直接查 map
+- 纯函数 `MapGet` / `MapGetWithSep` 固定/可选分隔符，且原生支持 `[index]` 数组索引语法，与 `MapAny` 的 `EnableCut` 机制相互独立
+- 依赖 `candy` 做兜底类型转换、`utils/json` 做序列化、`go.uber.org/atomic`
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/anyx"
+)
+
+func main() {
+	// 从 JSON 构造
+	m, _ := anyx.NewMapWithJson([]byte(`{"name":"alice","age":30,"vip":true}`))
+
+	fmt.Println(m.GetString("name")) // alice
+	fmt.Println(m.GetInt("age"))     // 30
+	fmt.Println(m.GetBool("vip"))    // true
+	fmt.Println(m.GetInt("missing")) // 0（不存在返回零值）
+
+	// 嵌套路径：先开启 cut 并指定分隔符
+	nested, _ := anyx.NewMapWithJson([]byte(`{"user":{"profile":{"name":"bob"}}}`))
+	nested.EnableCut(".")
+	fmt.Println(nested.GetString("user.profile.name")) // bob
+
+	// 纯函数：原生支持数组索引
+	raw := map[string]any{"items": []any{"x", "y", "z"}}
+	v, _ := anyx.MapGetWithSep(raw, "items[1]", ".")
+	fmt.Println(v) // y
+}
+```
+
+## 核心类型
+
+```go
+// MapAny 是带 RWMutex 的动态 map 容器
+type MapAny struct { /* 私有字段：data / mu / cut / seq */ }
+
+// 哨兵错误
+var ErrNotFound = errors.New("not found")                 // Get 未命中
+var ErrInvalidIndex   = errors.New("invalid index")       // 纯函数路径解析
+var ErrTypeMismatch   = errors.New("type mismatch")
+var ErrOutOfRange     = errors.New("index out of range")
+var ErrInvalidMapType = errors.New("invalid map type")
+var ErrInvalidSlice   = errors.New("invalid slice type")
+var ErrEmptyKey       = errors.New("empty key")
+```
+
+## 构造函数
+
+```go
+func NewMap(m map[string]interface{}) *MapAny           // 复制传入 map（nil 安全）
+func NewMapWithJson(s []byte) (*MapAny, error)          // JSON 反序列化，大数据预分配优化
+func NewMapWithYaml(s []byte) (*MapAny, error)          // YAML 反序列化（优化版）
+func NewMapWithAny(s interface{}) (*MapAny, error)      // struct/map/任意值，反射直转避免双序列化
+```
+
+## MapAny 方法
+
+控制与基础读写：
+
+```go
+func (p *MapAny) EnableCut(seq string) *MapAny          // 开启嵌套路径，seq 为分隔符，链式返回
+func (p *MapAny) DisableCut() *MapAny                   // 关闭嵌套路径
+func (p *MapAny) Set(key string, value interface{})
+func (p *MapAny) Get(key string) (interface{}, error)  // 未命中返回 ErrNotFound
+func (p *MapAny) Exists(key string) bool
+```
+
+类型化取值（未命中或不可转换返回零值）：
+
+```go
+func (p *MapAny) GetBool(key string) bool
+func (p *MapAny) GetInt(key string) int
+func (p *MapAny) GetInt32(key string) int32
+func (p *MapAny) GetInt64(key string) int64
+func (p *MapAny) GetUint16(key string) uint16
+func (p *MapAny) GetUint32(key string) uint32
+func (p *MapAny) GetUint64(key string) uint64
+func (p *MapAny) GetFloat64(key string) float64
+func (p *MapAny) GetString(key string) string
+func (p *MapAny) GetBytes(key string) []byte
+func (p *MapAny) GetMap(key string) *MapAny            // 始终返回非 nil（未命中为空 MapAny）
+```
+
+切片取值（未命中返回 nil，类型不符返回空切片）：
+
+```go
+func (p *MapAny) GetSlice(key string) []interface{}
+func (p *MapAny) GetStringSlice(key string) []string
+func (p *MapAny) GetUint32Slice(key string) []uint32
+func (p *MapAny) GetUint64Slice(key string) []uint64
+func (p *MapAny) GetInt64Slice(key string) []int64
+```
+
+导出与遍历：
+
+```go
+func (p *MapAny) ToSyncMap() *sync.Map
+func (p *MapAny) ToMap() map[string]interface{}        // float 若为整值会归一为 int32/int64
+func (p *MapAny) Clone() *MapAny                       // 浅拷贝数据 + 复制 cut/seq
+func (p *MapAny) Range(f func(key, value interface{}) bool)
+```
+
+## 纯函数 API（直接作用于 map[string]any）
+
+支持嵌套路径与 `[index]` 数组索引；`.` 分隔符走零分配优化路径。
+
+```go
+func MapGet(m map[string]any, key string) (any, error)                       // 分隔符固定 "."
+func MapGetIgnore(m map[string]any, key string) (value any)                  // 忽略错误，简单键快速路径
+func MapGetMust(m map[string]any, key string) any                           // 出错 log.Panicf
+func MapGetWithSep(m map[string]any, key string, sep string) (any, error)    // 自定义分隔符
+func MapExists(m map[string]any, key string) bool                            // 分隔符固定 "."
+func MapExistsWithSep(m map[string]any, key string, sep string) bool
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `map_any.go` | 核心：`MapAny` 类型、构造函数、全部取值方法、纯函数 `MapGet*` / `MapExists*`、内部路径导航 |
+| `map_any_compat.go` | `mapGetWithSeparatorOptimized` — `.` 分隔符的零分配优化实现（供 `MapGet` 等调用） |
+| `map_any_yaml_optimized.go` | `newMapWithYamlOptimized` + `convertYamlNode` — YAML 解析优化（`NewMapWithYaml` 底层） |
+| `map_any_navigatetovalue_optimized.go` | 路径导航优化版本（V1-V4 实验实现，含 `TestNavigateToValueOptimized*` 测试导出函数） |
+| `map_any_original.go` | `GetUint16Original` 等基准对照用的旧实现 |
+| `bench_helper.go` | `getNested` / `strconvParseUint` — 基准测试辅助 |
+| `map_any_test.go` / `*_test.go` | 单元测试与基准测试 |
+
+## 实现说明
+
+| 内部机制 | 说明 |
+| --- | --- |
+| `cut` (uint32 原子标志) | `EnableCut`/`DisableCut` 切换；为 0 时取值走单键快速路径（直接查 map） |
+| `seq` (atomic.Value) | 存嵌套分隔符字符串；`cut=1` 时按它 `strings.Split` 拆 key 逐层下钻 |
+| 类型断言展开 | `GetInt64` / `GetUint64` 等按类型热度排序内联 switch，热路径零分配 |
+
+`GetSlice_Opt2/3/6/10/11/12_*`、`TestNavigateToValue*`、`GetUint16Original` 等为基准/测试专用的实验变体，导出仅为跨文件测试可见，非稳定公共 API，业务代码应使用上文列出的标准方法。

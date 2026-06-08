@@ -1,0 +1,90 @@
+# singledo
+
+带 TTL 缓存的单飞（singleflight）执行器，合并并发重复调用并在等待期内复用结果。导入路径 `github.com/lazygophers/utils/singledo`。
+
+## 功能
+
+- **单飞合并（singleflight）**：同一时刻多个 goroutine 调用 `Do`，只有第一个真正执行 `fn`，其余阻塞等待并共享同一结果，避免缓存击穿 / 重复回源。
+- **TTL 缓存**：`fn` 成功后在 `wait` 时长内，后续 `Do` 直接返回上次缓存结果，不再执行 `fn`。
+- **失败不缓存**：`fn` 返回 error 时不写缓存、不更新时间戳，下一次 `Do` 会重新执行（参见 `Reset` / 过期语义）。
+- **分组维度**：`Group` 以 `string` key 维度持有独立的 `Single`，不同 key 互不影响，相同 key 共享单飞 + 缓存。
+- **泛型**：返回值类型 `T any`，无需类型断言。
+
+适用场景：热点配置 / token / 字典数据的并发拉取去重，限频回源，短时结果缓存。
+
+约束：
+- 只缓存成功结果；error 不进入缓存。
+- 缓存是单值（最近一次成功值），非按参数分桶；按 key 区分需用 `Group`。
+- 当前实现源文件未提供 `context` 相关方法（无 `DoCtx`）。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/lazygophers/utils/singledo"
+)
+
+func main() {
+	// 单例：2 秒内复用上次成功结果
+	s := singledo.NewSingle[string](2 * time.Second)
+	v, err := s.Do(func() (string, error) {
+		return loadConfig() // 并发调用只会执行一次
+	})
+	fmt.Println(v, err)
+
+	// 分组：按 key 各自单飞 + 缓存
+	g := singledo.NewSingleGroup[[]byte](time.Minute)
+	data, err := g.Do("user:42", func() ([]byte, error) {
+		return fetchUser(42)
+	})
+	fmt.Println(len(data), err)
+
+	// 手动失效缓存，下次 Do 强制重新执行
+	s.Reset()
+}
+
+func loadConfig() (string, error) { return "ok", nil }
+func fetchUser(id int) ([]byte, error) { return []byte("u"), nil }
+```
+
+## 核心类型
+
+```go
+// Single 单实例单飞 + TTL 缓存，T 为返回值类型。
+type Single[T any] struct { /* 私有字段：mux/last/wait/call/result */ }
+
+// Group 按 string key 管理多个 Single。
+type Group[T any] struct { /* 私有字段：wait/mux/singleMap */ }
+```
+
+## 主要 API
+
+| 签名 | 说明 |
+| --- | --- |
+| `func NewSingle[T any](wait time.Duration) *Single[T]` | 创建 `Single`，`wait` 为成功结果缓存时长。 |
+| `func (s *Single[T]) Do(fn func() (T, error)) (v T, err error)` | 单飞执行 `fn`：缓存命中返回旧值；有飞行中调用则等待并共享其结果；否则执行 `fn`，成功后写缓存。 |
+| `func (s *Single[T]) Reset()` | 清零内部时间戳使缓存立即失效，下次 `Do` 重新执行 `fn`。 |
+| `func NewSingleGroup[T any](wait time.Duration) *Group[T]` | 创建 `Group`，每个 key 派生的 `Single` 共用此 `wait`。 |
+| `func (p *Group[T]) Do(key string, fn func() (T, error)) (v T, err error)` | 取（或惰性创建）`key` 对应的 `Single` 并执行其 `Do`。 |
+
+行为细节（来自实现）：
+- `Do` 命中缓存的判定：`now.Before(last + wait)` 为真时直接返回缓存的 `result`，`err` 恒为 `nil`。
+- 飞行中合并：存在未完成的 `call` 时，后续调用 `wg.Wait()` 阻塞，返回该 `call` 的 `val/err`。
+- 成功才写缓存：`fn` 返回 `err == nil` 时更新 `last`/`result` 并清空 `call`；`err != nil` 时保留 `call`（下次调用会复用其错误结果直到状态改变）。
+- `Group.getOrAddSingle`（私有）用读写锁 + 双检锁惰性创建并复用同一 `Single` 实例。
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `singledo.go` | `Single[T]` 单飞 + TTL 缓存核心实现：`Do` / `Reset` / `NewSingle` 及私有 `call[T]`。 |
+| `group.go` | `Group[T]` 按 key 分组管理 `Single`：`Do` / `NewSingleGroup` 及私有 `getOrAddSingle`。 |
+| `singledo_test.go` | `Single` / `Group` 单元测试与基准（含并发、缓存过期、错误、双检锁竞态用例）。 |
+| `group_test.go` | 基于 testify 的单飞 / 缓存 / 分组行为测试。 |
+</content>
+</invoke>

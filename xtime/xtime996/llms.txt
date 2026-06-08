@@ -1,0 +1,90 @@
+# xtime996
+
+996 工作制时间常量包：以"早 9 晚 9、每周 6 天"为模型，定义工作日/工作周/工作月/工作季/工作年的 `time.Duration` 常量。导入路径 `github.com/lazygophers/utils/xtime/xtime996`。
+
+## 功能
+
+该包只包含一组 `time.Duration` 常量，不含任何函数或类型。它在标准库 `time` 的基础时间单位之上，按 996 工作制（每天工作 12 小时，每周工作 6 天）的口径，给出工作时长与休息时长的派生常量。
+
+适用场景：
+
+- 排班 / 工时统计：以 996 口径换算"一个工作月/工作年到底是多少时长"。
+- 与标准库混用：基础单位（`Nanosecond`~`Hour`、`Day`、`Week`）直接复用 `time` 包同名值，可与 `time.Duration` 无缝运算。
+- 对照参考：与同级 `xtime955`、`xtime007` 等不同作息制度包结构对称，便于横向比较。
+
+约束：
+
+- 月按 30 天、季度按 91 天、年按 365 天的固定口径计算，不考虑闰年与实际月份天数差异。
+- `WorkDay` 与 `RestDay` 各占 12 小时，即一天对半分（9am–9pm 工作）。
+- 所有标识符均为编译期常量，零运行时开销。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/lazygophers/utils/xtime/xtime996"
+)
+
+func main() {
+	// 一个工作日 = 12 小时
+	fmt.Println(xtime996.WorkDay) // 12h0m0s
+
+	// 一个工作周 = 6 个工作日 = 72 小时
+	fmt.Println(xtime996.WorkWeek) // 72h0m0s
+
+	// 与标准库 time 直接运算
+	deadline := time.Now().Add(xtime996.WorkMonth)
+	fmt.Println("工作月后到期:", deadline)
+
+	// 工作年时长换算为天
+	fmt.Printf("工作年约 %.0f 天\n", xtime996.WorkYear.Hours()/24) // 336 天
+}
+```
+
+## 核心类型 / 主要 API
+
+本包无导出类型与函数，仅导出常量（均为 `time.Duration`）。
+
+### 基础时间单位
+
+| 常量 | 定义 | 值 |
+| --- | --- | --- |
+| `Nanosecond` | `time.Nanosecond` | 1ns |
+| `Microsecond` | `time.Microsecond` | 1µs |
+| `Millisecond` | `time.Millisecond` | 1ms |
+| `Second` | `time.Second` | 1s |
+| `Minute` | `time.Minute` | 1m |
+| `HalfHour` | `time.Minute * 30` | 30m |
+| `Hour` | `time.Hour` | 1h |
+| `Day` | `time.Hour * 24` | 24h |
+
+### 996 工作制派生常量
+
+| 常量 | 定义 | 含义 |
+| --- | --- | --- |
+| `WorkDay` | `time.Hour * 12` | 工作日时长（12 小时） |
+| `RestDay` | `Day - WorkDay` | 休息日时长（12 小时） |
+| `Week` | `Day * 7` | 一周（7 天） |
+| `WorkWeek` | `WorkDay * 6` | 工作周（6 个工作日 = 72 小时） |
+| `RestWeek` | `Week - WorkWeek` | 休息周（剩余时长） |
+| `Month` | `Day * 30` | 一月（30 天） |
+| `RestMonth` | `RestDay * 4` | 休息月（4 个休息日） |
+| `WorkMonth` | `Day*30 - RestMonth` | 工作月（30 天扣 4 休息日） |
+| `Quarter` | `Day * 91` | 一季度（91 天） |
+| `RestQuarter` | `RestDay * 14` | 休息季度（14 个休息日） |
+| `WorkQuarter` | `Day*91 - RestQuarter` | 工作季度（91 天扣 14 休息日） |
+| `Year` | `Day * 365` | 一年（365 天） |
+| `RestYear` | `RestDay * 58` | 休息年（58 个休息日） |
+| `WorkYear` | `Year - RestYear` | 工作年（365 天扣 58 个 12h 休息日 ≈ 336 天） |
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `xtime.go` | 定义全部 996 工作制时间常量（基础单位 + 工作/休息派生量） |
+| `xtime_test.go` | 验证各常量取值及其相互换算关系的单元测试 |

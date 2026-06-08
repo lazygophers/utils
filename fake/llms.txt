@@ -1,0 +1,182 @@
+# fake
+
+按 ISO 3166-1 国家/地区生成本地化假数据（姓名、身份证号、联系方式、地址、网络标识）+ 一批与地区无关的通用辅助（UUID、IP、Lorem 文本、时间、颜色、文件）。
+
+导入路径：`github.com/lazygophers/utils/fake`
+
+## 功能
+
+- **双形态 API**：
+  - 显式实例：`New(c *country.Country, ...Option)` 返回绑定国家的 `*Faker`，所有生成方法挂在它上面。
+  - 全局函数：`fake.Name()` / `fake.Email()` 等，从 goroutine-local 语言状态（`utils/language` 包）推断国家，复用按国缓存的默认 `Faker`。
+- **强耦合 `country.Code`**：必须用 `country.China` 这类常量或 `country.Get(code)` 拿到 `*country.Country` 再构造；`New(nil)` 会 panic。
+- **locale 回退**：某国未注册或缺数据时回退到美国 locale（`registry["US"]`），保证所有生成器始终产出结果。
+- **可复现**：底层用 `math/rand/v2`。`WithSeed` 装确定性源，同 seed + 同调用序列产出完全一致；不设种子时走包级全局源（goroutine-safe）。
+- **并发安全**：`WithSeed` / `WithRand` 构造的 Faker 内部用 mutex 保护 `*rand.Rand`；默认源本身 goroutine-safe。
+- **真数据 vs 骨架**：CN / US / JP 含真实数据（身份证含 GB 11643 校验、日本 My Number NTA 算法、美国 SSN 保留段排除）；其余国家为可用骨架（多走通用数字 ID / 回退池）。
+- **build tag 镜像约束**：`fake/<code>.go` 的 build tag 必须镜像 `country/<code>.go`。12 个常驻国（cn/de/fr/gb/hk/in/jp/kr/ru/sg/tw/us）无 tag 始终注册；其余 237 国走 `//go:build country_<xx> || country_all || country_<region>`。否则默认 build 下 `country.Get(code)` 返回 nil，触发 register panic。
+
+## 快速开始
+
+```go
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/country"
+	"github.com/lazygophers/utils/fake"
+)
+
+// 显式实例 + 可复现种子
+f := fake.New(country.China, fake.WithSeed(42), fake.WithGender(fake.GenderFemale))
+fmt.Println(f.Name())          // 姓名
+fmt.Println(f.IdCard())        // 身份证号（CN 含 GB 11643 校验位）
+fmt.Println(f.Phone())         // 手机号
+fmt.Println(f.FullAddress())   // 完整地址
+fmt.Println(f.UUIDv7(), f.IPv4(), f.HexColor())
+
+// 全局函数（按 goroutine-local 语言推断国家）
+fmt.Println(fake.Name(), fake.Email())
+
+// 泛型工具
+pick := fake.Pick(f, []string{"a", "b", "c"})
+sub := fake.Sample(f, []int{1, 2, 3, 4}, 2)
+```
+
+## 核心类型
+
+```go
+// 国家绑定生成器，方法并发安全。
+type Faker struct{ /* 私有字段 */ }
+
+func New(c *country.Country, opts ...Option) *Faker
+func (f *Faker) Country() *country.Country  // 构造时的国家
+func (f *Faker) Locale() *Locale            // 解析后的 locale（可能是回退 locale，可能为 nil）
+func (f *Faker) Lang() language.Tag         // 选数据池用的语言 tag
+func (f *Faker) DefaultGender() Gender      // 默认性别模式
+
+// 构造选项。
+type Option func(*Faker)
+func WithSeed(seed int64) Option       // 确定性随机源
+func WithRand(r *rand.Rand) Option     // 外部托管随机源（读取时加锁，可跨 Faker 共享）
+func WithGender(g Gender) Option       // 固定默认性别
+func WithLang(tag language.Tag) Option // 覆盖语言 tag（默认用国家官方语言）
+
+// 性别。
+type Gender uint8
+const (
+	GenderRandom Gender = iota // "random"
+	GenderMale                 // "male"
+	GenderFemale               // "female"
+)
+func (g Gender) Resolve(rng *rand.Rand) Gender
+func (g Gender) String() string
+
+// 单条城市样本。
+type CityEntry struct {
+	Name     string
+	Province string
+	Lat      float64
+	Lng      float64
+}
+
+// 国家级身份证生成函数签名。
+type IdCardGenFunc func(rng *rand.Rand, gender Gender, birth time.Time) string
+
+// 单国全部数据 + 辅助，registry 内一国一份。
+type Locale struct {
+	Country        *country.Country
+	OfficialLangs  []language.Tag
+	PhonePrefixes  []string                              // 手机前缀（不含区号）
+	LandlinePrefix []string                              // 固话区号/中继前缀
+	ZipFormat      string                                // 邮编形态模板
+	IdCardGen      IdCardGenFunc                         // nil = 不支持
+	Streets        map[language.Tag][]string             // 语言 → 街道模板池
+	Cities         map[language.Tag][]CityEntry          // 语言 → 城市池
+	FirstNames     map[language.Tag]map[Gender][]string  // 语言 → 性别 → 名池
+	LastNames      map[language.Tag][]string             // 语言 → 姓池
+	Domain         string                                // 国家 ccTLD（不含点）
+	UserAgents     []string
+}
+```
+
+注：公共 API 中 `language.Tag` 均为 `golang.org/x/text/language.Tag`（值类型）。
+
+## 主要 API
+
+### Faker 方法（按域分组）
+
+| 域 | 方法 |
+|----|------|
+| 姓名 | `Name()` `FirstName()` `FirstNameOf(g Gender)` `LastName()` `Username()` |
+| 身份 | `IdCard()` `IdCardOf(g Gender, birth time.Time)` `PassportNo()` |
+| 联系 | `CallingCode()` `Phone()` `Tel()` `Email()` |
+| 地址 | `City()` `CityEntry()` `Province()` `District()` `Street()` `StreetAddress()` `ZipCode()` `Latitude()` `Longitude()` `FullAddress()` |
+| 网络 | `UUIDv4()` `UUIDv7()` `IPv4()` `IPv6()` `Mac()` `Md5Hex()` `Sha1Hex()` `Sha256Hex()` |
+| 文本 | `Word()` `Words(n int)` `Sentence(wordCount int)` `Paragraph(sentenceCount int)` `ChineseWord()` `ChineseWords(n int)` `ChineseSentence(charCount int)` `ChineseParagraph(sentenceCount int)` |
+| 时间/数值 | `Date(min, max time.Time)` `Time()` `Birthday(minAge, maxAge int)` `IntRange(min, max int)` `Int64Range(min, max int64)` `Float64Range(min, max float64)` `Bool()` |
+| 杂项 | `HexColor()` `RgbColor()` `HslColor()` `FileName()` `FileExt()` `MimeType()` |
+
+### 泛型工具函数（非方法，接收 `*Faker`）
+
+```go
+func Pick[T any](f *Faker, s []T) T          // 随机取一个
+func Sample[T any](f *Faker, s []T, n int) []T // 不放回取 n 个
+func Shuffle[T any](f *Faker, s []T)          // 原地洗牌
+```
+
+### 全局函数
+
+`default.go` 为上述每个 `Faker` 方法导出同名全局函数（`fake.Name()` / `fake.Email()` / `fake.UUIDv7()` 等），内部 `defaultFaker(inferCountry())`。额外：
+
+```go
+func WithCountry(c *country.Country) *Faker // 取/建该国缓存的共享默认 Faker
+```
+
+`inferCountry()` 按 goroutine-local 语言 base 映射到国家，无命中回退 `US`。
+
+## 文件结构
+
+| 文件 | 职责 |
+|------|------|
+| `doc.go` | 包级文档占位（扩展 godoc / build tag 矩阵预留） |
+| `fake.go` | 包文档主体 + `Faker` 类型 + `New` 构造 + 访问器 |
+| `registry.go` | `Locale` / `CityEntry` / `IdCardGenFunc` 类型 + `registry` map + `register` / `lookupLocale` |
+| `option.go` | `Option` + `WithSeed` / `WithRand` / `WithGender` / `WithLang` |
+| `gender.go` | `Gender` 枚举 + `Resolve` / `String` |
+| `default.go` | 全局函数集 + `WithCountry` + `inferCountry` + 按国缓存默认 Faker |
+| `name.go` | 姓名生成（姓在前判定、ASCII 语言处理、用户名） |
+| `identity.go` | 身份证 / 护照号（通用数字 ID 回退） |
+| `contact.go` | 区号 / 手机 / 固话 / 邮箱 |
+| `address.go` | 城市 / 省 / 区 / 街道 / 邮编 / 经纬度 / 完整地址（含 CJK 处理） |
+| `network.go` | UUID v4/v7、IPv4/6、MAC、md5/sha1/sha256 hex |
+| `text.go` | Lorem 英文词句段 + 中文词句段 |
+| `time.go` | 日期 / 时间 / 生日 / 数值区间 / Bool + `Pick`/`Sample`/`Shuffle` 泛型工具 |
+| `misc.go` | 颜色（hex/rgb/hsl）、文件名 / 扩展名 / MIME |
+| `rand.go` | 内部随机源辅助（`intN` / `pickString` / `pick` / `shuffle`） |
+| `useragents.go` | `defaultUserAgents` 共享 UA 池 |
+| `<code>.go` | **按国数据文件，1 国 1 文件**（如 `cn.go` / `us.go` / `ad.go`），共 249 国。各文件 `init()` 调 `register(&Locale{...})`；build tag 镜像 `country/<code>.go`。CN/US/JP 含真数据，其余为骨架。 |
+| `*_test.go` / `*_benchmark_test.go` | 单元测试与基准 |
+
+## 国家数据约定
+
+每个 `<code>.go` 遵循同一模式：
+
+```go
+//go:build country_xx || country_all || country_<region>   // 12 常驻国无此行
+
+package fake
+
+func init() {
+	c := country.Get("XX")
+	register(&Locale{
+		Country:    c,
+		Domain:     "xx",
+		UserAgents: defaultUserAgents,
+		// 其余池有数据填充，无数据留空（生成时走回退）
+	})
+}
+```
+
+- **1 国 = 1 文件**，文件名为小写 alpha-2（如 `cn.go` `us.go`）。
+- `register` 按 `Country.Alpha2()`（大写）入 `registry`，重复注册 panic。
+- 常驻国（cn/de/fr/gb/hk/in/jp/kr/ru/sg/tw/us）无 build tag；其余 237 国走 `country_<xx>` / `country_all` / `country_<region>` 约束，与 `country` 包对齐。

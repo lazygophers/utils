@@ -1,0 +1,104 @@
+# osx
+
+操作系统 / 文件系统相关的小工具集合，对 `os` 与 `io/fs` 标准库做轻量封装。
+导入路径：`github.com/lazygophers/utils/osx`
+
+## 功能
+
+围绕「路径存在性判断」与「基础文件操作」提供布尔返回的便捷函数，省去重复的 `os.Stat` 错误处理样板。
+
+适用场景：
+
+- 判断路径是否存在、是文件还是目录（`Exist` / `IsDir` / `IsFile`）
+- 判断 `fs.FS`（如 `embed.FS`、`os.DirFS`）中某条目是否可打开（`FsHasFile`）
+- 覆盖式重命名：目标已存在时先删除再 rename（`RenameForce`）
+- 单文件复制，自动继承源文件权限位（`Copy`）
+
+约束与注意：
+
+- 所有「是否存在」类函数把 `os.Stat` 的任何错误（含权限不足）一律视为「不存在 / false」，不区分错误类型。
+- `Exists` 与 `Exist` 实现完全相同；`Exists` 已标记 `Deprecated`，新代码请用 `Exist`。
+- `FsHasFile` 用「能否 `Open`」判断存在性，目录在多数 `fs.FS` 实现下也能被打开，因此对目录路径同样返回 `true`。
+- `Copy` 仅复制普通文件内容，权限经 `Mode().Perm() & 0777` 净化（剥离 setuid/setgid/sticky），不递归目录、不保留时间戳。
+- `RenameForce` 覆盖目标时使用 `os.RemoveAll`，目标为非空目录也会被整体删除。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"embed"
+	"fmt"
+
+	"github.com/lazygophers/utils/osx"
+)
+
+//go:embed assets
+var assets embed.FS
+
+func main() {
+	// 路径判断
+	fmt.Println(osx.Exist("/etc/hosts")) // true
+	fmt.Println(osx.IsDir("/tmp"))       // true
+	fmt.Println(osx.IsFile("/etc/hosts")) // true
+
+	// fs.FS 内条目判断
+	fmt.Println(osx.FsHasFile(assets, "assets/logo.png"))
+
+	// 覆盖式重命名（目标存在则先删）
+	if err := osx.RenameForce("a.tmp", "a.txt"); err != nil {
+		panic(err)
+	}
+
+	// 复制文件（继承源权限）
+	if err := osx.Copy("a.txt", "b.txt"); err != nil {
+		panic(err)
+	}
+}
+```
+
+## 主要 API
+
+```go
+// Exists 判断路径是否存在。
+// Deprecated: 请改用 Exist，将在下个主版本移除。
+func Exists(path string) bool
+
+// Exist 判断路径是否存在（os.Stat 出错即视为不存在）。
+func Exist(path string) bool
+
+// IsDir 判断路径是否为目录（不存在或出错返回 false）。
+func IsDir(path string) bool
+
+// IsFile 判断路径是否为普通文件（不存在或出错返回 false）。
+func IsFile(path string) bool
+
+// FsHasFile 判断 fs.FS 中 path 能否被打开（目录通常也返回 true）。
+func FsHasFile(fs fs.FS, path string) bool
+
+// RenameForce 将 oldpath 重命名为 newpath；newpath 已存在时先 RemoveAll 再 rename。
+func RenameForce(oldpath, newpath string) (err error)
+
+// Copy 复制 src 文件到 dst，dst 权限继承自 src（经 Perm() & 0777 净化）。
+func Copy(src, dst string) error
+```
+
+## 文件结构
+
+| 文件           | 职责                                                         |
+| -------------- | ---------------------------------------------------------- |
+| `file.go`      | 全部公共 API：路径存在性判断 + 文件重命名 / 复制            |
+| `file_test.go` | 单元测试，覆盖各函数正常路径、边界与权限错误场景            |
+
+## API 对照表
+
+| 函数         | 输入                | 返回         | 出错行为                      |
+| ------------ | ------------------- | ------------ | ----------------------------- |
+| `Exist`      | `path string`       | `bool`       | Stat 出错 → false             |
+| `Exists`     | `path string`       | `bool`       | 同 `Exist`（已废弃）          |
+| `IsDir`      | `path string`       | `bool`       | 不存在 / 非目录 → false       |
+| `IsFile`     | `path string`       | `bool`       | 不存在 / 非普通文件 → false   |
+| `FsHasFile`  | `fs.FS, path`       | `bool`       | Open 出错 → false             |
+| `RenameForce`| `oldpath, newpath`  | `error`      | 删除 / rename 失败返回 error  |
+| `Copy`       | `src, dst`          | `error`      | 打开 / 写入失败返回 error     |

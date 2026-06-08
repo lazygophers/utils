@@ -1,0 +1,142 @@
+# slru
+
+Segmented LRU（分段 LRU）缓存实现，泛型、线程安全。导入路径 `github.com/lazygophers/utils/cache/slru`。
+
+## 功能
+
+SLRU 把缓存空间切成两段，缓解经典 LRU 对「一次性扫描」（scan）的脆弱性：
+
+- **probationary（试用段）**：所有首次写入的 key 先进入这里。
+- **protected（保护段）**：被再次访问（命中）的 key 从试用段晋升到这里，长期热点驻留于此。
+
+晋升与淘汰规则（基于源码）：
+
+- 新 key `Put` 进试用段；试用段满时先从其尾部淘汰最久未用项。
+- `Get` 命中试用段中的 key → 晋升到保护段头部；命中保护段 → 移到保护段头部。
+- 晋升时若保护段已满，先从保护段尾部淘汰一项。
+- `Peek` / `Contains` 只查不动位置，不触发晋升。
+
+默认段比例为试用段 20% / 保护段 80%（`capacity/5`，最小 1）；可用 `NewWithRatio` 自定义试用段占比。
+
+适用场景：读多写多、存在周期性批量扫描、希望热点数据不被一次性大批量访问冲刷的内存缓存。
+
+约束：
+
+- `capacity` 必须为正，否则 `New*` 返回 error。
+- `probationaryRatio` 取值 `[0,1]`，越界返回 error。
+- key 必须 `comparable`，value 任意类型（Go 泛型）。
+- 所有读写经 `sync.RWMutex` 保护，可并发使用。
+- 库内不引入 `context`，无依赖第三方包（仅标准库 `container/list`）。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/cache/slru"
+)
+
+func main() {
+	// 容量 100，默认 20%/80% 段比例
+	cache, err := slru.New[string, int](100)
+	if err != nil {
+		panic(err)
+	}
+
+	cache.Put("a", 1)            // 进入试用段
+	if v, ok := cache.Get("a"); ok { // 命中 → 晋升到保护段
+		fmt.Println(v)          // 1
+	}
+
+	cache.Peek("a")             // 只读，不改变位置
+	fmt.Println(cache.Contains("a")) // true
+	fmt.Println(cache.Len())         // 当前条目数
+
+	// 自定义试用段占比 30%
+	c2, _ := slru.NewWithRatio[int, string](50, 0.3)
+	c2.Put(1, "x")
+
+	// 带淘汰回调
+	c3, _ := slru.NewWithEvict[string, int](10, func(k string, v int) {
+		fmt.Printf("evicted %s=%d\n", k, v)
+	})
+	_ = c3
+
+	stats := cache.Stats()
+	fmt.Printf("%+v\n", stats)
+}
+```
+
+## 核心类型
+
+```go
+// 分段 LRU 缓存；K comparable，V any；并发安全
+type Cache[K comparable, V any] struct { /* 私有字段 */ }
+
+// 缓存统计快照
+type Stats struct {
+	Size                 int // 当前实际条目数
+	Capacity             int // 最大容量
+	ProbationarySize     int // 试用段当前条目数
+	ProtectedSize        int // 保护段当前条目数
+	ProbationaryCapacity int // 试用段容量
+	ProtectedCapacity    int // 保护段容量
+}
+```
+
+## 主要 API
+
+### 构造函数
+
+```go
+func New[K comparable, V any](capacity int) (*Cache[K, V], error)
+func NewWithRatio[K comparable, V any](capacity int, probationaryRatio float64) (*Cache[K, V], error)
+func NewWithEvict[K comparable, V any](capacity int, onEvict func(K, V)) (*Cache[K, V], error)
+```
+
+- `New`：默认试用段占 1/5（最小 1），其余为保护段。
+- `NewWithRatio`：`probationaryRatio` 决定试用段占比，`[0,1]`；`0` 表示无试用段，`1.0` 表示全部为试用段。
+- `NewWithEvict`：在 `New` 基础上注册淘汰回调，淘汰与 `Clear` 时触发（手动 `Remove` 不触发回调）。
+
+### 方法
+
+```go
+func (c *Cache[K, V]) Get(key K) (value V, ok bool)      // 命中并更新位置/晋升
+func (c *Cache[K, V]) Put(key K, value V) (evicted bool) // 新增或更新，返回是否发生淘汰
+func (c *Cache[K, V]) Remove(key K) (value V, ok bool)   // 删除，不触发淘汰回调
+func (c *Cache[K, V]) Contains(key K) bool               // 只查在否，不改位置
+func (c *Cache[K, V]) Peek(key K) (value V, ok bool)     // 只读值，不改位置
+func (c *Cache[K, V]) Len() int                          // 当前条目数
+func (c *Cache[K, V]) Cap() int                          // 容量
+func (c *Cache[K, V]) Clear()                            // 清空，对每项触发回调
+func (c *Cache[K, V]) Keys() []K                         // 保护段在前，试用段在后
+func (c *Cache[K, V]) Values() []V                       // 顺序同 Keys
+func (c *Cache[K, V]) Items() map[K]V                    // 全部键值对
+func (c *Cache[K, V]) Resize(capacity int) error         // 改容量并重算段大小、按需淘汰
+func (c *Cache[K, V]) Stats() Stats                      // 统计快照
+```
+
+行为要点：
+
+- `Put` 已存在的 key 视为更新值并触发晋升/移到段头，返回 `false`（不淘汰）。
+- `Resize` 缩容时优先从试用段淘汰，试用段空再淘汰保护段；新段大小同样按 `capacity/5` 规则重算。
+- `Keys` / `Values` / `Items` 均按「保护段优先，再试用段」顺序遍历。
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `slru.go` | `Cache` / `Stats` 类型、三个构造函数及全部公共方法、内部晋升与淘汰逻辑 |
+| `slru_test.go` | 单元测试 + 基准测试（`BenchmarkPut` / `BenchmarkGet` / `BenchmarkMixed`） |
+
+## 段比例速查
+
+| 构造方式 | 试用段容量 | 保护段容量 |
+| --- | --- | --- |
+| `New(cap)` | `cap/5`（最小 1） | `cap - 试用段` |
+| `NewWithRatio(cap, r)` | `int(cap*r)`（`r>0` 时最小 1） | `cap - 试用段` |
+| `NewWithRatio(cap, 0.0)` | `0` | `cap` |
+| `NewWithRatio(cap, 1.0)` | `cap` | `0` |

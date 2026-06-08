@@ -1,0 +1,107 @@
+# json
+
+高性能 JSON 编解码封装，按平台自动切换 sonic / 标准库，API 与 `encoding/json` 对齐。导入路径 `github.com/lazygophers/utils/json`。
+
+## 功能
+
+- **双后端按 build tag 自动切换**：`linux/amd64` 与 `darwin` 使用字节跳动 `sonic`（SIMD 加速）；其余平台回退到标准库 `encoding/json`。两套实现暴露完全一致的函数签名，调用方无需感知平台差异。
+- **统一签名**：`Marshal`/`Unmarshal`/`MarshalString`/`UnmarshalString`/`NewEncoder`/`NewDecoder` 在两个后端语义一致，可直接替换 `encoding/json` 的同名调用。
+- **字符串便捷形态**：`MarshalString` / `UnmarshalString` 直接以 `string` 收发，省去手动 `[]byte` 转换。
+- **文件读写**：`MarshalToFile` / `UnmarshalFromFile` 基于流式 `Encoder`/`Decoder` 直接对文件序列化与反序列化。
+- **Must 系列**：`MustMarshal` / `MustMarshalString` / `MustMarshalToFile` / `MustUnmarshalFromFile` 失败即 `panic`，契合本库 fail-fast 风格，省去内联错误判断。
+- **格式化**：`Indent` 透传标准库实现，对已有 JSON 字节做缩进美化。
+
+适用场景：作为项目内统一 JSON 入口，自动吃到 sonic 性能红利又保证跨平台可编译；配置/数据文件落盘与读取；内部断言式调用（Must）。
+
+约束：`NewEncoder` / `NewDecoder` 的返回类型随后端不同（sonic 下为 `sonic.Encoder`/`sonic.Decoder` 接口，标准库下为 `*json.Encoder`/`*json.Decoder`），跨平台代码应只依赖二者共有的 `Encode`/`Decode` 方法，不要绑定具体类型。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/json"
+)
+
+type User struct {
+	Name string `json:"name"`
+	Age  int    `json:"age"`
+}
+
+func main() {
+	u := User{Name: "alice", Age: 30}
+
+	// 序列化为字符串
+	s, err := json.MarshalString(u)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(s) // {"name":"alice","age":30}
+
+	// 反序列化
+	var got User
+	err = json.UnmarshalString(s, &got)
+	if err != nil {
+		panic(err)
+	}
+
+	// fail-fast 形态
+	buf := json.MustMarshal(got)
+	fmt.Println(string(buf))
+
+	// 落盘 / 读取
+	json.MustMarshalToFile("user.json", u)
+	var loaded User
+	json.MustUnmarshalFromFile("user.json", &loaded)
+}
+```
+
+## 主要 API
+
+```go
+func Marshal(v any) ([]byte, error)
+func Unmarshal(data []byte, v any) error
+func MarshalString(v any) (string, error)
+func UnmarshalString(data string, v any) error
+
+// 返回类型随后端而异：
+//   sonic 后端     -> sonic.Encoder / sonic.Decoder（接口）
+//   encoding/json  -> *json.Encoder / *json.Decoder
+func NewEncoder(w io.Writer) /* Encoder */
+func NewDecoder(r io.Reader) /* Decoder */
+
+// 文件读写
+func MarshalToFile(filename string, v any) error
+func UnmarshalFromFile(filename string, v any) error
+
+// Must 系列（失败 panic）
+func MustMarshal(v any) []byte
+func MustMarshalString(v any) string
+func MustMarshalToFile(filename string, v any)
+func MustUnmarshalFromFile(filename string, v any)
+
+// 格式化（透传 encoding/json）
+func Indent(dst *bytes.Buffer, src []byte, prefix, indent string) error
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `sonic.go` | `//go:build (linux && amd64) || darwin`：基于 `bytedance/sonic` 实现 `Marshal`/`Unmarshal`/`MarshalString`/`UnmarshalString`/`NewEncoder`/`NewDecoder` |
+| `json.go` | `//go:build !((linux && amd64) || darwin)`：基于标准库 `encoding/json` 的同名回退实现 |
+| `file.go` | 文件读写：`MarshalToFile`/`UnmarshalFromFile` 及对应 `Must*`，基于流式 `Encoder`/`Decoder` |
+| `must.go` | `MustMarshal` / `MustMarshalString`，序列化失败即 panic |
+| `other.go` | `Indent`，透传 `encoding/json.Indent` 做缩进美化 |
+| `json_test.go` | 单元测试 |
+
+## 后端切换矩阵
+
+| 平台 | 后端 | 生效文件 |
+| --- | --- | --- |
+| linux/amd64 | `bytedance/sonic` | `sonic.go` |
+| darwin（任意架构） | `bytedance/sonic` | `sonic.go` |
+| 其他（如 linux/arm64、windows） | `encoding/json` | `json.go` |

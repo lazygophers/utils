@@ -1,0 +1,59 @@
+# urlx
+
+URL 查询参数处理工具，导入路径 `github.com/lazygophers/utils/urlx`。
+
+## 功能
+
+`urlx` 提供对 `net/url.Values`（URL query 参数）的辅助处理，当前仅一个能力：
+
+- **按 key 字典序排序 query**：返回一个 key 已排序的新 `url.Values`，常用于生成稳定可复现的 query 字符串（如签名 / 缓存键 / 幂等比较）。
+
+约束与行为说明：
+
+- 排序基于 Go 标准库 `sort.Strings`，即**区分大小写**的字节序（大写字母排在小写字母之前，例如 `City` < `Name` < `age`）。
+- **只保留每个 key 的首个值**：内部使用 `query.Get(key)` + `nq.Set(key)`，多值参数（`?tags=a&tags=b`）会被压缩成首个值。若需保留多值，请勿使用本函数。
+- **不修改原始入参**：返回的是新分配的 `url.Values`，原 query 不受影响。
+- `nil` 入参原样返回 `nil`；空 query 原样返回（长度为 0）。
+- 零分配优化：预分配 key 切片与结果 map 容量。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/url"
+
+	"github.com/lazygophers/utils/urlx"
+)
+
+func main() {
+	q := url.Values{
+		"name": []string{"john"},
+		"age":  []string{"30"},
+		"city": []string{"beijing"},
+	}
+
+	sorted := urlx.SortQuery(q)
+
+	// Encode() 内部也按 key 排序输出，这里得到稳定结果：
+	fmt.Println(sorted.Encode()) // age=30&city=beijing&name=john
+}
+```
+
+## 主要 API
+
+```go
+// SortQuery 返回一个 key 按字典序排序的新 url.Values。
+// nil 入参返回 nil；空入参原样返回。每个 key 仅保留首个值。
+func SortQuery(query url.Values) url.Values
+```
+
+## 文件结构
+
+| 文件 | 职责 |
+| --- | --- |
+| `query.go` | `SortQuery` 实现（按 key 排序，零分配优化） |
+| `query_test.go` | 单元测试：排序正确性、多值压缩、原值不变、nil/空/特殊字符/大小写 |
+| `query_benchmark_test.go` | 基准测试：Small / Medium / Large / Empty 规模 |

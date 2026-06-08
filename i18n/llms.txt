@@ -1,0 +1,198 @@
+# i18n
+
+多语言翻译包：文本注册 + fallback 链查找 + `text/template` 插值 + json/yaml/toml 文件加载，语言走 goroutine-local 存储。
+导入路径：`github.com/lazygophers/utils/i18n`
+
+## 功能
+
+- **多语言容器**：`I18n` 按语言标签维护若干 `Pack`（单语言文本包），key→value 查表。
+- **fallback 链**：查 `tag` → `tag.base`（如 `zh-CN` → `zh`）→ `defaultLang` → `defaultLang.base`，全未命中返回 key 本身。
+- **模板插值**：value 含 `{{.Field}}` 等 `text/template` 语法时，传入 `args[0]` 渲染；预装一批字符串/切片/时间内置函数，可追加或覆盖。
+- **goroutine-local 语言**：`Localize` 用当前 goroutine 语言（复用 `utils/language` 包），无需显式传 tag；`SetLanguage`/`GetLanguage`/`DelLanguage` 管理绑定。
+- **多源加载**：单文件（磁盘 / `fs.FS`）、递归目录、约定 `localize` 子目录；格式由扩展名（json/yaml/yml/toml）决定，语言由文件名（`<lang>.<ext>`）推断或显式指定。
+- **嵌套扁平化**：嵌套 map 自动以 `.` 拼接成扁平 key（`a.b.c`）。
+- **可扩展解析器**：`RegisterLocalizer` 注册自定义扩展名解析器。
+- **包级默认实例**：`Default` + 一组同名包级函数，开箱即用。
+
+约束：公共 API 语言参数统一用 `golang.org/x/text/language.Tag`（stdlib 值类型）；`I18n`/`Pack` 内部加锁，并发安全；未识别扩展名在目录扫描时静默跳过，单文件加载时返回 `ErrLocalizerNotFound`。
+
+## 快速开始
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/lazygophers/utils/i18n"
+	"golang.org/x/text/language"
+)
+
+func main() {
+	p := i18n.New(i18n.WithDefaultLang(language.English))
+
+	p.Register(language.English, "hello", "Hello, {{.Name}}!")
+	p.Register(language.Chinese, "hello", "你好，{{.Name}}！")
+
+	// 嵌套批量注册，自动扁平化为 "menu.file"
+	p.RegisterBatch(language.English, map[string]any{
+		"menu": map[string]any{"file": "File", "edit": "Edit"},
+	})
+
+	type arg struct{ Name string }
+	fmt.Println(p.LocalizeWithLang(language.Chinese, "hello", arg{Name: "世界"})) // 你好，世界！
+	fmt.Println(p.LocalizeWithLang(language.English, "menu.file"))               // File
+
+	// goroutine-local 语言
+	i18n.SetLanguage(language.Chinese)
+	fmt.Println(p.Localize("hello", arg{Name: "甲"})) // 你好，甲！
+
+	// 从文件 / 目录加载（文件名 = <lang>.<ext>）
+	_ = p.LoadFile("locales/zh-CN.yaml")
+	_ = p.LoadDir("locales")
+}
+```
+
+## 核心类型
+
+```go
+// 多语言容器
+type I18n struct { /* 私有字段，并发安全 */ }
+
+// 单语言文本包
+type Pack struct { /* 私有字段，并发安全 */ }
+
+// 构造选项
+type Option func(*I18n)
+
+// 多格式反序列化抽象
+type Localizer interface {
+	Unmarshal(body []byte, v any) error
+}
+
+// 用函数适配 Localizer
+type LocalizerHandle struct { /* 私有字段 */ }
+
+// 扩展名无对应 Localizer 时返回
+var ErrLocalizerNotFound error
+
+// 包级默认实例
+var Default *I18n
+```
+
+## 主要 API
+
+### 构造与选项
+
+```go
+func New(opts ...Option) *I18n
+func WithDefaultLang(tag language.Tag) Option
+func WithTemplateFuncs(funcs template.FuncMap) Option
+```
+
+### I18n 方法
+
+```go
+func (p *I18n) AddTemplateFunc(name string, fn any) *I18n   // 链式
+func (p *I18n) SetDefaultLang(tag language.Tag) *I18n       // 链式
+func (p *I18n) DefaultLang() language.Tag
+
+func (p *I18n) Register(tag language.Tag, key, value string)
+func (p *I18n) RegisterBatch(tag language.Tag, data map[string]any)
+
+func (p *I18n) Localize(key string, args ...any) string                       // goroutine-local 语言
+func (p *I18n) LocalizeWithLang(tag language.Tag, key string, args ...any) string
+
+func (p *I18n) LoadLocalizes(fsys fs.FS) error                  // 扫 "localize" 子目录
+func (p *I18n) LoadLocalizesWithFs(dir string, fsys fs.FS) error
+func (p *I18n) LoadFile(path string) error                      // lang 从文件名推断
+func (p *I18n) LoadFileWithLang(tag language.Tag, path string) error
+func (p *I18n) LoadFs(fsys fs.FS, path string) error
+func (p *I18n) LoadFsWithLang(tag language.Tag, fsys fs.FS, path string) error
+func (p *I18n) LoadDir(root string) error                       // 递归磁盘目录
+func (p *I18n) LoadFsDir(fsys fs.FS, root string) error         // 递归 fs.FS 子树
+```
+
+### Pack 方法
+
+```go
+func NewPack(tag language.Tag) *Pack
+func (p *Pack) Tag() language.Tag
+func (p *Pack) Register(key, value string)
+func (p *Pack) RegisterBatch(data map[string]any)   // 嵌套自动扁平化
+func (p *Pack) Get(key string) (string, bool)
+func (p *Pack) All() iter.Seq2[string, string]      // 快照副本，遍历时可安全 Register
+```
+
+### Localizer 注册
+
+```go
+func NewLocalizerHandle(unmarshal func([]byte, any) error) *LocalizerHandle
+func (h *LocalizerHandle) Unmarshal(body []byte, v any) error
+func RegisterLocalizer(ext string, l Localizer)     // "json" 或 ".json" 均可
+func GetLocalizer(ext string) (Localizer, bool)
+```
+
+### 包级函数（作用于 Default）
+
+```go
+func Register(tag language.Tag, key, value string)
+func RegisterBatch(tag language.Tag, data map[string]any)
+func Localize(key string, args ...any) string
+func LocalizeWithLang(tag language.Tag, key string, args ...any) string
+func LoadLocalizes(fsys fs.FS) error
+func LoadFile(path string) error
+func LoadFs(fsys fs.FS, path string) error
+func LoadDir(root string) error
+func LoadFsDir(fsys fs.FS, root string) error
+
+// goroutine-local 语言绑定（复用 utils/language）
+func SetLanguage(tag language.Tag)
+func GetLanguage() language.Tag
+func DelLanguage()
+```
+
+## fallback 链
+
+`LocalizeWithLang(tag, key)` 按以下顺序查找，命中即返回；全不命中返回 `key` 原值：
+
+| 顺序 | 查找目标             | 示例（tag=zh-CN, default=en） |
+| ---- | -------------------- | ----------------------------- |
+| 1    | `tag`                | zh-CN                         |
+| 2    | `tag` 的主语言       | zh                            |
+| 3    | `defaultLang`        | en                            |
+| 4    | `defaultLang` 主语言 | en（无 `-` 则跳过）           |
+
+> packMap key 经 `strings.ToLower(tag.String())` 规范化；主语言截取 `tag.String()` 第一个 `-` 之前部分。
+
+## 内置模板函数
+
+`New` 默认装载，`WithTemplateFuncs` / `AddTemplateFunc` 可追加或覆盖同名项。
+
+| 分类         | 函数名                                                                                            | 来源              |
+| ------------ | ------------------------------------------------------------------------------------------------- | ----------------- |
+| 命名风格转换 | `ToCamel` `ToSmallCamel` `ToSnake` `ToKebab` `ToSlash` `ToDot`                                     | `utils/stringx`   |
+| 字符串       | `ToLower` `ToUpper` `ToTitle` `TrimPrefix` `TrimSuffix` `TrimSpace` `HasPrefix` `HasSuffix` `Contains` `Replace` `Split` `Join` | `strings`         |
+| 泛型切片     | `UniqueString` `SortString` `ReverseString` `FirstString` `LastString` `ContainsString`           | `utils/candy`     |
+| 时间         | `TimeFormat(t, layout)` `TimeFormatUnix(sec, layout)`                                              | `time`            |
+
+> `Replace` 映射到 `strings.ReplaceAll`；切片类函数均针对 `[]string`。
+
+## 支持的文件格式
+
+| 扩展名         | 解析器                  |
+| -------------- | ----------------------- |
+| `json`         | `utils/json`            |
+| `yaml` / `yml` | `gopkg.in/yaml.v3`      |
+| `toml`         | `pelletier/go-toml/v2`  |
+
+> 通过 `RegisterLocalizer` 可追加自定义扩展名解析器。
+
+## 文件结构
+
+| 文件                 | 职责                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| `i18n.go`            | `I18n` 容器、Option、fallback 查找、模板插值、各类加载入口、`Default` 实例与包级函数        |
+| `pack.go`            | `Pack` 单语言文本包：注册 / 查询 / 迭代 / 嵌套 map 扁平化 / 标量转字符串                    |
+| `localizer.go`       | `Localizer` 接口、`LocalizerHandle`、json/yaml/toml 内置注册、`RegisterLocalizer`/`GetLocalizer` |
+| `template_funcs.go`  | `builtinTemplateFuncs` 内置模板函数表                                                       |
