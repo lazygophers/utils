@@ -71,6 +71,59 @@ func loadData() (string, error) {
 
 ---
 
+## 🤖 LLM-Ready Documentation (llms.txt)
+
+Every package ships an [`llms.txt`](llms.txt) — a concise, machine-readable manifest describing the package's API, usage, and file structure. AI coding agents and LLMs can read these files to instantly understand any module without scanning the entire codebase.
+
+### Remote Access
+
+```
+https://raw.githubusercontent.com/lazygophers/utils/master/llms.txt          # root index
+https://raw.githubusercontent.com/lazygophers/utils/master/<package>/llms.txt # per-package
+```
+
+The root [`llms.txt`](llms.txt) contains a complete sub-directory index linking to all 47 package-level files. Start there, then drill into specific packages as needed.
+
+### Available Packages
+
+| Package | llms.txt |
+|---------|----------|
+| **root** | [llms.txt](llms.txt) |
+| [anyx](anyx/) | [llms.txt](anyx/llms.txt) |
+| [app](app/) | [llms.txt](app/llms.txt) |
+| [atexit](atexit/) | [llms.txt](atexit/llms.txt) |
+| [bufiox](bufiox/) | [llms.txt](bufiox/llms.txt) |
+| [cache](cache/) | [llms.txt](cache/llms.txt) |
+| [candy](candy/) | [llms.txt](candy/llms.txt) |
+| [config](config/) | [llms.txt](config/llms.txt) |
+| [country](country/) | [llms.txt](country/llms.txt) |
+| [cryptox](cryptox/) | [llms.txt](cryptox/llms.txt) |
+| [currency](currency/) | [llms.txt](currency/llms.txt) |
+| [defaults](defaults/) | [llms.txt](defaults/llms.txt) |
+| [event](event/) | [llms.txt](event/llms.txt) |
+| [fake](fake/) | [llms.txt](fake/llms.txt) |
+| [human](human/) | [llms.txt](human/llms.txt) |
+| [hystrix](hystrix/) | [llms.txt](hystrix/llms.txt) |
+| [i18n](i18n/) | [llms.txt](i18n/llms.txt) |
+| [json](json/) | [llms.txt](json/llms.txt) |
+| [language](language/) | [llms.txt](language/llms.txt) |
+| [network](network/) | [llms.txt](network/llms.txt) |
+| [osx](osx/) | [llms.txt](osx/llms.txt) |
+| [pgp](pgp/) | [llms.txt](pgp/llms.txt) |
+| [pyroscope](pyroscope/) | [llms.txt](pyroscope/llms.txt) |
+| [randx](randx/) | [llms.txt](randx/llms.txt) |
+| [routine](routine/) | [llms.txt](routine/llms.txt) |
+| [runtime](runtime/) | [llms.txt](runtime/llms.txt) |
+| [singledo](singledo/) | [llms.txt](singledo/llms.txt) |
+| [stringx](stringx/) | [llms.txt](stringx/llms.txt) |
+| [urlx](urlx/) | [llms.txt](urlx/llms.txt) |
+| [validator](validator/) | [llms.txt](validator/llms.txt) |
+| [wait](wait/) | [llms.txt](wait/llms.txt) |
+| [xerror](xerror/) | [llms.txt](xerror/llms.txt) |
+| [xtime](xtime/) | [llms.txt](xtime/llms.txt) |
+
+---
+
 ## 📦 Module Overview
 
 ### 🔧 Core Utilities
