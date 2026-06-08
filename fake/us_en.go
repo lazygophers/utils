@@ -17,6 +17,20 @@ func init() {
 	}
 	localeUS.Cities[langEn] = englishCities
 	localeUS.Streets[langEn] = englishStreets
+	localeUS.BrowserBias = englishBrowserBias
+}
+
+// englishBrowserBias overrides the global browser market share for the United
+// States locale. Reflects the iOS / macOS heavy mix that pushes Safari well
+// above the global average while Samsung Browser stays minor outside
+// Galaxy-dominant markets.
+var englishBrowserBias = map[Browser]int{
+	BrowserChrome:  60,
+	BrowserSafari:  25,
+	BrowserEdge:    8,
+	BrowserFirefox: 4,
+	BrowserOpera:   1,
+	BrowserSamsung: 2,
 }
 
 // englishLastNames is a curated pool of common surnames in the United States

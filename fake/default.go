@@ -238,3 +238,52 @@ func FileExt() string { return defaultFaker(inferCountry()).FileExt() }
 
 // MimeType returns [Faker.MimeType] from the goroutine's default faker.
 func MimeType() string { return defaultFaker(inferCountry()).MimeType() }
+
+// =================================
+// User-Agent
+// =================================
+
+// UserAgent returns [Faker.UserAgent] from the goroutine's default faker.
+func UserAgent() string { return defaultFaker(inferCountry()).UserAgent() }
+
+// BrowserUA returns [Faker.BrowserUA] from the goroutine's default faker.
+func BrowserUA() string { return defaultFaker(inferCountry()).BrowserUA() }
+
+// BrowserUAOf returns [Faker.BrowserUAOf] from the goroutine's default faker.
+func BrowserUAOf(os OS, br Browser) string {
+	return defaultFaker(inferCountry()).BrowserUAOf(os, br)
+}
+
+// DesktopUA returns [Faker.DesktopUA] from the goroutine's default faker.
+func DesktopUA() string { return defaultFaker(inferCountry()).DesktopUA() }
+
+// MobileUA returns [Faker.MobileUA] from the goroutine's default faker.
+func MobileUA() string { return defaultFaker(inferCountry()).MobileUA() }
+
+// AppUA returns [Faker.AppUA] from the goroutine's default faker.
+func AppUA() string { return defaultFaker(inferCountry()).AppUA() }
+
+// CLIUA returns [Faker.CLIUA] from the goroutine's default faker.
+func CLIUA() string { return defaultFaker(inferCountry()).CLIUA() }
+
+// ProxyUA returns [Faker.ProxyUA] from the goroutine's default faker.
+func ProxyUA() string { return defaultFaker(inferCountry()).ProxyUA() }
+
+// =================================
+// HTTP Header
+// =================================
+
+// Accept returns [Faker.Accept] from the goroutine's default faker.
+func Accept() string { return defaultFaker(inferCountry()).Accept() }
+
+// AcceptLanguage returns [Faker.AcceptLanguage] from the goroutine's default faker.
+func AcceptLanguage() string { return defaultFaker(inferCountry()).AcceptLanguage() }
+
+// AcceptEncoding returns [Faker.AcceptEncoding] from the goroutine's default faker.
+func AcceptEncoding() string { return defaultFaker(inferCountry()).AcceptEncoding() }
+
+// Referer returns [Faker.Referer] from the goroutine's default faker.
+func Referer() string { return defaultFaker(inferCountry()).Referer() }
+
+// Header returns [Faker.Header] from the goroutine's default faker.
+func Header() map[string]string { return defaultFaker(inferCountry()).Header() }

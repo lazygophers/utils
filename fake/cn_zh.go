@@ -16,6 +16,35 @@ func init() {
 	}
 	localeCN.Cities[langZh] = chineseCities
 	localeCN.Streets[langZh] = chineseStreets
+	localeCN.BrowserBias = chineseBrowserBias
+	localeCN.AppBias = chineseAppBias
+}
+
+// chineseBrowserBias overrides the global browser market share for the China
+// (CN) locale. Reflects mainland China traffic patterns where Chrome dominates
+// while Firefox / Opera remain marginal and Samsung mid-range devices retain
+// noticeable share.
+var chineseBrowserBias = map[Browser]int{
+	BrowserChrome:  60,
+	BrowserEdge:    8,
+	BrowserSafari:  18,
+	BrowserFirefox: 2,
+	BrowserOpera:   2,
+	BrowserSamsung: 10,
+}
+
+// chineseAppBias seeds the in-app browser preference for CN locale traffic.
+// Duplicated entries act as simple multiplicative weights consumed by callers
+// that pick from this list (e.g. a future locale-aware AppUA selector).
+var chineseAppBias = []string{
+	"wechat-android", "wechat-android", "wechat-android",
+	"wechat-ios", "wechat-ios",
+	"qq-android", "qq-android",
+	"qq-ios",
+	"alipay-android",
+	"alipay-ios",
+	"douyin-android", "douyin-android",
+	"weibo-ios",
 }
 
 // chineseLastNames is the pool of common Han single-character family names

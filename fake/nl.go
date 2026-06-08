@@ -22,6 +22,5 @@ func init() {
 		FirstNames:     map[xlanguage.Tag]map[Gender][]string{},
 		LastNames:      map[xlanguage.Tag][]string{},
 		Domain:         "nl",
-		UserAgents:     defaultUserAgents,
 	})
 }

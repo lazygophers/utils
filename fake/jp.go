@@ -57,7 +57,6 @@ var localeJP = &Locale{
 	FirstNames:     map[xlanguage.Tag]map[Gender][]string{},
 	LastNames:      map[xlanguage.Tag][]string{},
 	Domain:         "jp",
-	UserAgents:     defaultUserAgents,
 }
 
 func init() { register(localeJP) }

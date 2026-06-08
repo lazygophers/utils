@@ -47,8 +47,15 @@ type Locale struct {
 	LastNames map[xlanguage.Tag][]string
 	// Domain is the country code top-level domain (without the leading dot).
 	Domain string
-	// UserAgents holds sample user-agent strings biased to the locale.
-	UserAgents []string
+	// BrowserBias overrides global browser market share at the country level.
+	// Empty map means fall back to the package-wide share table. Keys are the
+	// [Browser] enum defined in useragents.go.
+	BrowserBias map[Browser]int
+	// AppBias overrides the global app user-agent pool at the country level.
+	// Each entry is a template key string (e.g. "wechat-android",
+	// "wechat-ios", "qq-android", "alipay", "douyin", "uc", "quark",
+	// "weibo"). Empty slice means use the global pool with uniform weights.
+	AppBias []string
 }
 
 // registry stores all registered locales keyed by the country alpha-2 code

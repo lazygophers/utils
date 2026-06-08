@@ -44,7 +44,6 @@ var localeUS = &Locale{
 	FirstNames:     map[xlanguage.Tag]map[Gender][]string{},
 	LastNames:      map[xlanguage.Tag][]string{},
 	Domain:         "us",
-	UserAgents:     defaultUserAgents,
 }
 
 func init() {
