@@ -66,3 +66,11 @@ func shuffle[T any](rng *rand.Rand, s []T) {
 	}
 	rng.Shuffle(len(s), func(i, j int) { s[i], s[j] = s[j], s[i] })
 }
+
+// pickInt returns a uniformly chosen element from s. Returns zero when s is empty.
+func (f *Faker) pickInt(s []int) int {
+	if len(s) == 0 {
+		return 0
+	}
+	return s[f.intN(len(s))]
+}

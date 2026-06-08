@@ -1,7 +1,5 @@
 package fake
 
-import "math/rand/v2"
-
 // UAKind enumerates the high-level category of a User-Agent template.
 // The four categories drive the top-level mix when [Faker.UserAgent] is
 // invoked and gate which template pool is sampled.
@@ -510,7 +508,3 @@ func makeRange(lo, hi int) []int {
 	}
 	return out
 }
-
-// _ keeps math/rand/v2 referenced; template build funcs in ua_*.go consume
-// the rand package via pick / shuffle helpers.
-var _ = rand.IntN
