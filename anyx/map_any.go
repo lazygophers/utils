@@ -22,8 +22,8 @@ type MapAny struct {
 	// 大多数场景下比 sync.Map 更快，特别是初始化和读操作
 	data map[string]interface{}
 	mu   sync.RWMutex
-	cut  uint32         // 0=disabled, 1=enabled (性能优化：使用 uint32 替代 atomic.Bool)
-	seq  atomic.Value   // 存储 string (性能优化：使用 atomic.Value 替代 atomic.String)
+	cut  uint32       // 0=disabled, 1=enabled (性能优化：使用 uint32 替代 atomic.Bool)
+	seq  atomic.Value // 存储 string (性能优化：使用 atomic.Value 替代 atomic.String)
 }
 
 var (
@@ -2337,6 +2337,10 @@ func mapGetWithSeparator(m map[string]any, key string, sep string) (any, error) 
 // splitKey splits a key into parts, handling both separators and array indices
 // splitKey splits a key into parts, handling both separators and array indices
 func splitKey(key string, sep string) []string {
+	// 空分隔符：把整个 key 作为单一部分返回（避免死循环）
+	if len(sep) == 0 {
+		return []string{key}
+	}
 	// 估算：假设平均每个部分 10 个字符
 	estimatedParts := (len(key) + 9) / 10
 	parts := make([]string, 0, estimatedParts)
@@ -2361,6 +2365,11 @@ func splitKey(key string, sep string) []string {
 			current = append(current, c)
 			afterBrackets = false
 		case c == ']':
+			// 裸 ]（前面无配对 [）且 current 已有内容时，先切出 current 再起新 part
+			if !inBrackets && len(current) > 0 {
+				parts = append(parts, string(current))
+				current = current[:0]
+			}
 			inBrackets = false
 			current = append(current, c)
 			if len(current) > 0 {
@@ -2588,4 +2597,3 @@ func joinPath(parts []string, sep string) string {
 	}
 	return builder.String()
 }
-

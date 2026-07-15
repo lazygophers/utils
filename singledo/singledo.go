@@ -45,8 +45,8 @@ func (s *Single[T]) Do(fn func() (T, error)) (v T, err error) {
 	if callM.err == nil {
 		s.last = now
 		s.result = callM.val
-		s.call = nil
 	}
+	s.call = nil
 	s.mux.Unlock()
 
 	return callM.val, callM.err

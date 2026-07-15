@@ -264,9 +264,12 @@ func FromSolarTimestamp(ts int64) (lunarYear, lunarMonth, lunarDay int64, lunarM
 		isLeap                  bool
 	)
 	// 与 1900-01-31 相差多少天
-	t := time.Unix(ts, 0)
-	t1 := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.Local)
-	t2 := time.Date(1900, 1, 31, 0, 0, 0, 0, time.Local)
+	// ponytail: 日期分量取本地语义，但 t1/t2 用 UTC 重建做差。
+	// time.Local 在 1900 年是 LMT(+06:55)，与 CST(+08:00) 混算致 Unix 秒差非整天，
+	// /86400 截断后 offset 偏 1 天，农历年整体 off-by-one。
+	t := time.Unix(ts, 0).In(time.Local)
+	t1 := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC)
+	t2 := time.Date(1900, 1, 31, 0, 0, 0, 0, time.UTC)
 	offset = (t1.Unix() - t2.Unix()) / 86400
 
 	for i = 1900; i < 2101 && offset > 0; i++ {
