@@ -1,4 +1,4 @@
-//go:build !debug && !alpha && !beta && !release && !test
+//go:build !debug && !dev && !development && !alpha && !beta && !release && !prod && !production && !test && !canary
 
 package app
 

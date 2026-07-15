@@ -16,6 +16,18 @@ const (
 	Release
 )
 
+// 常量别名，与 env.go 的 APP_ENV 映射及编译期 build tag 别名对齐。
+// ponytail: 别名用 iota 块内的显式赋值，不引入新值。
+const (
+	Dev         = Debug
+	Development = Debug
+
+	Canary = Test
+
+	Prod       = Release
+	Production = Release
+)
+
 func (p ReleaseType) String() string {
 	switch p {
 	case Release:
@@ -38,8 +50,23 @@ func (p ReleaseType) IsDebug() bool {
 	return p == Debug
 }
 
+// IsDev 判断是否为调试环境
+func (p ReleaseType) IsDev() bool {
+	return p == Debug
+}
+
+// IsDevelopment 判断是否为调试环境
+func (p ReleaseType) IsDevelopment() bool {
+	return p == Debug
+}
+
 // IsTest 判断是否为测试环境
 func (p ReleaseType) IsTest() bool {
+	return p == Test
+}
+
+// IsCanary 判断是否为测试环境
+func (p ReleaseType) IsCanary() bool {
 	return p == Test
 }
 
@@ -58,6 +85,16 @@ func (p ReleaseType) IsRelease() bool {
 	return p == Release
 }
 
+// IsProd 判断是否为正式环境
+func (p ReleaseType) IsProd() bool {
+	return p == Release
+}
+
+// IsProduction 判断是否为正式环境
+func (p ReleaseType) IsProduction() bool {
+	return p == Release
+}
+
 // IsDev 判断当前环境是否为调试环境（全局便捷函数）
 func IsDev() bool {
 	return Env == Debug
@@ -68,8 +105,18 @@ func IsDebug() bool {
 	return Env == Debug
 }
 
+// IsDevelopment 判断当前环境是否为调试环境（全局便捷函数）
+func IsDevelopment() bool {
+	return Env == Debug
+}
+
 // IsTest 判断当前环境是否为测试环境（全局便捷函数）
 func IsTest() bool {
+	return Env == Test
+}
+
+// IsCanary 判断当前环境是否为测试环境（全局便捷函数）
+func IsCanary() bool {
 	return Env == Test
 }
 
@@ -85,6 +132,11 @@ func IsBeta() bool {
 
 // IsProd 判断当前环境是否为正式环境（全局便捷函数）
 func IsProd() bool {
+	return Env == Release
+}
+
+// IsProduction 判断当前环境是否为正式环境（全局便捷函数）
+func IsProduction() bool {
 	return Env == Release
 }
 

@@ -12,7 +12,7 @@
 - **全局版本缓存**：`init` 时解析全局 `Version`；`GetVersion`/`SetVersion`/`MustSetVersion` 读写已缓存的版本对象，解析失败时回退默认 `0.0.1`。
 
 约束：
-- `Env` 由 build tag 决定（`debug`/`test`/`alpha`/`beta`/`release`，互斥；均未指定时默认 `Debug`），同一二进制内仅生效一份定义。
+- `Env` 由 build tag 决定（`debug`/`dev`/`development`→Debug，`test`/`canary`→Test，`alpha`→Alpha，`beta`→Beta，`release`/`prod`/`production`→Release，互斥；均未指定时默认 `Debug`），同一二进制内仅生效一份定义。
 - `APP_ENV` 环境变量在包 `init` 时覆盖 `Env`（`dev`/`development`→Debug，`test`/`canary`→Test，`prod`/`release`/`production`→Release，`alpha`→Alpha，`beta`→Beta）。
 - `Parse` 要求至少三段数字（`major.minor.patch`），任一段为负或非数字均报错。
 
@@ -60,22 +60,39 @@ const (
 	Release
 )
 
+// 常量别名（与 APP_ENV 映射及 build tag 别名对齐）
+const (
+	Dev         = Debug
+	Development = Debug
+	Canary      = Test
+	Prod        = Release
+	Production  = Release
+)
+
 func (p ReleaseType) String() string
 
 func (p ReleaseType) IsDebug() bool
+func (p ReleaseType) IsDev() bool
+func (p ReleaseType) IsDevelopment() bool
 func (p ReleaseType) IsTest() bool
+func (p ReleaseType) IsCanary() bool
 func (p ReleaseType) IsAlpha() bool
 func (p ReleaseType) IsBeta() bool
 func (p ReleaseType) IsRelease() bool
+func (p ReleaseType) IsProd() bool
+func (p ReleaseType) IsProduction() bool
 
 // 包级全局便捷函数（基于全局 Env 判断）
-func IsDev() bool     // Env == Debug
-func IsDebug() bool   // Env == Debug
-func IsTest() bool    // Env == Test
-func IsAlpha() bool   // Env == Alpha
-func IsBeta() bool    // Env == Beta
-func IsProd() bool    // Env == Release
-func IsRelease() bool // Env == Release
+func IsDev() bool         // Env == Debug
+func IsDebug() bool       // Env == Debug
+func IsDevelopment() bool // Env == Debug
+func IsTest() bool        // Env == Test
+func IsCanary() bool      // Env == Test
+func IsAlpha() bool       // Env == Alpha
+func IsBeta() bool        // Env == Beta
+func IsProd() bool        // Env == Release
+func IsProduction() bool  // Env == Release
+func IsRelease() bool     // Env == Release
 ```
 
 ### SemVer
@@ -137,12 +154,12 @@ var (
 | `info.go` | `Organization`/`Name`/`Version` 变量；`ReleaseType` 枚举与 `String`/`IsXxx` 方法；包级 `IsDev`/`IsProd` 等全局判定函数 |
 | `version.go` | `SemVer` 类型、`Parse`/`MustParse`、`String`/`Short`/比较族方法、版本缓存与 `GetVersion`/`SetVersion`/`MustSetVersion` |
 | `env.go` | 构建期元信息变量（Commit/Branch/BuildDate/Go* 等）；`setEnvFromEnv` 在 `init` 中按 `APP_ENV` 覆盖 `Env` |
-| `default.go` | build tag `!debug && !alpha && !beta && !release && !test` 时定义 `var Env = Debug`（默认） |
-| `debug.go` | build tag `debug` 时定义 `var Env = Debug` |
-| `test.go` | build tag `test` 时定义 `var Env = Test` |
+| `default.go` | build tag `!debug && !dev && !development && !alpha && !beta && !release && !prod && !production && !test && !canary` 时定义 `var Env = Debug`（默认） |
+| `debug.go` | build tag `debug`/`dev`/`development` 时定义 `var Env = Debug` |
+| `test.go` | build tag `test`/`canary` 时定义 `var Env = Test` |
 | `alpha.go` | build tag `alpha` 时定义 `var Env = Alpha` |
 | `beta.go` | build tag `beta` 时定义 `var Env = Beta` |
-| `release.go` | build tag `release` 时定义 `var Env = Release` |
+| `release.go` | build tag `release`/`prod`/`production` 时定义 `var Env = Release` |
 | `info_test.go` | `ReleaseType`/全局判定函数测试 |
 | `version_test.go` | `SemVer` 解析与比较测试 |
 

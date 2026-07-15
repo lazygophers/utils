@@ -346,3 +346,51 @@ func TestIsProdAndIsReleaseAlias(t *testing.T) {
 	Env = Debug
 	assert.Equal(t, IsRelease(), IsProd())
 }
+
+// aliasCase 描述 ReleaseType 别名与主名的等同关系（常量 + 方法 + 全局函数）
+type aliasCase struct {
+	alias      ReleaseType
+	primary    ReleaseType
+	aliasName  string
+	primaryKey string
+}
+
+func TestReleaseTypeAliases(t *testing.T) {
+	cases := []aliasCase{
+		{Dev, Debug, "Dev", "Debug"},
+		{Development, Debug, "Development", "Debug"},
+		{Canary, Test, "Canary", "Test"},
+		{Prod, Release, "Prod", "Release"},
+		{Production, Release, "Production", "Release"},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.aliasName+"_const", func(t *testing.T) {
+			assert.Equal(t, tt.primary, tt.alias)
+		})
+	}
+
+	// 方法别名等同：对每个 ReleaseType 取值，别名方法与主名方法返回一致
+	for _, rt := range []ReleaseType{Debug, Test, Alpha, Beta, Release} {
+		assert.Equal(t, rt.IsDebug(), rt.IsDev())
+		assert.Equal(t, rt.IsDebug(), rt.IsDevelopment())
+		assert.Equal(t, rt.IsTest(), rt.IsCanary())
+		assert.Equal(t, rt.IsRelease(), rt.IsProd())
+		assert.Equal(t, rt.IsRelease(), rt.IsProduction())
+	}
+}
+
+func TestGlobalIsAliases(t *testing.T) {
+	// 全局别名函数与主名函数在任意 Env 下返回一致
+	originalEnv := Env
+	defer func() { Env = originalEnv }()
+
+	for _, rt := range []ReleaseType{Debug, Test, Alpha, Beta, Release} {
+		Env = rt
+		assert.Equal(t, IsDebug(), IsDev())
+		assert.Equal(t, IsDebug(), IsDevelopment())
+		assert.Equal(t, IsTest(), IsCanary())
+		assert.Equal(t, IsRelease(), IsProd())
+		assert.Equal(t, IsRelease(), IsProduction())
+	}
+}
