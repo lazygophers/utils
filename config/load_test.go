@@ -3071,3 +3071,43 @@ func TestMergeConfig(t *testing.T) {
 		}
 	})
 }
+
+type ptrInnerCfg struct {
+	Secret string `yaml:"secret,omitempty" env:"TEST_PTR_OVERRIDE_SECRET"`
+}
+
+type ptrNestedCfg struct {
+	Inner *ptrInnerCfg `yaml:"inner,omitempty"`
+}
+
+type directNestedCfg struct {
+	Inner ptrInnerCfg `yaml:"inner,omitempty"`
+}
+
+// TestOverrideConfigWithEnv_NestedPtrStruct 验证指针嵌套 struct 的 env 覆盖与值嵌套行为一致 (issue #52)
+func TestOverrideConfigWithEnv_NestedPtrStruct(t *testing.T) {
+	os.Setenv("TEST_PTR_OVERRIDE_SECRET", "from_env")
+	t.Cleanup(func() { os.Unsetenv("TEST_PTR_OVERRIDE_SECRET") })
+
+	t.Run("nil pointer allocated and overridden", func(t *testing.T) {
+		var cfg ptrNestedCfg
+		err := overrideConfigWithEnv(&cfg)
+		assert.NoError(t, err)
+		require.NotNil(t, cfg.Inner)
+		assert.Equal(t, "from_env", cfg.Inner.Secret)
+	})
+
+	t.Run("existing pointer value overridden", func(t *testing.T) {
+		cfg := ptrNestedCfg{Inner: &ptrInnerCfg{Secret: "from_yaml"}}
+		err := overrideConfigWithEnv(&cfg)
+		assert.NoError(t, err)
+		assert.Equal(t, "from_env", cfg.Inner.Secret)
+	})
+
+	t.Run("value-nested struct still overridden", func(t *testing.T) {
+		cfg := directNestedCfg{Inner: ptrInnerCfg{Secret: "from_yaml"}}
+		err := overrideConfigWithEnv(&cfg)
+		assert.NoError(t, err)
+		assert.Equal(t, "from_env", cfg.Inner.Secret)
+	})
+}

@@ -703,6 +703,14 @@ func overrideConfigWithEnv(v interface{}) error {
 			continue
 		}
 
+		// 指针嵌套 struct：nil 先分配，再解引用，使 env 覆盖与值嵌套行为一致
+		if fieldValue.Kind() == reflect.Ptr && fieldValue.Type().Elem().Kind() == reflect.Struct {
+			if fieldValue.IsNil() {
+				fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
+			}
+			fieldValue = fieldValue.Elem()
+		}
+
 		// 检查是否为嵌套结构体
 		if fieldValue.Kind() == reflect.Struct {
 			err := overrideNestedStructWithEnv(fieldValue)
@@ -748,6 +756,14 @@ func overrideNestedStructWithEnv(structValue reflect.Value) error {
 
 		if !fieldValue.CanSet() {
 			continue
+		}
+
+		// 指针嵌套 struct：nil 先分配，再解引用，使 env 覆盖与值嵌套行为一致
+		if fieldValue.Kind() == reflect.Ptr && fieldValue.Type().Elem().Kind() == reflect.Struct {
+			if fieldValue.IsNil() {
+				fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
+			}
+			fieldValue = fieldValue.Elem()
 		}
 
 		// 检查是否为嵌套结构体
