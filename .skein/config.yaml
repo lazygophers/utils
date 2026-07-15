@@ -5,5 +5,6 @@ use_worktree: true
 worktree_root: .worktrees
 retain_days: 7
 board_theme: skein
-board_server: false
 web_serve: false
+board_open: true
+board_server: false

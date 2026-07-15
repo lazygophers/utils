@@ -1,3 +1,10 @@
 {
-  "tasks": []
+  "tasks": [
+    {
+      "id": "fix-test-failures",
+      "status": "已完成",
+      "deps": [],
+      "worktree": null
+    }
+  ]
 }
