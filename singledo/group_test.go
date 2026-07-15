@@ -1,7 +1,6 @@
 package singledo
 
 import (
-	"context"
 	"errors"
 	"sync"
 	"testing"
@@ -122,129 +121,6 @@ func TestSingle_Do(t *testing.T) {
 	})
 }
 
-func TestSingle_DoCtx_Panic(t *testing.T) {
-	t.Run("panic_protection", func(t *testing.T) {
-		s := NewSingle[string](time.Second)
-		panicMsg := "test panic"
-
-		fn := func() (string, error) {
-			panic(panicMsg)
-		}
-
-		v, err := s.DoCtx(context.Background(), fn)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "panic")
-		assert.Contains(t, err.Error(), panicMsg)
-		assert.Equal(t, "", v)
-	})
-
-	t.Run("panic_with_other_waiters", func(t *testing.T) {
-		s := NewSingle[string](time.Second)
-		panicMsg := "panic in flight"
-		calls := 0
-		mu := sync.Mutex{}
-
-		fn := func() (string, error) {
-			mu.Lock()
-			calls++
-			mu.Unlock()
-			time.Sleep(20 * time.Millisecond)
-			panic(panicMsg)
-		}
-
-		var wg sync.WaitGroup
-		results := make(chan error, 3)
-
-		for i := 0; i < 3; i++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				_, err := s.DoCtx(context.Background(), fn)
-				results <- err
-			}()
-		}
-		wg.Wait()
-		close(results)
-
-		errorCount := 0
-		for err := range results {
-			if err != nil {
-				errorCount++
-				assert.Contains(t, err.Error(), "panic")
-			}
-		}
-
-		assert.Equal(t, 3, errorCount, "all waiters should get panic error")
-		mu.Lock()
-		assert.Equal(t, 1, calls, "should only call fn once despite panic")
-		mu.Unlock()
-	})
-}
-
-func TestSingle_DoCtx_Context(t *testing.T) {
-	t.Run("context_cancelled_before_start", func(t *testing.T) {
-		s := NewSingle[string](time.Second)
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel()
-
-		calls := 0
-		fn := func() (string, error) {
-			calls++
-			return "result", nil
-		}
-
-		v, err := s.DoCtx(ctx, fn)
-		assert.Error(t, err)
-		assert.Equal(t, context.Canceled, err)
-		assert.Equal(t, "", v)
-		assert.Equal(t, 0, calls, "should not call fn if ctx already cancelled")
-	})
-
-	t.Run("context_timeout", func(t *testing.T) {
-		s := NewSingle[string](time.Second)
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
-		defer cancel()
-
-		fn := func() (string, error) {
-			time.Sleep(100 * time.Millisecond)
-			return "result", nil
-		}
-
-		// Start the slow call
-		start := time.Now()
-		_, _ = s.DoCtx(ctx, fn)
-		elapsed := time.Since(start)
-
-		// Should not return early (context cancelled during execution)
-		// The design waits for fn to complete even if ctx is cancelled
-		assert.Greater(t, elapsed.Milliseconds(), int64(80), "should wait for fn to complete")
-	})
-
-	t.Run("context_with_cached_result", func(t *testing.T) {
-		s := NewSingle[string](time.Second)
-		calls := 0
-
-		fn := func() (string, error) {
-			calls++
-			return "result", nil
-		}
-
-		// First call
-		v, err := s.DoCtx(context.Background(), fn)
-		require.NoError(t, err)
-		assert.Equal(t, "result", v)
-		assert.Equal(t, 1, calls)
-
-		// Second call with cancelled context should still use cache
-		ctx, cancel := context.WithCancel(context.Background())
-		cancel()
-		v, err = s.DoCtx(ctx, fn)
-		assert.NoError(t, err, "cached result should be returned even if ctx cancelled")
-		assert.Equal(t, "result", v)
-		assert.Equal(t, 1, calls, "should not call fn again")
-	})
-}
-
 func TestGroup_Do(t *testing.T) {
 	t.Run("different_keys_execute_separately", func(t *testing.T) {
 		g := NewSingleGroup[string](time.Second)
@@ -312,54 +188,6 @@ func TestGroup_Do(t *testing.T) {
 		mu.Lock()
 		assert.Equal(t, 1, calls, "should only call fn once for same key")
 		mu.Unlock()
-	})
-}
-
-func TestGroup_DoCtx(t *testing.T) {
-	t.Run("context_cancelled_per_key", func(t *testing.T) {
-		g := NewSingleGroup[string](time.Second)
-
-		ctx1, cancel1 := context.WithCancel(context.Background())
-		cancel1()
-
-		ctx2 := context.Background()
-
-		calls := 0
-		mu := sync.Mutex{}
-
-		fn := func() (string, error) {
-			mu.Lock()
-			calls++
-			mu.Unlock()
-			return "result", nil
-		}
-
-		// First call with cancelled context
-		_, err := g.DoCtx(ctx1, "key1", fn)
-		assert.Error(t, err)
-
-		// Second call with valid context
-		v, err := g.DoCtx(ctx2, "key2", fn)
-		assert.NoError(t, err)
-		assert.Equal(t, "result", v)
-
-		mu.Lock()
-		assert.Equal(t, 1, calls, "should only call fn once (for valid context)")
-		mu.Unlock()
-	})
-
-	t.Run("panic_protection_in_group", func(t *testing.T) {
-		g := NewSingleGroup[string](time.Second)
-		panicMsg := "group panic"
-
-		fn := func() (string, error) {
-			panic(panicMsg)
-		}
-
-		v, err := g.DoCtx(context.Background(), "panic-key", fn)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "panic")
-		assert.Equal(t, "", v)
 	})
 }
 

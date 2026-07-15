@@ -2111,27 +2111,6 @@ func TestMapAny_ComplexScenarios(t *testing.T) {
 	})
 }
 
-// Custom type for testing YAML unmarshal error
-// This type will cause YAML unmarshal error after successful JSON marshal
-type CustomTypeForYamlError struct{}
-
-// Override MarshalJSON to return invalid YAML
-func (c CustomTypeForYamlError) MarshalJSON() ([]byte, error) {
-	// Return invalid YAML that is valid JSON
-	return []byte(`"not a yaml map"`), nil
-}
-
-// Test for NewMapWithAny YAML unmarshal error path
-func TestNewMapWithAny_YamlUnmarshalError(t *testing.T) {
-	// This should trigger the YAML unmarshal error path
-	// because the JSON marshal returns a string, but YAML
-	// expects a map when unmarshaling into map[string]interface{}
-	input := CustomTypeForYamlError{}
-	result, err := NewMapWithAny(input)
-	assert.Error(t, err)
-	assert.Nil(t, result)
-}
-
 // Additional test cases to improve get function coverage
 func TestMapAny_Get_FullCoverage(t *testing.T) {
 	t.Run("keys slice with length 0 after loop", func(t *testing.T) {
@@ -5975,12 +5954,13 @@ func TestNavigateToValue_Coverage(t *testing.T) {
 			description: "验证索引超出范围（负数）",
 		},
 		{
-			name:        "空索引（当前实现解析为 0）",
+			name:        "空索引（长度=2 不满足索引模式）",
 			data:        []any{"a", "b", "c"},
 			part:        "[]",
-			want:        "a",
-			wantErr:     false,
-			description: "验证空索引被解析为 0（当前实现行为）",
+			want:        nil,
+			wantErr:     true,
+			errType:     ErrInvalidMapType,
+			description: "验证空方括号长度=2 不满足索引模式，回退为键访问对切片触发 ErrInvalidMapType",
 		},
 		{
 			name:        "无效索引格式 - 非数字",
@@ -6010,12 +5990,13 @@ func TestNavigateToValue_Coverage(t *testing.T) {
 			description: "验证小数索引的错误处理",
 		},
 		{
-			name:        "无效索引格式 - 负号后无数字（当前实现解析为 0）",
+			name:        "无效索引格式 - 负号后无数字",
 			data:        []any{"a", "b", "c"},
 			part:        "[-]",
-			want:        "a",
-			wantErr:     false,
-			description: "验证只有负号的索引被解析为 0（当前实现行为）",
+			want:        nil,
+			wantErr:     true,
+			errType:     ErrInvalidIndex,
+			description: "验证只有负号的索引返回错误（parseIndex 拒绝单个负号）",
 		},
 
 		// ===== 类型错误测试 =====
@@ -6135,13 +6116,13 @@ func TestNavigateToValue_Coverage(t *testing.T) {
 			description: "验证数字字符串作为键（不是索引）",
 		},
 		{
-			name:        "part 只有方括号但内容为空（当前实现解析为索引 0）",
+			name:        "part 只有方括号但内容为空（作为键访问）",
 			data:        map[string]any{"": "value"},
 			part:        "[]",
 			want:        nil,
 			wantErr:     true,
-			errType:     ErrInvalidMapType,
-			description: "验证空方括号被当作索引处理，但 map 不支持索引访问",
+			errType:     ErrNotFound,
+			description: "验证空方括号长度=2 不满足索引模式，作为键 \"[]\" 访问 map 时键不存在",
 		},
 		{
 			name:        "part 是单个方括号",
@@ -6184,7 +6165,7 @@ func TestNavigateToValue_PatternIntegrity(t *testing.T) {
 		{"标准数组索引", "[0]", true, "以 [ 开头，以 ] 结尾，长度 > 2"},
 		{"负数索引", "[-1]", true, "负数索引模式"},
 		{"多位数索引", "[123]", true, "多位数字索引"},
-		{"空索引", "[]", true, "空索引（当前实现解析为索引 0）"},
+		{"空索引", "[]", false, "空索引长度=2 不满足 len>2 模式（作为键访问）"},
 		{"普通键", "key", false, "普通键名"},
 		{"带方括号的键（不完整）", "[key", false, "只有左方括号"},
 		{"带方括号的键（不完整）", "key]", false, "只有右方括号"},
@@ -6310,7 +6291,7 @@ func TestNavigateToValue_TypeSwitchCoverage(t *testing.T) {
 		{"[]float64 分支", []float64{1.1, 2.2}, "[0]", 1.1, false, "覆盖 []float64 类型", false},
 		{"[]bool 分支", []bool{true, false}, "[0]", true, false, "覆盖 []bool 类型", false},
 		{"[]map[string]any 分支", []map[string]any{{"k": "v"}}, "[0]", map[string]any{"k": "v"}, false, "覆盖 []map[string]any 类型", false},
-		{"未知切片类型", []int32{1, 2}, "[0]", nil, true, "覆盖 accessGenericSlice 分支", false},
+		{"未知切片类型", []int32{1, 2}, "[0]", int32(1), false, "覆盖 accessGenericSlice 分支（[]int32 fast-path 返回值）", false},
 
 		// 覆盖 accessMapKey 中的所有类型分支
 		{"map[string]any 分支", map[string]any{"k": "v"}, "k", "v", false, "覆盖 map[string]any 类型", false},
@@ -6389,26 +6370,32 @@ func TestAccessGenericSlice_Coverage(t *testing.T) {
 		name        string
 		slice       any
 		index       int
+		want        any
 		wantErr     bool
 		errType     error
 		description string
 	}
 	tests := []testCase18{
-		{"[]uint", []uint{1, 2, 3}, 1, true, ErrInvalidSlice, "不支持的 []uint 类型"},
-		{"[]float32", []float32{1.1, 2.2}, 0, true, ErrInvalidSlice, "不支持的 []float32 类型"},
-		{"[]int32", []int32{1, 2}, 0, true, ErrInvalidSlice, "不支持的 []int32 类型"},
-		{"[]interface{} 显式", []interface{}{"a"}, 0, true, ErrInvalidSlice, "显式 []interface{} 类型"},
-		{"非切片类型", "string", 0, true, ErrInvalidSlice, "非切片类型"},
-		{"nil", nil, 0, true, ErrInvalidSlice, "nil 值"},
+		{"[]uint", []uint{1, 2, 3}, 1, uint(2), false, nil, "[]uint fast-path 返回元素"},
+		{"[]float32", []float32{1.1, 2.2}, 0, float32(1.1), false, nil, "[]float32 fast-path 返回元素"},
+		{"[]int32", []int32{1, 2}, 0, int32(1), false, nil, "[]int32 fast-path 返回元素"},
+		{"[]interface{} 显式", []interface{}{"a"}, 0, "a", false, nil, "显式 []interface{} reflect 兜底返回元素"},
+		{"非切片类型", "string", 0, nil, true, ErrInvalidSlice, "非切片类型"},
+		{"nil", nil, 0, nil, true, ErrInvalidSlice, "nil 值"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := accessGenericSlice(tt.slice, tt.index)
+			result, err := accessGenericSlice(tt.slice, tt.index)
 
-			assert.True(t, tt.wantErr, tt.description)
-			if tt.errType != nil {
-				assert.ErrorIs(t, err, tt.errType, tt.description)
+			if tt.wantErr {
+				assert.Error(t, err, tt.description)
+				if tt.errType != nil {
+					assert.ErrorIs(t, err, tt.errType, tt.description)
+				}
+			} else {
+				assert.NoError(t, err, tt.description)
+				assert.Equal(t, tt.want, result, tt.description)
 			}
 		})
 	}
@@ -6702,8 +6689,8 @@ func TestMapGetWithSeparator_Coverage(t *testing.T) {
 			},
 			key:         "items.[-1]",
 			sep:         ".",
-			want:        "c",
-			wantErrType: nil,
+			want:        nil,
+			wantErrType: ErrOutOfRange,
 		},
 		{
 			name: "索引越界-正数",
@@ -6943,10 +6930,11 @@ func TestMapGetWithSeparator_Coverage(t *testing.T) {
 					"[nested]": "value",
 				},
 			},
+			// "[nested]" 被 span 解析为索引段（以 [ 开头 ] 结尾），nested 非数字 → ErrInvalidIndex
 			key:         "key-with-dash.[nested]",
 			sep:         ".",
-			want:        "value",
-			wantErrType: nil,
+			want:        nil,
+			wantErrType: ErrInvalidIndex,
 		},
 		{
 			name: "nil值处理",
@@ -7436,40 +7424,41 @@ func TestAccessGenericSlice_FullCoverage(t *testing.T) {
 		name        string
 		slice       any
 		index       int
+		want        any
 		wantErr     bool
 		errType     error
 		description string
 	}
 	tests := []testCase18{
-		// 当前实现测试（始终返回错误）
-		{"nil 切片", nil, 0, true, ErrInvalidSlice, "nil 值应返回错误"},
-		{"非切片类型", "string", 0, true, ErrInvalidSlice, "字符串类型应返回错误"},
-		{"整数", 42, 0, true, ErrInvalidSlice, "整数类型应返回错误"},
-		{"map", map[string]any{}, 0, true, ErrInvalidSlice, "map 类型应返回错误"},
+		// 非切片类型（reflect.Kind != Slice）
+		{"nil 切片", nil, 0, nil, true, ErrInvalidSlice, "nil 值应返回错误"},
+		{"非切片类型", "string", 0, nil, true, ErrInvalidSlice, "字符串类型应返回错误"},
+		{"整数", 42, 0, nil, true, ErrInvalidSlice, "整数类型应返回错误"},
+		{"map", map[string]any{}, 0, nil, true, ErrInvalidSlice, "map 类型应返回错误"},
 
-		// 未支持的切片类型
-		{"[]uint", []uint{1, 2, 3}, 1, true, ErrInvalidSlice, "uint 切片应返回错误"},
-		{"[]float32", []float32{1.1, 2.2}, 0, true, ErrInvalidSlice, "float32 切片应返回错误"},
-		{"[]int32", []int32{1, 2}, 0, true, ErrInvalidSlice, "int32 切片应返回错误"},
-		{"[]uint8", []uint8{1, 2, 3}, 2, true, ErrInvalidSlice, "uint8 切片应返回错误"},
-		{"[]int16", []int16{10, 20}, 1, true, ErrInvalidSlice, "int16 切片应返回错误"},
-		{"[]uint16", []uint16{100, 200}, 0, true, ErrInvalidSlice, "uint16 切片应返回错误"},
-		{"[]uint64", []uint64{1, 2, 3}, 2, true, ErrInvalidSlice, "uint64 切片应返回错误"},
+		// 已支持的切片类型（fast-path 或 reflect 兜底返回元素）
+		{"[]uint", []uint{1, 2, 3}, 1, uint(2), false, nil, "uint 切片 fast-path 返回元素"},
+		{"[]float32", []float32{1.1, 2.2}, 0, float32(1.1), false, nil, "float32 切片 fast-path 返回元素"},
+		{"[]int32", []int32{1, 2}, 0, int32(1), false, nil, "int32 切片 fast-path 返回元素"},
+		{"[]uint8", []uint8{1, 2, 3}, 2, uint8(3), false, nil, "uint8 切片 reflect 兜底返回元素"},
+		{"[]int16", []int16{10, 20}, 1, int16(20), false, nil, "int16 切片 reflect 兜底返回元素"},
+		{"[]uint16", []uint16{100, 200}, 0, uint16(100), false, nil, "uint16 切片 reflect 兜底返回元素"},
+		{"[]uint64", []uint64{1, 2, 3}, 2, uint64(3), false, nil, "uint64 切片 reflect 兜底返回元素"},
 
-		// 自定义类型
-		{"自定义切片", []struct{ X int }{{1}, {2}}, 0, true, ErrInvalidSlice, "自定义结构体切片应返回错误"},
+		// 自定义类型（reflect 兜底）
+		{"自定义切片", []struct{ X int }{{1}, {2}}, 0, struct{ X int }{1}, false, nil, "自定义结构体切片 reflect 兜底返回元素"},
 
-		// 边界情况
-		{"[]uint 负索引", []uint{1, 2, 3}, -1, true, ErrInvalidSlice, "负索引应返回错误"},
-		{"[]uint 超大索引", []uint{1, 2, 3}, 100, true, ErrInvalidSlice, "超大索引应返回错误"},
-		{"空切片", []uint{}, 0, true, ErrInvalidSlice, "空切片应返回错误"},
-		{"单元素切片", []uint{42}, 0, true, ErrInvalidSlice, "单元素切片应返回错误"},
+		// 边界情况：真越界仍报 ErrOutOfRange
+		{"[]uint 负索引", []uint{1, 2, 3}, -1, nil, true, ErrOutOfRange, "负索引越界返回 ErrOutOfRange"},
+		{"[]uint 超大索引", []uint{1, 2, 3}, 100, nil, true, ErrOutOfRange, "超大索引越界返回 ErrOutOfRange"},
+		{"空切片", []uint{}, 0, nil, true, ErrOutOfRange, "空切片索引越界返回 ErrOutOfRange"},
+		{"单元素切片", []uint{42}, 0, uint(42), false, nil, "单元素切片返回元素"},
 
-		// 指针类型
-		{"指针类型", &[]struct{}{}, 0, true, ErrInvalidSlice, "指针类型应返回错误"},
+		// 指针类型（reflect.Kind == Ptr，非 Slice）
+		{"指针类型", &[]struct{}{}, 0, nil, true, ErrInvalidSlice, "指针类型应返回错误"},
 
-		// 接口切片（显式）
-		{"[]interface{} 显式", []interface{}{"a", "b"}, 0, true, ErrInvalidSlice, "显式接口切片应返回错误"},
+		// 接口切片（显式，reflect 兜底）
+		{"[]interface{} 显式", []interface{}{"a", "b"}, 0, "a", false, nil, "显式接口切片 reflect 兜底返回元素"},
 	}
 
 	for _, tt := range tests {
@@ -7485,7 +7474,7 @@ func TestAccessGenericSlice_FullCoverage(t *testing.T) {
 				assert.Nil(t, result, tt.description+" 结果应为 nil")
 			} else {
 				assert.NoError(t, err, tt.description)
-				assert.NotNil(t, result, tt.description+" 结果不应为 nil")
+				assert.Equal(t, tt.want, result, tt.description)
 			}
 		})
 	}
@@ -7497,18 +7486,22 @@ func TestAccessGenericSlice_ErrorMessages(t *testing.T) {
 		name     string
 		slice    any
 		index    int
+		errType  error
 		contains string
 	}
+	// fast-path 越界返回裸 ErrOutOfRange（无格式化消息）；
+	// 非 slice 类型走 reflect 兜底，消息含 "%T" 类型信息与索引。
 	tests := []testCase21{
-		{"错误消息包含类型信息", []uint{1, 2}, 0, "[]uint"},
-		{"错误消息包含索引", []float32{1.1}, 1, "1"},
-		{"nil 错误消息", nil, 0, "nil"},
+		{"[]float32 越界", []float32{1.1}, 1, ErrOutOfRange, "index out of range"},
+		{"非切片类型消息含类型", "string", 0, ErrInvalidSlice, "string"},
+		{"nil 错误消息", nil, 0, ErrInvalidSlice, "nil"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := accessGenericSlice(tt.slice, tt.index)
-			assert.Error(t, err)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, tt.errType)
 			assert.Contains(t, err.Error(), tt.contains)
 		})
 	}

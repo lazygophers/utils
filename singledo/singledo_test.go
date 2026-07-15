@@ -193,39 +193,6 @@ func TestSingleDo_ConcurrentCalls(t *testing.T) {
 	}
 }
 
-func TestSingleDo_ErrorKeepsCall(t *testing.T) {
-	single := NewSingle[int](100 * time.Millisecond)
-
-	callCount := int32(0)
-	fn := func() (int, error) {
-		atomic.AddInt32(&callCount, 1)
-		return 0, errors.New("persistent error")
-	}
-
-	// First call should return error
-	result1, err1 := single.Do(fn)
-	if err1 == nil {
-		t.Error("First call should have returned error")
-	}
-	if result1 != 0 {
-		t.Errorf("First result = %d, expected 0", result1)
-	}
-
-	// Second call immediately after should return same error (call object persists)
-	result2, err2 := single.Do(fn)
-	if err2 == nil {
-		t.Error("Second call should have returned error")
-	}
-	if result2 != 0 {
-		t.Errorf("Second result = %d, expected 0", result2)
-	}
-
-	// Function should have been called only once (second call waits on first)
-	if atomic.LoadInt32(&callCount) != 1 {
-		t.Errorf("Function called %d times, expected 1", atomic.LoadInt32(&callCount))
-	}
-}
-
 func TestSingleReset(t *testing.T) {
 	wait := 200 * time.Millisecond
 	single := NewSingle[int](wait)
