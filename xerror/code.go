@@ -3,6 +3,7 @@ package xerror
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"sync/atomic"
 
 	"github.com/lazygophers/utils/i18n"
@@ -148,10 +149,7 @@ func resolveMsgWithLang(tag xlanguage.Tag, code int, msg string, args []any) str
 		key := errorKey(code)
 		out := l.LocalizeWithLang(tag, key)
 		if out != key {
-			if len(args) == 0 {
-				return out
-			}
-			return fmt.Sprintf(out, args...)
+			return injectArgs(out, args)
 		}
 	}
 	if msg == "" {
@@ -160,9 +158,17 @@ func resolveMsgWithLang(tag xlanguage.Tag, code int, msg string, args []any) str
 		}
 		return fmt.Sprint(args...)
 	}
-	if len(args) == 0 {
-		return msg
-	}
-	return fmt.Sprintf(msg, args...)
+	return injectArgs(msg, args)
 }
 
+// injectArgs 模板含占位符 (%v/{0}) 时 Sprintf 注入; 无占位符时以 ": " 追加,
+// 避免 fmt.Sprintf 产出 "%!(EXTRA ...)" 噪音。
+func injectArgs(tpl string, args []any) string {
+	if len(args) == 0 {
+		return tpl
+	}
+	if !strings.Contains(tpl, "%") {
+		return tpl + ": " + fmt.Sprint(args...)
+	}
+	return fmt.Sprintf(tpl, args...)
+}

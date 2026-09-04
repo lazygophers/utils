@@ -267,3 +267,18 @@ func TestLocalizerConcurrent(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+// TestNew_NoVerbTemplate 翻译模板无占位符时 args 以 ": " 追加, 不产 %!(EXTRA ...)
+func TestNew_NoVerbTemplate(t *testing.T) {
+	stub := newStubLocalizer()
+	stub.Register(xlanguage.Make("zh"), "error.1001", "参数错误")
+	SetLocalizer(stub)
+	defer SetLocalizer(nil)
+	language.Set(language.Make("zh"))
+	defer language.Del()
+
+	e := NewInvalidParam("listOption不能为空")
+	if e.Error() != "参数错误: listOption不能为空" {
+		t.Fatalf("message=%q", e.Error())
+	}
+}
